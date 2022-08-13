@@ -33,7 +33,7 @@ enum text_encoding
 };
 
 meta(generate_string_table(text_encoding))
-#include <metaprogramming/output/generate_string_table_text_encoding.h>
+#include <poof/output/generate_string_table_text_encoding.h>
 
 struct ansi_stream
 {

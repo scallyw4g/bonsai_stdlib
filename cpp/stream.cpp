@@ -1,5 +1,5 @@
 meta(generate_cursor(v3))
-#include <metaprogramming/output/generate_cursor_v3.h>
+#include <poof/output/generate_cursor_v3.h>
 
 template <typename stream_t, typename element_t>inline stream_t
 AllocateBuffer(u32 Count, memory_arena* Memory)

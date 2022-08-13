@@ -1,6 +1,6 @@
 /* #include <poof/public_api.h> */
-#include <metaprogramming/defines.h>
-#include <metaprogramming/functions.h>
+#include <poof/defines.h>
+#include <poof/functions.h>
 
 #include <bonsai_stdlib/headers/iterator_macros.h>
 #include <bonsai_stdlib/headers/assert.h>

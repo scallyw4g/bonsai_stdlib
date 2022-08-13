@@ -44,7 +44,7 @@ struct xml_tag
 };
 
 meta(hashtable_struct(xml_tag));
-#include <metaprogramming/output/hashtable_struct_xml_tag.h>
+#include <poof/output/hashtable_struct_xml_tag.h>
 
 struct xml_token_stream
 {
