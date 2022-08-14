@@ -1,5 +1,5 @@
 meta(hashtable_impl(xml_tag));
-#include <poof/output/hashtable_impl_xml_tag.h>
+#include <poof/generated/hashtable_impl_xml_tag.h>
 
 inline counted_string*
 GetPropertyValue(xml_tag* Tag, counted_string PropertyName)

@@ -1,5 +1,5 @@
 meta(stream_and_cursor(counted_string))
-#include <poof/output/stream_and_cursor_counted_string.h>
+#include <poof/generated/stream_and_cursor_counted_string.h>
 
 struct tagged_counted_string_stream
 {
@@ -7,7 +7,7 @@ struct tagged_counted_string_stream
   counted_string_stream Stream;
 };
 meta(generate_stream(tagged_counted_string_stream))
-#include <poof/output/generate_stream_tagged_counted_string_stream.h>
+#include <poof/generated/generate_stream_tagged_counted_string_stream.h>
 
 // TODO(Jesse, id: 99, tags: compiler_feature, metaprogramming): Generate this?  Need a compiler feature to generate stuff from primitive types.
 struct char_cursor
@@ -77,6 +77,12 @@ CharCursor(counted_string S)
     .At = (char*)S.Start,
     .End = (char*)(S.Start + S.Count),
   };
+  return Result;
+}
+
+char LastChar(counted_string Str)
+{
+  char Result = Str.Count ? Str.Start[Str.Count-1] : 0;
   return Result;
 }
 
@@ -158,6 +164,11 @@ Basename(counted_string FilePath)
     .Count = FilePath.Count - LastPathSeparator,
     .Start = FilePath.Start + LastPathSeparator,
   };
+
+  if (Result.Count)
+  {
+    Assert(IsPathSeparator(Result.Start[0]));
+  }
 
   return Result;
 }

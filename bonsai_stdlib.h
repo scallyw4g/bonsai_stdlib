@@ -32,7 +32,7 @@
 #include <bonsai_stdlib/headers/rect.h>
 #include <bonsai_stdlib/headers/xml.h>
 
-/* #include <debug_system/headers/debug.h> */
+/* #include <bonsai_debug/headers/debug.h> */
 
 
 enum shader_uniform_type

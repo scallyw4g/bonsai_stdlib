@@ -1,12 +1,12 @@
 
 meta(buffer(counted_string))
-#include <poof/output/buffer_counted_string.h>
+#include <poof/generated/buffer_counted_string.h>
 
 meta(index_of(counted_string))
-#include <poof/output/index_of_counted_string.h>
+#include <poof/generated/index_of_counted_string.h>
 
 meta(hashtable(counted_string))
-#include <poof/output/hashtable_counted_string.h>
+#include <poof/generated/hashtable_counted_string.h>
 
 
 counted_string

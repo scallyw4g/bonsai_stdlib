@@ -1,4 +1,6 @@
+#if BONSAI_NETWORK_IMPLEMENTATION
 #include <bonsai_net/network.h>
+#endif
 
 
 void *
@@ -336,6 +338,7 @@ BonsaiSwapBuffers(os *Os)
 
 #endif // PLATFORM_GL_IMPLEMENTATIONS
 
+#if BONSAI_NETWORK_IMPLEMENTATION
 inline void
 ConnectToServer(network_connection *Connection)
 {
@@ -394,3 +397,4 @@ ConnectToServer(network_connection *Connection)
 
   return;
 }
+#endif

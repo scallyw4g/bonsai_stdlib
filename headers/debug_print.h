@@ -115,7 +115,7 @@ meta(
       bonsai_function void DebugPrint((EnumDef.name) EnumValue, u32 Depth = 0);
     }
 )
-#include <poof/output/for_all_datatypes_debug_print_prototypes.h>
+#include <poof/generated/for_all_datatypes_debug_print_prototypes.h>
 
 meta(
   for_datatypes(all).exclude(unprintable_datatypes buggy_datatypes external_datatypes d_unions network_types linux_types)
@@ -169,7 +169,7 @@ meta(
   }
 
 )
-#include <poof/output/for_all_datatypes_debug_print_functions.h>
+#include <poof/generated/for_all_datatypes_debug_print_functions.h>
 
 
 /* meta(dunion_debug_print(ast_node)) */
