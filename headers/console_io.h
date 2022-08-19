@@ -10,6 +10,20 @@ global_variable native_file Stdout =
 };
 
 bonsai_function void
+DumpValidLogLevelOptions()
+{
+  DebugChars("[");
+  for (u32 LevelIndex = LogLevel_Debug;
+      LevelIndex <= LogLevel_Shush;
+      ++LevelIndex)
+  {
+    DebugChars(" %S", ToString((log_level)LevelIndex));
+    if (LevelIndex < LogLevel_Shush) { DebugChars(","); } 
+  }
+  DebugChars(" ]\n");
+}
+
+bonsai_function void
 SetupStdout(u32 ArgCount, const char** ArgStrings)
 {
   setvbuf(stdout, 0, _IONBF, 0);
@@ -41,22 +55,16 @@ SetupStdout(u32 ArgCount, const char** ArgStrings)
         else
         {
           Warn("Invalid --log-level switch value (%S)", LevelString);
-          DebugChars("           - Valid values are [ ");
-          for (u32 LevelIndex = LogLevel_Debug;
-              LevelIndex <= LogLevel_Shush;
-              ++LevelIndex)
-          {
-            DebugChars("%S", ToString((log_level)LevelIndex));
-            if (LevelIndex < LogLevel_Shush) { DebugChars(", "); } else { DebugChars(" ]"); }
-          }
-
+          DebugChars("           - Valid values are ");
+          DumpValidLogLevelOptions();
         }
 
       }
       else
       {
-        // TODO(Jesse): Helpfully specify what the accepted values are.
-        Error("Log Level required when using the --log-level switch.");
+        Warn("Log Level required when using the --log-level switch.");
+        DebugChars("           - Valid values are ");
+        DumpValidLogLevelOptions();
       }
     }
 
