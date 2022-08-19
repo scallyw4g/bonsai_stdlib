@@ -347,17 +347,6 @@ Split(counted_string* String, char SplitTarget)
   return Result;
 }
 
-bonsai_function char
-ToUpper(char C)
-{
-  u32 MapToUpper = 'a' - 'A';
-  if (C >= 'a' && C <= 'z')
-  {
-    C -= MapToUpper;
-  }
-  return C;
-}
-
 bonsai_function b32
 IsUpper(char C)
 {
@@ -370,6 +359,20 @@ IsLower(char C)
 {
   b32 Result = (C >= 'a' && C <= 'z');
   return Result;
+}
+
+bonsai_function char
+ToLower(char C)
+{
+  if (IsUpper(C)) { C += 32; }
+  return C;
+}
+
+bonsai_function char
+ToUpper(char C)
+{
+  if (IsLower(C)) { C -= 32; }
+  return C;
 }
 
 bonsai_function b32

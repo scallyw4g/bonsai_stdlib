@@ -97,6 +97,43 @@ ToCapitalCaseInplace(counted_string* Source)
 }
 
 bonsai_function counted_string
+ToLowerCase(counted_string Source, memory_arena* Memory)
+{
+  counted_string Result = CountedString(Source.Count, Memory);
+
+  for (u32 CharIndex = 0;
+      CharIndex < Result.Count;
+      ++CharIndex)
+  {
+    char At = ToLower(Source.Start[CharIndex]);
+    ((char*)Result.Start)[CharIndex] = At;
+  }
+
+  return Result;
+}
+
+bonsai_function counted_string
+StripPrefix(counted_string Source, memory_arena* Memory)
+{
+  u32 CharAfterUnderscore = 0;
+  for (u32 CharIndex = 0;
+      CharIndex < Source.Count;
+      ++CharIndex)
+  {
+    if (Source.Start[CharIndex] == '_')
+    {
+      CharAfterUnderscore = CharIndex+1;
+      break;
+    }
+  }
+
+  Assert(Source.Count > CharAfterUnderscore);
+
+  umm ResultLength = Source.Count - CharAfterUnderscore;
+  counted_string Result = CS(Source.Start+CharAfterUnderscore, ResultLength);
+  return Result;
+}
+bonsai_function counted_string
 ToCapitalCase(counted_string Source, memory_arena* Memory)
 {
   u32 ResultLength = 0;
