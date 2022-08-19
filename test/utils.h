@@ -3,8 +3,6 @@
 global_variable s32 TestsFailed = 0;
 global_variable u32 TestsPassed = 0;
 
-#define TEST_FIXTURES_PATH "src/tests/fixtures"
-
 #define TestThat(condition)                                                                                                                  \
   if (!(condition)) {                                                                                                                        \
     ++TestsFailed;                                                                                                                           \
