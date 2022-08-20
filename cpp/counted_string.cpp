@@ -113,8 +113,9 @@ ToLowerCase(counted_string Source, memory_arena* Memory)
 }
 
 bonsai_function counted_string
-StripPrefix(counted_string Source, memory_arena* Memory)
+StripPrefix(counted_string Source, memory_arena* Memory, umm Count)
 {
+  u32 Hits = 0;
   u32 CharAfterUnderscore = 0;
   for (u32 CharIndex = 0;
       CharIndex < Source.Count;
@@ -123,7 +124,10 @@ StripPrefix(counted_string Source, memory_arena* Memory)
     if (Source.Start[CharIndex] == '_')
     {
       CharAfterUnderscore = CharIndex+1;
-      break;
+      if (Hits++ == Count)
+      {
+        break;
+      }
     }
   }
 
