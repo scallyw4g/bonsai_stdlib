@@ -33,7 +33,7 @@
   }                                                   \
 } while (false)
 
-#define NotImplemented Error("Implement Me!"); Assert(False)
+#define NotImplemented Error("Implement Me! %s:%d ", __FILE__, __LINE__); Assert(False)
 
 #else // Release Build
 
