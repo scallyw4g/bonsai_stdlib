@@ -1,3 +1,47 @@
+#define TMP_DIR_ROOT "tmp/"
+
+bonsai_function b32
+CreateDirectory(const char *zPath)
+{
+  b32 Result = False;
+  if (PlatformCreateDir(zPath))
+  {
+    Result = True;
+  }
+  return Result;
+}
+
+bonsai_function b32
+CreateDirectory(counted_string Filepath)
+{
+  const char* zPath = GetNullTerminated(Filepath);
+  b32 Result = CreateDirectory(zPath);
+  return Result;
+}
+
+bonsai_function b32
+TryCreateDirectory(const char* zPath)
+{
+  b32 Result = True;
+  if (FileExists(zPath) == False)
+  {
+    if (CreateDirectory(zPath) == False)
+    {
+      Result = False;
+      Error("Creating directory (%s)", zPath);
+    }
+  }
+  return Result;
+}
+
+bonsai_function b32
+TryCreateDirectory(counted_string Filepath)
+{
+  const char* zPath = GetNullTerminated(Filepath);
+  b32 Result = TryCreateDirectory(zPath);
+  return Result;
+}
+
 bonsai_function b32
 CloseFile(native_file* File)
 {
@@ -47,7 +91,7 @@ Rename(counted_string CurrentFilePath, counted_string NewFilePath)
   }
   else
   {
-    Info("Error renaming %S -> %S , errno(%d)", CurrentFilePath, NewFilePath, errno);
+    /* Info("Error renaming %S -> %S , errno(%d)", CurrentFilePath, NewFilePath, errno); */
     if (TmpFilename.Count)
     {
       Rename(TmpFilename, NewFilePath);
@@ -141,7 +185,7 @@ bonsai_function counted_string
 GetTmpFilename(random_series* Entropy, memory_arena* Memory)
 {
   counted_string Filename = GetRandomString(32, Entropy, Memory);
-  Filename = Concat(CS("tmp/"), Filename, Memory);
+  Filename = Concat(CSz(TMP_DIR_ROOT), Filename, Memory);
   return Filename;
 }
 

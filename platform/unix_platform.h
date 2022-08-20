@@ -28,6 +28,10 @@
 #include <execinfo.h>
 #include <unistd.h>
 
+// mkdir
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #define RED_TERMINAL "\x1b[31m"
 #define BLUE_TERMINAL "\x1b[34m"
 #define PURPLE_TERMINAL "\x1b[35m"
@@ -903,3 +907,15 @@ ErrnoToString(s32 Error)
   Assert(Result);
   return Result;
 }
+
+bonsai_function b32
+PlatformCreateDir(const char* Path, mode_t Mode = 0774)
+{
+  b32 Result = True;
+  if (mkdir(Path, Mode) == -1)
+  {
+    Result = False;
+  }
+  return Result;
+}
+
