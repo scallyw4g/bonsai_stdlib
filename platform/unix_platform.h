@@ -32,6 +32,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+// getenv
+#include <stdlib.h>
+
 #define RED_TERMINAL "\x1b[31m"
 #define BLUE_TERMINAL "\x1b[34m"
 #define PURPLE_TERMINAL "\x1b[35m"
@@ -927,6 +930,13 @@ PlatformDeleteDir(const char* Path, mode_t Mode = 0774)
   {
     Result = False;
   }
+  return Result;
+}
+
+bonsai_function const char *
+PlatformGetEnvironmentVar(const char *VarName)
+{
+  const char* Result = getenv(VarName);
   return Result;
 }
 
