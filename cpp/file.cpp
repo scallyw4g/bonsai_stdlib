@@ -1,5 +1,9 @@
 #define TMP_DIR_ROOT "tmp/"
 
+
+
+// TODO(Jesse): The Create and Delete functions here are identical mirrors of
+// each other.. metaprogram them.
 bonsai_function b32
 CreateDirectory(const char *zPath)
 {
@@ -41,6 +45,59 @@ TryCreateDirectory(counted_string Filepath)
   b32 Result = TryCreateDirectory(zPath);
   return Result;
 }
+
+
+
+
+
+
+
+bonsai_function b32
+DeleteDirectory(const char *zPath)
+{
+  b32 Result = False;
+  if (PlatformDeleteDir(zPath))
+  {
+    Result = True;
+  }
+  return Result;
+}
+
+bonsai_function b32
+DeleteDirectory(counted_string Filepath)
+{
+  const char* zPath = GetNullTerminated(Filepath);
+  b32 Result = DeleteDirectory(zPath);
+  return Result;
+}
+bonsai_function b32
+TryDeleteDirectory(const char* zPath)
+{
+  b32 Result = True;
+  if (FileExists(zPath))
+  {
+    if (DeleteDirectory(zPath) == False)
+    {
+      Result = False;
+      Error("Deleting directory (%s)", zPath);
+    }
+  }
+  return Result;
+}
+
+bonsai_function b32
+TryDeleteDirectory(counted_string Filepath)
+{
+  const char* zPath = GetNullTerminated(Filepath);
+  b32 Result = TryDeleteDirectory(zPath);
+  return Result;
+}
+
+
+
+
+
+
 
 bonsai_function b32
 CloseFile(native_file* File)

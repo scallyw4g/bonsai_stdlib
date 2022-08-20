@@ -919,3 +919,14 @@ PlatformCreateDir(const char* Path, mode_t Mode = 0774)
   return Result;
 }
 
+bonsai_function b32
+PlatformDeleteDir(const char* Path, mode_t Mode = 0774)
+{
+  b32 Result = True;
+  if (rmdir(Path) == -1)
+  {
+    Result = False;
+  }
+  return Result;
+}
+
