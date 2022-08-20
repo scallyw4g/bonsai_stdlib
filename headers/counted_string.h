@@ -80,9 +80,24 @@ CharCursor(counted_string S)
   return Result;
 }
 
-char LastChar(counted_string Str)
+bonsai_function char
+LastChar(counted_string Str)
 {
   char Result = Str.Count ? Str.Start[Str.Count-1] : 0;
+  return Result;
+}
+
+bonsai_function counted_string
+StripQuotes(counted_string S)
+{
+  Assert(S.Count >= 2);
+  Assert(S.Start[0] == '"');
+  Assert(LastChar(S) == '"');
+
+  counted_string Result = {
+    .Count = S.Count - 2,
+    .Start = S.Start + 1,
+  };
   return Result;
 }
 
@@ -106,7 +121,7 @@ Contains(const char* Haystack, char Needle)
   return Result;
 }
 
-// TODO(Jesse, id: 101, tags: string_hash, profile, speed, hash, already_done_elsewhere, high_priority): Profile and check collision rate of this!
+// TODO(Jesse, id: 101, tags: string_hash, profile, speed, hash, already_done_elsewhere, duplicate, high_priority): Profile and check collision rate of this!
 inline umm
 StringHash(const char* S1)
 {
@@ -147,6 +162,34 @@ StripExtension(counted_string FilePath)
   return Result;
 }
 
+bonsai_function counted_string
+Dirname(counted_string FilePath)
+{
+  umm OneAfterLastPathSep = 0;
+  for (umm CharIndex = 0;
+      CharIndex < FilePath.Count;
+      ++CharIndex)
+  {
+    if (IsPathSeparator(FilePath.Start[CharIndex]))
+    {
+      OneAfterLastPathSep = CharIndex+1;
+    }
+  }
+
+  Assert(OneAfterLastPathSep <= FilePath.Count);
+
+  counted_string Result = {
+    .Start = FilePath.Start,
+    .Count = FilePath.Count - (FilePath.Count-OneAfterLastPathSep),
+  };
+
+  if (Result.Count)
+  {
+    Assert(IsPathSeparator(LastChar(Result)));
+  }
+
+  return Result;
+}
 bonsai_function counted_string
 Basename(counted_string FilePath)
 {
