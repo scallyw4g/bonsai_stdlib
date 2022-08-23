@@ -101,6 +101,7 @@ meta( named_list(d_unions) { ast_node } )
 
 bonsai_function void DebugPrint( ast_node *UnionStruct, u32 Depth = 0);
 bonsai_function void DebugPrint( ast_node UnionStruct, u32 Depth = 0);
+#if 0
 meta(
   for_datatypes(all).exclude(unprintable_datatypes buggy_datatypes external_datatypes d_unions network_types linux_types)
 
@@ -170,8 +171,8 @@ meta(
 
 )
 #include <poof/generated/for_all_datatypes_debug_print_functions.h>
+#endif
 
-
-/* meta(dunion_debug_print(ast_node)) */
-#include <debug_print_ast_node.h>
+meta(dunion_debug_print(ast_node))
+#include <poof/generated/debug_print_ast_node.h>
 

@@ -200,9 +200,12 @@ Basename(counted_string FilePath)
   {
     if (IsPathSeparator(FilePath.Start[CharIndex]))
     {
-      LastPathSeparator = CharIndex;
+      LastPathSeparator = CharIndex+1;
     }
   }
+
+  Assert(LastPathSeparator <= FilePath.Count);
+
   counted_string Result = {
     .Count = FilePath.Count - LastPathSeparator,
     .Start = FilePath.Start + LastPathSeparator,
@@ -210,7 +213,7 @@ Basename(counted_string FilePath)
 
   if (Result.Count)
   {
-    Assert(IsPathSeparator(Result.Start[0]));
+    Assert(IsPathSeparator(Result.Start[0]) == False);
   }
 
   return Result;
