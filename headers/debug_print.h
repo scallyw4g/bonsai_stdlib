@@ -94,7 +94,7 @@ meta( named_list(unprintable_datatypes) { counted_string })
 // TODO(Jesse id: 185, tags: bug, high_priority): these should be printable!
 meta( named_list(buggy_datatypes) { opengl debug_timed_function thread_startup_params network_connection debug_state perlin_noise })
 
-meta( named_list(network_types) {client_state server_state client_to_server_message handshake_message socket_t socket_type connection_state socket_op_result socket_op })
+meta( named_list(network_types) { client_state server_state client_to_server_message handshake_message socket_t socket_type connection_state socket_op_result socket_op })
 meta( named_list(linux_types) { XVisualInfo })
 
 meta( named_list(d_unions) { ast_node } )
@@ -170,6 +170,10 @@ meta(
   }
 
 )
+#include <poof/generated/for_all_datatypes_debug_print_functions.h>
+
+#else
+#include <poof/generated/for_all_datatypes_debug_print_prototypes.h>
 #include <poof/generated/for_all_datatypes_debug_print_functions.h>
 #endif
 
