@@ -11,6 +11,11 @@
 
 #define GET_ELEMENT(I) (&(I).At->Element)
 
+#define SetBitfield(type, Dest, Value) do { \
+  Assert( ((Dest)&(Value)) == 0 );          \
+  (Dest) = (type)((Dest) | (Value));        \
+} while (false)
+
 #define UnsetBitfield(type, Dest, Value) do { \
   Assert( (Dest) & (Value) );                 \
   (Dest) = (type)((Dest) & ~(Value));         \
