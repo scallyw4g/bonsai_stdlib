@@ -19,7 +19,7 @@
       }                                                                      \
     } while (false)
 
-#  define InvalidCodePath() Error("Invalid Code Path - Panic!"); Assert(False)
+#  define InvalidCodePath() Error("Invalid Code Path - Panic! " __FILE__ ":" STRINGIZE(__LINE__)); Assert(False)
 
 #  define RuntimeBreak() do {                         \
   if (Global_DoRuntimeBreak) {                        \
