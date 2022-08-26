@@ -59,51 +59,32 @@ DebugPrint(counted_string E, u32 Depth = 0)
 }
 
 bonsai_function void
-DebugPrint(const char* E, u32 Depth = 0)
+DebugPrint(const char *E, u32 Depth = 0)
 {
   DebugLine("%*s%s", Depth, "", E);
 }
 
-#if 0
-bonsai_function void
-DebugPrint(native_mutex E, u32 Depth = 0)
-{
-  DebugLine("%*smutex(%u)", Depth, "", *(u32*)&E);
-}
-
-bonsai_function void
-DebugPrint(semaphore E, u32 Depth = 0)
-{
-  DebugLine("%*ssemaphore(%u)", Depth, "", *(u32*)&E);
-}
-#endif
-
-meta(
-  named_list(external_datatypes)
-  {
-    thing1 thing2 thing3 thing4
-    test_struct_8 test_struct_16 test_struct_32 test_struct_64 test_struct_128 test_struct_1k
-    head_table ttf_vert ttf_contour simple_glyph font_table ttf offset_subtable ttf_flag
-  }
-)
+/* meta( */
+/*   named_list(external_datatypes) */
+/*   { */
+/*     thing1 thing2 thing3 thing4 */
+/*     test_struct_8 test_struct_16 test_struct_32 test_struct_64 test_struct_128 test_struct_1k */
+/*     head_table ttf_vert ttf_contour simple_glyph font_table ttf offset_subtable ttf_flag */
+/*   } */
+/* ) */
 
 // Note(Jesse): This is, for the purposes of DebugPrint at least, a primitive
 // type and needs to be implemented by hand
-meta( named_list(unprintable_datatypes) { counted_string })
-
+meta( named_list(project_primitives) { counted_string })
 // TODO(Jesse id: 185, tags: bug, high_priority): these should be printable!
-meta( named_list(buggy_datatypes) { opengl debug_timed_function thread_startup_params network_connection debug_state perlin_noise })
-
-meta( named_list(network_types) { client_state server_state client_to_server_message handshake_message socket_t socket_type connection_state socket_op_result socket_op })
-meta( named_list(linux_types) { XVisualInfo })
-
+meta( named_list(buggy_datatypes) { opengl debug_timed_function debug_state })
 meta( named_list(d_unions) { ast_node } )
 
 bonsai_function void DebugPrint( ast_node *UnionStruct, u32 Depth = 0);
 bonsai_function void DebugPrint( ast_node UnionStruct, u32 Depth = 0);
-#if 0
+#if 1
 meta(
-  for_datatypes(all).exclude(unprintable_datatypes buggy_datatypes external_datatypes d_unions network_types linux_types)
+  for_datatypes(all).exclude(project_primitives buggy_datatypes d_unions)
 
     func (StructDef)
     {
@@ -119,7 +100,8 @@ meta(
 #include <poof/generated/for_all_datatypes_debug_print_prototypes.h>
 
 meta(
-  for_datatypes(all).exclude(unprintable_datatypes buggy_datatypes external_datatypes d_unions network_types linux_types)
+  for_datatypes(all)
+    .exclude(project_primitives buggy_datatypes d_unions)
 
   func (StructDef)
   {
@@ -133,11 +115,25 @@ meta(
       (
         StructDef.map_members (Member)
         {
-          DebugPrint("(Member.type) (Member.name) {\n", Depth+2);
-          DebugPrint(S.(Member.name), Depth+4);
-          DebugPrint("\n");
-          DebugPrint("}", Depth+2);
-          DebugPrint("\n");
+          (Member.is_defined?
+          {
+            (Member.name?
+            {
+              DebugPrint("(Member.type) (Member.name) {\n", Depth+2);
+              DebugPrint(S.(Member.name), Depth+4);
+              DebugPrint("\n");
+              DebugPrint("}", Depth+2);
+              DebugPrint("\n");
+            }
+            {
+              // NOTE(Jesse): there was an anonymous struct or union here
+              DebugPrint("anonymous type : ((Member.type) (Member.name))\n", Depth+2);
+            })
+          }
+          {
+            // NOTE(Jesse): we've got no definition for this type.. print a placeholder
+            DebugPrint("undefined type : ((Member.type) (Member.name))\n", Depth+2);
+          })
         }
       )
       DebugPrint("}\n", Depth);

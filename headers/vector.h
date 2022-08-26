@@ -77,14 +77,12 @@ union v4
 
   r32 E[4];
 
-
   r32&
   operator[](int index)
   {
     r32& Result = this->E[index];
     return Result;
   }
-
 };
 
 
