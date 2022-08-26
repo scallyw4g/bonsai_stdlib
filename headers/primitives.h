@@ -26,7 +26,7 @@
 #define False (0)
 
 #define ArrayCount(a) (sizeof(a)/sizeof(a[0]))
-#define InvalidDefaultCase default: {Error("InvalidDefaultCase"); Assert(False);} break
+#define InvalidDefaultCase default: {Error("InvalidDefaultCase " __FILE__ ":" STRINGIZE(__LINE__)); Assert(False);} break
 
 // 8 Bit types
 typedef char           s8;
