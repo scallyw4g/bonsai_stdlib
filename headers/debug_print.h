@@ -55,7 +55,7 @@ DebugPrint(__m128 E, u32 Depth = 0)
 bonsai_function void
 DebugPrint(counted_string E, u32 Depth = 0)
 {
-  DebugChars("%*s%S", Depth, "", E);
+  DebugChars("%*s%S\n", Depth, "", E);
 }
 
 bonsai_function void
@@ -78,11 +78,17 @@ DebugPrint(const char *E, u32 Depth = 0)
 meta( named_list(project_primitives) { counted_string })
 // TODO(Jesse id: 185, tags: bug, high_priority): these should be printable!
 meta( named_list(buggy_datatypes) { opengl debug_timed_function debug_state })
-meta( named_list(d_unions) { ast_node } )
+meta( named_list(d_unions) { ast_node datatype declaration} )
 
 bonsai_function void DebugPrint( ast_node *UnionStruct, u32 Depth = 0);
 bonsai_function void DebugPrint( ast_node UnionStruct, u32 Depth = 0);
-#if 1
+
+meta(dunion_debug_print_prototype(datatype))
+#include <poof/generated/debug_print_prototype_datatype.h>
+
+meta(dunion_debug_print_prototype(declaration))
+#include <poof/generated/debug_print_prototype_declaration.h>
+
 meta(
   for_datatypes(all).exclude(project_primitives buggy_datatypes d_unions)
 
@@ -98,6 +104,16 @@ meta(
     }
 )
 #include <poof/generated/for_all_datatypes_debug_print_prototypes.h>
+
+            /* (Member.is_primitive? */
+            /* { */
+            /*   DebugPrint("(Member.type) (Member.name) = "); */
+            /*   DebugPrint(RuntimeStruct.(Member.name)); */
+            /*   DebugPrint(";"); */
+            /* } */
+            /* { */
+            /*   DebugPrint(RuntimeStruct.(Member.name), Depth+2); */
+            /* }) */
 
 meta(
   for_datatypes(all)
@@ -133,12 +149,12 @@ meta(
             }
             {
               // NOTE(Jesse): there was an anonymous struct or union here
-              DebugPrint("anonymous type : ((Member.type) (Member.name))", Depth+2);
+              DebugPrint("(Member.type) (Member.name)\n", Depth+2);
             })
           }
           {
             // NOTE(Jesse): we've got no definition for this type.. print a placeholder
-            DebugPrint("undefined type : ((Member.type) (Member.name))", Depth+2);
+            DebugPrint("undefined((Member.type) (Member.name))\n", Depth+2);
           })
         }
       )
@@ -152,7 +168,7 @@ meta(
     bonsai_function void DebugPrint( (StructDef.name) *S, u32 Depth)
     {
       if (S) { DebugPrint(*S, Depth); }
-      else { DebugPrint("ptr(0)", Depth); }
+      else { DebugPrint("ptr(0)\n", Depth); }
     }
   }
 
@@ -178,11 +194,15 @@ meta(
 )
 #include <poof/generated/for_all_datatypes_debug_print_functions.h>
 
-#else
-#include <poof/generated/for_all_datatypes_debug_print_prototypes.h>
-#include <poof/generated/for_all_datatypes_debug_print_functions.h>
-#endif
+
+
 
 meta(dunion_debug_print(ast_node))
 #include <poof/generated/debug_print_ast_node.h>
+
+meta(dunion_debug_print(datatype))
+#include <poof/generated/debug_print_datatype.h>
+
+meta(dunion_debug_print(declaration))
+#include <poof/generated/debug_print_declaration.h>
 
