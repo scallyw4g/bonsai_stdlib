@@ -275,6 +275,14 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
           }
         } break;
 
+        case 'p':
+        {
+          u64 Value = va_arg(Args, u64);
+          CopyToDest(DestCursor, '0');
+          CopyToDest(DestCursor, 'x');
+          u64ToChar(DestCursor, Value, FormatWidth);
+        } break;
+
         case 'x':
         {
           u64 Value = va_arg(Args, u64);

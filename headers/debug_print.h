@@ -1,67 +1,67 @@
 bonsai_function void
 DebugPrint(r64 E, u32 Depth = 0)
 {
-  DebugLine("%*s%f", Depth, "", E);
+  DebugChars("%*s%f", Depth, "", E);
 }
 
 bonsai_function void
 DebugPrint(s64 E, u32 Depth = 0)
 {
-  DebugLine("%*s%ld", Depth, "", E);
+  DebugChars("%*s%ld", Depth, "", E);
 }
 
 bonsai_function void
 DebugPrint(u64 E, u32 Depth = 0)
 {
-  DebugLine("%*s%lu", Depth, "", E);
+  DebugChars("%*s%lu", Depth, "", E);
 }
 
 bonsai_function void
 DebugPrint(r32 E, u32 Depth = 0)
 {
-  DebugLine("%*s%.2f", Depth, "", E);
+  DebugChars("%*s%.2f", Depth, "", E);
 }
 
 bonsai_function void
 DebugPrint(s32 E, u32 Depth = 0)
 {
-  DebugLine("%*s%d", Depth, "", E);
+  DebugChars("%*s%d", Depth, "", E);
 }
 
 bonsai_function void
 DebugPrint(u32 E, u32 Depth = 0)
 {
-  DebugLine("%*s%u", Depth, "", E);
+  DebugChars("%*s%u", Depth, "", E);
 }
 
 bonsai_function void
 DebugPrint(volatile void* E, u32 Depth = 0)
 {
-  DebugLine("%*s%p", Depth, "", E);
+  DebugChars("%*s%p", Depth, "", E);
 }
 
 bonsai_function void
 DebugPrint(void* E, u32 Depth = 0)
 {
-  DebugLine("%*s%p", Depth, "", E);
+  DebugChars("%*s%p", Depth, "", E);
 }
 
 bonsai_function void
 DebugPrint(__m128 E, u32 Depth = 0)
 {
-  DebugLine("%*s%f %f %f %f", Depth, "", E[0], E[1], E[2], E[3]);
+  DebugChars("%*s%f %f %f %f", Depth, "", E[0], E[1], E[2], E[3]);
 }
 
 bonsai_function void
 DebugPrint(counted_string E, u32 Depth = 0)
 {
-  DebugLine("%*s%S", Depth, "", E);
+  DebugChars("%*s%S", Depth, "", E);
 }
 
 bonsai_function void
 DebugPrint(const char *E, u32 Depth = 0)
 {
-  DebugLine("%*s%s", Depth, "", E);
+  DebugChars("%*s%s", Depth, "", E);
 }
 
 /* meta( */
@@ -119,24 +119,34 @@ meta(
           {
             (Member.name?
             {
-              DebugPrint("(Member.type) (Member.name) {\n", Depth+2);
-              DebugPrint(S.(Member.name), Depth+4);
-              DebugPrint("\n");
-              DebugPrint("}", Depth+2);
-              DebugPrint("\n");
+              (Member.is_compound?
+              {
+                DebugPrint("(Member.type) (Member.name) {\n", Depth+2);
+                DebugPrint(S.(Member.name), Depth+4);
+                DebugPrint("}\n", Depth+2);
+              }
+              {
+                DebugPrint("(Member.type) (Member.name) =", Depth+2);
+                DebugPrint(S.(Member.name), 1);
+                DebugPrint(";\n");
+              })
             }
             {
               // NOTE(Jesse): there was an anonymous struct or union here
-              DebugPrint("anonymous type : ((Member.type) (Member.name))\n", Depth+2);
+              DebugPrint("anonymous type : ((Member.type) (Member.name))", Depth+2);
             })
           }
           {
             // NOTE(Jesse): we've got no definition for this type.. print a placeholder
-            DebugPrint("undefined type : ((Member.type) (Member.name))\n", Depth+2);
+            DebugPrint("undefined type : ((Member.type) (Member.name))", Depth+2);
           })
         }
       )
-      DebugPrint("}\n", Depth);
+
+      if (Depth == 0)
+      {
+        DebugPrint("}\n", Depth);
+      }
     }
 
     bonsai_function void DebugPrint( (StructDef.name) *S, u32 Depth)
