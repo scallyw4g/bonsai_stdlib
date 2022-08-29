@@ -32,7 +32,7 @@ enum text_encoding
   TextEncoding_GB18030
 };
 
-meta(generate_string_table(text_encoding))
+poof(generate_string_table(text_encoding))
 #include <poof/generated/generate_string_table_text_encoding.h>
 
 struct ansi_stream

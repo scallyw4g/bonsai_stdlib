@@ -43,7 +43,7 @@ struct xml_tag
   xml_property** NextPropertySlot;
 };
 
-meta(hashtable_struct(xml_tag));
+poof(hashtable_struct(xml_tag));
 #include <poof/generated/hashtable_struct_xml_tag.h>
 
 struct xml_token_stream

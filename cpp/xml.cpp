@@ -1,4 +1,4 @@
-meta(hashtable_impl(xml_tag));
+poof(hashtable_impl(xml_tag));
 #include <poof/generated/hashtable_impl_xml_tag.h>
 
 inline counted_string*

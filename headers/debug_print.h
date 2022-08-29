@@ -65,26 +65,26 @@ DebugPrint(const char *E, u32 Depth = 0)
 }
 
 // NOTE(Jesse): For the purposes of DebugPrint, counted_string needs to be implemented by hand
-meta( named_list(project_primitives) { counted_string })
+poof( named_list(project_primitives) { counted_string })
 
 // TODO(Jesse id: 185, tags: bug): These contain function
 // definitions and we currently don't have a way of handling functions when
 // iterating over stuff.  Should be pretty easy to add one of these days
-meta( named_list(buggy_datatypes) { opengl debug_timed_function debug_state })
+poof( named_list(buggy_datatypes) { opengl debug_timed_function debug_state })
 
 // NOTE(Jesse): d_unions (for the moment) have a different implementation of DebugPrint
-meta( named_list(d_unions) { ast_node datatype declaration} )
+poof( named_list(d_unions) { ast_node datatype declaration} )
 
-meta(dunion_debug_print_prototype(ast_node))
+poof(dunion_debug_print_prototype(ast_node))
 #include <poof/generated/debug_print_prototype_ast_node.h>
 
-meta(dunion_debug_print_prototype(datatype))
+poof(dunion_debug_print_prototype(datatype))
 #include <poof/generated/debug_print_prototype_datatype.h>
 
-meta(dunion_debug_print_prototype(declaration))
+poof(dunion_debug_print_prototype(declaration))
 #include <poof/generated/debug_print_prototype_declaration.h>
 
-meta(
+poof(
   for_datatypes(all).exclude(project_primitives buggy_datatypes d_unions)
 
     func (StructDef)
@@ -100,7 +100,7 @@ meta(
 )
 #include <poof/generated/for_all_datatypes_debug_print_prototypes.h>
 
-meta(
+poof(
   for_datatypes(all)
     .exclude(project_primitives buggy_datatypes d_unions)
 
@@ -180,12 +180,12 @@ meta(
 
 
 
-meta(dunion_debug_print(ast_node))
+poof(dunion_debug_print(ast_node))
 #include <poof/generated/debug_print_ast_node.h>
 
-meta(dunion_debug_print(datatype))
+poof(dunion_debug_print(datatype))
 #include <poof/generated/debug_print_datatype.h>
 
-meta(dunion_debug_print(declaration))
+poof(dunion_debug_print(declaration))
 #include <poof/generated/debug_print_declaration.h>
 

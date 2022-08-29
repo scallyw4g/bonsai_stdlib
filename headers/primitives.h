@@ -130,7 +130,7 @@ CS(const char *S, umm Count)
 
 
 
-meta(
+poof(
   func index_of(Type)
   {
     bonsai_function umm
@@ -154,7 +154,7 @@ meta(
   }
 )
 
-meta(
+poof(
   func are_equal(Type)
   {
     bonsai_function b32

@@ -1,6 +1,6 @@
 // NOTE(Jesse): This is here such that we can see "StringsMatch()"
 //
-meta(string_and_value_tables(log_level));
+poof(string_and_value_tables(log_level));
 #include <poof/generated/string_and_value_tables_log_level.h>
 
 global_variable native_file Stdout =

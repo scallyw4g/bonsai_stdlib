@@ -1,4 +1,4 @@
-meta(generate_cursor(v3))
+poof(generate_cursor(v3))
 #include <poof/generated/generate_cursor_v3.h>
 
 template <typename stream_t, typename element_t>inline stream_t

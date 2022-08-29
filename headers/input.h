@@ -136,7 +136,7 @@ BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
 bonsai_function void
 ClearClickedFlags(input *Input)
 {
-meta(
+poof(
   func (input InputDef)
   {
     (
