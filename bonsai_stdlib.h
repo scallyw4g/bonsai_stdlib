@@ -1,7 +1,7 @@
-/* #include <poof/public_api.h> */
-#include <poof/defines.h>
-#include <poof/functions.h>
 
+#define poof(...)
+
+#include <bonsai_stdlib/headers/poof_functions.h>
 #include <bonsai_stdlib/headers/iterator_macros.h>
 #include <bonsai_stdlib/headers/assert.h>
 #include <bonsai_stdlib/headers/primitives.h>
