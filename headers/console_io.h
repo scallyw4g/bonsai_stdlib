@@ -29,6 +29,8 @@ SetupStdout(u32 ArgCount, const char** ArgStrings)
   setvbuf(stdout, 0, _IONBF, 0);
   setvbuf(stderr, 0, _IONBF, 0);
 
+  Global_LogLevel = LogLevel_Error;
+
   for ( u32 ArgIndex = 1;
         ArgIndex < ArgCount;
         ++ArgIndex)
