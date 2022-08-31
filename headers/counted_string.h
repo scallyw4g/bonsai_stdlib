@@ -1,5 +1,5 @@
 poof(stream_and_cursor(counted_string))
-#include <poof/generated/stream_and_cursor_counted_string.h>
+#include <generated/stream_and_cursor_counted_string.h>
 
 struct tagged_counted_string_stream
 {
@@ -7,7 +7,7 @@ struct tagged_counted_string_stream
   counted_string_stream Stream;
 };
 poof(generate_stream(tagged_counted_string_stream))
-#include <poof/generated/generate_stream_tagged_counted_string_stream.h>
+#include <generated/generate_stream_tagged_counted_string_stream.h>
 
 // TODO(Jesse, id: 99, tags: compiler_feature, metaprogramming): Generate this?  Need a compiler feature to generate stuff from primitive types.
 struct char_cursor
