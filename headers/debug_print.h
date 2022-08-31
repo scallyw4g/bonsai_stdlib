@@ -76,13 +76,13 @@ poof( named_list(buggy_datatypes) { opengl debug_timed_function debug_state })
 poof( named_list(d_unions) { ast_node datatype declaration} )
 
 poof(dunion_debug_print_prototype(ast_node))
-#include <poof/generated/debug_print_prototype_ast_node.h>
+#include <generated/debug_print_prototype_ast_node.h>
 
 poof(dunion_debug_print_prototype(datatype))
-#include <poof/generated/debug_print_prototype_datatype.h>
+#include <generated/debug_print_prototype_datatype.h>
 
 poof(dunion_debug_print_prototype(declaration))
-#include <poof/generated/debug_print_prototype_declaration.h>
+#include <generated/debug_print_prototype_declaration.h>
 
 poof(
   for_datatypes(all).exclude(project_primitives buggy_datatypes d_unions)
@@ -98,7 +98,7 @@ poof(
       bonsai_function void DebugPrint((EnumDef.name) EnumValue, u32 Depth = 0);
     }
 )
-#include <poof/generated/for_all_datatypes_debug_print_prototypes.h>
+#include <generated/for_all_datatypes_debug_print_prototypes.h>
 
 poof(
   for_datatypes(all)
@@ -175,16 +175,16 @@ poof(
   }
 
 )
-#include <poof/generated/for_all_datatypes_debug_print_functions.h>
+#include <generated/for_all_datatypes_debug_print_functions.h>
 
 
 
 
 poof(dunion_debug_print(ast_node))
-#include <poof/generated/debug_print_ast_node.h>
+#include <generated/debug_print_ast_node.h>
 
 poof(dunion_debug_print(datatype))
-#include <poof/generated/debug_print_datatype.h>
+#include <generated/debug_print_datatype.h>
 
 poof(dunion_debug_print(declaration))
 #include <poof/generated/debug_print_declaration.h>
