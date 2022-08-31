@@ -32,7 +32,6 @@ TryCreateDirectory(const char* zPath)
     if (CreateDirectory(zPath) == False)
     {
       Result = False;
-      Error("Creating directory (%s)", zPath);
     }
   }
   return Result;
@@ -79,7 +78,6 @@ TryDeleteDirectory(const char* zPath)
     if (DeleteDirectory(zPath) == False)
     {
       Result = False;
-      Error("Deleting directory (%s)", zPath);
     }
   }
   return Result;
@@ -180,14 +178,16 @@ OpenFile(const char* FilePath, const char* Permissions)
   {
     switch(errno)
     {
+      case 0: { } break;
+
       case EINVAL:
       {
-        Error("Invalid Permissions string (%s) provided to OpenFile.", Permissions);
+        Warn("Invalid Permissions string (%s) provided to OpenFile.", Permissions);
       } break;
 
       default:
       {
-        /* Error("Error opening File %s. (Errno==(%d))", FilePath, errno); */
+        /* Warn("Error opening file %s. Errno==(%d) Message=(%s)", FilePath, errno, ErrnoToString(errno)); */
       } break;
     }
 
@@ -252,7 +252,7 @@ GetTempFile(random_series* Entropy, memory_arena* Memory)
   counted_string Filename = GetTmpFilename(Entropy, Memory);
   native_file Result = OpenFile(Filename, "w+b");
   if (!Result.Handle)
-    { Error("Opening File %S, errno: %d", Filename, errno); }
+    { Warn("Error opening tmpfile %S, errno: %d", Filename, errno); }
   return Result;
 }
 
@@ -267,7 +267,7 @@ WriteToFile(native_file* File, counted_string Str)
   }
   else
   {
-    Error("Writing to file %.*s", (s32)File->Path.Count, File->Path.Start);
+    Warn("Error Writing to file %.*s", (s32)File->Path.Count, File->Path.Start);
   }
   return Result;
 }

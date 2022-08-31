@@ -121,7 +121,8 @@ Contains(const char* Haystack, char Needle)
   return Result;
 }
 
-// TODO(Jesse, id: 101, tags: string_hash, profile, speed, hash, already_done_elsewhere, duplicate, high_priority): Profile and check collision rate of this!
+// TODO(Jesse, id: 101, tags: string_hash, profile, speed, hash, already_done_elsewhere, duplicate, high_priority):
+// Profile and check collision rate of this!
 inline umm
 StringHash(const char* S1)
 {
