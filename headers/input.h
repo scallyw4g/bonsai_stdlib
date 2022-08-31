@@ -139,11 +139,10 @@ ClearClickedFlags(input *Input)
 poof(
   func (input InputDef)
   {
-    (
-      InputDef.map_members (Member) {
-        Input->(Member.name).Clicked = False;
-      }
-    )
+    InputDef.map_members (Member)
+    {
+      Input->(Member.name).Clicked = False;
+    }
   }
 )
 #include <generated/anonymous_function_input_HLGbqwh0.h>

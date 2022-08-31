@@ -45,7 +45,7 @@ poof(
       return Result;
     }
 
-    bonsai_function (Type.name) *
+    bonsai_function Type.name *
     GetFirstAtBucket(umm HashValue, (Type.name)_hashtable *Table)
     {
       (Type.name)_linked_list_node *Bucket = GetHashBucket(HashValue, Table);
@@ -53,7 +53,7 @@ poof(
       return Result;
     }
 
-    bonsai_function (Type.name)*
+    bonsai_function Type.name *
     Insert((Type.name)_linked_list_node *Node, (Type.name)_hashtable *Table)
     {
       Assert(Table->Size);
@@ -98,28 +98,25 @@ poof(
     bonsai_function void
     DebugPrint( (DUnion.type) Struct, u32 Depth)
     {
-      DebugPrint("(DUnion.type) {\n", Depth);
-
-      /* DebugPrint("Type = ", Depth+4); */
-      /* DebugPrint(Struct.Type); */
-      /* DebugPrint(";\n"); */
+      DebugPrint("DUnion.type {\n", Depth);
 
       switch(Struct.Type)
       {
-        (DUnion.map_members (M) {
-          (M.is_union?
+        DUnion.map_members (M)
+        {
+          M.is_union?
           {
-            (M.map_members (UnionMember)
+            M.map_members (UnionMember)
             {
               case type_(UnionMember.type):
               {
                 DebugPrint(Struct.(UnionMember.name), Depth+4);
               } break;
-            })
-          })
-        })
+            }
+          }
+        }
 
-        default : { DebugPrint("default while printing (DUnion.type) (DUnion.name) ", Depth+4); DebugLine("Type(%d)", Struct.Type); } break;
+        default : { DebugPrint("default while printing ((DUnion.type)) ((DUnion.name)) ", Depth+4); DebugLine("Type(%d)", Struct.Type); } break;
       }
       DebugPrint("}\n", Depth);
     }
@@ -131,7 +128,7 @@ poof(
   {
     struct (Type.name)_buffer
     {
-      (Type.name)* Start;
+      Type.name *Start;
       umm Count;
     };
 
@@ -160,15 +157,15 @@ poof(
   {
     struct (Type.name)_cursor
     {
-      (Type.name)* Start;
-      (Type.name)* At;
-      (Type.name)* End;
+      Type.name *Start;
+      Type.name *At;
+      Type.name *End;
     };
 
     bonsai_function (Type.name)_cursor
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
-      (Type.name)* Start = ((Type.name)*)PushStruct(Memory, sizeof( (Type.name) ), 1, 0);
+      Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name)), 1, 0);
       (Type.name)_cursor Result = {
         .Start = Start,
         .End = Start+ElementCount,
@@ -188,12 +185,10 @@ poof(
       counted_string Result = {};
       switch (Type)
       {
-        (
-          EnumType.map_values (EnumValue)
-          {
-            case (EnumValue.name): { Result = CSz("(EnumValue.name)"); } break;
-          }
-        )
+        EnumType.map_values (EnumValue)
+        {
+          case EnumValue.name: { Result = CSz("EnumValue.name"); } break;
+        }
       }
       return Result;
     }
@@ -206,14 +201,12 @@ poof(
     bonsai_function (EnumType.name)
     (EnumType.name.to_capital_case)(counted_string S)
     {
-      (EnumType.name) Result = {};
+      EnumType.name Result = {};
 
-      (
-        EnumType.map_values(EnumValue)
-        {
-          if (StringsMatch(S, CSz("(EnumValue.name)"))) { return (EnumValue.name); }
-        }
-      )
+      EnumType.map_values(TEnumV)
+      {
+        if (StringsMatch(S, CSz("TEnumV.name"))) { return TEnumV.name; }
+      }
 
       return Result;
     }
@@ -237,7 +230,7 @@ poof(
     bonsai_function (Type.name) *
     Push((Type.name)_stream* Stream, (Type.name) Element, memory_arena* Memory)
     {
-      (Type.name)_stream_chunk* NextChunk = ((Type.name)_stream_chunk*)PushStruct(Memory, sizeof( (Type.name)_stream_chunk ), 1, 0);
+      (Type.name)_stream_chunk* NextChunk = ((Type.name)_stream_chunk*)PushStruct(Memory, sizeof((Type.name)_stream_chunk), 1, 0);
       NextChunk->Element = Element;
 
       if (!Stream->FirstChunk)
@@ -255,7 +248,7 @@ poof(
       Assert(NextChunk->Next == 0);
       Assert(Stream->LastChunk->Next == 0);
 
-      (Type.name) *Result = &NextChunk->Element;
+      Type.name *Result = &NextChunk->Element;
       return Result;
     }
 
@@ -354,7 +347,8 @@ poof(
 poof(
   func generate_stream_getters(InputTypeDef)
   {
-    InputTypeDef.map_members (Member) {
+    InputTypeDef.map_members (Member)
+    {
       bonsai_function InputTypeDef.type
       GetBy(Member.name)( (Member.Type) Needle, (InputTypeDef.type)_stream *Haystack)
       {
@@ -377,28 +371,28 @@ poof(
 poof(
   func string_and_value_tables(Def)
   {
-    ( generate_string_table(Def) )
-    ( generate_value_table(Def) )
+    (generate_string_table(Def))
+    (generate_value_table(Def))
   }
 )
 
 poof(
   func stream_and_cursor(Def)
   {
-    ( generate_cursor(Def) )
-    ( generate_stream(Def) )
+    (generate_cursor(Def))
+    (generate_stream(Def))
   }
 )
 
 poof(
   polymorphic_func void DebugPrint( @TypeDef RuntimeValue, u32 Depth)
   {
-    DebugPrint("(TypeDef.name): ", Depth);
+    DebugPrint("TypeDef.name: ", Depth);
     TypeDef.is_enum?
     {
       TypeDef.map_values (ValueDef)
       {
-        DebugPrint("(ValueDef.name) (ValueDef.value)", Depth+1);
+        DebugPrint("ValueDef.name ValueDef.value", Depth+1);
         DebugPrint(ToString(RuntimeValue), Depth+1);
       }
     }
@@ -407,7 +401,7 @@ poof(
     {
       TypeDef.map_members (MemberDef)
       {
-        DebugPrint("(MemberDef.type) (MemberDef.name): ", Depth);
+        DebugPrint("MemberDef.type MemberDef.name: ", Depth);
         DebugPrint(RuntimeValue.(MemberDef.name), Depth+1);
         DebugPrint("\n");
       }
