@@ -58,8 +58,6 @@
 #define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  0x83F2
 #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
 
-#define GL_TEXTURE_1D                     0x0DE0
-#define GL_TEXTURE_2D                     0x0DE1
 #define GL_TEXTURE_WIDTH                  0x1000
 #define GL_TEXTURE_HEIGHT                 0x1001
 #define GL_TEXTURE_BORDER_COLOR           0x1004

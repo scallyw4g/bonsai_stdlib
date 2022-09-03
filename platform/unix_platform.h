@@ -44,8 +44,6 @@
 
 #define PLATFORM_RUNTIME_LIB_EXTENSION ".so"
 
-#define link_external extern "C"
-
 #define WindowEventMasks StructureNotifyMask | PointerMotionMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
 
 
