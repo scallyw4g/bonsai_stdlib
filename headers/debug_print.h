@@ -55,7 +55,14 @@ DebugPrint(__m128 E, u32 Depth = 0)
 bonsai_function void
 DebugPrint(counted_string E, u32 Depth = 0)
 {
-  DebugChars("%*s%S", Depth, "", E);
+  if (StringsMatch(E, CSz("\n")))
+  {
+    DebugChars("%*s'\\n'", Depth, "", E);
+  }
+  else
+  {
+    DebugChars("%*s'%S'", Depth, "", E);
+  }
 }
 
 bonsai_function void
