@@ -7,8 +7,9 @@ enum log_level
 {
   LogLevel_Undefined,
 
+  LogLevel_Verbose,
   LogLevel_Debug,
-  LogLevel_Normal,
+  LogLevel_Info,
   LogLevel_Error,
   LogLevel_Shush,
 };
@@ -117,7 +118,7 @@ bonsai_function void SetupStdout(u32 ArgCount, const char** ArgStrings);
 
 #define Info(...) do {                                                           \
                                                                                  \
-  if (Global_LogLevel <= LogLevel_Normal) {                                      \
+  if (Global_LogLevel <= LogLevel_Info) {                                        \
     LogDirect("%S   Info    %S- ", TerminalColors.Blue, TerminalColors.White);   \
     LogDirect(__VA_ARGS__);                                                      \
     LogDirect(Newline);                                                          \
@@ -152,7 +153,7 @@ bonsai_function void SetupStdout(u32 ArgCount, const char** ArgStrings);
 
 #define Warn(...) do {                                                             \
                                                                                    \
-  if (Global_LogLevel <= LogLevel_Normal) {                                        \
+  if (Global_LogLevel <= LogLevel_Info) {                                        \
     LogDirect("%S * Warning %S- ", TerminalColors.Yellow, TerminalColors.White);   \
     LogDirect(__VA_ARGS__);                                                        \
     LogDirect(Newline);                                                            \
@@ -162,7 +163,7 @@ bonsai_function void SetupStdout(u32 ArgCount, const char** ArgStrings);
 
 #define LogSuccess(...) do {                                                      \
                                                                                   \
-  if (Global_LogLevel <= LogLevel_Normal) {                                       \
+  if (Global_LogLevel <= LogLevel_Info) {                                       \
     LogDirect("%S   Success %S- ", TerminalColors.Green, TerminalColors.White);   \
     LogDirect(__VA_ARGS__);                                                       \
     LogDirect(Newline);                                                           \

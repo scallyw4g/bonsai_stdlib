@@ -13,7 +13,7 @@ bonsai_function void
 DumpValidLogLevelOptions()
 {
   DebugChars("[");
-  for (u32 LevelIndex = LogLevel_Debug;
+  for (u32 LevelIndex = LogLevel_Undefined+1;
       LevelIndex <= LogLevel_Shush;
       ++LevelIndex)
   {
