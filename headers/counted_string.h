@@ -123,14 +123,14 @@ Contains(const char* Haystack, char Needle)
 
 // TODO(Jesse, id: 101, tags: string_hash, profile, speed, hash, already_done_elsewhere, duplicate, high_priority):
 // Profile and check collision rate of this!
-inline umm
+inline u64
 StringHash(const char* S1)
 {
-  umm Result = 0x4fa691fd6a2c2f69;
+  u64 Result = 0x4fa691fd6a2c2f69;
   while (*S1++)
   {
-    umm Char = (umm)*S1;
-    umm Mix = Char | (Char<<8) | (Char<<16) | (Char<<24) | (Char<<32) | (Char<<40) | (Char<<48) | (Char<<56);
+    u64 Char = (u64)*S1;
+    u64 Mix = Char | (Char<<8) | (Char<<16) | (Char<<24) | (Char<<32) | (Char<<40) | (Char<<48) | (Char<<56);
     Result ^= ((Result<<32) | (Result>>32)) & Mix;
   }
 
@@ -541,16 +541,24 @@ IsNumeric(counted_string S)
   return Result;
 }
 
+bonsai_function umm
+ToUMM(u64 N)
+{
+  Assert(N < umm_MAX);
+  umm Result = (umm)N;
+  return Result;
+}
+
 bonsai_function u64
 ToU64(counted_string S)
 {
   u64 Result = 0;
-  for (u64 CharIndex = 0;
+  for (umm CharIndex = 0;
       CharIndex < S.Count;
       ++CharIndex)
   {
     u64 Digit = ToU64(S.Start[CharIndex]);
-    Result += (Digit * Exp(10ULL, SafeTruncateToS32(S.Count - CharIndex - 1L) ));
+    Result += (Digit * Exp(10ULL, SafeTruncateToS32((umm)(S.Count - CharIndex - 1L)) ));
   }
 
   return Result;
@@ -559,7 +567,7 @@ ToU64(counted_string S)
 bonsai_function s32
 ToS32(counted_string S)
 {
-  s32 Result = SafeTruncateToS32(ToU64(S));
+  s32 Result = SafeTruncateToS32(ToUMM(ToU64(S)));
   return Result;
 }
 

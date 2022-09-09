@@ -1,5 +1,5 @@
 global_variable const umm TempDebugOutputBufferSize = 64*1024;
-global_variable char TempDebugOutputBuffer__[TempDebugOutputBufferSize];
+global_variable char TempDebugOutputBuffer[TempDebugOutputBufferSize];
 
 bonsai_function void PrintToStdout(counted_string S);
 
@@ -82,7 +82,7 @@ bonsai_function void SetupStdout(u32 ArgCount, const char** ArgStrings);
 
 
 
-#define LogDirect(...) PrintToStdout(FormatCountedString_(TempDebugOutputBuffer__, TempDebugOutputBufferSize, __VA_ARGS__))
+#define LogDirect(...) PrintToStdout(FormatCountedString_(TempDebugOutputBuffer, TempDebugOutputBufferSize, __VA_ARGS__))
 
 
 #define DebugChars(...) do {                  \

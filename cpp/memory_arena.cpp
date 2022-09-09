@@ -1,5 +1,5 @@
-global_variable memory_arena _TranArena;
-global_variable memory_arena* TranArena = &_TranArena;
+global_variable memory_arena gTranArena;
+global_variable memory_arena* TranArena = &gTranArena;
 
 inline b32
 RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )

@@ -49,13 +49,17 @@ typedef r32      degrees;
 typedef long long int           s64;
 typedef unsigned long long int  u64;
 typedef double                  r64;
+#if BONSAI_EMCC
+typedef u32                     umm;
+#else
 typedef u64                     umm;
+#endif
 typedef u64                     b64;
 
 CAssert(sizeof(s64) == 8);
 CAssert(sizeof(u64) == 8);
 CAssert(sizeof(r64) == 8);
-CAssert(sizeof(umm) == 8);
+CAssert(sizeof(umm) == sizeof(void*));
 
 CAssert(sizeof(s32) == 4);
 CAssert(sizeof(u32) == 4);
@@ -85,6 +89,13 @@ CAssert(sizeof(u8) == 1);
 #define f32_MAX (1E+37f)
 #define f32_MIN (1E-37f)
 
+#if BONSAI_EMCC
+#define umm_MAX u32_MAX
+#define umm_MIN u32_MIN
+#else
+#define umm_MAX u64_MAX
+#define umm_MIN u64_MIN
+#endif
 
 #if 0
 // #include <stdint.h>
@@ -114,7 +125,7 @@ struct counted_string
   umm Count;
   const char* Start; // TODO(Jesse, id: 94, tags: cleanup, open_question): Make this non-const?
 };
-CAssert(sizeof(counted_string) == 16);
+//CAssert(sizeof(counted_string) == 16);
 
 bonsai_function counted_string
 FormatCountedString_(char* Dest, umm DestSize, const char *FS, ...);
@@ -127,7 +138,6 @@ CS(const char *S, umm Count)
   };
   return Result;
 }
-
 
 
 poof(

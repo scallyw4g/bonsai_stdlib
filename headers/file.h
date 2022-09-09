@@ -29,4 +29,4 @@ bonsai_function b32 FileExists(const char* Path);
 
 bonsai_function b32 FileExists(counted_string Path);
 
-bonsai_function void ReadBytesIntoBuffer(FILE *Src, u64 BytesToRead, u8* Dest);
+bonsai_function void ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest);

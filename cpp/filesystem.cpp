@@ -1,6 +1,9 @@
 bonsai_function b32
 SearchForProjectRoot(void)
 {
+  InvalidCodePath();
+  return 0;
+#if 0
 #if EMCC
   b32 Result = True;
 #else
@@ -18,4 +21,5 @@ SearchForProjectRoot(void)
   }
 #endif
   return Result;
+#endif
 }

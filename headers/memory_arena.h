@@ -1,6 +1,6 @@
 #define MEMPROTECT (MEMPROTECT_OVERFLOW || MEMPROTECT_UNDERFLOW)
 #define MEMPROTECT_UNDERFLOW (0)
-#define MEMPROTECT_OVERFLOW (1)
+#define MEMPROTECT_OVERFLOW (0)
 
 #if MEMPROTECT_UNDERFLOW && MEMPROTECT_OVERFLOW
 #error "Underflow and Overflow protection are mutually exclusive"
@@ -12,31 +12,83 @@ enum memory_protection_type
   MemoryProtection_RW,
 };
 
+
+inline umm
+SafeTruncateToUMM(u64 Size)
+{
+  Assert(Size <= umm_MAX);
+  umm Result = (umm)Size;
+  return Result;
+}
+
+inline s32
+SafeTruncateToS32(u64 Size)
+{
+  Assert(Size <= s32_MAX);
+  s32 Result = (s32)Size;
+  return Result;
+}
+
+#if BONSAI_EMCC
+inline s32
+SafeTruncateToS32(umm Size)
+{
+  Assert(Size <= s32_MAX);
+  s32 Result = (s32)Size;
+  return Result;
+}
+#endif
+
+inline u32
+SafeTruncateToU32(u64 Size)
+{
+  Assert(Size <= u32_MAX);
+  u32 Result = (u32)Size;
+  return Result;
+}
+
+inline u16
+SafeTruncateToU16(umm Size)
+{
+  Assert(Size <= u16_MAX);
+  u16 Result = (u16)Size;
+  return Result;
+}
+
+bonsai_function u8
+SafeTruncateU8(s32 Size)
+{
+  Assert(Size < u8_MAX);
+  u8 Result = (u8)Size;
+  return Result;
+}
+
+
 inline umm
 Kilobytes(umm Bytes)
 {
-  umm Result = Bytes * 1024;
+  umm Result = SafeTruncateToUMM(Bytes*1024);
   return Result;
 }
 
 inline umm
 Megabytes(umm Number)
 {
-  umm Result = Number*Kilobytes(1024);
+  umm Result = SafeTruncateToUMM(Number*Kilobytes(1024));
   return Result;
 }
 
-inline u64
+inline umm
 Gigabytes(umm Number)
 {
-  u64 Result = Number*Megabytes(1024);
+  umm Result = SafeTruncateToUMM(Number*Megabytes(1024));
   return Result;
 }
 
-inline u64
+inline umm
 Terabytes(umm Number)
 {
-  u64 Result = Number*Gigabytes(1024);
+  umm Result = SafeTruncateToUMM(Number*Gigabytes(1024));
   return Result;
 }
 
@@ -129,8 +181,8 @@ struct memory_arena
 
 
 
-bonsai_function u64 PlatformGetPageSize();
-bonsai_function b32 PlatformSetProtection(u8 *Base, u64 Size, memory_protection_type Protection);
+bonsai_function umm PlatformGetPageSize();
+bonsai_function b32 PlatformSetProtection(u8 *Base, umm Size, memory_protection_type Protection);
 
 bonsai_function u8 * PlatformAllocateSize(umm AllocationSize);
 bonsai_function b32  PlatformDeallocate(u8 *Base, umm Size);
@@ -227,12 +279,12 @@ TotalSize(T *Sizable)
 }
 
 template <typename T> umm
-Remaining(T *Sizable, u32 Modifier = 0)
+Remaining(T *Sizable, umm Modifier = 0)
 {
   umm Result = 0;
   if (Sizable->At+Modifier < Sizable->End)
   {
-    Result = (umm)(Sizable->End - Sizable->At+Modifier);
+    Result = (umm)( (umm)(Sizable->End-Sizable->At) + Modifier);
   }
   return Result;
 }
@@ -322,42 +374,10 @@ HashArena(memory_arena *Arena)
   return Result;
 }
 
-inline s32
-SafeTruncateToS32(umm Size)
-{
-  Assert(Size <= s32_MAX);
-  s32 Result = (s32)Size;
-  return Result;
-}
-
-inline u32
-SafeTruncateToU32(umm Size)
-{
-  Assert(Size <= u32_MAX);
-  u32 Result = (u32)Size;
-  return Result;
-}
-
-inline u16
-SafeTruncateToU16(umm Size)
-{
-  Assert(Size <= u16_MAX);
-  u16 Result = (u16)Size;
-  return Result;
-}
-
-bonsai_function u8
-SafeTruncateU8(s32 Size)
-{
-  Assert(Size < u8_MAX);
-  u8 Result = (u8)Size;
-  return Result;
-}
-
 bonsai_function b32
 ProtectPage(u8* Mem)
 {
-  u64 PageSize = PlatformGetPageSize();
+  umm PageSize = PlatformGetPageSize();
   Assert((umm)Mem % PageSize == 0);
 
   b32 Result = PlatformSetProtection(Mem, PageSize, MemoryProtection_Protected);
@@ -370,8 +390,8 @@ bonsai_function memory_arena*
 AllocateArena(umm RequestedBytes = Megabytes(1), b32 MemProtect = True)
 {
   // TODO(Jesse): We shouldn't really be able to ask for < 1MB worth of space
-  u64 PageSize = PlatformGetPageSize();
-  u64 ToNextPage = PageSize - (RequestedBytes % PageSize);
+  umm PageSize = PlatformGetPageSize();
+  umm ToNextPage = PageSize - (RequestedBytes % PageSize);
   umm AllocationSize = RequestedBytes + ToNextPage;
 
   Assert(AllocationSize % PageSize == 0);
@@ -446,7 +466,7 @@ DeallocateArena(memory_arena *Arena)
 bonsai_function void
 ReallocateArena(memory_arena *Arena, umm MinSize, b32 MemProtect)
 {
-  u64 AllocationSize = Arena->NextBlockSize;
+  umm AllocationSize = Arena->NextBlockSize;
   if (MinSize > AllocationSize)
     AllocationSize = MinSize;
 
@@ -570,7 +590,7 @@ PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
   Assert(Remaining(Arena) <= TotalSize(Arena));
 
 #if MEMPROTECT
-  u64 PageSize = PlatformGetPageSize();
+  umm PageSize = PlatformGetPageSize();
   if (MemProtect)
   {
     u32 Pages = (u32)((AlignCorrectedSizeIn/PageSize) + 1);
@@ -607,7 +627,7 @@ PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
 
     Result = Arena->At + EndToNextPage;
     u8* LastPage = Result + AlignCorrectedSizeIn;
-    Assert( (u64)LastPage % PageSize == 0);
+    Assert( (umm)LastPage % PageSize == 0);
 
     ProtectPage(LastPage);
   }

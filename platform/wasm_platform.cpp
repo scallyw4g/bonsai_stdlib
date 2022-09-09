@@ -12,11 +12,10 @@ void
 PlatformDebugStacktrace()
 {
   Warn("Couldn't get a stacktrace on this platform :((((");
-  return;
 }
 
 b32
-OpenAndInitializeWindow( os *Os, platform *Plat, s32 Ignored)
+OpenAndInitializeWindow(os *Os, platform *Plat)
 {
   Info("Creating Context");
 
@@ -52,4 +51,36 @@ OpenAndInitializeWindow( os *Os, platform *Plat, s32 Ignored)
 
   b32 Result = ctx ? True : False;
   return Result;
+}
+
+
+b32 PlatformCreateDir(const char* Path, mode_t Mode)
+{
+  NotImplemented;
+  return 0;
+}
+b32 PlatformDeleteDir(const char* Path, mode_t Mode)
+{
+  NotImplemented;
+  return 0;
+}
+void* PlatformGetGlFunction(const char* Name)
+{
+  NotImplemented;
+  return 0;
+}
+const char * PlatformGetEnvironmentVar(const char *VarName)
+{
+  NotImplemented;
+  return 0;
+}
+b32 fopen_s(FILE **HandleOut, const char *FilePath, const char *Permissions)
+{
+  NotImplemented;
+  return 0;
+}
+s32 _chdir(const char* DirName)
+{
+  NotImplemented;
+  return 0;
 }

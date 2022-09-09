@@ -54,13 +54,17 @@ PlatformLockMutex(mutex *Mutex)
   return;
 }
 
-bonsai_function u64
+bonsai_function umm
 PlatformGetPageSize()
 {
-  u64 InvalidSysconfReturn = ((u64)-1);
-  local_persist u64 PageSize = (u64)sysconf(_SC_PAGESIZE);
+  umm InvalidSysconfReturn = ((umm)-1);
+  local_persist umm PageSize = (umm)sysconf(_SC_PAGESIZE);
   Assert(PageSize != InvalidSysconfReturn);
+#if BONSAI_EMCC
+  Assert(PageSize == 65536);
+#else
   Assert(PageSize == 4096);
+#endif
 
   return PageSize;
 }
@@ -74,7 +78,7 @@ PlatformGetLogicalCoreCount()
 }
 
 bonsai_function b32
-PlatformSetProtection(u8 *Base, u64 Size, memory_protection_type Protection)
+PlatformSetProtection(u8 *Base, umm Size, memory_protection_type Protection)
 {
   b32 Result = False;
 
@@ -151,7 +155,7 @@ PlatformDeallocate(u8 *Base, umm Size)
   return Deallocated;
 }
 
-u8*
+link_internal u8*
 PlatformAllocateSize(umm AllocationSize)
 {
   Assert(AllocationSize % PlatformGetPageSize() == 0);
@@ -167,7 +171,7 @@ PlatformAllocateSize(umm AllocationSize)
     s32 E = errno;
     if (E == ENOMEM)
     {
-      Error("Out of memory, or exhausted virtual page table.");
+      Error("Out of memory, or exhausted virtual page table for allocation sized (%lu)", AllocationSize);
       Assert(False);
     }
     else

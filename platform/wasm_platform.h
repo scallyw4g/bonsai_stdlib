@@ -7,7 +7,7 @@
 #define YELLOW_TERMINAL ""
 #define WHITE_TERMINAL ""
 
-#define FullBarrier  asm volatile("" ::: "memory"); _mm_sfence();
+#define PLATFORM_RUNTIME_LIB_EXTENSION ".so"
 
 inline u64
 GetCycleCount()
@@ -18,9 +18,28 @@ GetCycleCount()
 
 void PlatformDebugStacktrace();
 
-typedef umm gl_context;
+b32 PlatformCreateDir(const char* Path, mode_t Mode = 0774);
+b32 PlatformDeleteDir(const char* Path, mode_t Mode = 0774);
+
+void* PlatformGetGlFunction(const char* Name);
+const char * PlatformGetEnvironmentVar(const char *VarName);
+
+// @compat_with_windows_barf
+b32 fopen_s(FILE **HandleOut, const char *FilePath, const char *Permissions);
+s32 _chdir(const char* DirName);
+
+link_internal b32
+PlatformStdoutIsRedirected()
+{
+  b32 Result = True;
+  return Result;
+}
+
+typedef EMSCRIPTEN_WEBGL_CONTEXT_HANDLE gl_context;
 struct os
 {
   gl_context GlContext;
   b32 ContinueRunning = True;
+
+  b32 Window = true; // NOTE(Jesse): Hack to play nice with other platforms
 };

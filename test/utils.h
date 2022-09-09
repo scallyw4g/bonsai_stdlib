@@ -23,7 +23,7 @@ TestSuiteBegin(const char *TestSuite, s32 ArgCount, const char** Args)
 
   LogDirect("%S   Start   %S- %s Tests" Newline, TerminalColors.Blue, TerminalColors.White, TestSuite);
 
-  if (!SearchForProjectRoot()) { Error("Couldn't find root dir."); }
+  /* if (!SearchForProjectRoot()) { Error("Couldn't find root dir."); } */
 
   return;
 }

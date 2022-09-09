@@ -113,7 +113,7 @@ ToLowerCase(counted_string Source, memory_arena* Memory)
 }
 
 bonsai_function counted_string
-StripPrefix(counted_string Source, memory_arena* Memory, umm Count)
+StripPrefix(counted_string Source, memory_arena* Memory, u32 Count)
 {
   u32 Hits = 0;
   u32 CharAfterUnderscore = 0;

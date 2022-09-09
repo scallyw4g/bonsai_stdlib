@@ -116,6 +116,13 @@ GetCycleCount()
   return Result;
 }
 
+link_internal b32
+PlatformStdoutIsRedirected()
+{
+  b32 Result = isatty(fileno(stdout)) == 0;
+  return Result;
+}
+
 void
 PlatformDebugStacktrace()
 {
@@ -134,6 +141,9 @@ struct os
   b32 ContinueRunning = True;
 };
 
+// TODO(Jesse): Pretty sure this and _chdir were for compatibility with windows
+// .. which is pretty barf
+// @compat_with_windows_barf
 inline b32
 fopen_s(FILE **HandleOut, const char *FilePath, const char *Permissions)
 {
@@ -142,6 +152,7 @@ fopen_s(FILE **HandleOut, const char *FilePath, const char *Permissions)
   return Result;
 }
 
+// @compat_with_windows_barf
 inline s32
 _chdir(const char* DirName)
 {

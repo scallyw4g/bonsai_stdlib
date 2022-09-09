@@ -1,5 +1,10 @@
+/* #if BONSAI_EMCC */
+/* #include <wasm_simd128.h> */
+/* typedef v128_t __m128; */
+/* #else */
 #include <immintrin.h>
 #include <xmmintrin.h>
+/* #endif */
 
 struct v2i
 {

@@ -4,19 +4,19 @@
 
 #  define Ensure(condition) Assert((condition))
 
-#  define Assert(condition)                                                  \
-    do {                                                                     \
-      if (!(condition)) {                                                    \
-        LogDirect("%S ! FAILED%S  - `Assert(%s)` during %s() %s:%u:0" Newline,                         \
-                  TerminalColors.Red,                                        \
-                  TerminalColors.White,                                     \
-                  #condition,                                                \
-                  __FUNCTION__,                                             \
-                  __FILE__,                                                  \
-                  __LINE__);                                                 \
-                                                                             \
-        RuntimeBreak();                                                      \
-      }                                                                      \
+#  define Assert(condition)                                                    \
+    do {                                                                       \
+      if (!(condition)) {                                                      \
+        LogDirect("%S ! FAILED%S  - `Assert(%s)` during %s() %s:%u:0" Newline, \
+                  TerminalColors.Red,                                          \
+                  TerminalColors.White,                                        \
+                  #condition,                                                  \
+                  __FUNCTION__,                                                \
+                  __FILE__,                                                    \
+                  __LINE__);                                                   \
+                                                                               \
+        RuntimeBreak();                                                        \
+      }                                                                        \
     } while (false)
 
 #  define InvalidCodePath() Error("Invalid Code Path - Panic! " __FILE__ ":" STRINGIZE(__LINE__)); Assert(False)

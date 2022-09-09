@@ -40,6 +40,7 @@ U32_Stream(u32 Count, memory_arena *Memory)
   return Result;
 }
 
+#if 0
 v3_cursor
 V3Cursor(u32 Count, memory_arena *Memory)
 {
@@ -52,6 +53,7 @@ V3Cursor(u32 Count, memory_arena *Memory)
 
   return Result;
 }
+#endif
 
 //
 // TODO(Jesse, id: 145, tags: platform): Make this use platform agnostic functions!

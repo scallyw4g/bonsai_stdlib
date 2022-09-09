@@ -29,7 +29,10 @@ SetupStdout(u32 ArgCount, const char** ArgStrings)
   setvbuf(stdout, 0, _IONBF, 0);
   setvbuf(stderr, 0, _IONBF, 0);
 
-  Global_LogLevel = LogLevel_Error;
+  if (PlatformStdoutIsRedirected())
+  {
+    SetTerminalColorsOff();
+  }
 
   for ( u32 ArgIndex = 1;
         ArgIndex < ArgCount;
@@ -69,7 +72,11 @@ SetupStdout(u32 ArgCount, const char** ArgStrings)
         DumpValidLogLevelOptions();
       }
     }
+  }
 
+  if (Global_LogLevel == LogLevel_Undefined)
+  {
+    Global_LogLevel = LogLevel_Error;
   }
 
   return;

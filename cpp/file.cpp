@@ -280,7 +280,7 @@ WriteToFile(native_file* File, ansi_stream *Str)
 }
 
 bonsai_function void
-ReadBytesIntoBuffer(FILE *Src, u64 BytesToRead, u8* Dest)
+ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest)
 {
   Assert(BytesToRead);
   u64 BytesRead = fread(Dest, 1, BytesToRead, Src);
