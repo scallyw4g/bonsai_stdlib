@@ -71,12 +71,6 @@ void* PlatformGetGlFunction(const char* Name)
 }
 const char * PlatformGetEnvironmentVar(const char *VarName)
 {
-  NotImplemented;
-  return 0;
-}
-b32 fopen_s(FILE **HandleOut, const char *FilePath, const char *Permissions)
-{
-  NotImplemented;
   return 0;
 }
 s32 _chdir(const char* DirName)

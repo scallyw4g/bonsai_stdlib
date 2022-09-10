@@ -266,7 +266,6 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
           {
             u64 Value = va_arg(Args, u64);
             u64ToChar(DestCursor, Value, FormatWidth);
-
           }
           else if (CursorAt == 'd')
           {

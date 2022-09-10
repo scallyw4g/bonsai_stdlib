@@ -685,11 +685,12 @@ u64ToChar(char_cursor* Dest, u64 Value, u32 Columns = 0, u32 Base = 10, char *Di
   char *Start = Dest->At;
   do
   {
-      u64 DigitIndex = (Value % Base);
-      char Digit = Digits[DigitIndex];
-      CopyToDest(Dest, Digit);
-      Value /= Base;
-  } while(Value != 0);
+    u64 DigitIndex = (Value % Base);
+    char Digit = Digits[DigitIndex];
+    CopyToDest(Dest, Digit);
+    Value /= Base;
+  }
+  while(Value != 0);
 
   char *End = Dest->At;
 

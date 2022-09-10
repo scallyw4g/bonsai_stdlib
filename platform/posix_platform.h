@@ -37,6 +37,9 @@ WakeThread( semaphore *Semaphore )
   return;
 }
 
+// @compat_with_windows_barf
+inline b32 fopen_s(FILE **HandleOut, const char *FilePath, const char *Permissions);
+
 #if 0
 void
 PlatformDebugStacktrace()

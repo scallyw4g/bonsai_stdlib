@@ -1,3 +1,14 @@
+// TODO(Jesse): Pretty sure this and _chdir were for compatibility with windows
+// .. which is pretty barf
+// @compat_with_windows_barf
+inline b32
+fopen_s(FILE **HandleOut, const char *FilePath, const char *Permissions)
+{
+  *HandleOut = fopen(FilePath, Permissions);
+  b32 Result = *HandleOut != 0;
+  return Result;
+}
+
 inline void
 PrintSemValue(semaphore *Semaphore)
 {

@@ -25,7 +25,6 @@ void* PlatformGetGlFunction(const char* Name);
 const char * PlatformGetEnvironmentVar(const char *VarName);
 
 // @compat_with_windows_barf
-b32 fopen_s(FILE **HandleOut, const char *FilePath, const char *Permissions);
 s32 _chdir(const char* DirName);
 
 link_internal b32

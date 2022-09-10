@@ -518,26 +518,43 @@ bonsai_function u8*
 Reallocate(u8* Allocation, memory_arena* Arena, umm CurrentSize, umm RequestedSize)
 {
   u8* Result = 0;
+
   if (Allocation + CurrentSize == Arena->At)
   {
-    // TODO(Jesse, tags: correctness): Theoretically we could pass arguments
-    // that fuck this up, but in practice we'll never hit that case in my
-    // lifetime (probably).
-    s64 Diff = (s64)(RequestedSize - CurrentSize);
-    if ((s64)Remaining(Arena) >= Diff)
+    s64 Diff = (s64)RequestedSize - (s64)CurrentSize;
+    if (Diff >= 0)
     {
-      Arena->At += Diff;
-      Result = Allocation;
+      if ((s64)Remaining(Arena) >= Diff)
+      {
+        Arena->At += Diff;
+        Result = Allocation;
+      }
+      else
+      {
+        // TODO(Jesse): Should this acutally just reallocate a buffer large
+        // enough to accomodate the whole request?  Probably not because that
+        // would leak memory, but maybe that's fine?
+        //
+        // Alternatively, is there some way we can analyze the calling code to
+        // ensure this case never happens?
+        Error("Unable to reallocate : Arena didn't have enough space left to accommodate %ld bytes.", Diff);
+      }
+    }
+    else if (Diff < 0)
+    {
+      if (Abs(Diff) <= CurrentSize)
+      {
+        Arena->At += Diff;
+        Result = Arena->At;
+      }
+      else
+      {
+        Error("Unable to reallocate : Abs(Diff) was greater than CurrentSize (%lld) > (%llu) bytes.", (u64)Abs(Diff), (u64)CurrentSize);
+      }
     }
     else
     {
-      // TODO(Jesse): Should this acutally just reallocate a buffer large
-      // enough to accomodate the whole request?  Probably not because that
-      // would leak memory, but maybe that's fine?
-      //
-      // Alternatively, is there some way we can analyze the calling code to
-      // ensure this case never happens?
-      Error("Unable to reallocate : Arena didn't have enough space left to accommodate %lu bytes.", Diff);
+      InvalidCodePath();
     }
   }
   else
@@ -577,6 +594,9 @@ PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
 bonsai_function u8*
 PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
 {
+  // TODO(Jesse): What should the policy here actually be?
+  if (Alignment < 8) Alignment = 8;
+
   umm ToAlignment = Alignment - (SizeIn % Alignment);
   umm AlignCorrectedSizeIn = SizeIn;
 

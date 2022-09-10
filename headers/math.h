@@ -156,7 +156,13 @@ Max(s32 A, s32 B)
   return Result;
 }
 
-// TODO(Jesse): Should this not return u32?
+inline u64
+Abs(s64 Int)
+{
+  u64 Result = (u64)(Int < 0 ? -Int : Int);
+  return Result;
+}
+
 inline u32
 Abs(s32 Int)
 {
