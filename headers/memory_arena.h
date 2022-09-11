@@ -226,13 +226,12 @@ AlignTo(umm Mem, umm Alignment)
   Assert(Alignment);
   umm At = Mem;
   umm ToNextAlignment = Alignment - (At % Alignment);
-  Assert( (At+ToNextAlignment) % Alignment == 0);
-
-  if (ToNextAlignment != Alignment) // We're on a page boundary
+  if (ToNextAlignment < Alignment) // We're on a page boundary
   {
     At += ToNextAlignment;
-    Assert(At % Alignment == 0);
   }
+
+  Assert(At % Alignment == 0);
 
   return At;
 }
@@ -262,12 +261,12 @@ AlignTo(memory_arena *Arena, umm Alignment)
   return;
 }
 
-inline void
+inline u8 *
 SetToPageBoundary(memory_arena *Arena)
 {
   umm Align = PlatformGetPageSize();
   AlignTo(Arena, Align);
-  return;
+  return Arena->At;
 }
 
 template <typename T> umm
@@ -389,7 +388,8 @@ ProtectPage(u8* Mem)
 bonsai_function memory_arena*
 AllocateArena(umm RequestedBytes = Megabytes(1), b32 MemProtect = True)
 {
-  // TODO(Jesse): We shouldn't really be able to ask for < 1MB worth of space
+  RequestedBytes = Max(RequestedBytes, Megabytes(1));
+
   umm PageSize = PlatformGetPageSize();
   umm ToNextPage = PageSize - (RequestedBytes % PageSize);
   umm AllocationSize = RequestedBytes + ToNextPage;
@@ -592,68 +592,59 @@ PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
 #else
 
 bonsai_function u8*
-PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
+PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect)
 {
-  // TODO(Jesse): What should the policy here actually be?
-  if (Alignment < 8) Alignment = 8;
-
-  umm ToAlignment = Alignment - (SizeIn % Alignment);
-  umm AlignCorrectedSizeIn = SizeIn;
-
-  if (ToAlignment != Alignment)
-  {
-    AlignCorrectedSizeIn += ToAlignment;
-  }
-
-  umm RequestedSize = AlignCorrectedSizeIn;
   Assert(Arena->At <= Arena->End);              // Sanity checks
   Assert(Remaining(Arena) <= TotalSize(Arena));
 
+  umm ExtraPageBytes = 0;
 #if MEMPROTECT
   umm PageSize = PlatformGetPageSize();
   if (MemProtect)
   {
-    u32 Pages = (u32)((AlignCorrectedSizeIn/PageSize) + 1);
-    RequestedSize = (Pages*PageSize) + PageSize;
-    SetToPageBoundary(Arena);
-    Assert( RequestedSize % PageSize == 0 );
+    /* umm Pages = (u32)((Size/PageSize) + 1); */
+    /* umm PageBytes = (Pages*PageSize) + PageSize; */
+    ExtraPageBytes = PageSize;
+    SetToPageBoundary(Arena); // NOTE(Jesse): This should be safe because we reallocate multiples of pages
     Assert( (umm)Arena->At % PageSize == 0);
+    Assert( (umm)Arena->At % (umm)Alignment == 0);
+    Assert( Arena->At <= Arena->End );
   }
 #endif
-  Assert(Arena->At <= Arena->End);
+
+
+  // TODO(Jesse): What should the policy here actually be?
+  if (Alignment < 8) Alignment = 8;
+  umm ToAlignment = (umm)Alignment - ((umm)Arena->At % Alignment);
+
 
   umm RemainingInArena = Remaining(Arena);
-  b32 ArenaIsFull = RequestedSize > RemainingInArena;
-  if (ArenaIsFull)
-  {
-    ReallocateArena(Arena, RequestedSize, MemProtect);
-  }
+  umm TotalAllocationSize = Size+ToAlignment+ExtraPageBytes;
 
-  umm AtToAlignment = Alignment - ((umm)Arena->At % Alignment);
-  if (AtToAlignment != Alignment)
+  if ( TotalAllocationSize > RemainingInArena)
   {
-    Arena->At += AtToAlignment;
+    ReallocateArena(Arena, TotalAllocationSize, MemProtect);
+    Assert((umm)Arena->At % (umm)Alignment == 0);
   }
-
-  u8* Result = Arena->At;
-  Assert(((umm)Arena->At % Alignment) == 0);
+  else
+  {
+    if (ToAlignment < Alignment)
+    {
+      Arena->At += ToAlignment;
+    }
+    Assert((umm)Arena->At % (umm)Alignment == 0);
+  }
 
 #if MEMPROTECT_OVERFLOW
   if (MemProtect)
   {
-    umm EndOfStruct = (umm)Arena->At + AlignCorrectedSizeIn;
+    umm EndOfStruct = (umm)Arena->At + Size;
     umm EndToNextPage = PageSize - (EndOfStruct % PageSize);
     Assert( (EndOfStruct+EndToNextPage) % PageSize == 0);
 
-    Result = Arena->At + EndToNextPage;
-    u8* LastPage = Result + AlignCorrectedSizeIn;
-    Assert( (umm)LastPage % PageSize == 0);
-
-    ProtectPage(LastPage);
+    Arena->At += EndToNextPage;
   }
-#endif
-
-#if MEMPROTECT_UNDERFLOW
+#elif MEMPROTECT_UNDERFLOW
   if (Arena->MemProtect)
   {
     umm At = (umm)Arena->At;
@@ -666,19 +657,35 @@ PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
 
     Result = NextPage + PageSize;
   }
+#else
+
 #endif
 
-  Arena->At += RequestedSize;
+  u8* Result = Arena->At;
+  Arena->At += Size;
+
+#if MEMPROTECT_OVERFLOW
+  if (MemProtect)
+  {
+    u8* LastPage = SetToPageBoundary(Arena);
+    Assert( (umm)LastPage % PageSize == 0);
+    ProtectPage(LastPage);
+    Arena->At += PageSize;
+  }
+#elif MEMPROTECT_UNDERFLOW
+#else
+#endif
+
+
+
 
 #if MEMPROTECT
-
 #if BONSAI_INTERNAL
   ++Arena->Pushes;
 #endif
-
   if (MemProtect)
   {
-    Assert( ((umm)Result+AlignCorrectedSizeIn) % PageSize == 0);
+    Assert( ((umm)Result+Size) % PageSize == 0);
     Assert( (umm)Arena->At % PageSize == 0);
   }
 #endif

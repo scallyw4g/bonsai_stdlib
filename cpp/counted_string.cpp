@@ -33,7 +33,7 @@ CountedString(const char* Start, memory_arena* Memory)
 }
 
 counted_string
-CountedString(const char* Start, umm Count, memory_arena* Memory)
+CopyString(const char* Start, umm Count, memory_arena* Memory)
 {
   TIMED_FUNCTION();
   counted_string Result = {
@@ -400,8 +400,10 @@ FormatCountedString_(memory_arena* Memory, counted_string FS, ...)
 {
   TIMED_FUNCTION();
 
-  umm FinalBufferStartingSize = FS.Count + 64;
+  umm FinalBufferStartingSize = FS.Count;
   char* FinalBuffer = AllocateProtection(char, Memory, FinalBufferStartingSize, False);
+
+  Assert((u8*)(FinalBuffer+FinalBufferStartingSize) == Memory->At);
 
   char_cursor DestCursor = {
     .Start = FinalBuffer,
