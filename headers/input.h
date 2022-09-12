@@ -89,7 +89,7 @@ GetOrthographicInputs(hotkeys *Hotkeys)
   return UpdateDir;
 }
 
-bonsai_function void
+link_internal void
 BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
 {
 
@@ -133,7 +133,7 @@ BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
   return;
 }
 
-bonsai_function void
+link_internal void
 ClearClickedFlags(input *Input)
 {
 poof(

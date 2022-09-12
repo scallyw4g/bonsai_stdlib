@@ -1,4 +1,4 @@
-bonsai_function counted_string
+link_internal counted_string
 Finalize(string_builder* Builder, memory_arena* PermMemory)
 {
   TIMED_FUNCTION();

@@ -19,9 +19,6 @@
 
 #endif
 
-#define bonsai_function link_internal
-
-
 #define True  (1)
 #define False (0)
 
@@ -127,7 +124,7 @@ struct counted_string
 };
 //CAssert(sizeof(counted_string) == 16);
 
-bonsai_function counted_string
+link_internal counted_string
 FormatCountedString_(char* Dest, umm DestSize, const char *FS, ...);
 
 counted_string
@@ -143,7 +140,7 @@ CS(const char *S, umm Count)
 poof(
   func index_of(Type)
   {
-    bonsai_function umm
+    link_internal umm
     IndexOf((Type.name)_buffer *Buf, (Type.name) Element)
     {
       umm Result = Buf->Count;
@@ -167,7 +164,7 @@ poof(
 poof(
   func are_equal(Type)
   {
-    bonsai_function b32
+    link_internal b32
     AreEqual((Type.name) *Thing1, (Type.name) *Thing2)
     {
       b32 Result = MemoryIsEqual((u8*)Thing1, (u8*)Thing2, sizeof( (Type.name) ) );

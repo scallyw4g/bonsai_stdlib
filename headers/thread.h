@@ -5,9 +5,9 @@
 global_variable volatile b32 MainThreadBlocksWorkerThreads;
 global_variable volatile u32 WorkerThreadsWaiting;
 
-bonsai_function u32 GetWorkerThreadCount();
-bonsai_function u32 GetTotalThreadCount();
-bonsai_function void SuspendWorkerThreads();
+link_internal u32 GetWorkerThreadCount();
+link_internal u32 GetTotalThreadCount();
+link_internal void SuspendWorkerThreads();
 
 typedef THREAD_MAIN_RETURN (*thread_main_callback_type)(void*);
 

@@ -46,7 +46,7 @@ CopyString(const char* Start, umm Count, memory_arena* Memory)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 Concat(counted_string S1, counted_string S2, memory_arena* Memory)
 {
   umm TotalLength = S1.Count + S2.Count;
@@ -61,7 +61,7 @@ Concat(counted_string S1, counted_string S2, memory_arena* Memory)
   return Result;
 }
 
-bonsai_function const char*
+link_internal const char*
 GetNullTerminated(counted_string Str, memory_arena* Memory = TranArena)
 {
   const char* Result = AllocateProtection(const char, Memory, Str.Count+1, False);
@@ -69,7 +69,7 @@ GetNullTerminated(counted_string Str, memory_arena* Memory = TranArena)
   return Result;
 }
 
-bonsai_function void
+link_internal void
 ToCapitalCaseInplace(counted_string* Source)
 {
   b32 NextCharToUpper = True;
@@ -96,7 +96,7 @@ ToCapitalCaseInplace(counted_string* Source)
   }
 }
 
-bonsai_function counted_string
+link_internal counted_string
 ToLowerCase(counted_string Source, memory_arena* Memory)
 {
   counted_string Result = CountedString(Source.Count, Memory);
@@ -112,7 +112,7 @@ ToLowerCase(counted_string Source, memory_arena* Memory)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 StripPrefix(counted_string Source, memory_arena* Memory, u32 Count)
 {
   u32 Hits = 0;
@@ -137,7 +137,7 @@ StripPrefix(counted_string Source, memory_arena* Memory, u32 Count)
   counted_string Result = CS(Source.Start+CharAfterUnderscore, ResultLength);
   return Result;
 }
-bonsai_function counted_string
+link_internal counted_string
 ToCapitalCase(counted_string Source, memory_arena* Memory)
 {
   u32 ResultLength = 0;
@@ -183,7 +183,7 @@ ToCapitalCase(counted_string Source, memory_arena* Memory)
   return Result;
 }
 
-bonsai_function void
+link_internal void
 PadForFormatWidth(char_cursor *Dest, u32 PadCount)
 {
   {
@@ -191,7 +191,7 @@ PadForFormatWidth(char_cursor *Dest, u32 PadCount)
   }
 }
 
-bonsai_function counted_string
+link_internal counted_string
 FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
 {
   TIMED_FUNCTION();
@@ -377,7 +377,7 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 FormatCountedString_(char_cursor* DestCursor, counted_string FS, ...)
 {
   va_list Args;
@@ -388,14 +388,14 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, ...)
   return Result;
 }
 
-// This is to silence the warnings when passing counted_strings to this bonsai_function
+// This is to silence the warnings when passing counted_strings
 #define FormatCountedString(Memory, Fmt, ...)             \
   _Pragma("clang diagnostic push")                        \
   _Pragma("clang diagnostic ignored \"-Wclass-varargs\"") \
   FormatCountedString_(Memory, Fmt, __VA_ARGS__)          \
   _Pragma("clang diagnostic pop")
 
-bonsai_function counted_string
+link_internal counted_string
 FormatCountedString_(memory_arena* Memory, counted_string FS, ...)
 {
   TIMED_FUNCTION();
@@ -420,7 +420,7 @@ FormatCountedString_(memory_arena* Memory, counted_string FS, ...)
 }
 
 // TODO(Jesse, id: 364, tags: speed): This should probably go away and make sure we always just use counted strings
-bonsai_function counted_string
+link_internal counted_string
 FormatCountedString_(char* Buffer, umm BufferSize, const char *FS, va_list Args)
 {
   TIMED_FUNCTION();
@@ -435,7 +435,7 @@ FormatCountedString_(char* Buffer, umm BufferSize, const char *FS, va_list Args)
 }
 
 // TODO(Jesse, id: 365, tags: speed): This should probably go away and make sure we always just use counted strings
-bonsai_function counted_string
+link_internal counted_string
 FormatCountedString_(char* Buffer, umm BufferSize, const char *FS, ...)
 {
   TIMED_FUNCTION();
@@ -454,7 +454,7 @@ FormatCountedString_(char* Buffer, umm BufferSize, const char *FS, ...)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 FormatCountedString_(char* Buffer, umm BufferSize, counted_string FS, va_list Args)
 {
   TIMED_FUNCTION();
@@ -468,7 +468,7 @@ FormatCountedString_(char* Buffer, umm BufferSize, counted_string FS, va_list Ar
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 FormatCountedString_(char* Buffer, umm BufferSize, counted_string FS, ...)
 {
   TIMED_FUNCTION();
@@ -487,7 +487,7 @@ FormatCountedString_(char* Buffer, umm BufferSize, counted_string FS, ...)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 MemorySize(r64 Number)
 {
   r64 KB = (r64)Kilobytes(1);
@@ -518,63 +518,63 @@ MemorySize(r64 Number)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 MemorySize(u64 Number)
 {
   counted_string Result = MemorySize((r64)Number);
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 CS(s64 Number)
 {
   counted_string Result = FormatCountedString(TranArena, CSz("%ld"), Number);
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 CS(u64 Number)
 {
   counted_string Result = FormatCountedString(TranArena, CSz("%lu"), Number);
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 CS(s32 Number)
 {
   counted_string Result = FormatCountedString(TranArena, CSz("%d"), Number);
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 CS(u32 Number)
 {
   counted_string Result = FormatCountedString(TranArena, CSz("%u"), Number);
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 CS(r64 Number)
 {
   counted_string Result = FormatCountedString(TranArena, CSz("%.2f"), Number);
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 CS(r32 Number)
 {
   counted_string Result = FormatCountedString(TranArena, CSz("%.2f"), Number);
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 CS(v2 V)
 {
   counted_string Result = FormatCountedString(TranArena, CSz("(%.2f,%.2f)"), V.x, V.y);
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 FormatThousands(u64 Number)
 {
   u64 OneThousand = 1000;
@@ -591,7 +591,7 @@ FormatThousands(u64 Number)
   return Result;
 }
 
-bonsai_function r32
+link_internal r32
 ToF64(counted_string* String)
 {
   const char* Temp = GetNullTerminated(*String, TranArena);

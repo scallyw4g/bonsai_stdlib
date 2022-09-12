@@ -1,4 +1,15 @@
 
+/* poof( */
+/*   func tuple(type_list Types) */
+/*   { */
+/*     tuple(Types.map (T) { _(T.name) }) */
+/*   } */
+/* ) */
+
+/* poof( tuple([counted_string, counted_string]) ) */
+
+
+
 poof( func hashtable(Type) { (hashtable_struct(Type)) (hashtable_impl(Type)) })
 
 poof(
@@ -21,14 +32,14 @@ poof(
 poof(
   func hashtable_impl(Type)
   {
-    bonsai_function (Type.name)_linked_list_node *
+    link_internal (Type.name)_linked_list_node *
     Allocate_(Type.name)_linked_list_node(memory_arena *Memory)
     {
       (Type.name)_linked_list_node *Result = Allocate( (Type.name)_linked_list_node, Memory, 1);
       return Result;
     }
 
-    bonsai_function (Type.name)_hashtable
+    link_internal (Type.name)_hashtable
     Allocate_(Type.name)_hashtable(umm ElementCount, memory_arena *Memory)
     {
       (Type.name)_hashtable Result = {};
@@ -37,7 +48,7 @@ poof(
       return Result;
     }
 
-    bonsai_function (Type.name)_linked_list_node *
+    link_internal (Type.name)_linked_list_node *
     GetHashBucket(umm HashValue, (Type.name)_hashtable *Table)
     {
       Assert(Table->Size);
@@ -45,7 +56,7 @@ poof(
       return Result;
     }
 
-    bonsai_function Type.name *
+    link_internal Type.name *
     GetFirstAtBucket(umm HashValue, (Type.name)_hashtable *Table)
     {
       (Type.name)_linked_list_node *Bucket = GetHashBucket(HashValue, Table);
@@ -53,7 +64,7 @@ poof(
       return Result;
     }
 
-    bonsai_function Type.name *
+    link_internal Type.name *
     Insert((Type.name)_linked_list_node *Node, (Type.name)_hashtable *Table)
     {
       Assert(Table->Size);
@@ -64,7 +75,7 @@ poof(
       return &Bucket[0]->Element;
     }
 
-    bonsai_function (Type.name)*
+    link_internal (Type.name)*
     Insert((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
       (Type.name)_linked_list_node *Bucket = Allocate_(Type.name)_linked_list_node(Memory);
@@ -78,15 +89,15 @@ poof(
 poof(
   func dunion_debug_print_prototype(DUnion)
   {
-    bonsai_function void DebugPrint( (DUnion.type) *Struct, u32 Depth = 0);
-    bonsai_function void DebugPrint( (DUnion.type) Struct, u32 Depth = 0);
+    link_internal void DebugPrint( (DUnion.type) *Struct, u32 Depth = 0);
+    link_internal void DebugPrint( (DUnion.type) Struct, u32 Depth = 0);
   }
 )
 
 poof(
   func dunion_debug_print(DUnion)
   {
-    bonsai_function void
+    link_internal void
     DebugPrint( (DUnion.type) *Struct, u32 Depth)
     {
       if (Struct)
@@ -95,7 +106,7 @@ poof(
       }
     }
 
-    bonsai_function void
+    link_internal void
     DebugPrint( (DUnion.type) Struct, u32 Depth)
     {
       DebugPrint("DUnion.type {\n", Depth);
@@ -132,7 +143,7 @@ poof(
       umm Count;
     };
 
-    bonsai_function (Type.name)_buffer
+    link_internal (Type.name)_buffer
     (Type.name.to_capital_case)Buffer(umm ElementCount, memory_arena* Memory)
     {
       (Type.name)_buffer Result = {};
@@ -162,7 +173,7 @@ poof(
       Type.name *End;
     };
 
-    bonsai_function (Type.name)_cursor
+    link_internal (Type.name)_cursor
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
       Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name)), 1, 0);
@@ -179,7 +190,7 @@ poof(
 poof(
   func generate_string_table(EnumType)
   {
-    bonsai_function counted_string
+    link_internal counted_string
     ToString( (EnumType.name) Type)
     {
       counted_string Result = {};
@@ -198,7 +209,7 @@ poof(
 poof(
   func generate_value_table(EnumType)
   {
-    bonsai_function (EnumType.name)
+    link_internal (EnumType.name)
     (EnumType.name.to_capital_case)(counted_string S)
     {
       EnumType.name Result = {};
@@ -227,7 +238,7 @@ poof(
 poof(
   func generate_stream_push(Type)
   {
-    bonsai_function (Type.name) *
+    link_internal (Type.name) *
     Push((Type.name)_stream* Stream, (Type.name) Element, memory_arena* Memory)
     {
       (Type.name)_stream_chunk* NextChunk = ((Type.name)_stream_chunk*)PushStruct(Memory, sizeof((Type.name)_stream_chunk), 1, 0);
@@ -252,7 +263,7 @@ poof(
       return Result;
     }
 
-    bonsai_function void
+    link_internal void
     ConcatStreams( (Type.name)_stream *S1, (Type.name)_stream *S2)
     {
       if (S1->LastChunk)
@@ -311,7 +322,7 @@ poof(
       (Type.name)_stream_chunk* At;
     };
 
-    bonsai_function (Type.name)_iterator
+    link_internal (Type.name)_iterator
     Iterator((Type.name)_stream* Stream)
     {
       (Type.name)_iterator Iterator = {
@@ -321,20 +332,20 @@ poof(
       return Iterator;
     }
 
-    bonsai_function b32
+    link_internal b32
     IsValid((Type.name)_iterator* Iter)
     {
       b32 Result = Iter->At != 0;
       return Result;
     }
 
-    bonsai_function void
+    link_internal void
     Advance((Type.name)_iterator* Iter)
     {
       Iter->At = Iter->At->Next;
     }
 
-    bonsai_function b32
+    link_internal b32
     IsLastElement((Type.name)_iterator* Iter)
     {
       b32 Result = Iter->At->Next == 0;
@@ -349,7 +360,7 @@ poof(
   {
     InputTypeDef.map_members (Member)
     {
-      bonsai_function InputTypeDef.type
+      link_internal InputTypeDef.type
       GetBy(Member.name)( (Member.Type) Needle, (InputTypeDef.type)_stream *Haystack)
       {
         // TODO : Implement matching!

@@ -1,6 +1,6 @@
 #define DEBUG_THREAD_COUNT_BIAS (17)
 
-bonsai_function u32
+link_internal u32
 GetWorkerThreadCount()
 {
   u32 LogicalCoreCount = PlatformGetLogicalCoreCount();
@@ -15,7 +15,7 @@ GetWorkerThreadCount()
   return ThreadCount;
 }
 
-bonsai_function u32
+link_internal u32
 GetTotalThreadCount()
 {
   u32 Result = GetWorkerThreadCount() + 1;

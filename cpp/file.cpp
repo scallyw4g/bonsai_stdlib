@@ -4,7 +4,7 @@
 
 // TODO(Jesse): The Create and Delete functions here are identical mirrors of
 // each other.. metaprogram them.
-bonsai_function b32
+link_internal b32
 CreateDirectory(const char *zPath)
 {
   b32 Result = False;
@@ -15,7 +15,7 @@ CreateDirectory(const char *zPath)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 CreateDirectory(counted_string Filepath)
 {
   const char* zPath = GetNullTerminated(Filepath);
@@ -23,7 +23,7 @@ CreateDirectory(counted_string Filepath)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 TryCreateDirectory(const char* zPath)
 {
   b32 Result = True;
@@ -37,7 +37,7 @@ TryCreateDirectory(const char* zPath)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 TryCreateDirectory(counted_string Filepath)
 {
   const char* zPath = GetNullTerminated(Filepath);
@@ -51,7 +51,7 @@ TryCreateDirectory(counted_string Filepath)
 
 
 
-bonsai_function b32
+link_internal b32
 DeleteDirectory(const char *zPath)
 {
   b32 Result = False;
@@ -62,14 +62,14 @@ DeleteDirectory(const char *zPath)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 DeleteDirectory(counted_string Filepath)
 {
   const char* zPath = GetNullTerminated(Filepath);
   b32 Result = DeleteDirectory(zPath);
   return Result;
 }
-bonsai_function b32
+link_internal b32
 TryDeleteDirectory(const char* zPath)
 {
   b32 Result = True;
@@ -83,7 +83,7 @@ TryDeleteDirectory(const char* zPath)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 TryDeleteDirectory(counted_string Filepath)
 {
   const char* zPath = GetNullTerminated(Filepath);
@@ -97,7 +97,7 @@ TryDeleteDirectory(counted_string Filepath)
 
 
 
-bonsai_function b32
+link_internal b32
 CloseFile(native_file* File)
 {
   b32 Result = False;
@@ -122,7 +122,7 @@ CloseFile(native_file* File)
 
 global_variable random_series TempFileEntropy = {3215432};
 
-bonsai_function b32
+link_internal b32
 Rename(counted_string CurrentFilePath, counted_string NewFilePath)
 {
   counted_string TmpFilename = {};
@@ -156,7 +156,7 @@ Rename(counted_string CurrentFilePath, counted_string NewFilePath)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 Remove(counted_string Filepath)
 {
   const char* NullTerminated = GetNullTerminated(Filepath);
@@ -164,7 +164,7 @@ Remove(counted_string Filepath)
   return Result;
 }
 
-bonsai_function native_file
+link_internal native_file
 OpenFile(const char* FilePath, const char* Permissions)
 {
   native_file Result = {
@@ -199,7 +199,7 @@ OpenFile(const char* FilePath, const char* Permissions)
   return Result;
 }
 
-bonsai_function native_file
+link_internal native_file
 OpenFile(counted_string FilePath, const char* Permissions)
 {
   const char* NullTerminatedFilePath = GetNullTerminated(FilePath);
@@ -207,7 +207,7 @@ OpenFile(counted_string FilePath, const char* Permissions)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 GetRandomString(u32 Length, random_series* Entropy, memory_arena* Memory)
 {
   counted_string Filename = {
@@ -230,7 +230,7 @@ GetRandomString(u32 Length, random_series* Entropy, memory_arena* Memory)
   return Filename;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 GetRandomString(u32 Length, umm EntropySeed, memory_arena* Memory)
 {
   random_series Entropy = { .Seed = EntropySeed };
@@ -238,7 +238,7 @@ GetRandomString(u32 Length, umm EntropySeed, memory_arena* Memory)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 GetTmpFilename(random_series* Entropy, memory_arena* Memory)
 {
   counted_string Filename = GetRandomString(32, Entropy, Memory);
@@ -246,7 +246,7 @@ GetTmpFilename(random_series* Entropy, memory_arena* Memory)
   return Filename;
 }
 
-bonsai_function native_file
+link_internal native_file
 GetTempFile(random_series* Entropy, memory_arena* Memory)
 {
   counted_string Filename = GetTmpFilename(Entropy, Memory);
@@ -256,7 +256,7 @@ GetTempFile(random_series* Entropy, memory_arena* Memory)
   return Result;
 }
 
-bonsai_function inline b32
+link_internal inline b32
 WriteToFile(native_file* File, counted_string Str)
 {
   b32 Result = False;
@@ -272,14 +272,14 @@ WriteToFile(native_file* File, counted_string Str)
   return Result;
 }
 
-bonsai_function inline b32
+link_internal inline b32
 WriteToFile(native_file* File, ansi_stream *Str)
 {
   b32 Result = WriteToFile(File, CountedString(Str));
   return Result;
 }
 
-bonsai_function void
+link_internal void
 ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest)
 {
   Assert(BytesToRead);
@@ -288,7 +288,7 @@ ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest)
   return;
 }
 
-bonsai_function b32
+link_internal b32
 FileExists(const char* Path)
 {
   b32 Result = False;
@@ -307,7 +307,7 @@ FileExists(const char* Path)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 FileExists(counted_string Path)
 {
   const char* NullTerminatedFilePath = GetNullTerminated(Path);
@@ -315,7 +315,7 @@ FileExists(counted_string Path)
   return Result;
 }
 
-bonsai_function void
+link_internal void
 PrintToStdout(counted_string Output)
 {
   if (!WriteToFile(&Stdout, Output))

@@ -1,4 +1,4 @@
-bonsai_function b32
+link_internal b32
 SearchForProjectRoot(void)
 {
   InvalidCodePath();

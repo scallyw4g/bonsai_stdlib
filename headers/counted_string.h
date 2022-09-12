@@ -80,14 +80,14 @@ CharCursor(counted_string S)
   return Result;
 }
 
-bonsai_function char
+link_internal char
 LastChar(counted_string Str)
 {
   char Result = Str.Count ? Str.Start[Str.Count-1] : 0;
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 StripQuotes(counted_string S)
 {
   Assert(S.Count >= 2);
@@ -137,14 +137,14 @@ StringHash(const char* S1)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 IsPathSeparator(char C)
 {
   b32 Result = C == '/';
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 StripExtension(counted_string FilePath)
 {
   counted_string Result = FilePath;
@@ -163,7 +163,7 @@ StripExtension(counted_string FilePath)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 Dirname(counted_string FilePath)
 {
   umm OneAfterLastPathSep = 0;
@@ -191,7 +191,7 @@ Dirname(counted_string FilePath)
 
   return Result;
 }
-bonsai_function counted_string
+link_internal counted_string
 Basename(counted_string FilePath)
 {
   umm LastPathSeparator = 0;
@@ -275,7 +275,7 @@ StringsMatch(counted_string S1, counted_string S2)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 StartsWith(counted_string S1, counted_string S2)
 {
   umm TruncLength = Min(S1.Count, S2.Count);
@@ -341,7 +341,7 @@ Contains(const char *S1, const char *S2)
   return False;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 Trim(counted_string String)
 {
   counted_string Result = String;
@@ -394,42 +394,42 @@ Split(counted_string* String, char SplitTarget)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 IsUpper(char C)
 {
   b32 Result = (C >= 'A' && C <= 'Z');
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 IsLower(char C)
 {
   b32 Result = (C >= 'a' && C <= 'z');
   return Result;
 }
 
-bonsai_function char
+link_internal char
 ToLower(char C)
 {
   if (IsUpper(C)) { C += 32; }
   return C;
 }
 
-bonsai_function char
+link_internal char
 ToUpper(char C)
 {
   if (IsLower(C)) { C -= 32; }
   return C;
 }
 
-bonsai_function b32
+link_internal b32
 IsAlpha(char C)
 {
   b32 Result = IsUpper(C) || IsLower(C);
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 IsHex(char C)
 {
   b32 Result = ( (C >= '0' && C <= '9') ||
@@ -438,21 +438,21 @@ IsHex(char C)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 IsNumeric(char C)
 {
   b32 Result = (C >= '0' && C <= '9');
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 IsAlphaNumeric(char C)
 {
   b32 Result = IsAlpha(C) || IsNumeric(C);
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 IsAlphaNumeric(counted_string S)
 {
   b32 Result = True;
@@ -465,7 +465,7 @@ IsAlphaNumeric(counted_string S)
   return Result;
 }
 
-bonsai_function u64
+link_internal u64
 ToU64(char C)
 {
   Assert(IsNumeric(C));
@@ -473,14 +473,14 @@ ToU64(char C)
   return Result;
 }
 
-bonsai_function u32
+link_internal u32
 ToU32(char C)
 {
   u32 Result = SafeTruncateToU32(ToU64(C));
   return Result;
 }
 
-bonsai_function u32
+link_internal u32
 GetColumnsFor(u32 N)
 {
   u32 i = 0;
@@ -489,7 +489,7 @@ GetColumnsFor(u32 N)
   return i;
 }
 
-bonsai_function r64
+link_internal r64
 Exp(r64 Base, s32 Exponent)
 {
   s32 IterationDirection = Exponent > 0 ? 1 : -1;
@@ -508,7 +508,7 @@ Exp(r64 Base, s32 Exponent)
   return Result;
 }
 
-bonsai_function u64
+link_internal u64
 Exp(u64 Base, s32 Exponent)
 {
   s32 IterationDirection = Exponent > 0 ? 1 : -1;
@@ -527,7 +527,7 @@ Exp(u64 Base, s32 Exponent)
   return Result;
 }
 
-bonsai_function u32
+link_internal u32
 IsNumeric(counted_string S)
 {
   u32 Result = True;
@@ -541,7 +541,7 @@ IsNumeric(counted_string S)
   return Result;
 }
 
-bonsai_function umm
+link_internal umm
 ToUMM(u64 N)
 {
   Assert(N < umm_MAX);
@@ -549,7 +549,7 @@ ToUMM(u64 N)
   return Result;
 }
 
-bonsai_function u64
+link_internal u64
 ToU64(counted_string S)
 {
   u64 Result = 0;
@@ -564,35 +564,35 @@ ToU64(counted_string S)
   return Result;
 }
 
-bonsai_function s32
+link_internal s32
 ToS32(counted_string S)
 {
   s32 Result = SafeTruncateToS32(ToUMM(ToU64(S)));
   return Result;
 }
 
-bonsai_function u32
+link_internal u32
 ToU32(counted_string S)
 {
   u32 Result = SafeTruncateToU32(ToU64(S));
   return Result;
 }
 
-bonsai_function u32
+link_internal u32
 ToU32(counted_string *S)
 {
   u32 Result = ToU32(*S);
   return Result;
 }
 
-bonsai_function char
+link_internal char
 Peek(char_cursor* BufferCursor)
 {
   char Result = *BufferCursor->At;
   return Result;
 }
 
-bonsai_function char
+link_internal char
 Advance(char_cursor* BufferCursor)
 {
   char Result = 0;
@@ -607,7 +607,7 @@ Advance(char_cursor* BufferCursor)
   return Result;
 }
 
-bonsai_function u32
+link_internal u32
 EmbeddedU32(char_cursor* FormatCursor)
 {
   char* NumStart = FormatCursor->At;
@@ -620,7 +620,7 @@ EmbeddedU32(char_cursor* FormatCursor)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 Reallocate(char_cursor *Dest, umm Increment)
 {
   b32 Result = False;
@@ -634,7 +634,7 @@ Reallocate(char_cursor *Dest, umm Increment)
   return Result;
 }
 
-bonsai_function void
+link_internal void
 CopyToDest(char_cursor *Dest, char C)
 {
   b32 DoCopy = True;
@@ -666,7 +666,7 @@ CopyToDest(char_cursor *Dest, char C)
   }
 }
 
-bonsai_function void
+link_internal void
 CopyToDest(char_cursor *Dest, counted_string String)
 {
   for (u32 CharIndex = 0;
@@ -677,7 +677,7 @@ CopyToDest(char_cursor *Dest, counted_string String)
   }
 }
 
-bonsai_function void
+link_internal void
 u64ToChar(char_cursor* Dest, u64 Value, u32 Columns = 0, u32 Base = 10, char *Digits = DecChars)
 {
   Assert(Base != 0);
@@ -717,7 +717,7 @@ u64ToChar(char_cursor* Dest, u64 Value, u32 Columns = 0, u32 Base = 10, char *Di
   return;
 }
 
-bonsai_function void
+link_internal void
 s64ToChar(char_cursor* Dest, s64 Value, u32 Columns, u32 Base = 10, char *Digits = DecChars)
 {
   if (Value < 0)
@@ -732,7 +732,7 @@ s64ToChar(char_cursor* Dest, s64 Value, u32 Columns, u32 Base = 10, char *Digits
 
 // Note(Jesse): Shamelessly copied, then modified, from the Handmade Hero codebase
 #define DEFAULT_FORMAT_PRECISION (16)
-bonsai_function void
+link_internal void
 f64ToChar(char_cursor* Dest, r64 Value, u32 Precision = DEFAULT_FORMAT_PRECISION, u32 Columns = 0)
 {
   if(Value < 0)

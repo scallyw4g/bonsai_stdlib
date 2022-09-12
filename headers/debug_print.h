@@ -1,58 +1,58 @@
-bonsai_function void
+link_internal void
 DebugPrint(r64 E, u32 Depth = 0)
 {
   DebugChars("%*s%f", Depth, "", E);
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(s64 E, u32 Depth = 0)
 {
   DebugChars("%*s%ld", Depth, "", E);
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(u64 E, u32 Depth = 0)
 {
   DebugChars("%*s%lu", Depth, "", E);
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(r32 E, u32 Depth = 0)
 {
   DebugChars("%*s%.2f", Depth, "", E);
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(s32 E, u32 Depth = 0)
 {
   DebugChars("%*s%d", Depth, "", E);
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(u32 E, u32 Depth = 0)
 {
   DebugChars("%*s%u", Depth, "", E);
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(volatile void* E, u32 Depth = 0)
 {
   DebugChars("%*s%p", Depth, "", E);
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(void* E, u32 Depth = 0)
 {
   DebugChars("%*s%p", Depth, "", E);
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(__m128 E, u32 Depth = 0)
 {
   DebugChars("%*s%f %f %f %f", Depth, "", E[0], E[1], E[2], E[3]);
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(counted_string E, u32 Depth = 0)
 {
   if (StringsMatch(E, CSz("\n")))
@@ -65,7 +65,7 @@ DebugPrint(counted_string E, u32 Depth = 0)
   }
 }
 
-bonsai_function void
+link_internal void
 DebugPrint(const char *E, u32 Depth = 0)
 {
   DebugChars("%*s%s", Depth, "", E);
@@ -96,13 +96,13 @@ poof(
 
     func (StructDef)
     {
-      bonsai_function void DebugPrint( StructDef.name *S, u32 Depth = 0);
-      bonsai_function void DebugPrint( StructDef.name  S, u32 Depth = 0);
+      link_internal void DebugPrint( StructDef.name *S, u32 Depth = 0);
+      link_internal void DebugPrint( StructDef.name  S, u32 Depth = 0);
     }
 
     func (EnumDef)
     {
-      bonsai_function void DebugPrint( EnumDef.name EnumValue, u32 Depth = 0);
+      link_internal void DebugPrint( EnumDef.name EnumValue, u32 Depth = 0);
     }
 )
 #include <debug_print/for_all_datatypes_debug_print_prototypes.h>
@@ -113,7 +113,7 @@ poof(
 
   func (StructDef)
   {
-    bonsai_function void DebugPrint( StructDef.name RuntimeStruct, u32 Depth)
+    link_internal void DebugPrint( StructDef.name RuntimeStruct, u32 Depth)
     {
       if (Depth == 0)
       {
@@ -155,7 +155,7 @@ poof(
       }
     }
 
-    bonsai_function void DebugPrint( StructDef.name *RuntimePtr, u32 Depth)
+    link_internal void DebugPrint( StructDef.name *RuntimePtr, u32 Depth)
     {
       if (RuntimePtr) { DebugPrint(*RuntimePtr, Depth); }
       else { DebugPrint("ptr(0)\n", Depth); }
@@ -164,7 +164,7 @@ poof(
 
   func (TEnum)
   {
-    bonsai_function void DebugPrint( TEnum.name RuntimeValue, u32 Depth)
+    link_internal void DebugPrint( TEnum.name RuntimeValue, u32 Depth)
     {
       switch (RuntimeValue)
       {

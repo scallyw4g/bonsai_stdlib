@@ -5,7 +5,7 @@ struct random_series
 };
 
 #define DEFAULT_ENTROPY_SEED 3426544
-bonsai_function random_series
+link_internal random_series
 RandomSeries(u64 Seed = DEFAULT_ENTROPY_SEED)
 {
   random_series Result = {
@@ -63,7 +63,7 @@ RandomBilateral(random_series *Entropy)
   return Result;
 }
 
-bonsai_function u32
+link_internal u32
 MapValueToRange(u32 LowestPossibleValue, r32 Value, u32 HighestPossibleValue)
 {
   u32 Range = HighestPossibleValue - LowestPossibleValue;

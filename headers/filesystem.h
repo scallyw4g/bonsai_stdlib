@@ -1,2 +1,2 @@
 
-bonsai_function b32 SearchForProjectRoot(void);
+link_internal b32 SearchForProjectRoot(void);

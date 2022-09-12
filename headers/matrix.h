@@ -62,7 +62,7 @@ struct m_nxn
 
 };
 
-bonsai_function  v4
+link_internal  v4
 TransformColumnMajor(m4 A, v4 P)
 {
     v4 R;
@@ -73,7 +73,7 @@ TransformColumnMajor(m4 A, v4 P)
     return(R);
 }
 
-bonsai_function  v4
+link_internal  v4
 TransformRowMajor(m4 A, v4 P)
 {
     v4 R;
@@ -103,7 +103,7 @@ operator*(m4 A, m4 B)
   return Result;
 }
 
-bonsai_function  m4
+link_internal  m4
 Translate( v3 v )
 {
   m4 Result;

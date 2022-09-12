@@ -9,7 +9,7 @@ global_variable native_file Stdout =
   .Path = CSz("stdout")
 };
 
-bonsai_function void
+link_internal void
 DumpValidLogLevelOptions()
 {
   DebugChars("[");
@@ -23,7 +23,7 @@ DumpValidLogLevelOptions()
   DebugChars(" ]\n");
 }
 
-bonsai_function void
+link_internal void
 SetupStdout(u32 ArgCount, const char** ArgStrings)
 {
   setvbuf(stdout, 0, _IONBF, 0);

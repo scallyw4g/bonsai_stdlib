@@ -1,7 +1,7 @@
 global_variable const umm TempDebugOutputBufferSize = 64*1024;
 global_variable char TempDebugOutputBuffer[TempDebugOutputBufferSize];
 
-bonsai_function void PrintToStdout(counted_string S);
+link_internal void PrintToStdout(counted_string S);
 
 enum log_level
 {
@@ -37,7 +37,7 @@ global_variable terminal_colors TerminalColors = {};
 
 #if 0
 // TODO(Jesse): Metaprogram this?  ATM we only ever turn colors off
-bonsai_function void
+link_internal void
 SetTerminalColorsOn()
 {
   NotImplemented;
@@ -56,7 +56,7 @@ SetTerminalColorsOn()
 #endif
 
 // TODO(Jesse): Metaprogram this
-bonsai_function void
+link_internal void
 SetTerminalColorsOff()
 {
 #if 1
@@ -77,7 +77,7 @@ SetTerminalColorsOff()
 #endif
 }
 
-bonsai_function void SetupStdout(u32 ArgCount, const char** ArgStrings);
+link_internal void SetupStdout(u32 ArgCount, const char** ArgStrings);
 
 
 

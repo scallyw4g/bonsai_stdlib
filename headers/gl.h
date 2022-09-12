@@ -153,7 +153,7 @@ typedef unsigned short GLushort;
 
 typedef void (*GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
 
-bonsai_function void
+link_internal void
 DumpGlErrorEnum(u32 ErrorNumber)
 {
   if ( ErrorNumber != 0 )
@@ -435,7 +435,7 @@ struct opengl
 
 global_variable opengl GL = {};
 
-bonsai_function b32
+link_internal b32
 CheckOpenglVersion()
 {
   s32 Version[2];

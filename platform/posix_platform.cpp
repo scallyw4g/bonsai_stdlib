@@ -65,7 +65,7 @@ PlatformLockMutex(mutex *Mutex)
   return;
 }
 
-bonsai_function umm
+link_internal umm
 PlatformGetPageSize()
 {
   umm InvalidSysconfReturn = ((umm)-1);
@@ -88,7 +88,7 @@ PlatformGetLogicalCoreCount()
   return CoreCount;
 }
 
-bonsai_function b32
+link_internal b32
 PlatformSetProtection(u8 *Base, umm Size, memory_protection_type Protection)
 {
   b32 Result = False;
@@ -155,7 +155,7 @@ PlatformSetProtection(u8 *Base, umm Size, memory_protection_type Protection)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 PlatformDeallocate(u8 *Base, umm Size)
 {
   Assert( (umm)Base % PlatformGetPageSize() == 0);

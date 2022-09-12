@@ -91,7 +91,7 @@ union v4
 };
 
 
-bonsai_function v4
+link_internal v4
 V4(v3 v, float w)
 {
   v4 Result = {
@@ -103,7 +103,7 @@ V4(v3 v, float w)
   return Result;
 }
 
-bonsai_function v4
+link_internal v4
 V4(r32 Fill)
 {
   v4 Result = {
@@ -115,7 +115,7 @@ V4(r32 Fill)
   return Result;
 }
 
-bonsai_function v4
+link_internal v4
 V4( float x, float y, float z, float w)
 {
   v4 Result = {

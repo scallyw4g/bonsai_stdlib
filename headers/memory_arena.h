@@ -55,7 +55,7 @@ SafeTruncateToU16(umm Size)
   return Result;
 }
 
-bonsai_function u8
+link_internal u8
 SafeTruncateU8(s32 Size)
 {
   Assert(Size < u8_MAX);
@@ -181,11 +181,11 @@ struct memory_arena
 
 
 
-bonsai_function umm PlatformGetPageSize();
-bonsai_function b32 PlatformSetProtection(u8 *Base, umm Size, memory_protection_type Protection);
+link_internal umm PlatformGetPageSize();
+link_internal b32 PlatformSetProtection(u8 *Base, umm Size, memory_protection_type Protection);
 
-bonsai_function u8 * PlatformAllocateSize(umm AllocationSize);
-bonsai_function b32  PlatformDeallocate(u8 *Base, umm Size);
+link_internal u8 * PlatformAllocateSize(umm AllocationSize);
+link_internal b32  PlatformDeallocate(u8 *Base, umm Size);
 
 #if 0
 struct temp_memory_handle
@@ -194,13 +194,13 @@ struct temp_memory_handle
   u8* At;
 };
 
-bonsai_function void
+link_internal void
 EndTemporaryMemory(temp_memory_handle Handle)
 {
   return;
 }
 
-bonsai_function temp_memory_handle
+link_internal temp_memory_handle
 BeginTemporaryMemory(memory_arena *Arena)
 {
   temp_memory_handle Result = {
@@ -304,7 +304,7 @@ AtElements(T *Sizable)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 MemoryIsEqual(u8 *First, u8 *Second, umm Size)
 {
   b32 Result = True;
@@ -373,7 +373,7 @@ HashArena(memory_arena *Arena)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 ProtectPage(u8* Mem)
 {
   umm PageSize = PlatformGetPageSize();
@@ -385,7 +385,7 @@ ProtectPage(u8* Mem)
 
 // @temp-string-builder-memory
 // TODO(Jesse, id: 98, tags: robustness, api_improvement): Make allocating these on the stack work!
-bonsai_function memory_arena*
+link_internal memory_arena*
 AllocateArena(umm RequestedBytes = Megabytes(1), b32 MemProtect = True)
 {
   RequestedBytes = Max(RequestedBytes, Megabytes(1));
@@ -436,7 +436,7 @@ AllocateArena(umm RequestedBytes = Megabytes(1), b32 MemProtect = True)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 DeallocateArena(memory_arena *Arena)
 {
   b32 Result = False;
@@ -463,7 +463,7 @@ DeallocateArena(memory_arena *Arena)
   return Result;
 }
 
-bonsai_function void
+link_internal void
 ReallocateArena(memory_arena *Arena, umm MinSize, b32 MemProtect)
 {
   umm AllocationSize = Arena->NextBlockSize;
@@ -501,7 +501,7 @@ VaporizeArena(memory_arena *Arena)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 UnprotectArena(memory_arena *Arena)
 {
   umm Size = (umm)Arena->End - (umm)Arena->Start;
@@ -514,7 +514,7 @@ UnprotectArena(memory_arena *Arena)
   return Result;
 }
 
-bonsai_function u8*
+link_internal u8*
 Reallocate(u8* Allocation, memory_arena* Arena, umm CurrentSize, umm RequestedSize)
 {
   u8* Result = 0;
@@ -570,7 +570,7 @@ Reallocate(u8* Allocation, memory_arena* Arena, umm CurrentSize, umm RequestedSi
 #define ALLOCATOR_USE_MALLOC 0
 #if ALLOCATOR_USE_MALLOC
 
-bonsai_function u8*
+link_internal u8*
 PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
 {
   umm ToAlignment = Alignment - (SizeIn % Alignment);
@@ -591,7 +591,7 @@ PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
 
 #else
 
-bonsai_function u8*
+link_internal u8*
 PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect)
 {
   Assert(Arena->At <= Arena->End);              // Sanity checks
@@ -700,7 +700,7 @@ PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect)
 
 #endif
 
-bonsai_function void*
+link_internal void*
 PushStruct(memory_arena *Memory, umm sizeofStruct, umm Alignment = 1, b32 MemProtect = True)
 {
   void* Result = PushSize(Memory, sizeofStruct, Alignment, MemProtect);

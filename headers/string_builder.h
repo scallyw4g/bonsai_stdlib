@@ -4,7 +4,7 @@ struct string_builder
   counted_string_stream Chunks;
 };
 
-bonsai_function void
+link_internal void
 Append(string_builder* Builder, counted_string String)
 {
   Push(&Builder->Chunks, String, Builder->Memory);

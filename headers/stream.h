@@ -383,7 +383,7 @@ ReadUntilTerminatorString(ansi_stream *Cursor, counted_string Terminator)
   return Result;
 }
 
-bonsai_function char
+link_internal char
 Advance(ansi_stream* Cursor, u32 Lookahead = 0)
 {
   char Result = False;
@@ -469,7 +469,7 @@ PopWordCounted(ansi_stream *Cursor, const char *Delimeters = 0)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 CountedString(ansi_stream *Stream)
 {
   counted_string Result = {
@@ -479,7 +479,7 @@ CountedString(ansi_stream *Stream)
   return Result;
 }
 
-bonsai_function counted_string
+link_internal counted_string
 CountedString(ansi_stream Stream)
 {
   counted_string Result = {
