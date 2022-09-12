@@ -1,8 +1,13 @@
 link_internal counted_string
-Finalize(string_builder* Builder, memory_arena* PermMemory)
+Finalize(string_builder* Builder, memory_arena* PermMemory, b32 IncludeNullTerminator = False)
 {
   TIMED_FUNCTION();
   u32 TotalMemRequired = 0;
+
+  if (IncludeNullTerminator)
+  {
+    TotalMemRequired += 1;
+  }
 
   ITERATE_OVER(&Builder->Chunks)
   {
@@ -21,7 +26,16 @@ Finalize(string_builder* Builder, memory_arena* PermMemory)
     AtIndex += At->Count;
     Assert(AtIndex <= Result.Count);
   }
-  Assert(AtIndex == Result.Count);
+
+  if (IncludeNullTerminator)
+  {
+    Assert(AtIndex+1 == Result.Count);
+    Assert(Result.Start[AtIndex] == 0);
+  }
+  else
+  {
+    Assert(AtIndex == Result.Count);
+  }
 
   VaporizeArena(Builder->Memory);
 

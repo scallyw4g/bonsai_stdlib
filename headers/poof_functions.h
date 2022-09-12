@@ -8,6 +8,71 @@
 
 /* poof( tuple([counted_string, counted_string]) ) */
 
+poof(
+
+  func buffer_builder(Type)
+  {
+    struct (Type.name)_buffer_builder
+    {
+      memory_arena* Memory = AllocateArena();
+      (Type.name)_stream Chunks;
+    };
+
+    link_internal void
+    Append( (Type.name)_buffer_builder* Builder, (Type.name) E)
+    {
+      Push(&Builder->Chunks, E, Builder->Memory);
+    }
+
+    struct (Type.name)_buffer
+    {
+      umm Count;
+      (Type.name) *E;
+    };
+
+    link_internal (Type.name)_buffer
+    (Type.name.to_capital_case)Buffer(umm TotalElements, memory_arena *PermMemory)
+    {
+      (Type.name)_buffer Result = {};
+      Result.Count = TotalElements;
+      Result.E = Allocate( (Type.name), PermMemory, TotalElements);
+      return Result;
+    }
+
+    link_internal (Type.name)_buffer
+    Finalize( (Type.name)_buffer_builder *Builder, memory_arena *PermMemory)
+    {
+      TIMED_FUNCTION();
+
+      u32 TotalElements = 0;
+
+      // TODO(Jesse): Keep track of # of chunks?
+      ITERATE_OVER(&Builder->Chunks)
+      {
+        ++TotalElements;
+      }
+
+      auto Result = (Type.name.to_capital_case)Buffer(TotalElements, PermMemory);
+
+      u32 ElementIndex = 0;
+      ITERATE_OVER(&Builder->Chunks)
+      {
+        auto At = GET_ELEMENT(Iter);
+        Result.E[ElementIndex] = *At;
+        Assert(ElementIndex < Result.Count);
+        ++ElementIndex;
+      }
+      Assert(ElementIndex == Result.Count);
+
+      VaporizeArena(Builder->Memory);
+
+      return Result;
+    }
+  }
+
+)
+
+
 
 
 poof( func hashtable(Type) { (hashtable_struct(Type)) (hashtable_impl(Type)) })
