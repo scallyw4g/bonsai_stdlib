@@ -41,7 +41,6 @@ struct input
 
 struct hotkeys
 {
-#if BONSAI_INTERNAL
   b32 Debug_RedrawEveryPush;
   b32 Debug_ToggleLoopedGamePlayback;
   b32 Debug_ToggleTriggeredRuntimeBreak;
@@ -51,7 +50,6 @@ struct hotkeys
   b32 Debug_TriangulateIncrement;
   b32 Debug_TriangulateDecrement;
   b32 Debug_MousePick;
-#endif
 
   b32 Left;
   b32 Right;
