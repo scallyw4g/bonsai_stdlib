@@ -46,6 +46,20 @@ CopyString(const char* Start, umm Count, memory_arena* Memory)
   return Result;
 }
 
+counted_string
+CopyString(counted_string S, memory_arena* Memory)
+{
+  TIMED_FUNCTION();
+  counted_string Result = {
+    .Count = S.Count,
+    .Start = AllocateProtection(const char, Memory, S.Count, False),
+  };
+
+  MemCopy((u8*)S.Start, (u8*)Result.Start, S.Count);
+
+  return Result;
+}
+
 link_internal counted_string
 Concat(counted_string S1, counted_string S2, memory_arena* Memory)
 {

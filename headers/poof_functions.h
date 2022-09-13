@@ -14,14 +14,13 @@ poof(
   {
     struct (Type.name)_buffer_builder
     {
-      memory_arena* Memory = AllocateArena();
       (Type.name)_stream Chunks;
     };
 
     link_internal void
     Append( (Type.name)_buffer_builder* Builder, (Type.name) E)
     {
-      Push(&Builder->Chunks, E, Builder->Memory);
+      Push(&Builder->Chunks, E);
     }
 
     struct (Type.name)_buffer
@@ -63,8 +62,6 @@ poof(
         ++ElementIndex;
       }
       Assert(ElementIndex == Result.Count);
-
-      VaporizeArena(Builder->Memory);
 
       return Result;
     }
@@ -304,9 +301,15 @@ poof(
   func generate_stream_push(Type)
   {
     link_internal (Type.name) *
-    Push((Type.name)_stream* Stream, (Type.name) Element, memory_arena* Memory)
+    Push((Type.name)_stream* Stream, (Type.name) Element)
     {
-      (Type.name)_stream_chunk* NextChunk = ((Type.name)_stream_chunk*)PushStruct(Memory, sizeof((Type.name)_stream_chunk), 1, 0);
+      if (Stream->Memory == 0)
+      {
+        Stream->Memory = AllocateArena();
+      }
+
+      /* (Type.name)_stream_chunk* NextChunk = AllocateProtection((Type.name)_stream_chunk*), Stream->Memory, 1, False) */
+      (Type.name)_stream_chunk* NextChunk = ((Type.name)_stream_chunk*)PushStruct(Stream->Memory, sizeof((Type.name)_stream_chunk), 1, 0);
       NextChunk->Element = Element;
 
       if (!Stream->FirstChunk)
@@ -327,42 +330,6 @@ poof(
       Type.name *Result = &NextChunk->Element;
       return Result;
     }
-
-    link_internal void
-    ConcatStreams( (Type.name)_stream *S1, (Type.name)_stream *S2)
-    {
-      if (S1->LastChunk)
-      {
-        Assert(S1->FirstChunk);
-
-        if (S2->FirstChunk)
-        {
-          Assert(S2->LastChunk);
-          S1->LastChunk->Next = S2->FirstChunk;
-          S1->LastChunk = S2->LastChunk;
-        }
-        else
-        {
-          Assert(!S2->LastChunk);
-        }
-      }
-      else
-      {
-        Assert(!S1->FirstChunk);
-        Assert(!S1->LastChunk);
-
-        if(S2->FirstChunk)
-        {
-          Assert(S2->LastChunk);
-        }
-        else
-        {
-          Assert(!S2->LastChunk);
-        }
-
-        *S1 = *S2;
-      }
-    }
   }
 )
 
@@ -371,10 +338,18 @@ poof(
   {
     struct (Type.name)_stream
     {
+      memory_arena *Memory;
       (Type.name)_stream_chunk* FirstChunk;
       (Type.name)_stream_chunk* LastChunk;
     };
 
+    link_internal void
+    Deallocate((Type.name)_stream *Stream)
+    {
+      Stream->LastChunk = 0;
+      Stream->FirstChunk = 0;
+      VaporizeArena(Stream->Memory);
+    }
   }
 )
 
