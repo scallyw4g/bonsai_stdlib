@@ -81,6 +81,13 @@ CharCursor(counted_string S)
 }
 
 link_internal char
+LastChar(counted_string *Str)
+{
+  char Result = Str->Count ? Str->Start[Str->Count-1] : 0;
+  return Result;
+}
+
+link_internal char
 LastChar(counted_string Str)
 {
   char Result = Str.Count ? Str.Start[Str.Count-1] : 0;
@@ -339,6 +346,63 @@ Contains(const char *S1, const char *S2)
   }
 
   return False;
+}
+
+link_internal b32
+IsNBSP(char Type)
+{
+  b32 Result = Type == ' ' || Type == '\t';
+  return Result;
+}
+
+link_internal b32
+IsNBSP(counted_string *S)
+{
+  b32 Result = True;
+  for (u32 CharIndex = 0;
+      Result && CharIndex < S->Count;
+      ++CharIndex)
+  {
+    Result &= IsNBSP(S->Start[CharIndex]);
+  }
+  return Result;
+}
+
+link_internal void
+TrimTrailingNBSP(counted_string *S)
+{
+  if (S)
+  {
+    while (S->Count)
+    {
+      if ( IsNBSP(S->Start[S->Count-1]) )
+      {
+        --(S->Count);
+      }
+      else
+      {
+        break;
+      }
+    }
+  }
+}
+
+link_internal counted_string
+TrimTrailingNBSP(counted_string String)
+{
+  counted_string Result = String;
+  while (Result.Count)
+  {
+    if ( IsNBSP(Result.Start[Result.Count-1]) )
+    {
+      --Result.Count;
+    }
+    else
+    {
+      break;
+    }
+  }
+  return Result;
 }
 
 link_internal counted_string
