@@ -138,13 +138,13 @@ poof(
               DebugPrint(";\n");
             }
           }
+          // NOTE(Jesse): an anonymous struct or union
           {
-            // NOTE(Jesse): an anonymous struct or union
             DebugPrint("Member.type Member.name\n", Depth+2);
           }
         }
+        // NOTE(Jesse): found no definition for this type.. probably from stdlib
         {
-          // NOTE(Jesse): found no definition for this type.. probably from stdlib
           DebugPrint("undefined((Member.type) (Member.name))\n", Depth+2);
         }
       }
