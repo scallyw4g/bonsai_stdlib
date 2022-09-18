@@ -1,3 +1,5 @@
+#define SafeAccess(T, Ptr) (&(Ptr)->T); Assert((Ptr)->Type == type_##T)
+#define SafeAccessPtr(T, Ptr) ((Ptr)->T); Assert((Ptr)->Type == type_##T)
 
 #define ITERATE_OVER_AS(prefix, value_ptr)        \
   for (auto prefix##Iter = Iterator((value_ptr)); \
