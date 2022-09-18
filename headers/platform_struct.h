@@ -17,5 +17,7 @@ struct platform
   s32 WindowHeight;
 
   input Input;
+
+  void *GetDebugStateProc;
 };
 
