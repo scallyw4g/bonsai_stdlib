@@ -95,16 +95,23 @@ LastChar(counted_string Str)
 }
 
 link_internal counted_string
-StripQuotes(counted_string S)
+StripBookends(counted_string S, char First, char Last)
 {
   Assert(S.Count >= 2);
-  Assert(S.Start[0] == '"');
-  Assert(LastChar(S) == '"');
+  Assert(S.Start[0] == First);
+  Assert(LastChar(S) == Last);
 
   counted_string Result = {
     .Count = S.Count - 2,
     .Start = S.Start + 1,
   };
+  return Result;
+}
+
+link_internal counted_string
+StripQuotes(counted_string S)
+{
+  counted_string Result = StripBookends(S, '"', '"');
   return Result;
 }
 
