@@ -126,4 +126,15 @@ struct native_file
 {
   FILE* Handle;
   counted_string Path;
+
+  native_file() = default;
+  native_file(native_file &) = default;
+
+  ~native_file()
+  {
+    if (Handle)
+    {
+      Leak("file handle %S(%p)", Path, Handle);
+    }
+  }
 };

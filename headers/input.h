@@ -91,7 +91,7 @@ link_internal void
 BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
 {
 
-#if BONSAI_DEBUG_SYSTEM_API
+#if BONSAI_INTERNAL
   Hotkeys->Debug_Pause                    = Input->F12.Pressed;
   Hotkeys->Debug_ToggleLoopedGamePlayback = Input->F11.Clicked;
 

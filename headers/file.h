@@ -29,4 +29,4 @@ link_internal b32 FileExists(const char* Path);
 
 link_internal b32 FileExists(counted_string Path);
 
-link_internal void ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest);
+link_internal b32 ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest);

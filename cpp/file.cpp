@@ -257,11 +257,11 @@ GetTempFile(random_series* Entropy, memory_arena* Memory)
 }
 
 link_internal inline b32
-WriteToFile(native_file* File, counted_string Str)
+WriteToFile(native_file* File, u8 *Buf, umm Count)
 {
   b32 Result = False;
-  umm BytesWriten = fwrite(Str.Start, 1, Str.Count, File->Handle);
-  if (BytesWriten == Str.Count)
+  umm BytesWriten = fwrite(Buf, 1, Count, File->Handle);
+  if (BytesWriten == Count)
   {
     Result = True;
   }
@@ -273,19 +273,47 @@ WriteToFile(native_file* File, counted_string Str)
 }
 
 link_internal inline b32
+WriteToFile(native_file* File, u64 Value)
+{
+  b32 Result = WriteToFile(File, (u8*)&Value, sizeof(Value));
+  return Result;
+}
+
+link_internal inline b32
+WriteToFile(native_file* File, u32 Value)
+{
+  b32 Result = WriteToFile(File, (u8*)&Value, sizeof(Value));
+  return Result;
+}
+
+link_internal inline b32
+WriteToFile(native_file* File, counted_string Str)
+{
+  b32 Result = WriteToFile(File, (u8*)Str.Start, Str.Count);
+  return Result;
+}
+
+link_internal inline b32
 WriteToFile(native_file* File, ansi_stream *Str)
 {
   b32 Result = WriteToFile(File, CountedString(Str));
   return Result;
 }
 
-link_internal void
+link_internal b32
 ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest)
 {
   Assert(BytesToRead);
   u64 BytesRead = fread(Dest, 1, BytesToRead, Src);
-  Assert(BytesRead != 0);
-  return;
+  b32 Result = BytesRead == BytesToRead;
+  return Result;
+}
+
+link_internal b32
+ReadBytesIntoBuffer(native_file *Src, umm BytesToRead, u8* Dest)
+{
+  b32 Result = ReadBytesIntoBuffer(Src->Handle, BytesToRead, Dest);
+  return Result;
 }
 
 link_internal b32

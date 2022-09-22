@@ -140,6 +140,17 @@ link_internal void SetupStdout(u32 ArgCount, const char** ArgStrings);
 } while (false)
 
 
+#define Leak(...) do {                                                              \
+                                                                                   \
+  if (Global_LogLevel <= LogLevel_Error) {                                         \
+    LogDirect("%S * LEAKING %S- ", TerminalColors.Red, TerminalColors.White);      \
+    LogDirect(__VA_ARGS__);                                                        \
+    LogDirect(Newline);                                                            \
+  }                                                                                \
+                                                                                   \
+} while (false)
+
+
 #define BUG(...) do {                                                              \
                                                                                    \
   if (Global_LogLevel <= LogLevel_Error) {                                         \

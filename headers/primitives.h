@@ -122,7 +122,6 @@ struct counted_string
   umm Count;
   const char* Start; // TODO(Jesse, id: 94, tags: cleanup, open_question): Make this non-const?
 };
-//CAssert(sizeof(counted_string) == 16);
 
 link_internal counted_string
 FormatCountedString_(char* Dest, umm DestSize, const char *FS, ...);

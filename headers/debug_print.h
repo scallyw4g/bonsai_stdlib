@@ -82,6 +82,7 @@ poof( named_list(buggy_datatypes) { opengl debug_timed_function debug_state })
 // NOTE(Jesse): d_unions (for the moment) have a different implementation of DebugPrint
 poof( named_list(d_unions) { ast_node datatype declaration} )
 
+#if 0
 poof(dunion_debug_print_prototype(ast_node))
 #include <debug_print/debug_print_prototype_ast_node.h>
 
@@ -90,6 +91,7 @@ poof(dunion_debug_print_prototype(datatype))
 
 poof(dunion_debug_print_prototype(declaration))
 #include <debug_print/debug_print_prototype_declaration.h>
+#endif
 
 poof(
   for_datatypes(all).exclude(project_primitives buggy_datatypes d_unions)
@@ -133,9 +135,16 @@ poof(
               DebugPrint("}\n", Depth+2);
             }
             {
-              DebugPrint("Member.type Member.name =", Depth+2);
-              DebugPrint(RuntimeStruct.(Member.name), 1);
-              DebugPrint(";\n");
+              Member.is_function?
+              {
+                DebugPrint("Member.type Member.name = {function};", Depth+2);
+              }
+              // primitive
+              {
+                DebugPrint("Member.type Member.name =", Depth+2);
+                DebugPrint(RuntimeStruct.(Member.name), 1);
+                DebugPrint(";\n");
+              }
             }
           }
           // NOTE(Jesse): an anonymous struct or union
@@ -143,7 +152,7 @@ poof(
             DebugPrint("Member.type Member.name\n", Depth+2);
           }
         }
-        // NOTE(Jesse): found no definition for this type.. probably from stdlib
+        // NOTE(Jesse): found no definition for this type.. probably an OS type
         {
           DebugPrint("undefined((Member.type) (Member.name))\n", Depth+2);
         }
@@ -184,6 +193,7 @@ poof(
 
 
 
+#if 0
 
 poof(dunion_debug_print(ast_node))
 #include <debug_print/debug_print_ast_node.h>
@@ -194,3 +204,4 @@ poof(dunion_debug_print(datatype))
 poof(dunion_debug_print(declaration))
 #include <debug_print/debug_print_declaration.h>
 
+#endif

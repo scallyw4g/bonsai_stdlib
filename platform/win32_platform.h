@@ -50,7 +50,7 @@ typedef HDC display;
 struct native_file
 {
   FILE* Handle;
-  counted_string Path;
+  z_counted_string Path;
 };
 
 struct os
