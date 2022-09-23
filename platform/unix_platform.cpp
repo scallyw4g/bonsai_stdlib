@@ -172,12 +172,12 @@ GetProcFromLib(shared_lib Lib, const char *Name)
 }
 
 inline void
-Terminate(os *Os)
+Terminate(os *Os, platform *Plat)
 {
   XDestroyWindow(Os->Display, Os->Window);
   XCloseDisplay(Os->Display);
 
-  SuspendWorkerThreads();
+  WaitForWorkerThreads(&Plat->WorkerThreadsWaiting);
 
   return;
 }

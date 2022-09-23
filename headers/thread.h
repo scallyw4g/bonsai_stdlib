@@ -2,12 +2,9 @@
 #define WriteBarrier asm volatile("" ::: "memory"); _mm_sfence()
 #define FullBarrier  asm volatile("" ::: "memory"); _mm_sfence(); _mm_lfence()
 
-global_variable volatile b32 MainThreadBlocksWorkerThreads;
-global_variable volatile u32 WorkerThreadsWaiting;
-
 link_internal u32 GetWorkerThreadCount();
 link_internal u32 GetTotalThreadCount();
-link_internal void SuspendWorkerThreads();
+link_internal void WaitForWorkerThreads(volatile u32 *WorkerThreadsWaiting);
 
 typedef THREAD_MAIN_RETURN (*thread_main_callback_type)(void*);
 

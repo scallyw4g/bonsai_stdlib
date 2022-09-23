@@ -23,19 +23,22 @@ GetTotalThreadCount()
 }
 
 inline void
-SuspendWorkerThreads()
+WaitForWorkerThreads(volatile u32 *WorkerThreadsWaiting)
 {
   TIMED_FUNCTION();
-  MainThreadBlocksWorkerThreads = True;
+  /* MainThreadBlocksWorkerThreads = True; */
   u32 WorkerThreadCount = GetWorkerThreadCount();
-  while (WorkerThreadsWaiting < WorkerThreadCount);
-  return;
+  while (*WorkerThreadsWaiting < WorkerThreadCount)
+  {
+    Info("Waiting on workers");
+  }
+  Info("Done waiting");
 }
 
-inline void
-ResumeWorkerThreads()
-{
-  TIMED_FUNCTION();
-  MainThreadBlocksWorkerThreads = False;
-  return;
-}
+/* inline void */
+/* ResumeWorkerThreads() */
+/* { */
+/*   TIMED_FUNCTION(); */
+/*   /1* MainThreadBlocksWorkerThreads = False; *1/ */
+/*   return; */
+/* } */

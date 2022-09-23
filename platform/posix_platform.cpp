@@ -199,13 +199,15 @@ PlatformAllocateSize(umm AllocationSize)
 #if PLATFORM_THREADING_IMPLEMENTATIONS
 
 inline void
-ThreadSleep( semaphore *Semaphore )
+ThreadSleep( semaphore *Semaphore, volatile u32 *WorkerThreadsWaiting)
 {
   TIMED_FUNCTION();
 
-  AtomicIncrement(&WorkerThreadsWaiting);
+  /* Info("ThreadSleep"); */
+  AtomicIncrement(WorkerThreadsWaiting);
   sem_wait(Semaphore);
-  AtomicDecrement(&WorkerThreadsWaiting);
+  AtomicDecrement(WorkerThreadsWaiting);
+  /* Info("ThreadWake"); */
 
   return;
 }

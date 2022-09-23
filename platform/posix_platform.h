@@ -34,7 +34,6 @@ inline void
 WakeThread( semaphore *Semaphore )
 {
   sem_post(Semaphore);
-  return;
 }
 
 // @compat_with_windows_barf
@@ -88,37 +87,37 @@ AtomicIncrement( volatile s32 *Source )
 }
 
 inline u32
-AtomicExchange( volatile u32 *Source, const u32 Exchange )
+AtomicExchange( volatile u32 *Source, const u32 NewValue )
 {
-  u32 Result = __sync_lock_test_and_set( Source, Exchange );
+  u32 Result = __sync_lock_test_and_set( Source, NewValue );
   return Result;
 }
 
 inline b32
-AtomicCompareExchange( volatile char **Source, volatile char *Exchange, volatile char *Comparator )
+AtomicCompareExchange( volatile char **Source, volatile char *NewValue, volatile char *Comparator )
 {
-  bool Result = __sync_bool_compare_and_swap ( Source, Comparator, Exchange );
+  bool Result = __sync_bool_compare_and_swap ( Source, Comparator, NewValue );
   return Result;
 }
 
 inline bool
-AtomicCompareExchange( volatile void** Source, void* Exchange, void* Comparator )
+AtomicCompareExchange( volatile void** Source, void* NewValue, void* Comparator )
 {
-  bool Result = __sync_bool_compare_and_swap ( Source, Comparator, Exchange );
+  bool Result = __sync_bool_compare_and_swap ( Source, Comparator, NewValue );
   return Result;
 }
 
 inline bool
-AtomicCompareExchange( volatile u64 *Source, u64 Exchange, u64 Comparator )
+AtomicCompareExchange( volatile u64 *Source, u64 NewValue, u64 Comparator )
 {
-  bool Result = __sync_bool_compare_and_swap ( Source, Comparator, Exchange );
+  bool Result = __sync_bool_compare_and_swap ( Source, Comparator, NewValue );
   return Result;
 }
 
 inline bool
-AtomicCompareExchange( volatile u32 *Source, u32 Exchange, u32 Comparator )
+AtomicCompareExchange( volatile u32 *Source, u32 NewValue, u32 Comparator )
 {
-  bool Result = __sync_bool_compare_and_swap ( Source, Comparator, Exchange );
+  bool Result = __sync_bool_compare_and_swap ( Source, Comparator, NewValue );
   return Result;
 }
 
