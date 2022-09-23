@@ -4,6 +4,8 @@ global_variable memory_arena* TranArena = &gTranArena;
 inline b32
 RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 {
+  TIMED_FUNCTION();
+
   b32 Result = True;
 
   // Check for start because when we allocate an arena on the stack it's

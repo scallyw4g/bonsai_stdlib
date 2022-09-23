@@ -26,19 +26,6 @@ inline void
 WaitForWorkerThreads(volatile u32 *WorkerThreadsWaiting)
 {
   TIMED_FUNCTION();
-  /* MainThreadBlocksWorkerThreads = True; */
   u32 WorkerThreadCount = GetWorkerThreadCount();
-  while (*WorkerThreadsWaiting < WorkerThreadCount)
-  {
-    Info("Waiting on workers");
-  }
-  Info("Done waiting");
+  while (*WorkerThreadsWaiting < WorkerThreadCount);
 }
-
-/* inline void */
-/* ResumeWorkerThreads() */
-/* { */
-/*   TIMED_FUNCTION(); */
-/*   /1* MainThreadBlocksWorkerThreads = False; *1/ */
-/*   return; */
-/* } */
