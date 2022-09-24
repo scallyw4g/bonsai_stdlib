@@ -174,12 +174,10 @@ GetProcFromLib(shared_lib Lib, const char *Name)
 inline void
 Terminate(os *Os, platform *Plat)
 {
+  SuspendWorkerThreads(&Plat->SuspendWorkerThreads);
+
   XDestroyWindow(Os->Display, Os->Window);
   XCloseDisplay(Os->Display);
-
-  WaitForWorkerThreads(&Plat->WorkerThreadsWaiting);
-
-  return;
 }
 
 // TODO(Jesse id: 268): Unnecessary .. I just added these as a hack get parsing to work

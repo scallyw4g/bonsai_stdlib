@@ -7,9 +7,7 @@ global_variable HPALETTE global_hPalette;
 inline void
 ThreadSleep( semaphore Semaphore )
 {
-  AtomicIncrement(&WorkerThreadsWaiting);
   WaitForSingleObject( Semaphore, INFINITE );
-  AtomicDecrement(&WorkerThreadsWaiting);
 }
 
 inline void

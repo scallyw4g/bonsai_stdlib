@@ -484,36 +484,6 @@ ReallocateArena(memory_arena *Arena, umm MinSize, b32 MemProtect)
   return;
 }
 
-inline b32
-VaporizeArena(memory_arena *Arena)
-{
-  b32 Result = True;
-  if(Arena->Prev)
-  {
-    Result = VaporizeArena(Arena->Prev);
-    Arena->Prev = 0;
-  }
-
-  if (Arena->Start)
-  {
-    Result &= DeallocateArena(Arena);
-  }
-  return Result;
-}
-
-link_internal b32
-UnprotectArena(memory_arena *Arena)
-{
-  umm Size = (umm)Arena->End - (umm)Arena->Start;
-  b32 Result = PlatformSetProtection(Arena->Start, Size, MemoryProtection_RW);
-  if (Result == False)
-  {
-    Error("Unprotecting arena failed");
-  }
-
-  return Result;
-}
-
 link_internal u8*
 Reallocate(u8* Allocation, memory_arena* Arena, umm CurrentSize, umm RequestedSize)
 {
@@ -708,3 +678,5 @@ PushStruct(memory_arena *Memory, umm sizeofStruct, umm Alignment = 1, b32 MemPro
 }
 
 
+inline b32 VaporizeArena(memory_arena *Arena);
+link_internal b32 UnprotectArena(memory_arena *Arena);

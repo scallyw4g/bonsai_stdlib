@@ -196,19 +196,23 @@ PlatformAllocateSize(umm AllocationSize)
   return Bytes;
 }
 
-#if PLATFORM_THREADING_IMPLEMENTATIONS
-
-inline void
-ThreadSleep( semaphore *Semaphore, volatile u32 *WorkerThreadsWaiting)
+link_internal void
+SleepMs(u32 Ms)
 {
   TIMED_FUNCTION();
 
-  /* Info("ThreadSleep"); */
-  AtomicIncrement(WorkerThreadsWaiting);
-  sem_wait(Semaphore);
-  AtomicDecrement(WorkerThreadsWaiting);
-  /* Info("ThreadWake"); */
+  u32 Ns = Ms*100000;
+  timespec TReq = { .tv_sec = 0, .tv_nsec = Ns };
+  timespec TRem = {};
 
+  nanosleep(&TReq, &TRem);
+}
+
+inline void
+ThreadSleep( semaphore *Semaphore )
+{
+  TIMED_FUNCTION();
+  sem_wait(Semaphore);
   return;
 }
 
@@ -233,8 +237,6 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_param
   thread_id Result = pthread_create(&Thread, &Attribs, ThreadMain, Params);
   return Result;
 }
-
-#endif // PLATFORM_THREADING_IMPLEMENTATIONS
 
 
 global_variable const u32 Global_CwdBufferLength = 4096;

@@ -17,6 +17,8 @@
 #include <sys/socket.h>
 #include <cstdarg>      // va_arg
 
+#include <time.h> // nanosleep
+
 #define PLATFORM_RUNTIME_BREAK() raise(SIGTRAP)
 
 #define Newline "\n"
@@ -29,6 +31,8 @@ typedef sem_t semaphore;
 typedef pthread_mutex_t native_mutex;
 
 typedef void* shared_lib;
+
+link_internal void SleepMs(u32 Ms);
 
 inline void
 WakeThread( semaphore *Semaphore )
