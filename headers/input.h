@@ -9,6 +9,7 @@ struct input
 {
   input_event Escape;
 
+  input_event Enter;
   input_event Space;
   input_event Shift;
   input_event Ctrl;
@@ -58,6 +59,7 @@ struct hotkeys
 
   b32 Player_Fire;
   b32 Player_Proton;
+  b32 Player_Jump;
   b32 Player_Spawn;
 
 };
@@ -123,10 +125,12 @@ BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
   Hotkeys->Forward = Input->W.Pressed;
   Hotkeys->Backward = Input->S.Pressed;
 
-  Hotkeys->Player_Fire = Input->Space.Clicked;
-  Hotkeys->Player_Proton = Input->Shift.Clicked;
+  /* Hotkeys->Player_Fire = Input->Space.Clicked; */
+  /* Hotkeys->Player_Proton = Input->Shift.Clicked; */
 
-  Hotkeys->Player_Spawn = Input->Space.Clicked;
+  Hotkeys->Player_Jump = Input->Space.Clicked;
+
+  Hotkeys->Player_Spawn = Input->Enter.Clicked;
 
   return;
 }

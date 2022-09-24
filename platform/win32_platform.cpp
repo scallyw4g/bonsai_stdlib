@@ -309,6 +309,7 @@ WindowMessageCallback(
         BindKeyupToInput(VK_MENU, Alt);
         BindKeyupToInput(VK_CONTROL, Ctrl);
         BindKeyupToInput(VK_SPACE, Space);
+        BindKeyupToInput(VK_ENTER, Enter);
         default: { /* Ignore all other keypresses */ } break;
       }
     } break;
@@ -348,6 +349,7 @@ WindowMessageCallback(
         BindKeydownToInput(VK_MENU, Alt);
         BindKeydownToInput(VK_CONTROL, Ctrl);
         BindKeydownToInput(VK_SPACE, Space);
+        BindKeydownToInput(VK_ENTER, Enter);
         default: { /* Ignore all other keypresses */ } break;
 
       } break;
