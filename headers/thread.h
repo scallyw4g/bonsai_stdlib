@@ -4,6 +4,11 @@
 
 typedef THREAD_MAIN_RETURN (*thread_main_callback_type)(void*);
 
+struct thread
+{
+  u32 ThreadIndex;
+};
+
 struct bonsai_futex
 {
   volatile u32 SignalValue;
@@ -33,5 +38,5 @@ FutexIsSignaled(bonsai_futex *Futex)
 link_internal u32 GetWorkerThreadCount();
 link_internal u32 GetTotalThreadCount();
 link_internal void WaitForWorkerThreads(volatile u32 *);
-link_internal void SuspendWorkerThreads(bonsai_futex *);
+link_internal void SignalAndWaitForWorkers(bonsai_futex *);
 

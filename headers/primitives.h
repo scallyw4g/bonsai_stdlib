@@ -8,14 +8,18 @@
 #define global_variable   static
 #define debug_global      static
 
+// Internal linkage
 #define link_internal     static
+
+// External linkage (pointer is from another lib)
 #define link_external     extern "C"
 
+// Export linkage (expose function pointer)
 #if BONSAI_WIN32
-#define dll_export __declspec(dllexport) link_external
+#define link_export __declspec(dllexport) link_external
 
 #else
-#define dll_export link_external
+#define link_export link_external
 
 #endif
 

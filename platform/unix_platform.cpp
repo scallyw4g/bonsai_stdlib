@@ -174,7 +174,7 @@ GetProcFromLib(shared_lib Lib, const char *Name)
 inline void
 Terminate(os *Os, platform *Plat)
 {
-  SuspendWorkerThreads(&Plat->SuspendWorkerThreads);
+  SignalAndWaitForWorkers(&Plat->SuspendWorkerThreads);
 
   XDestroyWindow(Os->Display, Os->Window);
   XCloseDisplay(Os->Display);

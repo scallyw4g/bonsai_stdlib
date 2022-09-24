@@ -30,12 +30,15 @@ WaitForWorkerThreads(volatile u32 *WorkerCount)
 }
 
 link_internal void
-SuspendWorkerThreads(bonsai_futex *Futex)
+SignalAndWaitForWorkers(bonsai_futex *Futex)
 {
   SignalFutex(Futex);
 
   u32 WorkerThreadCount = GetWorkerThreadCount();
-  while(Futex->ThreadsWaiting < WorkerThreadCount);
+  while(Futex->ThreadsWaiting < WorkerThreadCount)
+  {
+    SleepMs(1);
+  }
 }
 
 link_internal void

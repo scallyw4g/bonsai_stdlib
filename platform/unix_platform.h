@@ -163,7 +163,7 @@ PlatformGetGlFunction(const char* Name)
 
 
 // Errno cases and error descriptions taken from : https://man7.org/linux/man-pages/man3/errno.3.html
-link_external const char*
+link_internal const char*
 ErrnoToString(s32 Error)
 {
   const char* Result = 0;
