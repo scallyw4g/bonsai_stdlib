@@ -8,7 +8,7 @@ struct work_queue
   volatile u32 EnqueueIndex;
   volatile u32 DequeueIndex;
   volatile work_queue_entry *Entries;
-  semaphore *GlobalQueueSemaphore;
+  /* semaphore *GlobalQueueSemaphore; */
 };
 
 #if 1
