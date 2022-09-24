@@ -162,9 +162,19 @@ link_internal void SetupStdout(u32 ArgCount, const char** ArgStrings);
 } while (false)
 
 
+#define Perf(...) do {                                                           \
+                                                                                 \
+  if (Global_LogLevel <= LogLevel_Info) {                                        \
+    LogDirect("%S   Perf    %S- ", TerminalColors.Yellow, TerminalColors.White); \
+    LogDirect(__VA_ARGS__);                                                      \
+    LogDirect(Newline);                                                          \
+  }                                                                              \
+                                                                                 \
+} while (false)
+
 #define Warn(...) do {                                                             \
                                                                                    \
-  if (Global_LogLevel <= LogLevel_Info) {                                        \
+  if (Global_LogLevel <= LogLevel_Info) {                                          \
     LogDirect("%S * Warning %S- ", TerminalColors.Yellow, TerminalColors.White);   \
     LogDirect(__VA_ARGS__);                                                        \
     LogDirect(Newline);                                                            \

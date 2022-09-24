@@ -1,5 +1,5 @@
 // TODO(Jesse, id: 93, tags: over_allocation): overkill .. not ..?
-#define WORK_QUEUE_SIZE (65536)
+#define WORK_QUEUE_SIZE (512)
 
 // Note(Jesse): The userland code must define work_queue_entry
 struct work_queue_entry;
@@ -11,11 +11,24 @@ struct work_queue
   /* semaphore *GlobalQueueSemaphore; */
 };
 
-#if 1
-b32
-QueueIsEmpty(work_queue* Queue)
+link_internal u32
+GetNextQueueIndex(umm CurrentIndex)
+{
+  u32 Result = (CurrentIndex+1) % WORK_QUEUE_SIZE;
+  return Result;
+}
+
+link_internal b32
+QueueIsEmpty(work_queue *Queue)
 {
   b32 Result = Queue->DequeueIndex == Queue->EnqueueIndex;
   return Result;
 }
-#endif
+
+link_internal b32
+QueueIsFull(work_queue *Queue)
+{
+  u32 NextEnqueueIndex = GetNextQueueIndex(Queue->EnqueueIndex);
+  b32 Result = NextEnqueueIndex == Queue->DequeueIndex;
+  return Result;
+}
