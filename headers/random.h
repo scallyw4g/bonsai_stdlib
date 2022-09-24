@@ -63,11 +63,33 @@ RandomBilateral(random_series *Entropy)
   return Result;
 }
 
+// TODO(Jesse)(metaprogramming): Metaprogram these functions
+link_internal r32
+MapValueToRange(r32 LowestPossibleValue, r32 Value, r32 HighestPossibleValue)
+{
+  r32 Range = HighestPossibleValue - LowestPossibleValue;
+  r32 Result = (Value*Range) + LowestPossibleValue;
+  Assert(Result >= LowestPossibleValue);
+  Assert(Result <= HighestPossibleValue);
+  return Result;
+}
+
 link_internal u32
 MapValueToRange(u32 LowestPossibleValue, r32 Value, u32 HighestPossibleValue)
 {
   u32 Range = HighestPossibleValue - LowestPossibleValue;
   u32 Result = (u32)(Value*(r32)Range) + LowestPossibleValue;
+  Assert(Result >= LowestPossibleValue);
+  Assert(Result <= HighestPossibleValue);
+  return Result;
+}
+
+inline r32
+RandomBetween(r32 LowestPossibleValue, random_series* Entropy, r32 HighestPossibleValue)
+{
+  Assert(LowestPossibleValue <= HighestPossibleValue);
+  r32 Value = RandomUnilateral(Entropy);
+  r32 Result = MapValueToRange(LowestPossibleValue, Value, HighestPossibleValue);
   Assert(Result >= LowestPossibleValue);
   Assert(Result <= HighestPossibleValue);
   return Result;

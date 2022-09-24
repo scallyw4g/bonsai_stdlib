@@ -219,10 +219,10 @@ GetRandomString(u32 Length, random_series* Entropy, memory_arena* Memory)
       CharIndex < Length;
       ++CharIndex)
   {
-    s8 Try = (s8)RandomBetween(48, Entropy, 122);
+    s8 Try = (s8)RandomBetween(48u, Entropy, 122u);
     while (!IsAlphaNumeric(Try))
     {
-      Try = (s8)RandomBetween(48, Entropy, 122);
+      Try = (s8)RandomBetween(48u, Entropy, 122u);
     }
     ((char*)Filename.Start)[CharIndex] = Try;
   }

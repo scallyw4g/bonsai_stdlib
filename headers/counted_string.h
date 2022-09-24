@@ -840,10 +840,10 @@ f64ToChar(char_cursor* Dest, r64 Value, u32 Precision = DEFAULT_FORMAT_PRECISION
 /* TODO(Jesse, id: 81, tags: string_hash): Theres' a null terminated
  * string-hash bonsai_function that should be replaced by this one most likely
  */
-inline umm
+inline u64
 Hash(counted_string* String)
 {
-  umm Result = 0;
+  u64 Result = 0;
 
 #if 1
   /* TODO(Jesse, id: 82, tags: robustness, rng, hashing): 257 seemed to produce
@@ -862,7 +862,7 @@ Hash(counted_string* String)
       ++CharIndex)
   {
     umm C = (umm)String->Start[CharIndex];
-    Result = (Result + (C - (umm)('a' + 1)) * p_pow) % m;
+    Result = (Result + (C - (u64)('a' + 1)) * p_pow) % m;
     p_pow = (p_pow*p) % m;
   }
 #else
@@ -898,5 +898,11 @@ Hash(counted_string* String)
 #endif
 
   return Result;
+}
+
+inline u64
+Hash(counted_string String)
+{
+  return Hash(&String);
 }
 
