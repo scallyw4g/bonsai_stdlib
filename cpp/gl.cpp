@@ -1,5 +1,13 @@
+#if PLATFORM_GL_IMPLEMENTATIONS
+
+inline void
+SetViewport(v2 Dim)
+{
+  GL.Viewport(0, 0, (s32)Dim.x, (s32)Dim.y);
+}
+
 link_internal b32
-InitializeOpengl(os* Os)
+InitializeOpenglFunctions()
 {
   Info("Initializing OpenGL Extensions");
 
@@ -327,27 +335,6 @@ InitializeOpengl(os* Os)
     GL.DepthFunc(GL_LEQUAL);
 
     AssertNoGlErrors;
-
-    s32 VsyncFrames = 0;
-#if BONSAI_LINUX
-    // TODO(Jesse, id: 151, tags: open_question, platform_linux): Not getting vsync on my arch laptop.
-    PFNSWAPINTERVALPROC glSwapInterval = (PFNSWAPINTERVALPROC)PlatformGetGlFunction("glXSwapIntervalEXT");
-    if ( glSwapInterval )
-    { glSwapInterval(Os->Display, Os->Window, VsyncFrames); }
-    else
-    { Info("No Vsync"); }
-#elif BONSAI_WIN32
-    PFNSWAPINTERVALPROC glSwapInterval = (PFNSWAPINTERVALPROC)PlatformGetGlFunction("wglSwapIntervalEXT");
-    if ( glSwapInterval )
-    { glSwapInterval(VsyncFrames); }
-    else
-    { Info("No Vsync"); }
-#elif EMCC
-    // TODO(Jesse id: 368): How do we get vsync here?
-    // @emcc_vsync
-#endif
-
-    AssertNoGlErrors;
   }
 
   if (GL.Initialized && CheckOpenglVersion() == False)
@@ -360,3 +347,7 @@ InitializeOpengl(os* Os)
   b32 Result = GL.Initialized;
   return Result;
 }
+
+
+
+#endif

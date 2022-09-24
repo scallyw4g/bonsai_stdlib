@@ -1,3 +1,4 @@
+#if PLATFORM_GL_IMPLEMENTATIONS
 
 // Wrapper so assertions give us file/line numbers
 #define AssertNoGlErrors do {            \
@@ -435,6 +436,8 @@ struct opengl
 
 global_variable opengl GL = {};
 
+link_internal b32 InitializeOpenglFunctions();
+
 link_internal b32
 CheckOpenglVersion()
 {
@@ -448,3 +451,29 @@ CheckOpenglVersion()
   return Result;
 }
 
+link_internal void
+SetVSync(os *Os, s32 VSyncFrames)
+{
+  AssertNoGlErrors;
+
+#if BONSAI_LINUX
+  // TODO(Jesse, id: 151, tags: open_question, platform_linux): Not getting vsync on my arch laptop.
+  PFNSWAPINTERVALPROC glSwapInterval = (PFNSWAPINTERVALPROC)PlatformGetGlFunction("glXSwapIntervalEXT");
+  if ( glSwapInterval )
+  { glSwapInterval(Os->Display, Os->Window, VSyncFrames); }
+  else
+  { Info("No Vsync"); }
+#elif BONSAI_WIN32
+  PFNSWAPINTERVALPROC glSwapInterval = (PFNSWAPINTERVALPROC)PlatformGetGlFunction("wglSwapIntervalEXT");
+  if ( glSwapInterval )
+  { glSwapInterval(VSyncFrames); }
+  else
+  { Info("No Vsync"); }
+#elif EMCC
+  // TODO(Jesse id: 368): How do we get vsync here?
+  // @emcc_vsync
+#endif
+
+}
+
+#endif

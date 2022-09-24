@@ -34,61 +34,13 @@ CloseLibrary(shared_lib Lib)
   return;
 }
 
-void
-HandleGlDebugMessage(GLenum Source, GLenum Type, GLuint Id, GLenum Severity,
-                     GLsizei MessageLength, const GLchar* Message, const void* UserData)
-{
-  if (Severity != GL_DEBUG_SEVERITY_NOTIFICATION)
-  {
-
-    DebugLine("%s", Message);
-    RuntimeBreak();
-    const char* MessageTypeName = 0;
-    switch(Type) {
-      case(GL_DEBUG_TYPE_ERROR):
-      {
-        MessageTypeName = "ERROR";
-      } break;
-      case(GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR):
-      {
-        MessageTypeName = "DEPRECATED_BEHAVIOR";
-      } break;
-      case(GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR):
-      {
-        MessageTypeName = "UNDEFINED_BEHAVIOR";
-      } break;
-      case(GL_DEBUG_TYPE_PORTABILITY):
-      {
-        MessageTypeName = "PORTABILITY";
-      } break;
-      case(GL_DEBUG_TYPE_PERFORMANCE):
-      {
-        MessageTypeName = "PERFORMANCE";
-      } break;
-      case(GL_DEBUG_TYPE_OTHER):
-      {
-        MessageTypeName = "OTHER";
-      } break;
-      InvalidDefaultCase;
-    }
-
-    OpenGlDebugMessage("Source %u, Type: %s, Id %u - %.*s", Source, MessageTypeName, Id, MessageLength, Message);
-    if (UserData)
-    {
-      OpenGlDebugMessage("User Data At %p", UserData);
-    }
-  }
-
-  return;
-}
-
 #if PLATFORM_LIBRARY_AND_WINDOW_IMPLEMENTATIONS
 // TODO(Jesse id: 267): Unnecessary .. I just added these as a hack get parsing to work
 typedef Colormap x_colormap;
 typedef XSetWindowAttributes x_set_window_attribs;
 
 b32
-OpenAndInitializeWindow(os *Os, platform *Plat)
+OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 {
   GLint GlAttribs[] = {
     GLX_RGBA,
@@ -161,6 +113,10 @@ OpenAndInitializeWindow(os *Os, platform *Plat)
   glXMakeCurrent(Os->Display, xWindow, Os->GlContext);
 
   Os->Window = xWindow;
+
+  InitializeOpenglFunctions();
+  SetVSync(Os, VSyncFrames);
+
   return True;
 }
 
@@ -326,6 +282,54 @@ ProcessOsMessages(os *Os, platform *Plat)
 #endif // PLATFORM_LIBRARY_AND_WINDOW_IMPLEMENTATIONS
 
 #if PLATFORM_GL_IMPLEMENTATIONS
+
+void
+HandleGlDebugMessage(GLenum Source, GLenum Type, GLuint Id, GLenum Severity,
+                     GLsizei MessageLength, const GLchar* Message, const void* UserData)
+{
+  if (Severity != GL_DEBUG_SEVERITY_NOTIFICATION)
+  {
+
+    DebugLine("%s", Message);
+    RuntimeBreak();
+    const char* MessageTypeName = 0;
+    switch(Type) {
+      case(GL_DEBUG_TYPE_ERROR):
+      {
+        MessageTypeName = "ERROR";
+      } break;
+      case(GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR):
+      {
+        MessageTypeName = "DEPRECATED_BEHAVIOR";
+      } break;
+      case(GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR):
+      {
+        MessageTypeName = "UNDEFINED_BEHAVIOR";
+      } break;
+      case(GL_DEBUG_TYPE_PORTABILITY):
+      {
+        MessageTypeName = "PORTABILITY";
+      } break;
+      case(GL_DEBUG_TYPE_PERFORMANCE):
+      {
+        MessageTypeName = "PERFORMANCE";
+      } break;
+      case(GL_DEBUG_TYPE_OTHER):
+      {
+        MessageTypeName = "OTHER";
+      } break;
+      InvalidDefaultCase;
+    }
+
+    OpenGlDebugMessage("Source %u, Type: %s, Id %u - %.*s", Source, MessageTypeName, Id, MessageLength, Message);
+    if (UserData)
+    {
+      OpenGlDebugMessage("User Data At %p", UserData);
+    }
+  }
+
+  return;
+}
 
 inline void
 BonsaiSwapBuffers(os *Os)
