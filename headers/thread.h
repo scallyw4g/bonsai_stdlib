@@ -28,6 +28,13 @@ SignalFutex(bonsai_futex *Futex)
 }
 
 link_internal b32
+FutexNotSignaled(bonsai_futex *Futex)
+{
+  b32 Result = Futex->SignalValue == 0;
+  return Result;
+}
+
+link_internal b32
 FutexIsSignaled(bonsai_futex *Futex)
 {
   b32 Result = Futex->SignalValue == 1;

@@ -5,9 +5,11 @@ struct platform
 {
   work_queue LowPriority;
   work_queue HighPriority;
-  /* semaphore QueueSemaphore; */
+
   volatile u32 HighPriorityWorkerCount;
-  bonsai_futex SuspendWorkerThreads;
+
+  bonsai_futex WorkerThreadsSuspendFutex;
+  bonsai_futex WorkerThreadsExitFutex;
 
   thread_startup_params *Threads;
 

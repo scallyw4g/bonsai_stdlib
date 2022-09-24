@@ -130,7 +130,8 @@ GetProcFromLib(shared_lib Lib, const char *Name)
 inline void
 Terminate(os *Os, platform *Plat)
 {
-  SignalAndWaitForWorkers(&Plat->SuspendWorkerThreads);
+  SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
+  UnsignalFutex(&Plat->WorkerThreadsExitFutex);
 
   XDestroyWindow(Os->Display, Os->Window);
   XCloseDisplay(Os->Display);
@@ -227,6 +228,7 @@ ProcessOsMessages(os *Os, platform *Plat)
           BindKeyupToInput(XK_F12, F12);
 
           BindKeyupToInput(XK_space, Space);
+          BindKeyupToInput(XK_Return, Enter);
 
           default:
           {
@@ -261,6 +263,7 @@ ProcessOsMessages(os *Os, platform *Plat)
           BindKeydownToInput(XK_F12, F12);
 
           BindKeydownToInput(XK_space, Space);
+          BindKeydownToInput(XK_Return, Enter);
 
           case XK_Escape:
           {
@@ -282,54 +285,6 @@ ProcessOsMessages(os *Os, platform *Plat)
 #endif // PLATFORM_LIBRARY_AND_WINDOW_IMPLEMENTATIONS
 
 #if PLATFORM_GL_IMPLEMENTATIONS
-
-void
-HandleGlDebugMessage(GLenum Source, GLenum Type, GLuint Id, GLenum Severity,
-                     GLsizei MessageLength, const GLchar* Message, const void* UserData)
-{
-  if (Severity != GL_DEBUG_SEVERITY_NOTIFICATION)
-  {
-
-    DebugLine("%s", Message);
-    RuntimeBreak();
-    const char* MessageTypeName = 0;
-    switch(Type) {
-      case(GL_DEBUG_TYPE_ERROR):
-      {
-        MessageTypeName = "ERROR";
-      } break;
-      case(GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR):
-      {
-        MessageTypeName = "DEPRECATED_BEHAVIOR";
-      } break;
-      case(GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR):
-      {
-        MessageTypeName = "UNDEFINED_BEHAVIOR";
-      } break;
-      case(GL_DEBUG_TYPE_PORTABILITY):
-      {
-        MessageTypeName = "PORTABILITY";
-      } break;
-      case(GL_DEBUG_TYPE_PERFORMANCE):
-      {
-        MessageTypeName = "PERFORMANCE";
-      } break;
-      case(GL_DEBUG_TYPE_OTHER):
-      {
-        MessageTypeName = "OTHER";
-      } break;
-      InvalidDefaultCase;
-    }
-
-    OpenGlDebugMessage("Source %u, Type: %s, Id %u - %.*s", Source, MessageTypeName, Id, MessageLength, Message);
-    if (UserData)
-    {
-      OpenGlDebugMessage("User Data At %p", UserData);
-    }
-  }
-
-  return;
-}
 
 inline void
 BonsaiSwapBuffers(os *Os)
