@@ -25,10 +25,6 @@ struct platform
   input Input;
 
   void *GetDebugStateProc;
-
-  graphics *Graphics;
-  os *Os;
-
   server_state *ServerState;
 };
 

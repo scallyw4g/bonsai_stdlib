@@ -1,5 +1,4 @@
-// TODO(Jesse, id: 93, tags: over_allocation): overkill .. not ..?
-#define WORK_QUEUE_SIZE (512)
+#define WORK_QUEUE_SIZE (4096)
 
 // Note(Jesse): The userland code must define work_queue_entry
 struct work_queue_entry;

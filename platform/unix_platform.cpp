@@ -11,8 +11,7 @@ OpenLibrary(const char *filename)
   if (!Result)
   {
     char *error = dlerror();
-    Error("Loading library: %s", error);
-    Assert(False);
+    Warn("OpenLibrary Failed (%s)", error);
   }
   else
   {

@@ -198,6 +198,12 @@ ClampMinus1toInfinity( float f )
   return Result;
 }
 
+inline void
+ClampMax(r32 *Value, r32 Max)
+{
+  if (*Value > Max) { *Value = Max; }
+}
+
 inline r32
 ClampBetween(r32 Min, r32 Value, r32 Max)
 {

@@ -43,6 +43,7 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_param
 
 #define CompleteAllWrites _WriteBarrier(); _mm_sfence()
 
+// TODO(Jesse)(omfg gross): OMFG GROSS
 inline r64
 GetHighPrecisionClock()
 {

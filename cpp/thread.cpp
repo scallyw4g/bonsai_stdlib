@@ -26,7 +26,7 @@ inline void
 WaitForWorkerThreads(volatile u32 *WorkerCount)
 {
   TIMED_FUNCTION();
-  while (*WorkerCount > 0);
+  while (*WorkerCount > 0) { SleepMs(1); }
 }
 
 link_internal void
