@@ -46,11 +46,11 @@ struct hotkeys
   b32 Debug_ToggleLoopedGamePlayback;
   b32 Debug_ToggleTriggeredRuntimeBreak;
   b32 Debug_Pause;
-  b32 Debug_ToggleProfile;
+  b32 Debug_ToggleProfiling;
   b32 Debug_ToggleMenu;
   b32 Debug_TriangulateIncrement;
   b32 Debug_TriangulateDecrement;
-  b32 Debug_MousePick;
+  /* b32 Debug_MousePick; */
 
   b32 Left;
   b32 Right;
@@ -99,7 +99,7 @@ BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
 
   if (Input->F3.Clicked)
   {
-    Hotkeys->Debug_ToggleProfile = True;
+    Hotkeys->Debug_ToggleProfiling = True;
   }
 
   if (Input->F1.Clicked)
@@ -115,8 +115,7 @@ BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
   Hotkeys->Debug_TriangulateDecrement = Input->F3.Clicked;
   Hotkeys->Debug_TriangulateIncrement = Input->F4.Clicked;
 
-  Hotkeys->Debug_MousePick = Input->F12.Pressed;
-
+  /* Hotkeys->Debug_MousePick = Input->F12.Pressed; */
   /* Hotkeys->Debug_RedrawEveryPush = Input->F2.Clicked; */
 #endif
 
