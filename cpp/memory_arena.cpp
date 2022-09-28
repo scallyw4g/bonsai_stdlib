@@ -35,6 +35,18 @@ UnprotectArena(memory_arena *Arena)
   return Result;
 }
 
+#if 1
+//  TODO(Jesse): The zeroing this function does is pretty slow.  I decided to
+//  not use it as much as possible in favor of vaporizing/reallocating arenas,
+//  however that amortizes the cost of zeroing when fresh pages are faulted in.
+//
+//  I don't love that the cost becomes invisible, and would actually probably
+//  rather it showed up explicitly on the profile.  Unfortunately at the moment
+//  the byte-wise zeroing is extremely slow and should be vectorized before it
+//  goes back in the worker-thread.
+//
+//  @turn_rewind_arena_back_on
+//
 inline b32
 RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 {
@@ -76,4 +88,5 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 
   return Result;
 }
+#endif
 
