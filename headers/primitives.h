@@ -1,6 +1,3 @@
-/* #define CAssert(...) */
-/* #define static_assert(...) */
-
 #define PI64 (3.1415926535897932384626433832795028841971693993)
 #define PI32 ((float)PI64)
 
@@ -27,7 +24,6 @@
 #define False (0)
 
 #define ArrayCount(a) (sizeof(a)/sizeof(a[0]))
-#define InvalidDefaultCase default: {Error("InvalidDefaultCase " __FILE__ ":" STRINGIZE(__LINE__)); Assert(False);} break
 
 // 8 Bit types
 typedef char           s8;
@@ -116,63 +112,9 @@ CAssert(u32_MAX == UINT32_MAX);
 CAssert(u64_MAX == UINT64_MAX);
 #endif
 
-#define DEFAULT_FILE_IDENTIFIER  __FILE__ ":" STRINGIZE(__LINE__)
-
-#define CSz(NullTerminatedCString) \
-  CS(NullTerminatedCString, sizeof(NullTerminatedCString)-1)
-
 struct counted_string
 {
   umm Count;
   const char* Start; // TODO(Jesse, id: 94, tags: cleanup, open_question): Make this non-const?
 };
-
-link_internal counted_string
-FormatCountedString_(char* Dest, umm DestSize, const char *FS, ...);
-
-counted_string
-CS(const char *S, umm Count)
-{
-  counted_string Result = {
-    .Count = Count, .Start = S
-  };
-  return Result;
-}
-
-
-poof(
-  func index_of(Type)
-  {
-    link_internal umm
-    IndexOf((Type.name)_buffer *Buf, (Type.name) Element)
-    {
-      umm Result = Buf->Count;
-
-      for (u32 ElementIndex = 0;
-          ElementIndex < Buf->Count;
-          ++ElementIndex)
-      {
-        if (AreEqual(Buf->Start[ElementIndex], Element))
-        {
-          Result = ElementIndex;
-          break;
-        }
-      }
-
-      return Result;
-    }
-  }
-)
-
-poof(
-  func are_equal(Type)
-  {
-    link_internal b32
-    AreEqual((Type.name) *Thing1, (Type.name) *Thing2)
-    {
-      b32 Result = MemoryIsEqual((u8*)Thing1, (u8*)Thing2, sizeof( (Type.name) ) );
-      return Result;
-    }
-  }
-)
 

@@ -1,7 +1,27 @@
 global_variable const umm TempDebugOutputBufferSize = 64*1024;
 global_variable char TempDebugOutputBuffer[TempDebugOutputBufferSize];
 
-link_internal void PrintToStdout(counted_string S);
+link_internal void
+PrintToStdout(counted_string S);
+
+link_internal void
+SetupStdout(u32 ArgCount, const char** ArgStrings);
+
+link_internal counted_string
+FormatCountedString_(char* Dest, umm DestSize, const char *FS, ...);
+
+#define CSz(NullTerminatedCString) \
+  CS(NullTerminatedCString, sizeof(NullTerminatedCString)-1)
+
+inline counted_string
+CS(const char *S, umm Count)
+{
+  counted_string Result = {
+    .Count = Count, .Start = S
+  };
+  return Result;
+}
+
 
 enum log_level
 {
@@ -77,13 +97,11 @@ SetTerminalColorsOff()
 #endif
 }
 
-link_internal void SetupStdout(u32 ArgCount, const char** ArgStrings);
-
-
-
-
 #define LogDirect(...) PrintToStdout(FormatCountedString_(TempDebugOutputBuffer, TempDebugOutputBufferSize, __VA_ARGS__))
 
+#define InvalidDefaultCase default: {Error("InvalidDefaultCase " __FILE__ ":" STRINGIZE(__LINE__)); Assert(False);} break
+
+#define DEFAULT_FILE_IDENTIFIER  __FILE__ ":" STRINGIZE(__LINE__)
 
 #define DebugChars(...) do {                  \
                                               \
