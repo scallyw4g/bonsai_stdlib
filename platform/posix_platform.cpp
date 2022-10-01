@@ -199,7 +199,10 @@ PlatformAllocateSize(umm AllocationSize)
 link_internal void
 SleepMs(u32 Ms)
 {
-  TIMED_FUNCTION();
+  // NOTE(Jesse): Workers call this when the debug lib is unloaded/reloaded so,
+  // sadly, we can't time it
+  //
+  // TIMED_FUNCTION();
 
   u32 Ns = Ms*100000;
   timespec TReq = { .tv_sec = 0, .tv_nsec = Ns };
