@@ -318,17 +318,6 @@ MemoryIsEqual(u8 *First, u8 *Second, umm Size)
   return Result;
 }
 
-struct push_metadata
-{
-  const char* Name;
-  umm ArenaHash;
-  umm HeadArenaHash;
-  umm StructSize;
-  umm StructCount;
-
-  u32 PushCount;
-};
-
 inline void
 MemSet(u8 *Src, umm Size, u8 Value)
 {
@@ -360,16 +349,16 @@ ClearBuffer(u8 *Src, umm Size)
 }
 
 inline umm
-HashArenaHead(memory_arena *Arena)
+HashArenaBlock(memory_arena *Arena)
 {
-  umm Result = (umm)Arena;
+  umm Result = (umm)Arena->Start;
   return Result;
 }
 
 inline umm
 HashArena(memory_arena *Arena)
 {
-  umm Result = (umm)Arena->Start;
+  umm Result = (umm)Arena;
   return Result;
 }
 

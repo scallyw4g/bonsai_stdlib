@@ -257,21 +257,6 @@ IsFilesystemRoot(char *Filepath)
   return Result;
 }
 
-// TODO(Jesse id: 269): Unnecessary .. I just added these as a hack get parsing to work
-typedef timespec bonsai_timespec;
-
-inline r64
-GetHighPrecisionClock()
-{
-  bonsai_timespec Time;
-  clock_gettime(CLOCK_MONOTONIC, &Time);
-
-  r64 SecondsAsMs = (r64)Time.tv_sec*1000.0;
-  r64 NsAsMs = Time.tv_nsec/1000000.0;
-
-  r64 Ms = SecondsAsMs + NsAsMs;
-  return Ms;
-}
 // TODO(Jesse id: 270): Unnecessary .. I just added these as a hack get parsing to work
 typedef sched_param bonsai_sched_param;
 

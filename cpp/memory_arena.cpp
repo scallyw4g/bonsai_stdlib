@@ -83,7 +83,7 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
   Arena->Pushes = 0;
 #endif
 #if BONSAI_DEBUG_SYSTEM_API
-  DEBUG_CLEAR_META_RECORDS_FOR(Arena);
+  DEBUG_CLEAR_MEMORY_RECORDS_FOR(Arena);
 #endif
 
   return Result;

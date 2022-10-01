@@ -123,6 +123,7 @@ inline void*
 GetProcFromLib(shared_lib Lib, const char *Name)
 {
   void* Result = dlsym(Lib, Name);
+  if (Result == 0) { Warn("Unable to retrieve (%s) from shared library", Name); }
   return Result;
 }
 
