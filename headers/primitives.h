@@ -118,3 +118,4 @@ struct counted_string
   const char* Start; // TODO(Jesse, id: 94, tags: cleanup, open_question): Make this non-const?
 };
 
+typedef counted_string cs;
