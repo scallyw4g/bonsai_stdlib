@@ -32,6 +32,8 @@ WaitForWorkerThreads(volatile u32 *WorkerCount)
 link_internal void
 SignalAndWaitForWorkers(bonsai_futex *Futex)
 {
+  TIMED_FUNCTION();
+
   SignalFutex(Futex);
 
   u32 WorkerThreadCount = GetWorkerThreadCount();

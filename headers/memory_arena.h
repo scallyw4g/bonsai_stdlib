@@ -155,7 +155,7 @@ struct memory_arena
     (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, 1, True)                                                                                    \
   )
 
-#define DEBUG_REGISTER_ARENA(Arena) do { GetDebugState()->RegisterArena(#Arena, Arena); } while (false)
+#define DEBUG_REGISTER_ARENA(Arena, ThreadId) do { GetDebugState()->RegisterArena(#Arena, Arena, ThreadId); } while (false)
 
 #define DEBUG_REGISTER_THREAD(ThreadIndex) do { GetDebugState()->RegisterThread(ThreadIndex); } while (false)
 
@@ -346,20 +346,6 @@ inline void
 ClearBuffer(u8 *Src, umm Size)
 {
   MemSet(Src, Size, 0);
-}
-
-inline umm
-HashArenaBlock(memory_arena *Arena)
-{
-  umm Result = (umm)Arena->Start;
-  return Result;
-}
-
-inline umm
-HashArena(memory_arena *Arena)
-{
-  umm Result = (umm)Arena;
-  return Result;
 }
 
 link_internal b32
