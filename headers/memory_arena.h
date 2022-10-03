@@ -155,6 +155,7 @@ struct memory_arena
     (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, 1, True)                                                                                    \
   )
 
+#define DEBUG_REGISTER_NAMED_ARENA(Arena, ThreadId, Name) do { GetDebugState()->RegisterArena(Name, Arena, ThreadId); } while (false)
 #define DEBUG_REGISTER_ARENA(Arena, ThreadId) do { GetDebugState()->RegisterArena(#Arena, Arena, ThreadId); } while (false)
 
 #define DEBUG_REGISTER_THREAD(ThreadIndex) do { GetDebugState()->RegisterThread(ThreadIndex); } while (false)
