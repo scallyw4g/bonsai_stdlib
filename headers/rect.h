@@ -84,6 +84,16 @@ MinMaxAABB(v3 Min, v3 Max)
   return Result;
 }
 
+link_internal aabb
+AABBMinDim(v3 Min, v3 Dim)
+{
+  v3 Radius = Dim/2.f;
+  v3 Center = Min + Radius;
+  aabb Result(Center, Radius);
+  return Result;
+}
+
+
 link_internal rect2
 operator-(rect2 R1, rect2 R2)
 {

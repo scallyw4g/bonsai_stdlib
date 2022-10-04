@@ -128,19 +128,9 @@ V4( float x, float y, float z, float w)
 }
 
 
-union voxel_position
-{
-  struct {
-    s32 x;
-    s32 y;
-    s32 z;
-  };
-
-  s32 E[3];
-};
-
 #pragma GCC diagnostic pop
 
+typedef v3i voxel_position;
 inline voxel_position
 Voxel_Position(v3 Offset)
 {
@@ -565,18 +555,6 @@ V3(v3i wp)
 }
 
 inline v3
-V3(voxel_position wp)
-{
-  v3 Result;
-
-  Result.x = (float)wp.x;
-  Result.y = (float)wp.y;
-  Result.z = (float)wp.z;
-
-  return Result;
-}
-
-inline v3
 V3(int x, int y, int z)
 {
   v3 Result = {};
@@ -957,6 +935,18 @@ inline v2
 operator/(v2i A, v2i B)
 {
   v2 Result = V2(A)/V2(B);
+  return Result;
+}
+
+inline v3i
+operator/(v3i A, v3i B)
+{
+  v3i Result;
+
+  Result.x = A.x / B.x;
+  Result.y = A.y / B.y;
+  Result.z = A.z / B.z;
+
   return Result;
 }
 
