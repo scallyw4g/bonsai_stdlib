@@ -85,6 +85,14 @@ MinMaxAABB(v3 Min, v3 Max)
 }
 
 link_internal aabb
+AABBCenterDim(v3 Center, v3 Dim)
+{
+  v3 Radius = Dim/2.f;
+  aabb Result(Center, Radius);
+  return Result;
+}
+
+link_internal aabb
 AABBMinDim(v3 Min, v3 Dim)
 {
   v3 Radius = Dim/2.f;
