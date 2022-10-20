@@ -129,7 +129,7 @@ struct memory_arena
 #define STRINGIZE2(x) #x
 #define LINE_STRING STRINGIZE(__LINE__)
 
-#if BONSAI_DEBUG_SYSTEM_API
+#if DEBUG_SYSTEM_API
 
 #define AllocateProtection(Type, Arena, Number, Protection)                                                                                              \
   ( GetDebugState() ?                                                                                                                   \
@@ -176,6 +176,7 @@ struct memory_arena
 
 
 #define DEBUG_REGISTER_ARENA(...)
+#define DEBUG_REGISTER_NAMED_ARENA(...)
 #define DEBUG_REGISTER_THREAD(...)
 
 #endif

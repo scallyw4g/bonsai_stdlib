@@ -51,7 +51,7 @@
 #endif // BONSAI_INTERNAL
 
 
-#if BONSAI_DEBUG_SYSTEM_API
+#if DEBUG_SYSTEM_API
 #define TriggeredRuntimeBreak() do { if (GetDebugState && GetDebugState()->TriggerRuntimeBreak) { RuntimeBreak(); } } while (0)
 
 #else

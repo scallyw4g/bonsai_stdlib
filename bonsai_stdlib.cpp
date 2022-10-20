@@ -2,7 +2,11 @@
 #define SCR_WIDTH (3840/SCREEN_RATIO)
 #define SCR_HEIGHT (2160/SCREEN_RATIO)
 
+#include <bonsai_debug/headers/debug_ui.h>
+#include <bonsai_debug/headers/interactable.h>
+#include <bonsai_debug/headers/debug_render.h>
 #include <bonsai_debug/debug.h>
+#include <bonsai_debug/headers/api.h>
 
 #include <bonsai_stdlib/cpp/memory_arena.cpp>
 #include <bonsai_stdlib/cpp/debug_print.cpp>  // TODO(Jesse, id: 91, tags: cleanup, metaprogramming, format_counted_string): Jettison this .. Can it be metaprogrammed?
