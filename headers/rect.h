@@ -133,6 +133,18 @@ struct ray
   v3 Dir;
 };
 
+enum maybe_tag
+{
+  Maybe_No,
+  Maybe_Yes,
+};
+
+struct maybe_ray
+{
+  maybe_tag Tag;
+  ray Ray;
+};
+
 // TODO(Jesse, id: 92, tags: speed, aabb): This could be optimized significantly
 link_internal b32
 Intersect(aabb AABB, ray Ray)

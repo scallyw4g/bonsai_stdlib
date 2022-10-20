@@ -50,7 +50,7 @@ struct hotkeys
   b32 Debug_ToggleMenu;
   b32 Debug_TriangulateIncrement;
   b32 Debug_TriangulateDecrement;
-  /* b32 Debug_MousePick; */
+  b32 Debug_PickChunks;
 
   b32 Left;
   b32 Right;
@@ -97,23 +97,16 @@ BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
   Hotkeys->Debug_Pause                    = Input->F12.Pressed;
   Hotkeys->Debug_ToggleLoopedGamePlayback = Input->F11.Clicked;
 
-  if (Input->F3.Clicked)
-  {
-    Hotkeys->Debug_ToggleProfiling = True;
-  }
 
-  if (Input->F1.Clicked)
-  {
-    Hotkeys->Debug_ToggleMenu = True;
-  }
+  if (Input->F1.Clicked) { Hotkeys->Debug_ToggleMenu                  = True; }
+  if (Input->F2.Clicked) { Hotkeys->Debug_ToggleTriggeredRuntimeBreak = True; }
+  if (Input->F3.Clicked) { Hotkeys->Debug_ToggleProfiling             = True; }
 
-  if (Input->F2.Clicked)
-  {
-    Hotkeys->Debug_ToggleTriggeredRuntimeBreak = True;
-  }
+  // NOTE(Jesse): Intentionally 'Pressed'
+  if (Input->F4.Pressed) { Hotkeys->Debug_PickChunks = True; }
 
-  Hotkeys->Debug_TriangulateDecrement = Input->F3.Clicked;
-  Hotkeys->Debug_TriangulateIncrement = Input->F4.Clicked;
+  Hotkeys->Debug_TriangulateDecrement = Input->F5.Clicked;
+  Hotkeys->Debug_TriangulateIncrement = Input->F6.Clicked;
 
   /* Hotkeys->Debug_MousePick = Input->F12.Pressed; */
   /* Hotkeys->Debug_RedrawEveryPush = Input->F2.Clicked; */
