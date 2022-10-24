@@ -98,6 +98,12 @@
 #define GL_TEXTURE_2D                     0x0DE1
 #define GL_TEXTURE_3D                     0x806F
 
+/* #define GL_PROXY_TEXTURE_2D_ARRAY         0x8C1B */
+/* #define GL_TEXTURE_BINDING_1D_ARRAY       0x8C1C */
+#define GL_TEXTURE_2D_ARRAY               0x8C1A
+#define GL_TEXTURE_BINDING_2D_ARRAY       0x8C1D
+
+
 #define GL_RGB                            0x1907
 #define GL_RGB32F                         0x8815
 
