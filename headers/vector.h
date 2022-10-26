@@ -71,13 +71,19 @@ union v4
   };
 
   struct {
+    v2 Ignored1_;
+    v2 zw;
+  };
+
+
+  struct {
     v3 xyz;
-    r32 Ignored02_;
+    r32 Ignored03_;
   };
 
   struct {
     v3 rgb;
-    r32 Ignored03_;
+    r32 Ignored04_;
   };
 
   r32 E[4];
