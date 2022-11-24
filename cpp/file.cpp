@@ -171,6 +171,16 @@ OpenFile(const char* FilePath, const char* Permissions)
     .Path = CS(FilePath)
   };
 
+  if (Permissions == 0)
+  {
+    Warn("Invalid Permissions value (null) passed to OpenFile");
+  }
+
+  if (FilePath == 0)
+  {
+    Warn("Invalid FilePath value (null) passed to OpenFile");
+  }
+
   errno = 0;
   fopen_s(&Result.Handle, FilePath, Permissions);
 
@@ -182,7 +192,7 @@ OpenFile(const char* FilePath, const char* Permissions)
 
       case EINVAL:
       {
-        Warn("Invalid Permissions string (%s) provided to OpenFile.", Permissions);
+        Warn("fopen_s failed with EINVAL on Filepath (%s) with Permissions (%s)", Filepath, Permissions);
       } break;
 
       default:
