@@ -59,16 +59,19 @@ b32 PlatformCreateDir(const char* Path, mode_t Mode)
   NotImplemented;
   return 0;
 }
+
 b32 PlatformDeleteDir(const char* Path, mode_t Mode)
 {
   NotImplemented;
   return 0;
 }
+
 void* PlatformGetGlFunction(const char* Name)
 {
   NotImplemented;
   return 0;
 }
+
 const char * PlatformGetEnvironmentVar(const char *VarName)
 {
   return 0;

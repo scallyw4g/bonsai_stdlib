@@ -35,13 +35,6 @@
 // getenv
 #include <stdlib.h>
 
-#define RED_TERMINAL "\x1b[31m"
-#define BLUE_TERMINAL "\x1b[34m"
-#define PURPLE_TERMINAL "\x1b[35m"
-#define GREEN_TERMINAL "\x1b[32m"
-#define YELLOW_TERMINAL "\x1b[33m"
-#define WHITE_TERMINAL "\x1b[37m"
-
 #define PLATFORM_RUNTIME_LIB_EXTENSION ".so"
 
 #define WindowEventMasks StructureNotifyMask | PointerMotionMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask

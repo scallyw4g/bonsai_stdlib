@@ -2,6 +2,7 @@
 // Disable warnings about insecure CRT functions
 //
 #pragma warning(disable : 4996)
+#define _CRT_SECURE_NO_WARNINGS 1
 
 #include <Windows.h>
 #include <windowsx.h> // Macros to retrieve mouse coordinates
@@ -97,6 +98,32 @@ inline u64
 AtomicIncrement( u64 volatile *Dest)
 {
   u64 Result = InterlockedIncrement(Dest);
+  return Result;
+}
+
+link_internal b32
+PlatformStdoutIsRedirected()
+{
+  b32 Result = True;
+  return Result;
+}
+
+b32 PlatformCreateDir(const char* Path)
+{
+  b32 Result = CreateDirectoryA(Path, 0) != 0;
+  return Result;
+}
+
+b32 PlatformDeleteDir(const char* Path)
+{
+  b32 Result = RemoveDirectoryA(Path) != 0;
+  return 0;
+}
+
+link_internal const char *
+PlatformGetEnvironmentVar(const char *VarName)
+{
+  const char* Result = getenv(VarName);
   return Result;
 }
 

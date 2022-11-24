@@ -5,6 +5,9 @@
 #define global_variable   static
 #define debug_global      static
 
+// TODO(Jesse): Remove this everywhere
+#define bonsai_function   static
+
 // Internal linkage
 #define link_internal     static
 
