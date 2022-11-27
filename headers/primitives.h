@@ -5,16 +5,16 @@
 #define global_variable   static
 #define debug_global      static
 
-// TODO(Jesse): Remove this everywhere
+// TODO(Jesse): Remove this everywhere
 #define bonsai_function   static
 
-// Internal linkage
+// Internal linkage
 #define link_internal     static
 
-// External linkage (pointer is from another lib)
+// External linkage (pointer is from another lib)
 #define link_external     extern "C"
 
-// Export linkage (expose function pointer)
+// Export linkage (expose function pointer)
 #if BONSAI_WIN32
 #define link_export __declspec(dllexport) link_external
 
@@ -28,15 +28,15 @@
 
 #define ArrayCount(a) (sizeof(a)/sizeof(a[0]))
 
-// 8 Bit types
+// 8 Bit types
 typedef char           s8;
 typedef unsigned char  u8;
 
-// 16 Bit types
+// 16 Bit types
 typedef short          s16;
 typedef unsigned short u16;
 
-// 32 Bit types
+// 32 Bit types
 typedef int          s32;
 typedef unsigned int u32;
 typedef float        r32;
@@ -45,7 +45,7 @@ typedef u32          b32;
 typedef r32      radians;
 typedef r32      degrees;
 
-// 64 Bit types
+// 64 Bit types
 typedef long long int           s64;
 typedef unsigned long long int  u64;
 typedef double                  r64;
@@ -98,7 +98,7 @@ CAssert(sizeof(u8) == 1);
 #endif
 
 #if 0
-// #include <stdint.h>
+// #include <stdint.h>
 CAssert(s8_MAX  == INT8_MAX);
 CAssert(s16_MAX == INT16_MAX);
 CAssert(s32_MAX == INT32_MAX);
@@ -118,7 +118,7 @@ CAssert(u64_MAX == UINT64_MAX);
 struct counted_string
 {
   umm Count;
-  const char* Start; // TODO(Jesse, id: 94, tags: cleanup, open_question): Make this non-const?
+  const char* Start; // TODO(Jesse, id: 94, tags: cleanup, open_question): Make this non-const?
 };
 
 typedef counted_string cs;

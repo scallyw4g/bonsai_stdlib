@@ -307,7 +307,7 @@ AnsiStream(u8_stream *Input)
   }
   else
   {
-    /* Warn("Got a weird encoding (%S) for file (%S)", ToString(Result.Encoding), Result.Filename); */
+    Warn("Got a weird encoding (%S) for file (%S)", ToString(Result.Encoding), Result.Filename);
   }
 
 

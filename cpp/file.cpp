@@ -192,7 +192,7 @@ OpenFile(const char* FilePath, const char* Permissions)
 
       case EINVAL:
       {
-        Warn("fopen_s failed with EINVAL on Filepath (%s) with Permissions (%s)", Filepath, Permissions);
+        Warn("fopen_s failed with EINVAL on Filepath (%s) with Permissions (%s)", FilePath, Permissions);
       } break;
 
       default:

@@ -4,6 +4,13 @@
 
 global_variable HPALETTE global_hPalette;
 
+bonsai_function void
+SleepMs(u32 Ms)
+{
+  TIMED_FUNCTION();
+  Sleep(Ms);
+}
+
 inline void
 ThreadSleep( semaphore Semaphore )
 {
@@ -81,8 +88,6 @@ Terminate(os *Os)
   }
 
   ReleaseDC(Os->Window, Os->Display);
-
-  SuspendWorkerThreads();
 
   PostQuitMessage(0);
 
@@ -310,7 +315,7 @@ WindowMessageCallback(
         BindKeyupToInput(VK_MENU, Alt);
         BindKeyupToInput(VK_CONTROL, Ctrl);
         BindKeyupToInput(VK_SPACE, Space);
-        BindKeyupToInput(VK_ENTER, Enter);
+        BindKeyupToInput(VK_RETURN, Enter);
         default: { /* Ignore all other keypresses */ } break;
       }
     } break;
@@ -350,7 +355,7 @@ WindowMessageCallback(
         BindKeydownToInput(VK_MENU, Alt);
         BindKeydownToInput(VK_CONTROL, Ctrl);
         BindKeydownToInput(VK_SPACE, Space);
-        BindKeydownToInput(VK_ENTER, Enter);
+        BindKeydownToInput(VK_RETURN, Enter);
         default: { /* Ignore all other keypresses */ } break;
 
       } break;

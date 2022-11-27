@@ -1,9 +1,3 @@
-
-// Disable warnings about insecure CRT functions
-//
-#pragma warning(disable : 4996)
-#define _CRT_SECURE_NO_WARNINGS 1
-
 #include <Windows.h>
 #include <windowsx.h> // Macros to retrieve mouse coordinates
 #include <WinBase.h>
@@ -29,8 +23,6 @@
 #define THREAD_MAIN_RETURN DWORD WINAPI
 #define GAME_MAIN_PROC FARPROC GameMain
 
-#define sleep(seconds) Sleep(seconds * 1000)
-
 #define SWAP_BUFFERS SwapBuffers(hDC)
 
 #define bonsaiGlGetProcAddress(procName) wglGetProcAddress(procName)
@@ -51,7 +43,7 @@ typedef HDC display;
 struct native_file
 {
   FILE* Handle;
-  z_counted_string Path;
+  counted_string Path;
 };
 
 struct os
@@ -100,6 +92,14 @@ AtomicIncrement( u64 volatile *Dest)
   u64 Result = InterlockedIncrement(Dest);
   return Result;
 }
+
+inline u32
+AtomicExchange( volatile u32 *Source, const u32 NewValue )
+{
+  u32 Result = InterlockedExchange( Source, NewValue );
+  return Result;
+}
+
 
 link_internal b32
 PlatformStdoutIsRedirected()
