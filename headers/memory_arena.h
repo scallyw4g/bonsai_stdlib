@@ -95,12 +95,16 @@ Terabytes(umm Number)
 template <typename T> inline void
 Fill(T *Struct, u8 ByteValue)
 {
+#if 1
+  ZeroMemory(Struct, sizeof(T));
+#else
   for ( umm Byte = 0;
       Byte < sizeof(T);
       ++Byte)
   {
     *(((u8*)Struct) + Byte) = ByteValue;
   }
+#endif
 }
 
 template <typename T> inline void
@@ -189,16 +193,49 @@ link_internal b32 PlatformSetProtection(u8 *Base, umm Size, memory_protection_ty
 link_internal u8 * PlatformAllocateSize(umm AllocationSize);
 link_internal b32  PlatformDeallocate(u8 *Base, umm Size);
 
-#if 0
+// TODO(Jesse, metaprogramming): Metaprogram this!
+// TODO(Jesse): Where should this actually go?
+template<typename T> link_internal b32
+Contains(T *Start, T *At, T* End)
+{
+  b32 Result = (At >= Start && At < End);
+  return Result;
+}
+
+#if 1
 struct temp_memory_handle
 {
   memory_arena *Arena;
-  u8* At;
+  u8* BeginMark;
 };
 
 link_internal void
-EndTemporaryMemory(temp_memory_handle Handle)
+EndTemporaryMemory(temp_memory_handle *Handle)
 {
+  memory_arena *Arena = Handle->Arena;
+  u8 *BeginMark = Handle->BeginMark;
+  if (Contains(Arena->Start, BeginMark, Arena->End))
+  {
+    Assert(BeginMark <= Arena->At);
+
+#if 1
+    ZeroMemory(BeginMark, Arena->At-BeginMark);
+#else
+    u8* TmpAt = Handle->BeginMark;
+    while (TmpAt < Arena->At)
+    {
+      *TmpAt = 0x00;
+      TmpAt++;
+    }
+#endif
+
+    Arena->At = BeginMark;
+  }
+  else
+  {
+    Leak("Leaking memory when doing EndTemporaryMemory.");
+  }
+
   return;
 }
 
@@ -207,8 +244,13 @@ BeginTemporaryMemory(memory_arena *Arena)
 {
   temp_memory_handle Result = {
     .Arena = Arena,
-    .At = Arena->At,
+    .BeginMark = Arena->At,
   };
+
+  if (Arena->Start == 0)
+  {
+    Leak("Need to make sure the arena is initialized before starting temporary memory!");
+  }
 
   return Result;
 }

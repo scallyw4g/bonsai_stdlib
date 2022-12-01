@@ -90,6 +90,10 @@ typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSARBPROC) (Display *dpy, GLXFBConf
 typedef void ( *PFNGLXSWAPINTERVALEXTPROC) (Display *dpy, GLXDrawable drawable, s32 s32);
 typedef PFNGLXSWAPINTERVALEXTPROC PFNSWAPINTERVALPROC;
 
+// Windows defines this for us
+
+#define ZeroMemory(Start, Count) memset((Start), 0, (Count));
+
 
 
 //

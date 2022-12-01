@@ -542,6 +542,7 @@ PlatformDeallocate(u8 *Base, umm Size)
   Assert( (umm)Base % PlatformGetPageSize() == 0);
   Assert(Size % PlatformGetPageSize() == 0);
   b32 Result = (b32)VirtualFree(Base, 0, MEM_RELEASE);
+  /* b32 Result = PlatformSetProtection(Base, Size, MemoryProtection_Protected); */
   if (Result)
   {
   }

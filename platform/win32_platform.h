@@ -104,7 +104,7 @@ AtomicExchange( volatile u32 *Source, const u32 NewValue )
 link_internal b32
 PlatformStdoutIsRedirected()
 {
-  b32 Result = True;
+  b32 Result = False; //True;
   return Result;
 }
 
