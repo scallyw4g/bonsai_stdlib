@@ -130,9 +130,6 @@ GetProcFromLib(shared_lib Lib, const char *Name)
 inline void
 Terminate(os *Os, platform *Plat)
 {
-  SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
-  UnsignalFutex(&Plat->WorkerThreadsExitFutex);
-
   XDestroyWindow(Os->Display, Os->Window);
   XCloseDisplay(Os->Display);
 }

@@ -9,11 +9,12 @@
 #include <wingdi.h>
 #include <bonsai_stdlib/headers/wgl.h>
 
+#include <chrono> // Timer
 #include <sys/stat.h>
-
 #include <stdint.h>
-
 #include <direct.h> // Chdir
+
+
 
 #define PLATFORM_RUNTIME_BREAK() __debugbreak()
 
@@ -41,7 +42,7 @@ typedef HANDLE semaphore;
 typedef HANDLE native_mutex;
 
 
-// ???
+// ???
 typedef HMODULE shared_lib;
 typedef HWND window;
 typedef HGLRC gl_context;
@@ -50,7 +51,7 @@ typedef HDC display;
 struct native_file
 {
   FILE* Handle;
-  z_counted_string Path;
+  counted_string Path;
 };
 
 struct os
@@ -63,7 +64,7 @@ struct os
 };
 
 
-bonsai_function u64
+link_internal u64
 GetCycleCount()
 {
   u64 Result = __rdtsc();

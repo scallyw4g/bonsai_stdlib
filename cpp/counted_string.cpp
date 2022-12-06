@@ -290,18 +290,14 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
 
         case 'p':
         {
-          u64 Value = va_arg(Args, u64);
           CopyToDest(DestCursor, '0');
           CopyToDest(DestCursor, 'x');
-          u64ToChar(DestCursor, Value, FormatWidth);
-        } break;
+        } [[fallthrough]];
 
         case 'x':
         {
           u64 Value = va_arg(Args, u64);
-          // TODO(Jesse): Implement u64ToHex()
-          Warn("Hex Values unsupported at current");
-          u64ToChar(DestCursor, Value, FormatWidth);
+          u64ToChar(DestCursor, Value, FormatWidth, 16, UpperHexChars)
         } break;
 
         case 'u':

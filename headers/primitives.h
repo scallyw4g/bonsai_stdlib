@@ -53,18 +53,30 @@ typedef u64                     umm;
 #endif
 typedef u64                     b64;
 
+// Unfortunately Microsoft has these types and we have to support them.  This
+// is the best way I could figure out at the time .. though once the
+// typechecker is better we might actually be able to typedef these
+#define __int8 char
+#define __int16 short
+#define __int32 int
+#define __int64 long long
+
+CAssert(sizeof(__int64) == 8);
 CAssert(sizeof(s64) == 8);
 CAssert(sizeof(u64) == 8);
 CAssert(sizeof(r64) == 8);
 CAssert(sizeof(umm) == sizeof(void*));
 
+CAssert(sizeof(__int32) == 4);
 CAssert(sizeof(s32) == 4);
 CAssert(sizeof(u32) == 4);
 CAssert(sizeof(r32) == 4);
 
+CAssert(sizeof(__int16) == 2);
 CAssert(sizeof(s16) == 2);
 CAssert(sizeof(u16) == 2);
 
+CAssert(sizeof(__int8) == 1);
 CAssert(sizeof(s8) == 1);
 CAssert(sizeof(u8) == 1);
 
