@@ -1,20 +1,14 @@
-
-// Disable warnings about insecure CRT functions
-//
-#pragma warning(disable : 4996)
-
 #include <Windows.h>
 #include <windowsx.h> // Macros to retrieve mouse coordinates
 #include <WinBase.h>
 #include <wingdi.h>
 #include <bonsai_stdlib/headers/wgl.h>
 
-#include <chrono> // Timer
 #include <sys/stat.h>
+
 #include <stdint.h>
+
 #include <direct.h> // Chdir
-
-
 
 #define PLATFORM_RUNTIME_BREAK() __debugbreak()
 
@@ -29,8 +23,6 @@
 #define THREAD_MAIN_RETURN DWORD WINAPI
 #define GAME_MAIN_PROC FARPROC GameMain
 
-#define sleep(seconds) Sleep(seconds * 1000)
-
 #define SWAP_BUFFERS SwapBuffers(hDC)
 
 #define bonsaiGlGetProcAddress(procName) wglGetProcAddress(procName)
@@ -42,7 +34,7 @@ typedef HANDLE semaphore;
 typedef HANDLE native_mutex;
 
 
-// ???
+// ???
 typedef HMODULE shared_lib;
 typedef HWND window;
 typedef HGLRC gl_context;
@@ -64,7 +56,7 @@ struct os
 };
 
 
-link_internal u64
+bonsai_function u64
 GetCycleCount()
 {
   u64 Result = __rdtsc();
@@ -98,6 +90,40 @@ inline u64
 AtomicIncrement( u64 volatile *Dest)
 {
   u64 Result = InterlockedIncrement(Dest);
+  return Result;
+}
+
+inline u32
+AtomicExchange( volatile u32 *Source, const u32 NewValue )
+{
+  u32 Result = InterlockedExchange( Source, NewValue );
+  return Result;
+}
+
+
+link_internal b32
+PlatformStdoutIsRedirected()
+{
+  b32 Result = False; //True;
+  return Result;
+}
+
+b32 PlatformCreateDir(const char* Path)
+{
+  b32 Result = CreateDirectoryA(Path, 0) != 0;
+  return Result;
+}
+
+b32 PlatformDeleteDir(const char* Path)
+{
+  b32 Result = RemoveDirectoryA(Path) != 0;
+  return 0;
+}
+
+link_internal const char *
+PlatformGetEnvironmentVar(const char *VarName)
+{
+  const char* Result = getenv(VarName);
   return Result;
 }
 

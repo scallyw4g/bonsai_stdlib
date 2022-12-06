@@ -55,8 +55,6 @@ V3Cursor(u32 Count, memory_arena *Memory)
 }
 #endif
 
-//
-// TODO(Jesse, id: 145, tags: platform): Make this use platform agnostic functions!
 u8_stream
 U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
 {

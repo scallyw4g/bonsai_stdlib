@@ -1,3 +1,10 @@
+#define RED_TERMINAL "\x1b[31m"
+#define BLUE_TERMINAL "\x1b[34m"
+#define PURPLE_TERMINAL "\x1b[35m"
+#define GREEN_TERMINAL "\x1b[32m"
+#define YELLOW_TERMINAL "\x1b[33m"
+#define WHITE_TERMINAL "\x1b[37m"
+
 // NOTE(Jesse): This is here such that we can see "StringsMatch()"
 //
 poof(string_and_value_tables(log_level));

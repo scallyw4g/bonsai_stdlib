@@ -35,13 +35,6 @@
 // getenv
 #include <stdlib.h>
 
-#define RED_TERMINAL "\x1b[31m"
-#define BLUE_TERMINAL "\x1b[34m"
-#define PURPLE_TERMINAL "\x1b[35m"
-#define GREEN_TERMINAL "\x1b[32m"
-#define YELLOW_TERMINAL "\x1b[33m"
-#define WHITE_TERMINAL "\x1b[37m"
-
 #define PLATFORM_RUNTIME_LIB_EXTENSION ".so"
 
 #define WindowEventMasks StructureNotifyMask | PointerMotionMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
@@ -96,6 +89,10 @@ typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSARBPROC) (Display *dpy, GLXFBConf
 
 typedef void ( *PFNGLXSWAPINTERVALEXTPROC) (Display *dpy, GLXDrawable drawable, s32 s32);
 typedef PFNGLXSWAPINTERVALEXTPROC PFNSWAPINTERVALPROC;
+
+// Windows defines this for us
+
+#define ZeroMemory(Start, Count) memset((Start), 0, (Count));
 
 
 
