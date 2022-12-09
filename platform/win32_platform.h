@@ -100,7 +100,6 @@ AtomicExchange( volatile u32 *Source, const u32 NewValue )
   return Result;
 }
 
-
 link_internal b32
 PlatformStdoutIsRedirected()
 {

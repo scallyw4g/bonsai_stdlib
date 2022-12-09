@@ -74,7 +74,7 @@ ComputeDtForFrame(r64 *LastTime)
 }
 
 void
-Terminate(os *Os)
+Terminate(os *Os, platform *Plat)
 {
   if (Os->GlContext) // Cleanup Opengl context
   {
@@ -368,7 +368,7 @@ WindowMessageCallback(
 }
 
 b32
-OpenAndInitializeWindow( os *Os, platform *Plat)
+OpenAndInitializeWindow( os *Os, platform *Plat, s32 VSyncFrames)
 {
   WNDCLASS wndClass;
 
@@ -425,6 +425,8 @@ int attribs[] =
 
   ShowWindow(Os->Window, SW_SHOW);
   UpdateWindow(Os->Window);
+
+  /* SetVSync(Os, VSyncFrames); */
 
   return True;
 }

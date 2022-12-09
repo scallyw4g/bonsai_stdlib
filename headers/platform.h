@@ -1,3 +1,4 @@
+#if POOF_PREPROCESSOR
 
 // TODO(Jesse: immediate): Remove these ?  Certainly move them out of here
 // because they're windows specific
@@ -32,6 +33,7 @@
 // properly
 #define __has_cpp_attribute(...) 0
 
+#endif
 //
 // Required for FILE* type .. might want to rebuild the file API to use
 // platform functions instead, but for now the CRT ones are good enough.

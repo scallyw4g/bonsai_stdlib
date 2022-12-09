@@ -5,6 +5,9 @@
 #define global_variable   static
 #define debug_global      static
 
+// TODO(Jesse, immediate): Axe this
+#define bonsai_function   static
+
 // Internal linkage
 #define link_internal     static
 
@@ -53,6 +56,8 @@ typedef u64                     umm;
 #endif
 typedef u64                     b64;
 
+#if POOF_PREPROCESSOR
+
 // Unfortunately Microsoft has these types and we have to support them.  This
 // is the best way I could figure out at the time .. though once the
 // typechecker is better we might actually be able to typedef these
@@ -62,21 +67,23 @@ typedef u64                     b64;
 #define __int64 long long
 
 CAssert(sizeof(__int64) == 8);
+CAssert(sizeof(__int32) == 4);
+CAssert(sizeof(__int16) == 2);
+CAssert(sizeof(__int8) == 1);
+#endif
+
 CAssert(sizeof(s64) == 8);
 CAssert(sizeof(u64) == 8);
 CAssert(sizeof(r64) == 8);
 CAssert(sizeof(umm) == sizeof(void*));
 
-CAssert(sizeof(__int32) == 4);
 CAssert(sizeof(s32) == 4);
 CAssert(sizeof(u32) == 4);
 CAssert(sizeof(r32) == 4);
 
-CAssert(sizeof(__int16) == 2);
 CAssert(sizeof(s16) == 2);
 CAssert(sizeof(u16) == 2);
 
-CAssert(sizeof(__int8) == 1);
 CAssert(sizeof(s8) == 1);
 CAssert(sizeof(u8) == 1);
 

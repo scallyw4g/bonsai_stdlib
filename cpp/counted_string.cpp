@@ -297,7 +297,7 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
         case 'x':
         {
           u64 Value = va_arg(Args, u64);
-          u64ToChar(DestCursor, Value, FormatWidth, 16, UpperHexChars)
+          u64ToChar(DestCursor, Value, FormatWidth, 16, UpperHexChars);
         } break;
 
         case 'u':
