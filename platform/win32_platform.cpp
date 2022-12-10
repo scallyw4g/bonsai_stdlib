@@ -269,9 +269,14 @@ WindowMessageCallback(
     {
       Plat->MouseP.x = (r32)GET_X_LPARAM(lParam);
       Plat->MouseP.y = (r32)GET_Y_LPARAM(lParam);
-
     } return 0;
 
+    case WM_MOUSEWHEEL:
+    {
+      // NOTE(Jesse): The tick-rate for mouse wheels on windows is 120..
+      // normalize to 1
+      Plat->Input.MouseWheelDelta = GET_WHEEL_DELTA_WPARAM(wParam) / 120;
+    } return 0;
 
 
     case WM_KEYUP:

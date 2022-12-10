@@ -38,6 +38,8 @@ struct input
 
   input_event Q;
   input_event E;
+
+  s32 MouseWheelDelta;
 };
 
 struct hotkeys
@@ -142,5 +144,13 @@ poof(
 #include <generated/anonymous_function_input_HLGbqwh0.h>
 
   return;
+}
+
+link_internal void
+ResetInputForFrameStart(input *Input, hotkeys *Hotkeys)
+{
+  Input->MouseWheelDelta = 0;
+  ClearClickedFlags(Input);
+  Clear(Hotkeys);
 }
 

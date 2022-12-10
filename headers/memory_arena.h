@@ -92,27 +92,6 @@ Terabytes(umm Number)
   return Result;
 }
 
-template <typename T> inline void
-Fill(T *Struct, u8 ByteValue)
-{
-#if 0
-  ZeroMemory(Struct, sizeof(T));
-#else
-  for ( umm Byte = 0;
-      Byte < sizeof(T);
-      ++Byte)
-  {
-    *(((u8*)Struct) + Byte) = ByteValue;
-  }
-#endif
-}
-
-template <typename T> inline void
-Clear(T *Struct)
-{
-  Fill(Struct, 0);
-}
-
 #define INVALID_THREAD_HANDLE (u64_MAX)
 
 struct memory_arena

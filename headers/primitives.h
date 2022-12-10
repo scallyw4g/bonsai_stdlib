@@ -138,3 +138,24 @@ struct counted_string
 };
 
 typedef counted_string cs;
+
+template <typename T> inline void
+Fill(T *Struct, u8 ByteValue)
+{
+#if 0
+  ZeroMemory(Struct, sizeof(T));
+#else
+  for ( umm Byte = 0;
+      Byte < sizeof(T);
+      ++Byte)
+  {
+    *(((u8*)Struct) + Byte) = ByteValue;
+  }
+#endif
+}
+
+template <typename T> inline void
+Clear(T *Struct)
+{
+  Fill(Struct, 0);
+}

@@ -204,7 +204,7 @@ OpenLibrary(const char *LibPath)
 
   if (!Result)
   {
-    Error("Error loading library: %s", LibPath);
+    Warn("Could not open library (%s)", LibPath);
   }
   else
   {
