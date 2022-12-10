@@ -1,4 +1,4 @@
-#define DEBUG_THREAD_COUNT_BIAS (4)
+#define DEBUG_THREAD_COUNT_BIAS (26)
 
 link_internal u32
 GetWorkerThreadCount()

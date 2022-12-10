@@ -1,5 +1,3 @@
-#include <chrono> // Timer
-
 #define BONSAI_MAIN() int CALLBACK WinMain( HINSTANCE AppHandle, HINSTANCE Ignored, LPSTR CmdLine, int CmdShow )
 
 global_variable HPALETTE global_hPalette;
@@ -50,19 +48,6 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_param
 
 #define CompleteAllWrites _WriteBarrier(); _mm_sfence()
 
-// TODO(Jesse)(omfg gross): OMFG GROSS
-inline r64
-GetHighPrecisionClock()
-{
-  global_variable auto FirstTime = std::chrono::high_resolution_clock::now();
-  // cout << "FirstTime Time : " << chrono::time_point_cast<chrono::nanoseconds>(FirstTime).time_since_epoch().count() << " ns \n";
-
-  r64 Result = (r64)(std::chrono::high_resolution_clock::now() - FirstTime).count();
-  // cout << "Time/iter, clock: " << chrono::duration_cast<chrono::nanoseconds>(Result).count() << " ns \n";
-
-  return Result;
-}
-
 inline r64
 ComputeDtForFrame(r64 *LastTime)
 {
@@ -76,6 +61,8 @@ ComputeDtForFrame(r64 *LastTime)
 void
 Terminate(os *Os, platform *Plat)
 {
+  timeEndPeriod(1);
+
   if (Os->GlContext) // Cleanup Opengl context
   {
     wglMakeCurrent(NULL, NULL);
@@ -428,39 +415,9 @@ int attribs[] =
 
   /* SetVSync(Os, VSyncFrames); */
 
+  timeBeginPeriod(1);
+
   return True;
-}
-
-
-inline void*
-GetProcFromLib(shared_lib Lib, const char *Name)
-{
-  void* Result = (void*)GetProcAddress(Lib, Name);
-  return Result;
-}
-
-inline shared_lib
-OpenLibrary(const char *LibPath)
-{
-  shared_lib Result = LoadLibrary(LibPath);
-
-  if (!Result)
-  {
-    Error("Error loading library: %s", LibPath);
-  }
-  else
-  {
-    Info("Library (%s) Loaded Successfully.", LibPath);
-  }
-
-  return Result;
-}
-
-inline b32
-CloseLibrary(shared_lib Lib)
-{
-  b32 Result = (b32)FreeLibrary(Lib);
-  return Result;
 }
 
 #define CwdBufferLen 2048

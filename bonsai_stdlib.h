@@ -129,3 +129,14 @@ struct framebuffer
   u32 Attachments;
 };
 
+struct render_entity_to_texture_group
+{
+  // For the GameGeo
+  camera *Camera;
+  framebuffer GameGeoFBO;
+  shader GameGeoShader;
+  m4 ViewProjection;
+  gpu_mapped_element_buffer GameGeo;
+  shader DebugGameGeoTextureShader;
+};
+

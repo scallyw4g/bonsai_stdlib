@@ -10,6 +10,8 @@
 
 #include <direct.h> // Chdir
 
+#include <chrono> // Timer
+
 #define PLATFORM_RUNTIME_BREAK() __debugbreak()
 
 #define runtime_lib_export __declspec(dllexport)
@@ -174,3 +176,48 @@ PlatformGetGlFunction(const char* Name)
 
   return Result;
 }
+
+// TODO(Jesse)(omfg gross): OMFG GROSS
+inline r64
+GetHighPrecisionClock()
+{
+  global_variable auto FirstTime = std::chrono::high_resolution_clock::now();
+  // cout << "FirstTime Time : " << chrono::time_point_cast<chrono::nanoseconds>(FirstTime).time_since_epoch().count() << " ns \n";
+
+  r64 ResultMs = (r64)(std::chrono::high_resolution_clock::now() - FirstTime).count()/1000000.0;;
+  // cout << "Time/iter, clock: " << chrono::duration_cast<chrono::nanoseconds>(Result).count() << " ns \n";
+
+  return ResultMs;
+}
+
+inline void*
+GetProcFromLib(shared_lib Lib, const char *Name)
+{
+  void* Result = (void*)GetProcAddress(Lib, Name);
+  return Result;
+}
+
+inline shared_lib
+OpenLibrary(const char *LibPath)
+{
+  shared_lib Result = LoadLibrary(LibPath);
+
+  if (!Result)
+  {
+    Error("Error loading library: %s", LibPath);
+  }
+  else
+  {
+    Info("Library (%s) Loaded Successfully.", LibPath);
+  }
+
+  return Result;
+}
+
+inline b32
+CloseLibrary(shared_lib Lib)
+{
+  b32 Result = (b32)FreeLibrary(Lib);
+  return Result;
+}
+
