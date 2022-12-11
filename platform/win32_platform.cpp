@@ -2,7 +2,7 @@
 
 global_variable HPALETTE global_hPalette;
 
-bonsai_function void
+link_internal void
 SleepMs(u32 Ms)
 {
   TIMED_FUNCTION();
@@ -474,7 +474,7 @@ BonsaiSwapBuffers(os *Os)
   SwapBuffers(Os->Display);
 }
 
-bonsai_function u64
+link_internal u64
 PlatformGetPageSize()
 {
   SYSTEM_INFO sysInfo;
@@ -484,7 +484,7 @@ PlatformGetPageSize()
   return Result;
 }
 
-bonsai_function u8*
+link_internal u8*
 PlatformAllocateSize(umm AllocationSize)
 {
   Assert(AllocationSize % PlatformGetPageSize() == 0);
@@ -500,7 +500,7 @@ PlatformAllocateSize(umm AllocationSize)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 PlatformDeallocate(u8 *Base, umm Size)
 {
   Assert( (umm)Base % PlatformGetPageSize() == 0);
@@ -528,7 +528,7 @@ PlatformDeallocate(u8 *Base, umm Size)
   return Result;
 }
 
-bonsai_function b32
+link_internal b32
 PlatformSetProtection(u8 *Base, u64 Size, memory_protection_type Protection)
 {
   Assert(Size);
@@ -567,7 +567,7 @@ PlatformSetProtection(u8 *Base, u64 Size, memory_protection_type Protection)
   return Result;
 }
 
-bonsai_function u32
+link_internal u32
 PlatformGetLogicalCoreCount()
 {
   SYSTEM_INFO sysinfo;
@@ -576,7 +576,7 @@ PlatformGetLogicalCoreCount()
   return Result;
 }
 
-bonsai_function void
+link_internal void
 PlatformDebugStacktrace()
 {
   // TODO(Jesse): Implement this.

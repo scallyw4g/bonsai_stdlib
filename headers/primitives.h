@@ -6,7 +6,7 @@
 #define debug_global      static
 
 // TODO(Jesse, immediate): Axe this
-#define bonsai_function   static
+#define link_internal   static
 
 // Internal linkage
 #define link_internal     static

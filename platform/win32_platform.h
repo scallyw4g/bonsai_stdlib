@@ -58,7 +58,7 @@ struct os
 };
 
 
-bonsai_function u64
+link_internal u64
 GetCycleCount()
 {
   u64 Result = __rdtsc();
