@@ -1,4 +1,4 @@
-#define DEBUG_THREAD_COUNT_BIAS (26)
+#define DEBUG_THREAD_COUNT_BIAS (0)
 
 link_internal u32
 GetWorkerThreadCount()
@@ -18,6 +18,7 @@ GetWorkerThreadCount()
 link_internal u32
 GetTotalThreadCount()
 {
+  TIMED_FUNCTION();
   u32 Result = GetWorkerThreadCount() + 1;
   return Result;
 }

@@ -1,4 +1,4 @@
-
+ 
 struct rect2
 {
   v2 Min;
@@ -101,6 +101,16 @@ AABBMinDim(v3 Min, v3 Dim)
   return Result;
 }
 
+
+link_internal rect2
+operator-(rect2 R1, v2 P)
+{
+  rect2 Result = {
+    .Min = R1.Min - P,
+    .Max = R1.Max - P,
+  };
+  return Result;
+}
 
 link_internal rect2
 operator-(rect2 R1, rect2 R2)
