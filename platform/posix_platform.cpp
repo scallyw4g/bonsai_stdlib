@@ -228,7 +228,7 @@ typedef pthread_t thread_handle; // TODO(Jesse id: 265): Unnecessary .. I just a
 typedef pthread_attr_t thread_attributes; // TODO(Jesse id: 266): Unnecessary .. I just added it as a hack get parsing to work
 
 thread_id
-PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params)
+PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, u32 ThreadId)
 {
   thread_attributes Attribs;
   pthread_attr_init(&Attribs);

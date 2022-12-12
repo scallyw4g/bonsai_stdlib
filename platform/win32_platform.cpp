@@ -30,18 +30,35 @@ CreateSemaphore(void)
 }
 
 thread_id
-PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params)
+PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, u32 ThreadIndex)
 {
   DWORD flags = 0;
 
   thread_id ThreadId = CreateThread(
-      0,
-      0,
-      (LPTHREAD_START_ROUTINE)ThreadMain,
-      (void *)Params,
-      flags,
-      0 // &Params->Self.ID
+    0,
+    0,
+    (LPTHREAD_START_ROUTINE)ThreadMain,
+    (void *)Params,
+    flags,
+    0 //ThreadIndex
   );
+
+#if 0
+  SetThreadIdealProcessor(ThreadId, ThreadIndex*2);
+#endif
+
+#if 1
+  Assert(ThreadIndex < 32);
+  if (ThreadIndex == 0)
+  {
+    SetThreadAffinityMask(ThreadId, 0);
+  }
+  else
+  {
+    SetThreadAffinityMask(ThreadId, (1 << (ThreadIndex*2) ));
+  }
+#endif
+
 
   return ThreadId;
 }
