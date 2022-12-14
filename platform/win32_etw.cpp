@@ -4,21 +4,72 @@
 #include <strsafe.h>
 #include <tdh.h>
 
-void Bonsai_ETWEventCallback(PEVENT_RECORD Event)
+#pragma pack(push, 1)
+struct context_switch_event
 {
-  EVENT_HEADER *Header = &Event->EventHeader;
+  u32 NewThreadId;
+  u32 OldThreadId;
+  s8  NewThreadPriority;
+  s8  OldThreadPriority;
+  u8  PreviousCState;
+  s8  SpareByte;
+  s8  OldThreadWaitReason;
+  s8  OldThreadWaitMode;
+  s8  OldThreadState;
+  s8  OldThreadWaitIdealProcessor;
+  u32 NewThreadWaitTime;
+  u32 Reserved;
+};
+#pragma pack(pop)
 
-  u8 ProcessorNumber = Event->BufferContext.ProcessorNumber;
-  u32 ThreadID = Header->ThreadId;
-  s64 CycleTime = Header->TimeStamp.QuadPart;
+global_variable u32 CSwitchEventsPerFrame = 0;
+void Bonsai_ETWEventCallback(EVENT_RECORD *Event)
+{
+  /* EVENT_HEADER Header = Event->EventHeader; */
 
-  s32 ProviderIsSystem = IsEqualGUID(Header->ProviderId, SystemTraceControlGuid);
+  /* b32 UseMofPointer = Event->EventHeader.Flags & WNODE_FLAG_USE_MOF_PTR; */
+
+  switch(Event->EventHeader.EventDescriptor.Opcode)
+  {
+    // CSwitch event
+    // https://learn.microsoft.com/en-us/windows/win32/etw/cswitch
+    case 36:
+    {
+      Assert(Event->UserDataLength == sizeof(context_switch_event));
+
+      context_switch_event CSwitchEvent;
+
+      // The events aren't packed with any particular alignment, so we have to
+      // memcpy into a struct on the stack in case they're packed at a weird offset
+      MemCopy((u8*)Event->UserData, (u8*)&CSwitchEvent, sizeof(context_switch_event));
+      ++CSwitchEventsPerFrame;
+    } break;
+
+    default: {} break;
+  }
+
+/*   u8 ProcessorNumber = Event->BufferContext.ProcessorNumber; */
+/*   u32 ThreadID = Header.ThreadId; */
+/*   s64 CycleTime = Header.TimeStamp.QuadPart; */
+
+/*   b32 StringData = False; */
+/*   if (Header.Flags & EVENT_HEADER_FLAG_STRING_ONLY) */
+/*   { */
+/*     StringData = True; */
+/*   } */
+
+  /* CSwitch *EventData = Event->UserData */
+
+  /* s32 ProviderIsSystem = IsEqualGUID(Header.ProviderId, SystemTraceControlGuid); */
 
   /* DebugLine("Event { (%d) (%u)(%u)(%lu) }", ProviderIsSystem, (u32)ProcessorNumber, ThreadID, CycleTime); */
 }
 
 static TRACEHANDLE OpenTraceHandle;
 
+
+#if 0
+// Need to add -lole32 -ltdh to linker flags to get this to compile.  It's pretty useless though..
 void
 DoRandomAssLoggingIFoundOnStackOverflow()
 {
@@ -112,6 +163,7 @@ cleanup:
       penum = NULL;
   }
 }
+#endif
 
 link_internal b32
 CloseAnyExistingTrace(EVENT_TRACE_PROPERTIES *EventTracingProps)
