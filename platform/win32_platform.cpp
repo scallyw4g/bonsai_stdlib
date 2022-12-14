@@ -1,3 +1,5 @@
+#include <bonsai_stdlib/platform/win32_etw.cpp>
+
 #define BONSAI_MAIN() int CALLBACK WinMain( HINSTANCE AppHandle, HINSTANCE Ignored, LPSTR CmdLine, int CmdShow )
 
 global_variable HPALETTE global_hPalette;
@@ -47,7 +49,7 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_param
   SetThreadIdealProcessor(ThreadId, ThreadIndex*2);
 #endif
 
-#if 1
+#if 0
   Assert(ThreadIndex < 32);
   if (ThreadIndex == 0)
   {

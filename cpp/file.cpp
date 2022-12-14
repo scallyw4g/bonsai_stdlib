@@ -362,7 +362,9 @@ PrintToStdout(counted_string Output)
   }
 
 #if BONSAI_WIN32
-  OutputDebugString(GetNullTerminated(Output));
+  /* temp_memory_handle TMH = BeginTemporaryMemory(TranArena, False); */
+  /* OutputDebugString(GetNullTerminated(Output, TranArena)); */
+  /* EndTemporaryMemory(&TMH, False); */
 #endif
 
 }

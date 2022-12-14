@@ -190,7 +190,7 @@ struct temp_memory_handle
 };
 
 link_internal void
-EndTemporaryMemory(temp_memory_handle *Handle)
+EndTemporaryMemory(temp_memory_handle *Handle, b32 ReportLeaks = True)
 {
   memory_arena *Arena = Handle->Arena;
   u8 *BeginMark = Handle->BeginMark;
@@ -213,14 +213,17 @@ EndTemporaryMemory(temp_memory_handle *Handle)
   }
   else
   {
-    Leak("Leaking memory when doing EndTemporaryMemory.");
+    if (ReportLeaks)
+    {
+      Leak("Leaking memory when doing EndTemporaryMemory.");
+    }
   }
 
   return;
 }
 
 link_internal temp_memory_handle
-BeginTemporaryMemory(memory_arena *Arena)
+BeginTemporaryMemory(memory_arena *Arena, b32 ReportLeaks = True)
 {
   temp_memory_handle Result = {
     .Arena = Arena,

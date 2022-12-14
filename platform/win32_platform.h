@@ -1,3 +1,4 @@
+#define INITGUID // Force SystemTraceControlGuid to be defined
 #include <Windows.h>
 #include <windowsx.h> // Macros to retrieve mouse coordinates
 #include <WinBase.h>
