@@ -1,6 +1,20 @@
 // TODO(Jesse): Remove this??  Probably worth it.
 #include <math.h>
 
+inline u64
+SaturatingAdd(u64 N)
+{
+  if (N < u64_MAX) { N = N+1; }
+  return N;
+}
+
+inline u64
+SaturatingSub(u64 N)
+{
+  if (N) { N = N-1; }
+  return N;
+}
+
 #if 0
 // TODO(Jesse, id: 102, tags: math, improvement): Write actual/working fModf!
 r32

@@ -13,7 +13,7 @@ GetWorkerThreadCount()
   }
 
   /* u32 ThreadCount = CoreCount - Bias; */
-  u32 ThreadCount = 4;//CoreCount - Bias;
+  u32 ThreadCount = 4;
   return ThreadCount;
 }
 

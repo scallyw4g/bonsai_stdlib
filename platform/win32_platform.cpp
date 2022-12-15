@@ -1,4 +1,4 @@
-#include <bonsai_stdlib/platform/win32_etw.cpp>
+/* #include <bonsai_stdlib/platform/win32_etw.cpp> */
 
 #define BONSAI_MAIN() int CALLBACK WinMain( HINSTANCE AppHandle, HINSTANCE Ignored, LPSTR CmdLine, int CmdShow )
 
@@ -458,6 +458,8 @@ GetCwd()
 b32
 ProcessOsMessages(os *Os, platform *Plat)
 {
+  TIMED_FUNCTION();
+
   b32 Result = False;
 
   MSG Message;
