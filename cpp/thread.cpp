@@ -4,7 +4,7 @@ link_internal u32
 GetWorkerThreadCount()
 {
   // TODO(Jesse, blog, win32): Write code to get the number of actual physical cores
-  u32 CoreCount = PlatformGetLogicalCoreCount() / 2;
+  u32 CoreCount = PlatformGetLogicalCoreCount();
   u32 Bias = 1 + DEBUG_THREAD_COUNT_BIAS; // +1 because we already have a main thread
 
   if (Bias >= CoreCount)
@@ -12,7 +12,8 @@ GetWorkerThreadCount()
     Bias = CoreCount - 1;
   }
 
-  u32 ThreadCount = CoreCount - Bias;
+  /* u32 ThreadCount = CoreCount - Bias; */
+  u32 ThreadCount = 4;//CoreCount - Bias;
   return ThreadCount;
 }
 

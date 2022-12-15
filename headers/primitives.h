@@ -142,8 +142,8 @@ typedef counted_string cs;
 template <typename T> inline void
 Fill(T *Struct, u8 ByteValue)
 {
-#if 0
-  ZeroMemory(Struct, sizeof(T));
+#if 1
+  memset((void*)Struct, 0, sizeof(T));
 #else
   for ( umm Byte = 0;
       Byte < sizeof(T);

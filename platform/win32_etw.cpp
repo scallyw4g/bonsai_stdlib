@@ -55,13 +55,19 @@ void Bonsai_ETWEventCallback(EVENT_RECORD *Event)
 
         if (TS->ThreadId == CSwitchEvent.NewThreadId)
         {
-          debug_context_switch_event Evt = {.Type = ContextSwitch_On};
+          debug_context_switch_event Evt = {
+            .Type = ContextSwitch_On,
+            .CycleCount = (u64)Event->EventHeader.TimeStamp.QuadPart
+          };
           PushContextSwitch(TS->ContextSwitches, &Evt);
         }
 
         if (TS->ThreadId == CSwitchEvent.OldThreadId)
         {
-          debug_context_switch_event Evt = {.Type = ContextSwitch_Off};
+          debug_context_switch_event Evt = {
+            .Type = ContextSwitch_Off,
+            .CycleCount = (u64)Event->EventHeader.TimeStamp.QuadPart
+          };
           PushContextSwitch(TS->ContextSwitches, &Evt);
         }
       }
