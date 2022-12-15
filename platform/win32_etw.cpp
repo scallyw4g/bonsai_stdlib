@@ -35,6 +35,7 @@ void Bonsai_ETWEventCallback(EVENT_RECORD *Event)
     // https://learn.microsoft.com/en-us/windows/win32/etw/cswitch
     case 36:
     {
+#if 1
       Assert(Event->UserDataLength == sizeof(context_switch_event));
 
       context_switch_event CSwitchEvent;
@@ -43,6 +44,29 @@ void Bonsai_ETWEventCallback(EVENT_RECORD *Event)
       // memcpy into a struct on the stack in case they're packed at a weird offset
       MemCopy((u8*)Event->UserData, (u8*)&CSwitchEvent, sizeof(context_switch_event));
       ++CSwitchEventsPerFrame;
+
+      debug_state *DebugState = GetDebugState();
+
+      u32 TotalThreads = GetWorkerThreadCount();
+      for (u32 ThreadIndex = 0; ThreadIndex < TotalThreads; ++ThreadIndex)
+      {
+        debug_thread_state *TS = DebugState->ThreadStates + ThreadIndex;
+        Assert(TS->ThreadId);
+
+        if (TS->ThreadId == CSwitchEvent.NewThreadId)
+        {
+          debug_context_switch_event Evt = {.Type = ContextSwitch_On};
+          PushContextSwitch(TS->ContextSwitches, &Evt);
+        }
+
+        if (TS->ThreadId == CSwitchEvent.OldThreadId)
+        {
+          debug_context_switch_event Evt = {.Type = ContextSwitch_Off};
+          PushContextSwitch(TS->ContextSwitches, &Evt);
+        }
+      }
+#endif
+
     } break;
 
     default: {} break;

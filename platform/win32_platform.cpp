@@ -31,33 +31,34 @@ CreateSemaphore(void)
   return Result;
 }
 
-thread_id
+u32
 PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, u32 ThreadIndex)
 {
   DWORD flags = 0;
-
-  thread_id ThreadId = CreateThread(
+  unsigned long ThreadId;
+  thread_handle ThreadHandle = CreateThread(
     0,
     0,
     (LPTHREAD_START_ROUTINE)ThreadMain,
     (void *)Params,
     flags,
-    0 //ThreadIndex
+    &ThreadId
   );
+  Assert(ThreadId);
 
 #if 0
-  SetThreadIdealProcessor(ThreadId, ThreadIndex*2);
+  SetThreadIdealProcessor(ThreadHandle, ThreadIndex*2);
 #endif
 
 #if 0
   Assert(ThreadIndex < 32);
   if (ThreadIndex == 0)
   {
-    SetThreadAffinityMask(ThreadId, 0);
+    SetThreadAffinityMask(ThreadHandle, 0);
   }
   else
   {
-    SetThreadAffinityMask(ThreadId, (1 << (ThreadIndex*2) ));
+    SetThreadAffinityMask(ThreadHandle, (1 << (ThreadIndex*2) ));
   }
 #endif
 

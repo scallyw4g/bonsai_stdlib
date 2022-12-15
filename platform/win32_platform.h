@@ -32,7 +32,7 @@
 typedef PFNWGLSWAPINTERVALEXTPROC PFNSWAPINTERVALPROC;
 
 
-typedef HANDLE thread_id;
+typedef HANDLE thread_handle;
 typedef HANDLE semaphore;
 typedef HANDLE native_mutex;
 

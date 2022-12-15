@@ -4,11 +4,6 @@
 
 typedef THREAD_MAIN_RETURN (*thread_main_callback_type)(void*);
 
-struct thread
-{
-  u32 ThreadIndex;
-};
-
 struct bonsai_futex
 {
   volatile u32 SignalValue;

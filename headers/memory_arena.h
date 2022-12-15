@@ -142,7 +142,7 @@ void noop() { }
 
 #define DEBUG_REGISTER_ARENA(Arena, ThreadId)             do { GetDebugState() ? GetDebugState()->RegisterArena(#Arena, Arena, ThreadId) : noop(); } while (false)
 #define DEBUG_REGISTER_NAMED_ARENA(Arena, ThreadId, Name) do { GetDebugState() ? GetDebugState()->RegisterArena(Name, Arena, ThreadId) : noop(); } while (false)
-#define DEBUG_REGISTER_THREAD(ThreadIndex)                do { GetDebugState() ? GetDebugState()->RegisterThread(ThreadIndex) : noop(); } while (false)
+#define DEBUG_REGISTER_THREAD(TParams)                    do { GetDebugState() ? GetDebugState()->RegisterThread(TParams) : noop(); } while (false)
 
 #else // BONSAI_INTERNAL
 
