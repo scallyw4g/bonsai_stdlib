@@ -285,12 +285,22 @@ Win32TracingThread(LPVOID Parameter)
       else
       {
         u64 SpecificErrorCode = GetLastError();
-        Error("Opening Trace : error number (%u)", SpecificErrorCode);
+        SoftError("Opening Trace : error number (%u)", SpecificErrorCode);
       }
     }
     else
     {
-      Error("Starting Trace : error number (%u)", StartTraceResult);
+      switch(StartTraceResult)
+      {
+        case ERROR_ACCESS_DENIED:
+        {
+          SoftError("Insufficient privileges to start ETW context switch tracing.");
+        } break;
+        default:
+        {
+          SoftError("Starting Trace : error number (%u)", StartTraceResult);
+        } break;
+      }
     }
   }
   else

@@ -146,12 +146,20 @@ SetTerminalColorsOff()
 
 
 
-#define Error(...) do {                                                         \
+#define SoftError(...) do {                                                     \
                                                                                 \
   if (Global_LogLevel <= LogLevel_Error) {                                      \
     LogDirect("%S ! Error   %S- ", TerminalColors.Red, TerminalColors.White);   \
     LogDirect(__VA_ARGS__);                                                     \
     LogDirect(Newline);                                                         \
+  }                                                                             \
+                                                                                \
+} while (false)
+
+#define Error(...) do {                                                         \
+                                                                                \
+  if (Global_LogLevel <= LogLevel_Error) {                                      \
+    SoftError(__VA_ARGS__);                                                     \
     RuntimeBreak();                                                             \
   }                                                                             \
                                                                                 \
