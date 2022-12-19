@@ -103,6 +103,23 @@ AABBMinDim(v3 Min, v3 Dim)
 
 
 link_internal rect2
+operator+(rect2 R1, v2 P)
+{
+  rect2 Result = {
+    .Min = R1.Min + P,
+    .Max = R1.Max + P,
+  };
+  return Result;
+}
+
+link_internal void
+operator+=(rect2 &R1, v2 P)
+{
+  R1.Min += P;
+  R1.Max += P;
+}
+
+link_internal rect2
 operator-(rect2 R1, v2 P)
 {
   rect2 Result = {
@@ -231,6 +248,19 @@ link_internal v3
 GetMax(aabb Rect)
 {
   v3 Result = Rect.Center + Rect.Radius;
+  return Result;
+}
+
+v2 GetRadius(rect2 Rect)
+{
+  v2 Result = Rect.Max - Rect.Min;
+  return Result;
+}
+
+r32 Area(rect2 Rect)
+{
+  v2 Radius = GetRadius(Rect);
+  r32 Result = (Radius.x * Radius.y) * 4.f;
   return Result;
 }
 
