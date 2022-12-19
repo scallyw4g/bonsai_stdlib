@@ -1,10 +1,12 @@
 #if PLATFORM_GL_IMPLEMENTATIONS
 
 // Wrapper so assertions give us file/line numbers
-#define AssertNoGlErrors do {            \
-  u32 glErrorNo = GL.GetError();         \
-  DumpGlErrorEnum(glErrorNo);            \
-  Assert(glErrorNo == GL_NO_ERROR); } while (0)
+#define AssertNoGlErrors
+
+/* #define AssertNoGlErrors do {            \ */
+/*   u32 glErrorNo = GL.GetError();         \ */
+/*   DumpGlErrorEnum(glErrorNo);            \ */
+/*   Assert(glErrorNo == GL_NO_ERROR); } while (0) */
 
 #define GL_NO_ERROR                       0
 
@@ -175,6 +177,8 @@ typedef void (*GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,
 link_internal void
 DumpGlErrorEnum(u32 ErrorNumber)
 {
+  /* TIMED_FUNCTION(); */
+
   if ( ErrorNumber != 0 )
   {
     Error("%d", ErrorNumber);

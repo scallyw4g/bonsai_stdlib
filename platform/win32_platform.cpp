@@ -32,7 +32,7 @@ CreateSemaphore(void)
 }
 
 u32
-PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, u32 ThreadIndex)
+PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, u32 ThreadIndex )
 {
   DWORD flags = 0;
   unsigned long ThreadId;
@@ -47,21 +47,38 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_param
   Assert(ThreadId);
 
 #if 0
-  SetThreadIdealProcessor(ThreadHandle, ThreadIndex*2);
-#endif
+  u32 PhysicalProcessorIndex = 0;
 
-#if 0
-  Assert(ThreadIndex < 32);
-  if (ThreadIndex == 0)
+  SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *RelationshipBuffer = Allocate(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, TranArena, 64);
+  unsigned long AllocatedSize = sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)*64;
+  if (GetLogicalProcessorInformationEx(RelationProcessorCore, RelationshipBuffer, &AllocatedSize))
   {
-    SetThreadAffinityMask(ThreadHandle, 0);
+    // Count physical processors
+    SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *Info = RelationshipBuffer;
+    for (u32 Offset = 0; Offset < AllocatedSize; Offset += Info->Size)
+    {
+      Info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)((u8*)RelationshipBuffer + Offset);
+      Assert(Info->Processor.GroupCount == 1);
+      if (PhysicalProcessorIndex == ThreadIndex)
+      {
+        SetThreadAffinityMask(ThreadHandle, Info->Processor.GroupMask->Mask);
+      }
+
+      PhysicalProcessorIndex++;
+    }
+
+    Info = RelationshipBuffer;
+    for (u32 Offset = 0; Offset < AllocatedSize; Offset += Info->Size)
+    {
+      Info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)((u8*)RelationshipBuffer + Offset);
+    }
+
   }
   else
   {
-    SetThreadAffinityMask(ThreadHandle, (1 << (ThreadIndex*2) ));
+    SoftError("GetLogicalProcessorInformationEx Failed");
   }
 #endif
-
 
   return ThreadId;
 }

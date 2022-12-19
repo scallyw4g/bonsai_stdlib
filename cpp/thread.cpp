@@ -1,28 +1,20 @@
 #define DEBUG_THREAD_COUNT_BIAS (0)
 
 link_internal u32
-GetWorkerThreadCount()
+GetTotalThreadCount()
 {
-  // TODO(Jesse, blog, win32): Write code to get the number of actual physical cores
-  u32 CoreCount = PlatformGetLogicalCoreCount();
-  /* u32 Bias = 1 + DEBUG_THREAD_COUNT_BIAS; // +1 because we already have a main thread */
-
-  /* if (Bias >= CoreCount) */
-  /* { */
-  /*   Bias = CoreCount - 1; */
-  /* } */
-
-  /* u32 ThreadCount = CoreCount - Bias; */
-  /* u32 ThreadCount = 4; */
-  return CoreCount;
+  /* TIMED_FUNCTION(); */
+  /* u32 Result = PlatformGetLogicalCoreCount() ; */
+  u32 Result = 16;
+  return Result;
 }
 
 link_internal u32
-GetTotalThreadCount()
+GetWorkerThreadCount()
 {
-  TIMED_FUNCTION();
-  u32 Result = GetWorkerThreadCount() + 1;
-  return Result;
+  // TODO(Jesse, blog, win32): Write code to get the number of actual physical cores
+  u32 CoreCount = GetTotalThreadCount() -1;
+  return CoreCount;
 }
 
 inline void
