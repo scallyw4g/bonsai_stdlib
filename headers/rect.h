@@ -113,6 +113,13 @@ operator+(rect2 R1, v2 P)
 }
 
 link_internal void
+operator+=(rect2 &R1, rect2 R2)
+{
+  R1.Min += R2.Min;
+  R1.Max += R2.Max;
+}
+
+link_internal void
 operator+=(rect2 &R1, v2 P)
 {
   R1.Min += P;
