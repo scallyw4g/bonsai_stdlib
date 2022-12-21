@@ -322,6 +322,8 @@ poof(
   }
 )
 
+
+
 poof(
   func generate_stream_chunk_struct(Type)
   {
@@ -454,6 +456,8 @@ poof(
     (generate_stream_push(Type))
   }
 )
+
+
 
 poof(
   func string_and_value_tables(Def)
