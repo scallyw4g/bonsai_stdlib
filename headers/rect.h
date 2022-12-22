@@ -112,6 +112,15 @@ operator+(rect2 R1, v2 P)
   return Result;
 }
 
+link_internal rect2
+operator+(rect2 R1, rect2 R2)
+{
+  rect2 Result;
+  Result.Min = R1.Min + R2.Min;
+  Result.Max = R1.Max + R2.Max;
+  return Result;
+}
+
 link_internal void
 operator+=(rect2 &R1, rect2 R2)
 {
