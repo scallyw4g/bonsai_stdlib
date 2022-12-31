@@ -46,7 +46,7 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_param
   );
   Assert(ThreadId);
 
-#if 0
+#if 1
   u32 PhysicalProcessorIndex = 0;
 
   SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *RelationshipBuffer = Allocate(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, TranArena, 64);

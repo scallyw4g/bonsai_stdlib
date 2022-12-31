@@ -68,23 +68,31 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
     Result &= UnprotectArena(Arena);
   }
 
-  TIMED_BLOCK("ArenaClear");
-  u8* ClearByte = Arena->Start;
-  while( ClearByte < Arena->At )
+  if ( Arena->At > Arena->Start )
   {
-    *ClearByte++ = 0;
-  }
-  END_BLOCK("ArenaClear");
+    TIMED_BLOCK("ArenaClear");
+    memset((void*)Arena->Start, 0, (size_t)(Arena->At-Arena->Start) );
+#if 0
+    u8* ClearByte = Arena->Start;
+    while( ClearByte < Arena->At )
+    {
+      *ClearByte++ = 0;
+    }
+#endif
+    END_BLOCK("ArenaClear");
 
-  Arena->At = Arena->Start;
-  Arena->NextBlockSize = RestartBlockSize;
+    Arena->At = Arena->Start;
+    Arena->NextBlockSize = RestartBlockSize;
 
 #if BONSAI_INTERNAL
-  Arena->Pushes = 0;
+    Arena->Pushes = 0;
 #endif
+
 #if DEBUG_SYSTEM_API
-  DEBUG_CLEAR_MEMORY_RECORDS_FOR(Arena);
+    DEBUG_CLEAR_MEMORY_RECORDS_FOR(Arena);
 #endif
+
+  }
 
   return Result;
 }
