@@ -39,18 +39,13 @@ SignalAndWaitForWorkers(bonsai_futex *Futex)
 }
 
 link_internal void
-WaitOnFutex(bonsai_futex *Futex)
+WaitOnFutex(bonsai_futex *Futex, b32 DoSleep)
 {
   TIMED_FUNCTION();
 
-  if (Futex->SignalValue)
-  {
-    AtomicIncrement(&Futex->ThreadsWaiting);
-    while (Futex->SignalValue)
-    {
-      SleepMs(3);
-    }
-    Assert(Futex->ThreadsWaiting > 0);
-    AtomicDecrement(&Futex->ThreadsWaiting);
-  }
+  AtomicIncrement(&Futex->ThreadsWaiting);
+  while (Futex->SignalValue) { if (DoSleep) { SleepMs(1); } }
+  Assert(Futex->ThreadsWaiting > 0);
+  AtomicDecrement(&Futex->ThreadsWaiting);
 }
+

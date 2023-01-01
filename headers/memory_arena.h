@@ -105,6 +105,7 @@ struct memory_arena
 
 #if BONSAI_INTERNAL
   umm Pushes;
+  bonsai_futex DebugFutex;
 #endif
 };
 

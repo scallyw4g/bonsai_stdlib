@@ -30,3 +30,4 @@ struct mutex_op_array
   mutex_op_record Records[MUTEX_OPS_PER_FRAME];
 };
 
+inline b32 PlatformInitializeMutex(mutex *Mutex);

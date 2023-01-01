@@ -31,6 +31,52 @@ CreateSemaphore(void)
   return Result;
 }
 
+inline b32
+PlatformInitializeMutex(mutex *Mutex)
+{
+  /* TIMED_FUNCTION(); */
+
+  Mutex->M = CreateMutexA(0, 0, 0);
+  b32 Result = (Mutex->M != 0);
+  return Result;
+}
+
+void
+PlatformUnlockMutex(mutex *Mutex)
+{
+  TIMED_FUNCTION();
+  s32 Fail = (ReleaseMutex(Mutex->M) == 0);
+
+  TIMED_MUTEX_RELEASED(Mutex);
+
+  if (Fail)
+  {
+    Error("Failed to un-lock mutex");
+  }
+  return;
+}
+
+void
+PlatformLockMutex(mutex *Mutex)
+{
+  TIMED_FUNCTION();
+
+  TIMED_MUTEX_WAITING(Mutex);
+
+  s32 Fail = (WaitForSingleObject(Mutex->M, INFINITE) != WAIT_OBJECT_0);
+
+  TIMED_MUTEX_AQUIRED(Mutex);
+
+  if (Fail)
+  {
+    Error("Failed to aquire lock");
+    Assert(False);
+  }
+
+
+  return;
+}
+
 u32
 PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, u32 ThreadIndex )
 {
