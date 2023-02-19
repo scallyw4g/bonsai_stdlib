@@ -283,6 +283,22 @@ Square( r32 f )
 enum sign { Negative = -1, Zero = 0, Positive = 1 };
 
 inline sign
+Bilateral( s32 f )
+{
+  sign Result = Positive;
+  if ( f < 0 ) { Result = Negative; }
+  return Result;
+}
+
+inline sign
+Bilateral( r32 f )
+{
+  sign Result = Positive;
+  if ( f < 0.f ) { Result = Negative; }
+  return Result;
+}
+
+inline sign
 GetSign( s32 f )
 {
   sign Result = Zero;

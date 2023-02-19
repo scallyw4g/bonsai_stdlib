@@ -29,6 +29,7 @@ RectMinDim(v2 Min, v2 Dim)
   return Result;
 }
 
+
 link_internal v2
 BottomLeft(rect2 Rect)
 {
@@ -76,12 +77,19 @@ Intersect(aabb *First, aabb *Second)
 }
 
 link_internal aabb
-MinMaxAABB(v3 Min, v3 Max)
+AABBMinMax(v3 Min, v3 Max)
 {
   v3 Radius = (Max - Min)/2.0f;
   v3 Center = Min + Radius;
   aabb Result(Center, Radius);
   return Result;
+}
+
+// TODO(Jesse): Delete this
+link_internal aabb
+MinMaxAABB(v3 Min, v3 Max)
+{
+  return AABBMinMax(Min, Max);
 }
 
 link_internal aabb
@@ -101,6 +109,15 @@ AABBMinDim(v3 Min, v3 Dim)
   return Result;
 }
 
+link_internal b32
+IsInside(aabb AABB, v3 P)
+{
+  v3 Min = AABB.Center-AABB.Radius;
+  v3 Max = AABB.Center+AABB.Radius;
+
+  b32 Result = (P >= Min && P < Max);
+  return Result;
+}
 
 link_internal rect2
 operator+(rect2 R1, v2 P)
@@ -168,82 +185,6 @@ HalfDim( v3 P1 )
 {
   v3 Result = P1 / 2;
   return Result;
-}
-
-struct ray
-{
-  v3 Origin;
-  v3 Dir;
-};
-
-enum maybe_tag
-{
-  Maybe_No,
-  Maybe_Yes,
-};
-
-struct maybe_ray
-{
-  maybe_tag Tag;
-  ray Ray;
-};
-
-// TODO(Jesse, id: 92, tags: speed, aabb): This could be optimized significantly
-link_internal b32
-Intersect(aabb AABB, ray Ray)
-{
-  v3 min = AABB.Center - AABB.Radius;
-  v3 max = AABB.Center + AABB.Radius;
-
-  r32 tmin = (min.x - Ray.Origin.x) / Ray.Dir.x;
-  r32 tmax = (max.x - Ray.Origin.x) / Ray.Dir.x;
-
-  if (tmin > tmax)
-  {
-    r32 temp = tmin;
-    tmin = tmax;
-    tmax = temp;
-  }
-
-  r32 tymin = (min.y - Ray.Origin.y) / Ray.Dir.y;
-  r32 tymax = (max.y - Ray.Origin.y) / Ray.Dir.y;
-
-  if (tymin > tymax)
-  {
-    r32 temp = tymin;
-    tymin = tymax;
-    tymax = temp;
-  }
-
-  if ((tmin > tymax) || (tymin > tmax))
-  return false;
-
-  if (tymin > tmin)
-  tmin = tymin;
-
-  if (tymax < tmax)
-  tmax = tymax;
-
-  r32 tzmin = (min.z - Ray.Origin.z) / Ray.Dir.z;
-  r32 tzmax = (max.z - Ray.Origin.z) / Ray.Dir.z;
-
-  if (tzmin > tzmax)
-  {
-    r32 temp = tzmin;
-    tzmin = tzmax;
-    tzmax = temp;
-  }
-
-  if ((tmin > tzmax) || (tzmin > tmax))
-  return false;
-
-  if (tzmin > tmin)
-  tmin = tzmin;
-
-  if (tzmax < tmax)
-  tmax = tzmax;
-
-  return true;
 }
 
 link_internal b32

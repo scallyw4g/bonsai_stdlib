@@ -30,6 +30,7 @@
 #include <bonsai_stdlib/headers/stream.h>
 #include <bonsai_stdlib/headers/matrix.h>
 #include <bonsai_stdlib/headers/rect.h>
+#include <bonsai_stdlib/headers/ray.h>
 #include <bonsai_stdlib/headers/xml.h>
 
 /* #include <bonsai_debug/headers/debug.h> */

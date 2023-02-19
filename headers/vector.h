@@ -203,6 +203,16 @@ operator!=(voxel_position P1, voxel_position P2)
   return Result;
 }
 
+inline v3i
+operator~(v3i P)
+{
+  v3i Result = {
+    .x = ~P.x,
+    .y = ~P.y,
+    .z = ~P.z
+  };
+  return Result;
+}
 inline voxel_position
 operator-(voxel_position P1, int i)
 {
@@ -682,6 +692,16 @@ Volume(chunk_dimension Dim)
   return (Dim.x*Dim.y*Dim.z);
 }
 
+inline v3i
+Abs(v3i In)
+{
+  v3i Result;
+  Result.x = (s32)Abs(In.x);
+  Result.y = (s32)Abs(In.y);
+  Result.z = (s32)Abs(In.z);
+  return Result;
+}
+
 inline v2
 V2(v2i V)
 {
@@ -941,6 +961,18 @@ inline v2
 operator/(v2i A, v2i B)
 {
   v2 Result = V2(A)/V2(B);
+  return Result;
+}
+
+inline v3i
+operator%(v3i A, v3i B)
+{
+  v3i Result;
+
+  Result.x = A.x % B.x;
+  Result.y = A.y % B.y;
+  Result.z = A.z % B.z;
+
   return Result;
 }
 
@@ -1587,6 +1619,91 @@ ClampMinus1toInfinity( voxel_position V )
 
   if ( V.z < 0 )
     Result.z = -1;
+
+  return Result;
+}
+
+inline v3
+Bilateral(v3 P)
+{
+  v3 Result = V3( Bilateral(P.x), Bilateral(P.y), Bilateral(P.z));
+  return Result;
+}
+
+inline v3i
+Bilaterali(v3 P)
+{
+  v3i Result = V3i( Bilateral(P.x), Bilateral(P.y), Bilateral(P.z));
+  return Result;
+}
+
+inline v3i
+GetSigni(v3 P)
+{
+  v3i Result = V3i( GetSign(P.x), GetSign(P.y), GetSign(P.z));
+  return Result;
+}
+
+inline v3
+GetSign(v3 P)
+{
+  v3 Result = V3( GetSign(P.x), GetSign(P.y), GetSign(P.z));
+  return Result;
+}
+
+inline voxel_position
+GetSign(voxel_position P)
+{
+  voxel_position Result = Voxel_Position( GetSign(P.x), GetSign(P.y), GetSign(P.z));
+  return Result;
+}
+
+inline v3
+ClampNegative( v3 V )
+{
+  v3 Result = V;
+
+  if ( V.x > 0.f )
+    Result.x = 0.f;
+
+  if ( V.y > 0.f )
+    Result.y = 0.f;
+
+  if ( V.z > 0.f )
+    Result.z = 0.f;
+
+  return Result;
+}
+inline voxel_position
+ClampNegative( voxel_position V )
+{
+  voxel_position Result = V;
+
+  if ( V.x > 0 )
+    Result.x = 0;
+
+  if ( V.y > 0 )
+    Result.y = 0;
+
+  if ( V.z > 0 )
+    Result.z = 0;
+
+  return Result;
+}
+
+inline voxel_position
+ClampPositive( voxel_position V )
+{
+  voxel_position Result = V;
+
+  if ( V.x < 0 )
+    Result.x = 0;
+
+  if ( V.y < 0 )
+    Result.y = 0;
+
+  if ( V.z < 0 )
+    Result.z = 0;
 
   return Result;
 }
