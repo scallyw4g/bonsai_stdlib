@@ -19,6 +19,8 @@ struct platform
 
   memory_arena *Memory;
 
+  r64 GameTime;
+
   r32 dt;
   s32 WindowWidth;
   s32 WindowHeight;

@@ -44,16 +44,23 @@ struct input
 
 struct hotkeys
 {
+  b32 Debug_ToggleMenu;
+  b32 Debug_ToggleProfiling;
+
+  b32 Debug_TriangulateIncrement;
+  b32 Debug_TriangulateDecrement;
+
+  b32 Debug_PickChunks_All;
+  b32 Debug_PickChunks_Terrain;
+  b32 Debug_PickChunks_Voxel;
+
+  b32 Debug_Action_ComputeStandingSpot;
+
   b32 Debug_RedrawEveryPush;
   b32 Debug_ToggleLoopedGamePlayback;
   b32 Debug_ToggleTriggeredRuntimeBreak;
+
   b32 Debug_Pause;
-  b32 Debug_ToggleProfiling;
-  b32 Debug_ToggleMenu;
-  b32 Debug_TriangulateIncrement;
-  b32 Debug_TriangulateDecrement;
-  b32 Debug_PickChunks_All;
-  b32 Debug_PickChunks_Terrain;
 
   b32 Left;
   b32 Right;
@@ -107,6 +114,9 @@ BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
   // NOTE(Jesse): Intentionally 'Pressed'
   if (Input->F5.Pressed) { Hotkeys->Debug_PickChunks_All     = True; }
   if (Input->F6.Pressed) { Hotkeys->Debug_PickChunks_Terrain = True; }
+  if (Input->F7.Pressed) { Hotkeys->Debug_PickChunks_Voxel = True; }
+
+  if (Input->F9.Pressed) { Hotkeys->Debug_Action_ComputeStandingSpot = True; }
 
   /* Hotkeys->Debug_TriangulateDecrement = Input->F5.Clicked; */
   /* Hotkeys->Debug_TriangulateIncrement = Input->F6.Clicked; */

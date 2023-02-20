@@ -38,7 +38,7 @@ bitmap
 ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 {
   bitmap_header Header = {};
-  native_file File = OpenFile(CS(Filename), "rb");
+  native_file File = OpenFile(CS(Filename), "r+b");
   s32 SizeReadFromDisk = 0;
   u32* Pixels = 0;
   u32 PixelCount = 0;

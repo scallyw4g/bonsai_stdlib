@@ -69,6 +69,7 @@ DeleteDirectory(counted_string Filepath)
   b32 Result = DeleteDirectory(zPath);
   return Result;
 }
+
 link_internal b32
 TryDeleteDirectory(const char* zPath)
 {
@@ -324,6 +325,12 @@ ReadBytesIntoBuffer(native_file *Src, umm BytesToRead, u8* Dest)
 {
   b32 Result = ReadBytesIntoBuffer(Src->Handle, BytesToRead, Dest);
   return Result;
+}
+
+link_internal void
+Rewind(native_file *File)
+{
+  rewind(File->Handle);
 }
 
 link_internal b32

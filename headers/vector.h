@@ -678,6 +678,21 @@ Chunk_Dimension(int x, int y, int z)
   return Result;
 }
 
+v3
+Truncate(v3 Input)
+{
+  v3 Result = V3(Voxel_Position(Input));
+  return Result;
+}
+
+r32
+Truncate(r32 Input)
+{
+  s32 Truncated = (s32)Input;
+  r32 Result = (r32)Truncated;
+  return Result;
+}
+
 inline s32
 Volume(v3 Dim)
 {
@@ -690,6 +705,16 @@ inline s32
 Volume(chunk_dimension Dim)
 {
   return (Dim.x*Dim.y*Dim.z);
+}
+
+inline v3
+Abs(v3 In)
+{
+  v3 Result;
+  Result.x = (r32)Abs(In.x);
+  Result.y = (r32)Abs(In.y);
+  Result.z = (r32)Abs(In.z);
+  return Result;
 }
 
 inline v3i
@@ -1567,10 +1592,10 @@ Max(v2 A, v2 B)
   return Result;
 }
 
-inline voxel_position
-Min(voxel_position A, voxel_position B)
+inline v3i
+Min(v3i A, v3i B)
 {
-  voxel_position Result;
+  v3i Result;
   Result.x = Min(A.x, B.x);
   Result.y = Min(A.y, B.y);
   Result.z = Min(A.z, B.z);
