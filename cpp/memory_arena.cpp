@@ -5,17 +5,20 @@ inline b32
 VaporizeArena(memory_arena *Arena)
 {
   TIMED_FUNCTION();
-
   b32 Result = True;
-  if(Arena->Prev)
-  {
-    Result = VaporizeArena(Arena->Prev);
-    Arena->Prev = 0;
-  }
 
-  if (Arena->Start)
+  if (Arena)
   {
-    Result &= DeallocateArena(Arena);
+    if(Arena->Prev)
+    {
+      Result = VaporizeArena(Arena->Prev);
+      Arena->Prev = 0;
+    }
+
+    if (Arena->Start)
+    {
+      Result &= DeallocateArena(Arena);
+    }
   }
   return Result;
 }

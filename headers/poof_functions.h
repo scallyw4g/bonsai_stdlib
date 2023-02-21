@@ -365,6 +365,8 @@ poof(
       Assert(NextChunk->Next == 0);
       Assert(Stream->LastChunk->Next == 0);
 
+      Stream->ChunkCount += 1;
+
       Type.name *Result = &NextChunk->Element;
       return Result;
     }
@@ -379,6 +381,7 @@ poof(
       memory_arena *Memory;
       (Type.name)_stream_chunk* FirstChunk;
       (Type.name)_stream_chunk* LastChunk;
+      umm ChunkCount;
     };
 
     link_internal void

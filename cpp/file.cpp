@@ -317,6 +317,7 @@ ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest)
   Assert(BytesToRead);
   u64 BytesRead = fread(Dest, 1, BytesToRead, Src);
   b32 Result = BytesRead == BytesToRead;
+  Assert(Result);
   return Result;
 }
 
