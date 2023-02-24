@@ -184,6 +184,14 @@ Abs(s32 Int)
   return Result;
 }
 
+inline r64
+Abs(r64 F)
+{
+  r64 Result = F;
+  Result = Result < 0 ? -Result : Result;
+  return Result;
+}
+
 inline r32
 Abs(r32 F)
 {

@@ -5,8 +5,9 @@ GetTotalThreadCount()
 {
   /* TIMED_FUNCTION(); */
   /* u32 Result = PlatformGetLogicalCoreCount() ; */
+  u32 Result = 8;
   /* u32 Result = 16; */
-  u32 Result = 2;
+  /* u32 Result = 2; */
   return Result;
 }
 
@@ -48,5 +49,47 @@ WaitOnFutex(bonsai_futex *Futex, b32 DoSleep)
   while (Futex->SignalValue) { if (DoSleep) { SleepMs(1); } }
   Assert(Futex->ThreadsWaiting > 0);
   AtomicDecrement(&Futex->ThreadsWaiting);
+}
+
+link_internal thread_local_state
+DefaultThreadLocalState(engine_resources *EngineResources, s32 ThreadId)
+{
+  thread_local_state Thread = {};
+
+  Thread.EngineResources = EngineResources;
+
+  Thread.TempMemory = AllocateArena();
+  Thread.PermMemory = AllocateArena(Megabytes(256));
+
+  // TODO(Jesse)(safety): Given the below, how exactly is it safe to register
+  // the PermMemory?  Seems to me like that's still just as liable to cause bad
+  // behavior, but less likely.
+  //
+  // NOTE(Jesse): As it stands the debug system doesn't do any locking when
+  // constructing the debug arena stats, so we can't ever free memory allocated
+  // on debug registered arenas on threads outside the main one.
+  //
+  DEBUG_REGISTER_ARENA(Thread.TempMemory, ThreadId);
+  DEBUG_REGISTER_ARENA(Thread.PermMemory, ThreadId);
+
+  Thread.PerlinNoise = Allocate(perlin_noise, Thread.PermMemory, 1);
+  InitPerlinNoise(Thread.PerlinNoise);
+
+  return Thread;
+}
+
+link_internal thread_local_state*
+Initialize_ThreadLocal_ThreadStates(s32 TotalThreadCount, engine_resources* Resources, memory_arena* Memory)
+{
+  thread_local_state *Result = AllocateAligned(thread_local_state, Memory, TotalThreadCount, CACHE_LINE_SIZE);
+
+  for ( s32 ThreadIndex = 0;
+            ThreadIndex < TotalThreadCount;
+          ++ThreadIndex )
+  {
+    Result[ThreadIndex] = DefaultThreadLocalState(Resources, ThreadIndex);
+  }
+
+  return Result;
 }
 

@@ -76,8 +76,11 @@ Concat(counted_string S1, counted_string S2, memory_arena* Memory)
 }
 
 link_internal const char*
-GetNullTerminated(counted_string Str, memory_arena* Memory = TranArena)
+GetNullTerminated(counted_string Str, memory_arena* Memory = 0)
 {
+  if (Memory == 0) { Memory = GetTranArena(); }
+  /* if (Memory == 0) { Memory = TranArena; } */
+
   const char* Result = AllocateProtection(const char, Memory, Str.Count+1, False);
   MemCopy((u8*)Str.Start, (u8*)Result, Str.Count);
   return Result;

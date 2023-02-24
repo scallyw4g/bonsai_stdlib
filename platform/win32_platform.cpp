@@ -78,7 +78,7 @@ PlatformLockMutex(mutex *Mutex)
 }
 
 u32
-PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, u32 ThreadIndex )
+PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, s32 ThreadIndex )
 {
   DWORD flags = 0;
   unsigned long ThreadId;
@@ -93,7 +93,7 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_param
   Assert(ThreadId);
 
 #if 1
-  u32 PhysicalProcessorIndex = 0;
+  s32 PhysicalProcessorIndex = 0;
 
   SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *RelationshipBuffer = Allocate(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, TranArena, 64);
   unsigned long AllocatedSize = sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)*64;

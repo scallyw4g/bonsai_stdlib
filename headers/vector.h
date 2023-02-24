@@ -1562,6 +1562,27 @@ Cross( v3 A, v3 B )
 }
 
 inline v3
+SafeDivide0(v3 Dividend, r32 Divisor)
+{
+  v3 Result = {};
+
+  if (Divisor != 0.0f)
+    Result = Dividend/Divisor;
+
+  return Result;
+}
+
+b32
+PointsAreWithinDistance(v3 P1, v3 P2, f32 Thresh)
+{
+  v3 P1toP2 = P2-P1;
+  f32 LenSq = LengthSq(P1toP2);
+
+  b32 Result = LenSq < Square(Thresh);
+  return Result;
+}
+
+inline v3
 SafeDivide(v3 Dividend, r32 Divisor)
 {
   v3 Result = Dividend;

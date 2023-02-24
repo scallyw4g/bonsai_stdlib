@@ -109,6 +109,33 @@ AABBMinDim(v3 Min, v3 Dim)
   return Result;
 }
 
+v3 GetMax(aabb *Box)
+{
+  v3 Result = Box->Center + Box->Radius;
+  return Result;
+}
+
+v3 GetMin(aabb *Box)
+{
+  v3 Result = Box->Center - Box->Radius;
+  return Result;
+}
+
+inline aabb
+Difference(aabb *First, aabb *Second)
+{
+  v3 FirstMin = GetMin(First);
+  v3 SecondMin = GetMin(Second);
+
+  v3 FirstMax = GetMax(First);
+  v3 SecondMax = GetMax(Second);
+
+  v3 ResultMin = Max(FirstMin, SecondMin);
+  v3 ResultMax = Min(FirstMax, SecondMax);
+  aabb Result = AABBMinMax(ResultMin, ResultMax);
+
+  return Result;
+}
 link_internal b32
 IsInside(aabb AABB, v3 P)
 {

@@ -8,6 +8,7 @@
 #include <bonsai_stdlib/headers/console_macros.h>
 #include <bonsai_stdlib/headers/globals.h>
 #include <bonsai_stdlib/headers/platform.h>
+#include <bonsai_stdlib/headers/atomic.h>
 #include <bonsai_stdlib/headers/thread.h>
 #include <bonsai_stdlib/headers/math.h>
 #include <bonsai_stdlib/headers/file.h>

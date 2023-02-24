@@ -44,6 +44,7 @@ poof(
 
 /* poof( tuple([counted_string, counted_string]) ) */
 
+  // TODO(Jesse): Replace this with stream?  Probably
 poof(
 
   func buffer_builder(Type)
@@ -449,6 +450,36 @@ poof(
     }
   }
 )
+
+poof(
+  func generate_stream_compact(InputTypeDef)
+  {
+    link_internal (InputTypeDef.name)_buffer
+    Compact((InputTypeDef.name)_stream *Stream, memory_arena *PermMemory)
+    {
+      (InputTypeDef.name)_buffer Result = {};
+      if (Stream->ChunkCount)
+      {
+        Result = (InputTypeDef.name.to_capital_case)Buffer(Stream->ChunkCount, PermMemory);
+        /* DebugLine("compact %u", Result.Count); */
+
+        u32 Index = 0;
+        ITERATE_OVER(Stream)
+        {
+          (InputTypeDef.name) *Spot = GET_ELEMENT(Iter);
+          Result.Start[Index] = *Spot;
+
+          ++Index;
+        }
+
+        Deallocate(Stream);
+      }
+
+      return Result;
+    }
+  }
+)
+
 
 poof(
   func generate_stream(Type)

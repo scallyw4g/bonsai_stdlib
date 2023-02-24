@@ -114,7 +114,7 @@ BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
   // NOTE(Jesse): Intentionally 'Pressed'
   if (Input->F5.Pressed) { Hotkeys->Debug_PickChunks_All     = True; }
   if (Input->F6.Pressed) { Hotkeys->Debug_PickChunks_Terrain = True; }
-  if (Input->F7.Pressed) { Hotkeys->Debug_PickChunks_Voxel = True; }
+  if (Input->F7.Pressed) { Hotkeys->Debug_PickChunks_Voxel   = True; }
 
   if (Input->F9.Pressed) { Hotkeys->Debug_Action_ComputeStandingSpot = True; }
 
