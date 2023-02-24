@@ -4,6 +4,8 @@
 struct work_queue_entry;
 struct work_queue
 {
+  mutex EnqueueMutex;
+
   volatile u32 EnqueueIndex;
   volatile u32 DequeueIndex;
   volatile work_queue_entry *Entries;

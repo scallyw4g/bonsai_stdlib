@@ -17,8 +17,8 @@
 #include <bonsai_stdlib/headers/random.h>
 #include <bonsai_stdlib/headers/perlin.h>
 #include <bonsai_stdlib/headers/input.h>
-#include <bonsai_stdlib/headers/work_queue.h>
 #include <bonsai_stdlib/headers/mutex.h>
+#include <bonsai_stdlib/headers/work_queue.h>
 #include <bonsai_stdlib/headers/memory_arena.h>
 #include <bonsai_stdlib/headers/gl.h>
 #include <bonsai_stdlib/headers/platform_struct.h>
