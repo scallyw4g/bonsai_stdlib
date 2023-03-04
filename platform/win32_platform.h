@@ -69,7 +69,7 @@ GetCycleCount()
 inline b32
 AtomicCompareExchange( volatile u32 *Source, u32 Exchange, u32 Comparator )
 {
-  r64 Val = InterlockedCompareExchange( (LONG volatile *)Source, Exchange, Comparator);
+  u32 Val = (u32)InterlockedCompareExchange( (LONG volatile *)Source, Exchange, Comparator);
   b32 Result = (Val == Comparator);
   return Result;
 }
