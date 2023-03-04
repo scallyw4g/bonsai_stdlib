@@ -96,6 +96,35 @@ AtomicIncrement( u64 volatile *Dest)
   return Result;
 }
 
+inline u64
+AtomicWrite( volatile u64 *Source, u64 Value)
+{
+  u64 Result = InterlockedExchange( Source, Value );
+  return Result;
+}
+
+inline void*
+AtomicWrite( volatile void **Source, void *Value)
+{
+  void *Result = (void*)InterlockedExchange( (u64*)Source, (u64)Value );
+  return Result;
+}
+
+
+inline u64
+AtomicExchange( volatile u64 *Source, const u64 NewValue )
+{
+  u64 Result = InterlockedExchange( Source, NewValue );
+  return Result;
+}
+
+inline void*
+AtomicExchange( volatile void **Source, const void *NewValue )
+{
+  void *Result = (void*)InterlockedExchange( (u64*)Source, (u64)NewValue );
+  return Result;
+}
+
 inline u32
 AtomicExchange( volatile u32 *Source, const u32 NewValue )
 {

@@ -4,7 +4,7 @@
 struct work_queue_entry;
 struct work_queue
 {
-  mutex EnqueueMutex;
+  bonsai_futex EnqueueFutex;
 
   volatile u32 EnqueueIndex;
   volatile u32 DequeueIndex;

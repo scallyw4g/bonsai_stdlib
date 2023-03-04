@@ -115,6 +115,8 @@ struct untextured_3d_geometry_buffer
   // TODO(Jesse): The fuck are these doing as 32bit?!
   u32 End;
   u32 At;
+
+  u64 Timestamp;
 };
 
 struct gpu_mapped_element_buffer
