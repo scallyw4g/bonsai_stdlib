@@ -1,4 +1,4 @@
- 
+
 struct rect2
 {
   v2 Min;
@@ -44,6 +44,31 @@ TopRight(rect2 Rect)
   return Result;
 }
 
+struct rect3i
+{
+  v3i Min;
+  v3i Max;
+};
+
+/* link_internal rect3i */
+/* Rect3i(v3i Min, v3i Max) */
+/* { */
+/* } */
+
+link_internal rect3i
+Rect3iMinDim(v3i Min, v3i Dim)
+{
+  rect3i Result = {Min, Min+Dim};
+  return Result;
+}
+
+link_internal rect3i
+Rect3iMinMax(v3i Min, v3i Max)
+{
+  rect3i Result = {Min, Max};
+  return Result;
+}
+
 struct aabb
 {
   v3 Center;
@@ -63,14 +88,6 @@ struct aabb
 
   aabb() { Clear(this); }
 };
-
-inline s32
-Volume(aabb Rect)
-{
-  v3 Dim = Rect.Radius*2.f;
-  s32 Result = Volume(Dim);
-  return Result;
-}
 
 inline b32
 Intersect(aabb *First, aabb *Second)
@@ -129,6 +146,16 @@ v3 GetMin(aabb *Box)
   return Result;
 }
 
+inline rect3i
+Difference(rect3i *First, rect3i *Second)
+{
+  v3i ResultMin = Max(First->Min, Second->Min);
+  v3i ResultMax = Min(First->Max, Second->Max);
+  rect3i Result = Rect3iMinMax(ResultMin, ResultMax);
+
+  return Result;
+}
+
 inline aabb
 Difference(aabb *First, aabb *Second)
 {
@@ -144,6 +171,7 @@ Difference(aabb *First, aabb *Second)
 
   return Result;
 }
+
 link_internal b32
 IsInside(aabb AABB, v3 P)
 {
@@ -256,6 +284,13 @@ r32 Area(rect2 Rect)
   return Result;
 }
 
+link_internal v3i
+GetDim(rect3i Rect)
+{
+  v3i Dim = Rect.Max - Rect.Min;
+  return Dim;
+}
+
 link_internal v2
 GetDim(rect2 Rect)
 {
@@ -269,4 +304,21 @@ GetDim(aabb Rect)
   v3 Dim = Rect.Radius * 2.f;
   return Dim;
 }
+
+inline s32
+Volume(rect3i Rect)
+{
+  v3i Dim = GetDim(Rect);
+  s32 Result = Volume(Dim);
+  return Result;
+}
+
+inline s32
+Volume(aabb Rect)
+{
+  v3 Dim = Rect.Radius*2.f;
+  s32 Result = Volume(Dim);
+  return Result;
+}
+
 

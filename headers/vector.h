@@ -1600,7 +1600,6 @@ Max(v3 A, v3 B)
   Result.x = Max(A.x, B.x);
   Result.y = Max(A.y, B.y);
   Result.z = Max(A.z, B.z);
-
   return Result;
 }
 
