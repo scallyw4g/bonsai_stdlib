@@ -64,6 +64,14 @@ struct aabb
   aabb() { Clear(this); }
 };
 
+inline s32
+Volume(aabb Rect)
+{
+  v3 Dim = Rect.Radius*2.f;
+  s32 Result = Volume(Dim);
+  return Result;
+}
+
 inline b32
 Intersect(aabb *First, aabb *Second)
 {
@@ -248,9 +256,17 @@ r32 Area(rect2 Rect)
   return Result;
 }
 
-v2
+link_internal v2
 GetDim(rect2 Rect)
 {
   v2 Dim = Rect.Max - Rect.Min;
   return Dim;
 }
+
+link_internal v3
+GetDim(aabb Rect)
+{
+  v3 Dim = Rect.Radius * 2.f;
+  return Dim;
+}
+
