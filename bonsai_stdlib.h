@@ -142,6 +142,6 @@ struct render_entity_to_texture_group
   shader GameGeoShader;
   m4 ViewProjection;
   gpu_mapped_element_buffer GameGeo;
-  shader DebugGameGeoTextureShader;
+  /* shader DebugGameGeoTextureShader; */
 };
 

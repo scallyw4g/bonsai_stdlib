@@ -268,6 +268,7 @@ poof(
     struct (Type.name)_cursor
     {
       Type.name *Start;
+      // TODO(Jesse)(immediate): For the love of fucksakes change these to indices
       Type.name *At;
       Type.name *End;
     };
@@ -275,7 +276,7 @@ poof(
     link_internal (Type.name)_cursor
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
-      Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name)), 1, 0);
+      Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name))*ElementCount, 1, 0);
       (Type.name)_cursor Result = {
         .Start = Start,
         .End = Start+ElementCount,

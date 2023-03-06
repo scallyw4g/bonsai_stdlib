@@ -102,6 +102,15 @@ Intersect(aabb *First, aabb *Second)
 }
 
 link_internal aabb
+AABBMinMax(v3i Min, v3i Max)
+{
+  v3 Radius = V3(Max - Min)/2.0f;
+  v3 Center = V3(Min + Radius);
+  aabb Result(Center, Radius);
+  return Result;
+}
+
+link_internal aabb
 AABBMinMax(v3 Min, v3 Max)
 {
   v3 Radius = (Max - Min)/2.0f;
@@ -147,7 +156,7 @@ v3 GetMin(aabb *Box)
 }
 
 inline rect3i
-Difference(rect3i *First, rect3i *Second)
+Union(rect3i *First, rect3i *Second)
 {
   v3i ResultMin = Max(First->Min, Second->Min);
   v3i ResultMax = Min(First->Max, Second->Max);
@@ -157,7 +166,7 @@ Difference(rect3i *First, rect3i *Second)
 }
 
 inline aabb
-Difference(aabb *First, aabb *Second)
+Union(aabb *First, aabb *Second)
 {
   v3 FirstMin = GetMin(First);
   v3 SecondMin = GetMin(Second);
@@ -173,12 +182,26 @@ Difference(aabb *First, aabb *Second)
 }
 
 link_internal b32
-IsInside(aabb AABB, v3 P)
+Contains(rect3i Rect, v3i P)
+{
+  b32 Result = (P >= Rect.Min && P < Rect.Max);
+  return Result;
+}
+
+link_internal b32
+Contains(aabb AABB, v3 P)
 {
   v3 Min = AABB.Center-AABB.Radius;
   v3 Max = AABB.Center+AABB.Radius;
 
   b32 Result = (P >= Min && P < Max);
+  return Result;
+}
+
+link_internal b32
+IsInside(aabb AABB, v3 P)
+{
+  b32 Result = Contains(AABB, P);
   return Result;
 }
 

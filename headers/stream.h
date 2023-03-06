@@ -56,17 +56,17 @@ struct r32_stream
 template <typename element_t, typename stream_t>inline element_t *
 Push(element_t Element, stream_t *Array)
 {
-  element_t *Result = Array->At;
   Assert( Array->At < Array->End );
+  element_t *Result = Array->At;
   *Array->At++ = Element;
   return Result;
 }
 
-template <typename element_t, typename stream_t> inline element_t
-Pop(stream_t *Stream)
+template <typename element_t, typename cursor_t> inline element_t
+Pop(cursor_t *Cursor)
 {
-  Assert(Remaining(Stream));
-  element_t Element = *Stream->At++;
+  Assert( Cursor->At > Cursor->Start );
+  element_t Element = *Cursor->At--;
   return Element;
 }
 
