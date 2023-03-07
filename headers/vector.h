@@ -703,6 +703,9 @@ Truncate(r32 Input)
 inline s32
 Volume(v3 Dim)
 {
+  Dim.x = Max(Dim.x, 0.f);
+  Dim.y = Max(Dim.y, 0.f);
+  Dim.z = Max(Dim.z, 0.f);
   s32 Result = (s32)(Dim.x*Dim.y*Dim.z);
   Assert(Result > 0);
   return Result;
@@ -711,6 +714,10 @@ Volume(v3 Dim)
 inline s32
 Volume(chunk_dimension Dim)
 {
+  Dim.x = Max(Dim.x, 0);
+  Dim.y = Max(Dim.y, 0);
+  Dim.z = Max(Dim.z, 0);
+
   return (Dim.x*Dim.y*Dim.z);
 }
 

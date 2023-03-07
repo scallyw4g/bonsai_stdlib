@@ -66,7 +66,8 @@ template <typename element_t, typename cursor_t> inline element_t
 Pop(cursor_t *Cursor)
 {
   Assert( Cursor->At > Cursor->Start );
-  element_t Element = *Cursor->At--;
+  Cursor->At--;
+  element_t Element = *Cursor->At;
   return Element;
 }
 
