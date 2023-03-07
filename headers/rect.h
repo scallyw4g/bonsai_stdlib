@@ -238,6 +238,16 @@ operator+=(rect2 &R1, v2 P)
   R1.Max += P;
 }
 
+link_internal rect3i
+operator-(rect3i R1, v3i P)
+{
+  rect3i Result = {
+    .Min = R1.Min - P,
+    .Max = R1.Max - P,
+  };
+  return Result;
+}
+
 link_internal rect2
 operator-(rect2 R1, v2 P)
 {

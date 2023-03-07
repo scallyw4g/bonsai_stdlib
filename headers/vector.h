@@ -521,6 +521,13 @@ V3i(v3 V)
 }
 
 inline v3i
+V3i(v2i XY, s32 Z)
+{
+  v3i Result = {{ XY.x, XY.y, Z}};
+  return Result;
+}
+
+inline v3i
 V3i(f32 Flood)
 {
   v3i Result = {{ s32(Flood), s32(Flood), s32(Flood) }};
