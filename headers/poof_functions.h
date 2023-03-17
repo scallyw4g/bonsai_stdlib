@@ -1,3 +1,28 @@
+// TODO(Jesse): This would be better if we could specifically target the anonymous union
+// instead of just doing it for every union we find in the type. Probably it'll never
+// be a problem, but probably it will be eventually ..
+poof(
+  func d_union_constructors(DUnionType)
+  {
+    DUnionType.map_members(M) {
+      M.is_union? {
+        M.map_members (ConstructorArgT)
+        {
+          link_internal DUnionType.name
+          DUnionType.name.to_capital_case((ConstructorArgT.name) A)
+          {
+            DUnionType.name Reuslt = {
+              .Type = type_(ConstructorArgT.name),
+              .(ConstructorArgT.name) = A
+            };
+            return Reuslt;
+          }
+        }
+      }
+    }
+  }
+)
+
 poof(
   func gen_vector_operators(Type)
   {
