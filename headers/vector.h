@@ -149,8 +149,8 @@ Voxel_Position(v3 Offset)
   return Result;
 }
 
-poof(gen_vector_operators(v2))
-#include <generated/gen_vector_operators_v2.h>
+/* poof(gen_vector_operators(v2)) */
+/* #include <generated/gen_vector_operators_v2.h> */
 
 
 inline b32

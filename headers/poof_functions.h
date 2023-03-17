@@ -1,5 +1,3 @@
-int foo = 0;
-
 poof(
   func gen_vector_operators(Type)
   {
