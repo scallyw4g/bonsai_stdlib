@@ -19,6 +19,9 @@ global_variable log_level PrevGlobalLogLevel = LogLevel_Debug;
 void
 TestSuiteBegin(const char *TestSuite, s32 ArgCount, const char** Args)
 {
+  memory_arena *Memory = AllocateArena();
+  AllocateAndInitThreadStates(Memory);
+
   SetupStdout((u32)ArgCount, Args);
 
   LogDirect("%S   Start   %S- %s Tests" Newline, TerminalColors.Blue, TerminalColors.White, TestSuite);

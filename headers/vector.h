@@ -6,22 +6,24 @@
 #include <xmmintrin.h>
 /* #endif */
 
-struct v2i
+union v2i
 {
-  s32 x;
-  s32 y;
+  s32 E[2];
+  struct { s32 x; s32 y; };
 };
 
-struct v2
+union v2
 {
-  r32 x;
-  r32 y;
+  r32 E[2];
+  struct { r32 x; r32 y; };
 };
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 union v3i
 {
+  s32 E[3];
+
   struct { s32 x; s32 y; s32 z; };
   struct { s32 r; s32 g; s32 b; };
 
@@ -34,12 +36,12 @@ union v3i
     s32 Ignored1_;
     v2i yz;
   };
-
-  s32 E[3];
 };
 
 union v3
 {
+  r32 E[3];
+
   struct { r32 x; r32 y; r32 z; };
   struct { r32 r; r32 g; r32 b; };
 
@@ -52,8 +54,6 @@ union v3
     r32 Ignored1_;
     v2 yz;
   };
-
-  r32 E[3];
 };
 
 
@@ -148,6 +148,9 @@ Voxel_Position(v3 Offset)
 
   return Result;
 }
+
+poof(gen_vector_operators(v2))
+#include <generated/gen_vector_operators_v2.h>
 
 
 inline b32
@@ -739,21 +742,21 @@ V2(v2i V)
 inline v2
 V2(s32 F)
 {
-  v2 Result = {(r32)F, (r32)F};
+  v2 Result = {{(r32)F, (r32)F}};
   return Result;
 }
 
 inline v2
 V2(r32 F)
 {
-  v2 Result = {F, F};
+  v2 Result = {{F, F}};
   return Result;
 }
 
 v2
 V2(float x,float y)
 {
-  v2 Result = {x,y};
+  v2 Result = {{x,y}};
   return Result;
 }
 
@@ -769,14 +772,14 @@ V2i(v2 V)
 v2i
 V2i(s32 P)
 {
-  v2i Result = {P,P};
+  v2i Result = {{P,P}};
   return Result;
 }
 
 v2i
 V2i(s32 x, s32 y)
 {
-  v2i Result = {x,y};
+  v2i Result = {{x,y}};
   return Result;
 }
 
@@ -915,14 +918,14 @@ operator%(v3 A, int i)
 inline v2
 operator/(v2 A, r32 B)
 {
-  v2 Result = {A.x/B, A.y/B};
+  v2 Result = {{A.x/B, A.y/B}};
   return Result;
 }
 
 inline v2
 operator/(r32 A, v2 B)
 {
-  v2 Result = {A/B.x, A/B.y};
+  v2 Result = {{A/B.x, A/B.y}};
   return Result;
 }
 

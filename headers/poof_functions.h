@@ -1,3 +1,29 @@
+int foo = 0;
+
+poof(
+  func gen_vector_operators(Type)
+  {
+    inline b32
+    operator==( Type.name P1, Type.name P2 )
+    {
+      u32 Index = 0;
+      b32 Result = (
+        Type.member(0, (E) {
+          E.is_array? {
+            E.map_array() {
+              P1.(E.name)[Index] == P2.(E.name)[Index++] &&
+            }
+          }
+          {
+            ERROR (Type.name).member(0) was not an array.  Got name((E.name)) type((E.type)).
+          }
+        })
+      1 );
+      return Result;
+    }
+  }
+)
+
 poof(
   func index_of(Type)
   {

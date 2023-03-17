@@ -172,6 +172,12 @@ OpenFile(const char* FilePath, const char* Permissions)
     .Path = CS(FilePath)
   };
 
+  counted_string PermStr = CS(Permissions);
+  if (!Contains(PermStr, CSz("b")))
+  {
+    Error("Files must be opened in binary mode.");
+  }
+
   if (Permissions == 0)
   {
     Warn("Invalid Permissions value (null) passed to OpenFile");
@@ -339,7 +345,7 @@ FileExists(const char* Path)
 {
   b32 Result = False;
 
-  native_file File = OpenFile(Path, "r");
+  native_file File = OpenFile(Path, "r+b");
   if (File.Handle)
   {
     Result = True;
