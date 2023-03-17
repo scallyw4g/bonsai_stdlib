@@ -20,30 +20,130 @@ poof(
         }
       }
     }
+
+
+
   }
 )
+
+/* poof( */
+/*   func constructors(Type) */
+/*   { */
+/*     M.map_members (Type) */
+/*     { */
+/*       link_internal Type.name */
+/*       Type.name.to_capital_case( */
+/*         Type.map_members(M).sep(,) { */
+/*           M.type M.name.to_capital_case */
+/*         } */
+/*       ) */
+/*       { */
+/*         Type.name Reuslt = { */
+/*           .Type = type_(ConstructorArgT.name), */
+/*           .(ConstructorArgT.name) = A */
+/*         }; */
+/*         return Reuslt; */
+/*       } */
+/*     } */
+/*   } */
+/* ) */
 
 poof(
   func gen_vector_operators(Type)
   {
-    inline b32
-    operator==( Type.name P1, Type.name P2 )
+    Type.member(0, (E)
     {
-      u32 Index = 0;
-      b32 Result = (
-        Type.member(0, (E) {
-          E.is_array? {
-            E.map_array() {
-              P1.(E.name)[Index] == P2.(E.name)[Index++] &&
-            }
-          }
+      E.is_array?
+      {
+        inline b32
+        operator==( Type.name P1, Type.name P2 )
+        {
+          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] == P2.(E.name)[Index] });
+          return Result;
+        }
+
+        inline b32
+        operator!=( Type.name P1, Type.name P2 )
+        {
+          b32 Result = !(P1 == P2);
+          return Result;
+        }
+
+        inline b32
+        operator<( Type.name P1, Type.name P2 )
+        {
+          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] < P2.(E.name)[Index] });
+          return Result;
+        }
+
+        inline b32
+        operator<=( Type.name P1, Type.name P2 )
+        {
+          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] <= P2.(E.name)[Index] });
+          return Result;
+        }
+
+        inline b32
+        operator>( Type.name P1, Type.name P2 )
+        {
+          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] < P2.(E.name)[Index] });
+          return Result;
+        }
+
+        inline b32
+        operator>=( Type.name P1, Type.name P2 )
+        {
+          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] >= P2.(E.name)[Index] });
+          return Result;
+        }
+
+        Type.name
+        operator+( Type.name P1, Type.name P2 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
           {
-            ERROR (Type.name).member(0) was not an array.  Got name((E.name)) type((E.type)).
+            .(E.name)[Index] = P1.(E.name)[Index] + P2.(E.name)[Index],
           }
-        })
-      1 );
-      return Result;
-    }
+          };
+          return Result;
+        }
+
+        Type.name
+        operator-( Type.name P1, Type.name P2 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] - P2.(E.name)[Index],
+          }
+          };
+          return Result;
+        }
+
+        void
+        operator+=( Type.name &P1, Type.name P2 )
+        {
+          E.map_array(Index)
+          {
+            P1.(E.name)[Index] += P2.(E.name)[Index];
+          }
+        }
+
+        void
+        operator-=( Type.name &P1, Type.name P2 )
+        {
+          E.map_array(Index)
+          {
+            P1.(E.name)[Index] -= P2.(E.name)[Index];
+          }
+        }
+
+      }
+      {
+        ERROR (Type.name).member(0) was not an array.  Got name((E.name)) type((E.type)).
+      }
+    })
   }
 )
 

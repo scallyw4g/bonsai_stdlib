@@ -149,23 +149,9 @@ Voxel_Position(v3 Offset)
   return Result;
 }
 
-/* poof(gen_vector_operators(v2)) */
-/* #include <generated/gen_vector_operators_v2.h> */
+poof(gen_vector_operators(v2))
+#include <generated/gen_vector_operators_v2.h>
 
-
-inline b32
-operator==(v2 P1, v2 P2)
-{
-  b32 Result = ( P1.x == P2.x && P1.y == P2.y);
-  return Result;
-}
-
-inline b32
-operator!=(v2 P1, v2 P2)
-{
-  b32 Result = !(P1 == P2);
-  return Result;
-}
 inline b32
 operator==(v3 P1, v3 P2)
 {
@@ -364,26 +350,6 @@ operator-(voxel_position P1, voxel_position P2)
 }
 
 inline b32
-operator>(v2 P1, v2 P2)
-{
-  b32 Result = true;
-
-  Result &= P1.x > P2.x;
-  Result &= P1.y > P2.y;
-
-  return Result;
-}
-inline b32
-operator<(v2 P1, v2 P2)
-{
-  b32 Result = true;
-
-  Result &= P1.x < P2.x;
-  Result &= P1.y < P2.y;
-
-  return Result;
-}
-inline b32
 operator<(v3 P1, v3 P2)
 {
   b32 Result = true;
@@ -463,28 +429,6 @@ operator<=(voxel_position P1, voxel_position P2)
   Result &= P1.x <= P2.x;
   Result &= P1.y <= P2.y;
   Result &= P1.z <= P2.z;
-
-  return Result;
-}
-
-inline b32
-operator<=(v2 P1, v2 P2)
-{
-  b32 Result = true;
-
-  Result &= P1.x <= P2.x;
-  Result &= P1.y <= P2.y;
-
-  return Result;
-}
-
-inline b32
-operator>=(v2 P1, v2 P2)
-{
-  b32 Result = true;
-
-  Result &= P1.x >= P2.x;
-  Result &= P1.y >= P2.y;
 
   return Result;
 }
@@ -790,19 +734,6 @@ V2i(u32 x, u32 y)
   return Result;
 }
 
-void
-operator-=(v2& P1, v2 P2)
-{
-  P1.x -= P2.x;
-  P1.y -= P2.y;
-}
-
-void
-operator+=(v2& P1, v2 P2)
-{
-  P1.x += P2.x;
-  P1.y += P2.y;
-}
 
 v2i
 operator*(v2i A, s32 B)
@@ -863,28 +794,9 @@ operator-(v2i P1, v2i P2)
   return Result;
 }
 
-v2
-operator-(v2 P1, v2 P2)
-{
-  v2 Result;
-  Result.x = P1.x - P2.x;
-  Result.y = P1.y - P2.y;
-  return Result;
-}
-
 v2i operator+(v2i P1, v2i P2)
 {
   v2i Result;
-
-  Result.x = P1.x + P2.x;
-  Result.y = P1.y + P2.y;
-
-  return Result;
-}
-
-v2 operator+(v2 P1, v2 P2)
-{
-  v2 Result;
 
   Result.x = P1.x + P2.x;
   Result.y = P1.y + P2.y;
