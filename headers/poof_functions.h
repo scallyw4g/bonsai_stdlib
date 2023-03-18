@@ -48,6 +48,25 @@ poof(
 /*   } */
 /* ) */
 
+
+/* poof( */
+/*   func gen_vector_operator_set(Type, symbol Operator) */
+/*   { */
+/*     Type.name */
+/*     operator(Operator)( Type.name P1, Type.name P2 ) */
+/*     { */
+/*       Type.name Result = { */
+/*       E.map_array(Index) */
+/*       { */
+/*         .(E.name)[Index] = P1.(E.name)[Index] (Operator) P2.(E.name)[Index], */
+/*       } */
+/*       }; */
+/*       return Result; */
+/*     } */
+/*   } */
+/* ) */
+
+
 poof(
   func gen_vector_operators(Type)
   {
@@ -97,6 +116,11 @@ poof(
           return Result;
         }
 
+        /* gen_vector_operator_set(Type, +) */
+        /* gen_vector_operator_set(Type, -) */
+        /* gen_vector_operator_set(Type, *) */
+        /* gen_vector_operator_set(Type, /) */
+
         Type.name
         operator+( Type.name P1, Type.name P2 )
         {
@@ -110,12 +134,119 @@ poof(
         }
 
         Type.name
+        operator+( Type.name P1, E.type Scalar )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] + Scalar,
+          }
+          };
+          return Result;
+        }
+
+        Type.name
+        operator+( E.type Scalar, Type.name P1 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] + Scalar,
+          }
+          };
+          return Result;
+        }
+
+
+
+
+
+        Type.name
         operator-( Type.name P1, Type.name P2 )
         {
           Type.name Result = {
           E.map_array(Index)
           {
             .(E.name)[Index] = P1.(E.name)[Index] - P2.(E.name)[Index],
+          }
+          };
+          return Result;
+        }
+
+        Type.name
+        operator-( Type.name P1, E.type Scalar )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] - Scalar,
+          }
+          };
+          return Result;
+        }
+
+        Type.name
+        operator-( E.type Scalar, Type.name P1 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] - Scalar,
+          }
+          };
+          return Result;
+        }
+
+
+
+
+
+        Type.name
+        operator*( Type.name P1, Type.name P2 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] * P2.(E.name)[Index],
+          }
+          };
+          return Result;
+        }
+
+        Type.name
+        operator*( Type.name P1, E.type Scalar )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] * Scalar,
+          }
+          };
+          return Result;
+        }
+
+        Type.name
+        operator*( E.type Scalar, Type.name P1 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] * Scalar,
+          }
+          };
+          return Result;
+        }
+
+
+
+
+        Type.name
+        operator/( Type.name P1, Type.name P2 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] / P2.(E.name)[Index],
           }
           };
           return Result;
