@@ -20,52 +20,109 @@ poof(
         }
       }
     }
-
-
-
   }
 )
 
 /* poof( */
 /*   func constructors(Type) */
 /*   { */
-/*     M.map_members (Type) */
+/*     link_internal Type.name */
+/*     Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.name.to_capital_case } ) */
 /*     { */
-/*       link_internal Type.name */
-/*       Type.name.to_capital_case( */
-/*         Type.map_members(M).sep(,) { */
-/*           M.type M.name.to_capital_case */
-/*         } */
-/*       ) */
-/*       { */
-/*         Type.name Reuslt = { */
-/*           .Type = type_(ConstructorArgT.name), */
-/*           .(ConstructorArgT.name) = A */
-/*         }; */
-/*         return Reuslt; */
-/*       } */
-/*     } */
-/*   } */
-/* ) */
-
-
-/* poof( */
-/*   func gen_vector_operator_set(Type, symbol Operator) */
-/*   { */
-/*     Type.name */
-/*     operator(Operator)( Type.name P1, Type.name P2 ) */
-/*     { */
-/*       Type.name Result = { */
-/*       E.map_array(Index) */
-/*       { */
-/*         .(E.name)[Index] = P1.(E.name)[Index] (Operator) P2.(E.name)[Index], */
-/*       } */
+/*       Type.name Reuslt = { */
+/*         Type.map_members(M).sep(,) { .M.name = M.name.to_capital_case } */
 /*       }; */
-/*       return Result; */
+/*       return Reuslt; */
 /*     } */
 /*   } */
 /* ) */
 
+
+poof(
+  func gen_vector_infix_operators(type_datatype Type, type_poof_symbol Operator)
+  {
+    Type.member(0, (E)
+    {
+      E.is_array?
+      {
+        inline Type.name
+        operator(Operator)( Type.name P1, Type.name P2 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] Operator P2.(E.name)[Index],
+          }
+          };
+          return Result;
+        }
+
+        inline Type.name
+        operator(Operator)( Type.name P1, E.type Scalar )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
+          }
+          };
+          return Result;
+        }
+
+        inline Type.name
+        operator(Operator)( E.type Scalar, Type.name P1 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
+          }
+          };
+          return Result;
+        }
+
+      }
+    })
+  }
+)
+
+poof(
+  func gen_vector_comparator(Type, type_poof_symbol Comparator)
+  {
+    Type.member(0, (E)
+    {
+      E.is_array?
+      {
+        inline b32
+        operator(Comparator)( Type.name P1, Type.name P2 )
+        {
+          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] (Comparator) P2.(E.name)[Index] });
+          return Result;
+        }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_vector_mut_infix_operators(Type, type_poof_symbol Operator)
+  {
+    Type.member(0, (E)
+    {
+      E.is_array?
+      {
+        inline Type.name &
+        operator(Operator)( Type.name &P1, Type.name P2 )
+        {
+          E.map_array(Index) {
+            P1.(E.name)[Index] (Operator) P2.(E.name)[Index];
+          }
+          return P1;
+        }
+      }
+    })
+  }
+)
 
 poof(
   func gen_vector_operators(Type)
@@ -74,13 +131,13 @@ poof(
     {
       E.is_array?
       {
-        inline b32
-        operator==( Type.name P1, Type.name P2 )
-        {
-          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] == P2.(E.name)[Index] });
-          return Result;
-        }
+        gen_vector_comparator(Type, {==})
 
+
+        // NOTE(Jesse): Can't gen != because the condition welding it together
+        // is not &&, it's ||
+        //
+        /* gen_vector_comparator(Type, {!=}) */
         inline b32
         operator!=( Type.name P1, Type.name P2 )
         {
@@ -88,188 +145,29 @@ poof(
           return Result;
         }
 
-        inline b32
-        operator<( Type.name P1, Type.name P2 )
-        {
-          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] < P2.(E.name)[Index] });
-          return Result;
-        }
+        gen_vector_comparator(Type, {<})
 
-        inline b32
-        operator<=( Type.name P1, Type.name P2 )
-        {
-          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] <= P2.(E.name)[Index] });
-          return Result;
-        }
+        gen_vector_comparator(Type, {<=})
 
-        inline b32
-        operator>( Type.name P1, Type.name P2 )
-        {
-          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] < P2.(E.name)[Index] });
-          return Result;
-        }
+        gen_vector_comparator(Type, {>})
 
-        inline b32
-        operator>=( Type.name P1, Type.name P2 )
-        {
-          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] >= P2.(E.name)[Index] });
-          return Result;
-        }
+        gen_vector_comparator(Type, {>=})
 
-        /* gen_vector_operator_set(Type, +) */
-        /* gen_vector_operator_set(Type, -) */
-        /* gen_vector_operator_set(Type, *) */
-        /* gen_vector_operator_set(Type, /) */
+        gen_vector_infix_operators(Type, {+})
 
-        Type.name
-        operator+( Type.name P1, Type.name P2 )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] + P2.(E.name)[Index],
-          }
-          };
-          return Result;
-        }
+        gen_vector_infix_operators(Type, {-})
 
-        Type.name
-        operator+( Type.name P1, E.type Scalar )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] + Scalar,
-          }
-          };
-          return Result;
-        }
+        gen_vector_infix_operators(Type, {*})
 
-        Type.name
-        operator+( E.type Scalar, Type.name P1 )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] + Scalar,
-          }
-          };
-          return Result;
-        }
+        gen_vector_infix_operators(Type, {/})
 
+        gen_vector_mut_infix_operators(Type, {+=})
 
+        gen_vector_mut_infix_operators(Type, {-=})
 
+        gen_vector_mut_infix_operators(Type, {*=})
 
-
-        Type.name
-        operator-( Type.name P1, Type.name P2 )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] - P2.(E.name)[Index],
-          }
-          };
-          return Result;
-        }
-
-        Type.name
-        operator-( Type.name P1, E.type Scalar )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] - Scalar,
-          }
-          };
-          return Result;
-        }
-
-        Type.name
-        operator-( E.type Scalar, Type.name P1 )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] - Scalar,
-          }
-          };
-          return Result;
-        }
-
-
-
-
-
-        Type.name
-        operator*( Type.name P1, Type.name P2 )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] * P2.(E.name)[Index],
-          }
-          };
-          return Result;
-        }
-
-        Type.name
-        operator*( Type.name P1, E.type Scalar )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] * Scalar,
-          }
-          };
-          return Result;
-        }
-
-        Type.name
-        operator*( E.type Scalar, Type.name P1 )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] * Scalar,
-          }
-          };
-          return Result;
-        }
-
-
-
-
-        Type.name
-        operator/( Type.name P1, Type.name P2 )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] / P2.(E.name)[Index],
-          }
-          };
-          return Result;
-        }
-
-        void
-        operator+=( Type.name &P1, Type.name P2 )
-        {
-          E.map_array(Index)
-          {
-            P1.(E.name)[Index] += P2.(E.name)[Index];
-          }
-        }
-
-        void
-        operator-=( Type.name &P1, Type.name P2 )
-        {
-          E.map_array(Index)
-          {
-            P1.(E.name)[Index] -= P2.(E.name)[Index];
-          }
-        }
-
+        gen_vector_mut_infix_operators(Type, {/=})
       }
       {
         ERROR (Type.name).member(0) was not an array.  Got name((E.name)) type((E.type)).

@@ -534,53 +534,6 @@ operator%(v3 A, int i)
 }
 
 inline v2
-operator/(v2 A, r32 B)
-{
-  v2 Result = {{A.x/B, A.y/B}};
-  return Result;
-}
-
-inline v2
-operator/(r32 A, v2 B)
-{
-  v2 Result = {{A/B.x, A/B.y}};
-  return Result;
-}
-
-inline v3
-operator/(v3 A, r32 B)
-{
-  v3 Result;
-
-  Result.x = A.x / B;
-  Result.y = A.y / B;
-  Result.z = A.z / B;
-
-  return Result;
-}
-
-inline v3
-operator/(r32 B, v3 A)
-{
-  v3 Result = {};
-
-  Result.x = B/A.x;
-  Result.y = B/A.y;
-  Result.z = B/A.z;
-
-  return Result;
-}
-
-inline v2i
-operator/(v2i A, s32 B)
-{
-  v2i Result;
-  Result.x = A.x / B;
-  Result.y = A.y / B;
-  return Result;
-}
-
-inline v2
 operator/(v2i A, v2 B)
 {
   v2 Result = V2(A) / B;
@@ -630,18 +583,6 @@ operator/(voxel_position A, r32 f)
   return Result;
 }
 
-
-inline voxel_position
-operator/(voxel_position A, s32 i)
-{
-  voxel_position Result;
-
-  Result.x = A.x / i;
-  Result.y = A.y / i;
-  Result.z = A.z / i;
-
-  return Result;
-}
 
 inline v3
 operator/(v3 A, voxel_position B)
@@ -748,13 +689,6 @@ operator*(v4 A, int B)
   Result.w = A.w * (float)B;
 
   return Result;
-}
-
-inline v4&
-operator*=(v4 &A, v4 B)
-{
-  A = A * B;
-  return A;
 }
 
 v4 operator*=(v4 A, int B)
