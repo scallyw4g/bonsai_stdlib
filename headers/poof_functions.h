@@ -39,88 +39,70 @@ poof(
 
 
 poof(
-  func gen_vector_infix_operators(type_datatype Type, type_poof_symbol Operator)
+  func gen_vector_infix_operators(type_datatype Type, type_datatype E, type_poof_symbol Operator)
   {
-    Type.member(0, (E)
+    inline Type.name
+    operator(Operator)( Type.name P1, Type.name P2 )
     {
-      E.is_array?
+      Type.name Result = {
+      E.map_array(Index)
       {
-        inline Type.name
-        operator(Operator)( Type.name P1, Type.name P2 )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] Operator P2.(E.name)[Index],
-          }
-          };
-          return Result;
-        }
-
-        inline Type.name
-        operator(Operator)( Type.name P1, E.type Scalar )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
-          }
-          };
-          return Result;
-        }
-
-        inline Type.name
-        operator(Operator)( E.type Scalar, Type.name P1 )
-        {
-          Type.name Result = {
-          E.map_array(Index)
-          {
-            .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
-          }
-          };
-          return Result;
-        }
-
+        .(E.name)[Index] = P1.(E.name)[Index] Operator P2.(E.name)[Index],
       }
-    })
+      };
+      return Result;
+    }
+
+    inline Type.name
+    operator(Operator)( Type.name P1, E.type Scalar )
+    {
+      Type.name Result = {
+      E.map_array(Index)
+      {
+        .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
+      }
+      };
+      return Result;
+    }
+
+    inline Type.name
+    operator(Operator)( E.type Scalar, Type.name P1 )
+    {
+      Type.name Result = {
+      E.map_array(Index)
+      {
+        .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
+      }
+      };
+      return Result;
+    }
+
   }
 )
 
 poof(
-  func gen_vector_comparator(Type, type_poof_symbol Comparator)
+  func gen_vector_comparator(type_datatype Type, type_datatype E, type_poof_symbol Comparator)
   {
-    Type.member(0, (E)
+    inline b32
+    operator(Comparator)( Type.name P1, Type.name P2 )
     {
-      E.is_array?
-      {
-        inline b32
-        operator(Comparator)( Type.name P1, Type.name P2 )
-        {
-          b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] (Comparator) P2.(E.name)[Index] });
-          return Result;
-        }
-      }
-    })
+      b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] (Comparator) P2.(E.name)[Index] });
+      return Result;
+    }
   }
 )
 
 poof(
-  func gen_vector_mut_infix_operators(Type, type_poof_symbol Operator)
+  func gen_vector_mut_infix_operators(type_datatype Type, type_datatype E, type_poof_symbol Operator)
   {
-    Type.member(0, (E)
+    inline Type.name &
+    operator(Operator)( Type.name &P1, Type.name P2 )
     {
-      E.is_array?
-      {
-        inline Type.name &
-        operator(Operator)( Type.name &P1, Type.name P2 )
-        {
-          E.map_array(Index) {
-            P1.(E.name)[Index] (Operator) P2.(E.name)[Index];
-          }
-          return P1;
-        }
+      E.map_array(Index) {
+        P1.(E.name)[Index] (Operator) P2.(E.name)[Index];
       }
-    })
+      return P1;
+    }
   }
 )
 
@@ -131,8 +113,7 @@ poof(
     {
       E.is_array?
       {
-        gen_vector_comparator(Type, {==})
-
+        gen_vector_comparator(Type, E, {==})
 
         // NOTE(Jesse): Can't gen != because the condition welding it together
         // is not &&, it's ||
@@ -145,29 +126,29 @@ poof(
           return Result;
         }
 
-        gen_vector_comparator(Type, {<})
+        gen_vector_comparator(Type, E, {<})
 
-        gen_vector_comparator(Type, {<=})
+        gen_vector_comparator(Type, E, {<=})
 
-        gen_vector_comparator(Type, {>})
+        gen_vector_comparator(Type, E, {>})
 
-        gen_vector_comparator(Type, {>=})
+        gen_vector_comparator(Type, E, {>=})
 
-        gen_vector_infix_operators(Type, {+})
+        gen_vector_infix_operators(Type, E, {+})
 
-        gen_vector_infix_operators(Type, {-})
+        gen_vector_infix_operators(Type, E, {-})
 
-        gen_vector_infix_operators(Type, {*})
+        gen_vector_infix_operators(Type, E, {*})
 
-        gen_vector_infix_operators(Type, {/})
+        gen_vector_infix_operators(Type, E, {/})
 
-        gen_vector_mut_infix_operators(Type, {+=})
+        gen_vector_mut_infix_operators(Type, E, {+=})
 
-        gen_vector_mut_infix_operators(Type, {-=})
+        gen_vector_mut_infix_operators(Type, E, {-=})
 
-        gen_vector_mut_infix_operators(Type, {*=})
+        gen_vector_mut_infix_operators(Type, E, {*=})
 
-        gen_vector_mut_infix_operators(Type, {/=})
+        gen_vector_mut_infix_operators(Type, E, {/=})
       }
       {
         ERROR (Type.name).member(0) was not an array.  Got name((E.name)) type((E.type)).
