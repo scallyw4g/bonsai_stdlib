@@ -148,7 +148,10 @@ poof(
   {
     InputDef.map_members (Member)
     {
-      Input->(Member.name).Clicked = False;
+      Member.is_type(input_event)?
+      {
+        Input->(Member.name).Clicked = False;
+      }
     }
   }
 )
