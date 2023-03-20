@@ -89,7 +89,7 @@ union v4
   };
 
   r32&
-  operator[](int index)
+  operator[](s32 index)
   {
     r32& Result = this->E[index];
     return Result;
@@ -98,7 +98,7 @@ union v4
 
 
 link_internal v4
-V4(v3 v, float w)
+V4(v3 v, f32 w)
 {
   v4 Result = {
     .x = v.x,
@@ -122,7 +122,7 @@ V4(r32 Fill)
 }
 
 link_internal v4
-V4( float x, float y, float z, float w)
+V4( f32 x, f32 y, f32 z, f32 w)
 {
   v4 Result = {
     .x = x,
@@ -142,9 +142,9 @@ Voxel_Position(v3 Offset)
 {
   voxel_position Result;
 
-  Result.x = (int)Offset.x;
-  Result.y = (int)Offset.y;
-  Result.z = (int)Offset.z;
+  Result.x = (s32)Offset.x;
+  Result.y = (s32)Offset.y;
+  Result.z = (s32)Offset.z;
 
   return Result;
 }
@@ -179,11 +179,9 @@ inline v3
 operator*(v3 P1, voxel_position P2)
 {
   v3 Result;
-
-  Result.x = (float)P2.x * P1.x;
-  Result.y = (float)P2.y * P1.y;
-  Result.z = (float)P2.z * P1.z;
-
+  Result.x = (f32)P2.x * P1.x;
+  Result.y = (f32)P2.y * P1.y;
+  Result.z = (f32)P2.z * P1.z;
   return Result;
 }
 
@@ -210,11 +208,9 @@ inline voxel_position
 operator-(voxel_position Pos, v3 Vec)
 {
   voxel_position Result;
-
-  Result.x = Pos.x- (int)Vec.x;
-  Result.y = Pos.y- (int)Vec.y;
-  Result.z = Pos.z- (int)Vec.z;
-
+  Result.x = Pos.x- (s32)Vec.x;
+  Result.y = Pos.y- (s32)Vec.y;
+  Result.z = Pos.z- (s32)Vec.z;
   return Result;
 }
 
@@ -222,23 +218,19 @@ inline v3
 operator-(v3 Vec, voxel_position Pos)
 {
   v3 Result;
-
   Result.x = Vec.x - (r32)Pos.x;
   Result.y = Vec.y - (r32)Pos.y;
   Result.z = Vec.z - (r32)Pos.z;
-
   return Result;
 }
 
 inline v3
-operator*(voxel_position P1, float f)
+operator*(voxel_position P1, f32 f)
 {
   v3 Result;
-
   Result.x = (r32)P1.x * f;
   Result.y = (r32)P1.y * f;
   Result.z = (r32)P1.z * f;
-
   return Result;
 }
 
@@ -270,11 +262,9 @@ inline v3
 V3(r32 I)
 {
   v3 Result;
-
   Result.x = I;
   Result.y = I;
   Result.z = I;
-
   return Result;
 }
 
@@ -282,11 +272,9 @@ inline v3
 V3(s32 I)
 {
   v3 Result;
-
   Result.x = (r32)I;
   Result.y = (r32)I;
   Result.z = (r32)I;
-
   return Result;
 }
 
@@ -294,42 +282,36 @@ inline v3
 V3(v3i wp)
 {
   v3 Result;
-
-  Result.x = (float)wp.x;
-  Result.y = (float)wp.y;
-  Result.z = (float)wp.z;
-
+  Result.x = (f32)wp.x;
+  Result.y = (f32)wp.y;
+  Result.z = (f32)wp.z;
   return Result;
 }
 
 inline v3
-V3(int x, int y, int z)
+V3(s32 x, s32 y, s32 z)
 {
   v3 Result = {};
-
-  Result.x = (float)x;
-  Result.y = (float)y;
-  Result.z = (float)z;
-
+  Result.x = (f32)x;
+  Result.y = (f32)y;
+  Result.z = (f32)z;
   return Result;
 }
 
 inline v3
-V3(v2 XY, float z)
+V3(v2 XY, f32 z)
 {
   v3 Result = {{ XY.x, XY.y, z }};
   return Result;
 }
 
 inline v3
-V3(float x, float y, float z)
+V3(f32 x, f32 y, f32 z)
 {
   v3 Result = {};
-
   Result.x = x;
   Result.y = y;
   Result.z = z;
-
   return Result;
 }
 
@@ -337,35 +319,29 @@ inline world_position
 World_Position(v3 V)
 {
   voxel_position Result;
-
-  Result.x = (int)V.x;
-  Result.y = (int)V.y;
-  Result.z = (int)V.z;
-
+  Result.x = (s32)V.x;
+  Result.y = (s32)V.y;
+  Result.z = (s32)V.z;
   return Result;
 }
 
 inline voxel_position
-Voxel_Position(int P)
+Voxel_Position(s32 P)
 {
   voxel_position Result;
-
   Result.x = P;
   Result.y = P;
   Result.z = P;
-
   return Result;
 }
 
 inline voxel_position
-Voxel_Position(int x, int y, int z)
+Voxel_Position(s32 x, s32 y, s32 z)
 {
   voxel_position Result;
-
   Result.x = x;
   Result.y = y;
   Result.z = z;
-
   return Result;
 }
 
@@ -377,7 +353,7 @@ World_Position(s32 P)
 }
 
 inline world_position
-World_Position(int x, int y, int z)
+World_Position(s32 x, s32 y, s32 z)
 {
   chunk_dimension Result = Voxel_Position(x,y,z);
   return Result;
@@ -385,14 +361,14 @@ World_Position(int x, int y, int z)
 
 
 inline chunk_dimension
-Chunk_Dimension(int flood)
+Chunk_Dimension(s32 flood)
 {
   chunk_dimension Result = Voxel_Position(flood,flood,flood);
   return Result;
 }
 
 inline chunk_dimension
-Chunk_Dimension(int x, int y, int z)
+Chunk_Dimension(s32 x, s32 y, s32 z)
 {
   chunk_dimension Result = Voxel_Position(x,y,z);
   return Result;
@@ -427,26 +403,6 @@ Volume(chunk_dimension Dim)
   return (Dim.x*Dim.y*Dim.z);
 }
 
-inline v3
-Abs(v3 In)
-{
-  v3 Result;
-  Result.x = (r32)Abs(In.x);
-  Result.y = (r32)Abs(In.y);
-  Result.z = (r32)Abs(In.z);
-  return Result;
-}
-
-inline v3i
-Abs(v3i In)
-{
-  v3i Result;
-  Result.x = (s32)Abs(In.x);
-  Result.y = (s32)Abs(In.y);
-  Result.z = (s32)Abs(In.z);
-  return Result;
-}
-
 inline v2
 V2(v2i V)
 {
@@ -471,7 +427,7 @@ V2(r32 F)
 }
 
 v2
-V2(float x,float y)
+V2(f32 x,f32 y)
 {
   v2 Result = {{x,y}};
   return Result;
@@ -521,18 +477,6 @@ operator*(v2 A, v2i B)
   return Result;
 }
 
-inline v3
-operator%(v3 A, int i)
-{
-  v3 Result;
-
-  Result.x = (float)((int)A.x % i);
-  Result.y = (float)((int)A.y % i);
-  Result.z = (float)((int)A.z % i);
-
-  return Result;
-}
-
 inline v2
 operator/(v2i A, v2 B)
 {
@@ -551,23 +495,19 @@ inline v3i
 operator%(v3i A, v3i B)
 {
   v3i Result;
-
   Result.x = A.x % B.x;
   Result.y = A.y % B.y;
   Result.z = A.z % B.z;
-
   return Result;
 }
 
 inline v3
-operator/(v3 A, int B)
+operator/(v3 A, s32 B)
 {
   v3 Result;
-
-  Result.x = A.x / (float)B;
-  Result.y = A.y / (float)B;
-  Result.z = A.z / (float)B;
-
+  Result.x = A.x / (f32)B;
+  Result.y = A.y / (f32)B;
+  Result.z = A.z / (f32)B;
   return Result;
 }
 
@@ -575,11 +515,9 @@ inline v3
 operator/(voxel_position A, r32 f)
 {
   v3 Result;
-
   Result.x = (r32)A.x / f;
   Result.y = (r32)A.y / f;
   Result.z = (r32)A.z / f;
-
   return Result;
 }
 
@@ -588,22 +526,10 @@ inline v3
 operator/(v3 A, voxel_position B)
 {
   v3 Result;
-
   Result.x = A.x / (r32)B.x;
   Result.y = A.y / (r32)B.y;
   Result.z = A.z / (r32)B.z;
-
   return Result;
-}
-
-inline v3&
-operator+=(v3& A, float f)
-{
-  A.x += f;
-  A.y += f;
-  A.z += f;
-
-  return(A);
 }
 
 union f32_reg {
@@ -657,183 +583,89 @@ operator*(v3 A, v3 B)
 }
 #endif
 
-
-inline v3&
-operator*=(v3& A, float f)
-{
-  A.x = A.x * f;
-  A.y = A.y * f;
-  A.z = A.z * f;
-
-  return A;
-}
-
-inline v3&
-operator/=(v3& A, float f)
-{
-  A.x = A.x / f;
-  A.y = A.y / f;
-  A.z = A.z / f;
-
-  return A;
-}
-
 v4
-operator*(v4 A, int B)
+operator*(v4 A, s32 B)
 {
   v4 Result = {};
-
-  Result.x = A.x * (float)B;
-  Result.y = A.y * (float)B;
-  Result.z = A.z * (float)B;
-  Result.w = A.w * (float)B;
-
+  Result.x = A.x * (f32)B;
+  Result.y = A.y * (f32)B;
+  Result.z = A.z * (f32)B;
+  Result.w = A.w * (f32)B;
   return Result;
 }
 
-v4 operator*=(v4 A, int B)
+inline v4
+operator*=(v4 A, s32 B)
 {
   A = A * B;
   return A;
-}
-
-inline voxel_position
-operator&(voxel_position P1, voxel_position P2)
-{
-  voxel_position Result;
-
-  Result.x = P1.x & (s32)P2.x;
-  Result.y = P1.y & (s32)P2.y;
-  Result.z = P1.z & (s32)P2.z;
-
-  return Result;
 }
 
 inline v3
 operator^(v3 P1, v3 P2)
 {
   v3 Result;
-
   Result.x = (r32)((s32)P1.x ^ (s32)P2.x);
   Result.y = (r32)((s32)P1.y ^ (s32)P2.y);
   Result.z = (r32)((s32)P1.z ^ (s32)P2.z);
-
   return Result;
 }
 
-inline voxel_position
-operator^(voxel_position P1, voxel_position P2)
+inline v3
+operator%(v3 A, s32 i)
 {
-  voxel_position Result;
-
-  Result.x = P1.x ^ P2.x;
-  Result.y = P1.y ^ P2.y;
-  Result.z = P1.z ^ P2.z;
-
+  v3 Result;
+  Result.x = (f32)((s32)A.x % i);
+  Result.y = (f32)((s32)A.y % i);
+  Result.z = (f32)((s32)A.z % i);
   return Result;
 }
 
-v3
+poof(gen_vector_infix_operator(v3i, {^}))
+#include <generated/gen_vector_infix_operator_v3i_688856449.h>
+
+poof(gen_vector_infix_operator(v3i, {&}))
+#include <generated/gen_vector_infix_operator_v3i_688856393.h>
+
+poof(gen_vector_lerp(f32))
+#include <generated/gen_lerp_f32.h>
+
+poof(gen_vector_lerp(v2))
+#include <generated/gen_lerp_v2.h>
+
+poof(gen_vector_lerp(v3))
+#include <generated/gen_lerp_v3.h>
+
+// TODO(Jesse): The heck do we use this for?
+poof(gen_vector_lerp(v4))
+#include <generated/gen_lerp_v4.h>
+
+poof(gen_vector_area(v2))
+#include <generated/gen_vector_area_v2.h>
+
+poof(gen_vector_area(v2i))
+#include <generated/gen_vector_area_v2i.h>
+
+poof(gen_common_vector(v2))
+#include <generated/gen_common_vector_v2.h>
+
+poof(gen_common_vector(v3))
+#include <generated/gen_common_vector_v3.h>
+
+poof(gen_common_vector(v3i))
+#include <generated/gen_common_vector_v3i.h>
+
+poof(gen_vector_normalize(v2))
+#include <generated/gen_vector_normalize_funcs_v2.h>
+
+poof(gen_vector_normalize(v3))
+#include <generated/gen_vector_normalize_funcs_v3.h>
+
+
+inline v3
 Ceil(v3 Vec)
 {
   v3 Result = {{ Ceilf(Vec.x), Ceilf(Vec.y), Ceilf(Vec.z) }};
-  return Result;
-}
-
-v4
-Lerp(r32 t, v4 p1, v4 p2)
-{
-  Assert(t<=1);
-  Assert(t>=0);
-  v4 Result = (1.0f-t)*p1 + t*p2;
-  return Result;
-}
-
-v3
-Lerp(r32 t, v3 p1, v3 p2)
-{
-  Assert(t<=1);
-  Assert(t>=0);
-  v3 Result = (1.0f-t)*p1 + t*p2;
-  return Result;
-}
-
-v2
-Lerp(r32 t, v2 p1, v2 p2)
-{
-  Assert(t<=1);
-  Assert(t>=0);
-  v2 Result = (1.0f-t)*p1 + t*p2;
-  return Result;
-}
-
-r32
-Lerp(r32 t, r32 p1, r32 p2)
-{
-  Assert(t<=1.0f);
-  Assert(t>=0.0f);
-  r32 Result = (1.0f-t)*p1 + t*p2;
-  return Result;
-}
-
-inline s32
-Area(v2i A)
-{
-  Assert(A.x > 0);
-  Assert(A.y > 0);
-  s32 Result = A.x * A.y;
-  return Result;
-}
-
-inline s32
-Area(v2 A)
-{
-  Assert(A.x > 0);
-  Assert(A.y > 0);
-  s32 Result = (s32)(A.x * A.y);
-  Assert(Result >= 0);
-  return Result;
-}
-
-inline s32
-LengthSq( voxel_position P )
-{
-  s32 Result = P.x*P.x + P.y*P.y + P.z*P.z;
-  return Result;
-}
-
-inline r32
-LengthSq( v2 Vec )
-{
-  r32 Result = Vec.x*Vec.x + Vec.y*Vec.y;
-  return Result;
-}
-
-inline r32
-LengthSq( v3 Vec )
-{
-  r32 Result = Vec.x*Vec.x + Vec.y*Vec.y + Vec.z*Vec.z;
-  return Result;
-}
-
-inline r32
-Length( v2 Vec )
-{
-  r32 Result = (r32)sqrt(LengthSq(Vec));
-  return Result;
-}
-
-inline r32
-Length( voxel_position Vec )
-{
-  r32 Result = (r32)sqrt(LengthSq(Vec));
-  return Result;
-}
-
-inline r32
-Length( v3 Vec )
-{
-  r32 Result = (r32)sqrt(LengthSq(Vec));
   return Result;
 }
 
@@ -841,52 +673,6 @@ inline r32
 Distance( v3 P1, v3 P2 )
 {
   r32 Result = Length(P1-P2);
-  return Result;
-}
-
-inline v2
-Normalize(v2 Vec, r32 length)
-{
-  if (length == 0) return V2(0,0);
-
-  v2 Result = Vec;
-  Result.x = Result.x/length;
-  Result.y = Result.y/length;
-  return Result;
-}
-
-inline v2
-Normalize(v2 A)
-{
-  v2 Result = Normalize(A, Length(A));
-  return Result;
-}
-
-inline v3
-Normalize( v3 Vec, r32 length)
-{
-  if (length == 0) return V3(0,0,0);
-
-  v3 Result = Vec;
-
-  Result.x = Result.x/length;
-  Result.y = Result.y/length;
-  Result.z = Result.z/length;
-
-  return Result;
-}
-
-inline v3
-Normalize(v3 A)
-{
-  v3 Result = Normalize(A, Length(A));
-  return Result;
-}
-
-inline v3
-Normalize(voxel_position A)
-{
-  v3 Result = Normalize( V3(A), Length(V3(A)));
   return Result;
 }
 
@@ -954,64 +740,6 @@ SafeDivide(v3 Dividend, r32 Divisor)
   return Result;
 }
 
-inline v3
-Max(v3 A, v3 B)
-{
-  v3 Result;
-  Result.x = Max(A.x, B.x);
-  Result.y = Max(A.y, B.y);
-  Result.z = Max(A.z, B.z);
-  return Result;
-}
-
-inline v2
-Max(v2 A, v2 B)
-{
-  v2 Result;
-  Result.x = Max(A.x, B.x);
-  Result.y = Max(A.y, B.y);
-  return Result;
-}
-
-inline v3i
-Min(v3i A, v3i B)
-{
-  v3i Result;
-  Result.x = Min(A.x, B.x);
-  Result.y = Min(A.y, B.y);
-  Result.z = Min(A.z, B.z);
-  return Result;
-}
-
-inline v3
-Min(v3 A, v3 B)
-{
-  v3 Result;
-  Result.x = Min(A.x, B.x);
-  Result.y = Min(A.y, B.y);
-  Result.z = Min(A.z, B.z);
-  return Result;
-}
-
-inline v2
-Min(v2 A, v2 B)
-{
-  v2 Result;
-  Result.x = Min(A.x, B.x);
-  Result.y = Min(A.y, B.y);
-  return Result;
-}
-
-inline voxel_position
-Max(voxel_position A, voxel_position B)
-{
-  voxel_position Result;
-  Result.x = Max(A.x, B.x);
-  Result.y = Max(A.y, B.y);
-  Result.z = Max(A.z, B.z);
-  return Result;
-}
-
 inline voxel_position
 ClampMinus1toInfinity( voxel_position V )
 {
@@ -1029,88 +757,9 @@ ClampMinus1toInfinity( voxel_position V )
   return Result;
 }
 
-inline v3
-Bilateral(v3 P)
-{
-  v3 Result = V3( Bilateral(P.x), Bilateral(P.y), Bilateral(P.z));
-  return Result;
-}
-
-inline v3i
-Bilaterali(v3 P)
-{
-  v3i Result = V3i( Bilateral(P.x), Bilateral(P.y), Bilateral(P.z));
-  return Result;
-}
-
 inline v3i
 GetSigni(v3 P)
 {
   v3i Result = V3i( GetSign(P.x), GetSign(P.y), GetSign(P.z));
   return Result;
 }
-
-inline v3
-GetSign(v3 P)
-{
-  v3 Result = V3( GetSign(P.x), GetSign(P.y), GetSign(P.z));
-  return Result;
-}
-
-inline voxel_position
-GetSign(voxel_position P)
-{
-  voxel_position Result = Voxel_Position( GetSign(P.x), GetSign(P.y), GetSign(P.z));
-  return Result;
-}
-
-inline v3
-ClampNegative( v3 V )
-{
-  v3 Result = V;
-
-  if ( V.x > 0.f )
-    Result.x = 0.f;
-
-  if ( V.y > 0.f )
-    Result.y = 0.f;
-
-  if ( V.z > 0.f )
-    Result.z = 0.f;
-
-  return Result;
-}
-inline voxel_position
-ClampNegative( voxel_position V )
-{
-  voxel_position Result = V;
-
-  if ( V.x > 0 )
-    Result.x = 0;
-
-  if ( V.y > 0 )
-    Result.y = 0;
-
-  if ( V.z > 0 )
-    Result.z = 0;
-
-  return Result;
-}
-
-inline voxel_position
-ClampPositive( voxel_position V )
-{
-  voxel_position Result = V;
-
-  if ( V.x < 0 )
-    Result.x = 0;
-
-  if ( V.y < 0 )
-    Result.y = 0;
-
-  if ( V.z < 0 )
-    Result.z = 0;
-
-  return Result;
-}
-
