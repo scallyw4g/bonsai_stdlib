@@ -108,7 +108,7 @@ poof(
     inline b32
     operator(Comparator)( Type.name P1, Type.name P2 )
     {
-      b32 Result = ( E.map_array(Index).sep( && ) { P1.(E.name)[Index] (Comparator) P2.(E.name)[Index] });
+      b32 Result = ( E.map_array(Index).sep( &&) { P1.(E.name)[Index] (Comparator) P2.(E.name)[Index] });
       return Result;
     }
   }
