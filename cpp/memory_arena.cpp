@@ -57,7 +57,9 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 
   b32 Result = True;
 
+#if BONSAI_INTERNAL
   AcquireFutex(&Arena->DebugFutex);
+#endif
 
   // Check for start because when we allocate an arena on the stack it's
   // cleared to zero and treated as a sentinal.
@@ -99,7 +101,9 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 
   }
 
+#if BONSAI_INTERNAL
   ReleaseFutex(&Arena->DebugFutex);
+#endif
 
   return Result;
 }

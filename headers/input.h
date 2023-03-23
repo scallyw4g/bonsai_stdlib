@@ -38,8 +38,6 @@ struct input
 
   input_event Q;
   input_event E;
-
-  s32 MouseWheelDelta;
 };
 
 struct hotkeys
@@ -72,6 +70,7 @@ struct hotkeys
   b32 Player_Jump;
   b32 Player_Spawn;
 
+  /* s32 MouseWheelDelta; */
 };
 
 inline v3
@@ -163,7 +162,7 @@ poof(
 link_internal void
 ResetInputForFrameStart(input *Input, hotkeys *Hotkeys)
 {
-  Input->MouseWheelDelta = 0;
+  /* Input->MouseWheelDelta = 0; */
   ClearClickedFlags(Input);
   Clear(Hotkeys);
 }

@@ -1,3 +1,400 @@
+// TODO(Jesse): This would be better if we could specifically target the anonymous union
+// instead of just doing it for every union we find in the type. Probably it'll never
+// be a problem, but probably it will be eventually ..
+poof(
+  func d_union_constructors(DUnionType)
+  {
+    DUnionType.map_members(M) {
+      M.is_union? {
+        M.map_members (ConstructorArgT)
+        {
+          link_internal DUnionType.name
+          DUnionType.name.to_capital_case((ConstructorArgT.name) A)
+          {
+            DUnionType.name Reuslt = {
+              .Type = type_(ConstructorArgT.name),
+              .(ConstructorArgT.name) = A
+            };
+            return Reuslt;
+          }
+        }
+      }
+    }
+  }
+)
+
+/* poof( */
+/*   func constructors(Type) */
+/*   { */
+/*     link_internal Type.name */
+/*     Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.name.to_capital_case } ) */
+/*     { */
+/*       Type.name Reuslt = { */
+/*         Type.map_members(M).sep(,) { .M.name = M.name.to_capital_case } */
+/*       }; */
+/*       return Reuslt; */
+/*     } */
+/*   } */
+/* ) */
+
+poof(
+  func gen_vector_infix_operator(type_datatype Type, type_poof_symbol Operator)
+  {
+    Type.member(0, (E)
+    {
+      E.is_array?
+      {
+        inline Type.name
+        operator(Operator)( Type.name P1, Type.name P2 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] Operator P2.(E.name)[Index],
+          }
+          };
+          return Result;
+        }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_vector_infix_operators(type_datatype Type, type_datatype E, type_poof_symbol Operator)
+  {
+    inline Type.name
+    operator(Operator)( Type.name P1, Type.name P2 )
+    {
+      Type.name Result = {
+      E.map_array(Index)
+      {
+        .(E.name)[Index] = P1.(E.name)[Index] Operator P2.(E.name)[Index],
+      }
+      };
+      return Result;
+    }
+
+    inline Type.name
+    operator(Operator)( Type.name P1, E.type Scalar )
+    {
+      Type.name Result = {
+      E.map_array(Index)
+      {
+        .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
+      }
+      };
+      return Result;
+    }
+
+    inline Type.name
+    operator(Operator)( E.type Scalar, Type.name P1 )
+    {
+      Type.name Result = {
+      E.map_array(Index)
+      {
+        .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
+      }
+      };
+      return Result;
+    }
+
+  }
+)
+
+poof(
+  func gen_vector_comparator(type_datatype Type, type_datatype E, type_poof_symbol Comparator)
+  {
+    inline b32
+    operator(Comparator)( Type.name P1, Type.name P2 )
+    {
+      b32 Result = ( E.map_array(Index).sep( &&) { P1.(E.name)[Index] (Comparator) P2.(E.name)[Index] });
+      return Result;
+    }
+  }
+)
+
+poof(
+  func gen_vector_mut_infix_operators(type_datatype Type, type_datatype E, type_poof_symbol Operator)
+  {
+    inline Type.name &
+    operator(Operator)( Type.name &P1, Type.name P2 )
+    {
+      E.map_array(Index) {
+        P1.(E.name)[Index] (Operator) P2.(E.name)[Index];
+      }
+      return P1;
+    }
+
+    inline Type.name &
+    operator(Operator)( Type.name &P1, E.type Scalar )
+    {
+      E.map_array(Index) {
+        P1.(E.name)[Index] (Operator) Scalar;
+      }
+      return P1;
+    }
+  }
+)
+
+poof(
+  func gen_vector_operators(Type)
+  {
+    Type.member(0, (E)
+    {
+      E.is_array?
+      {
+        gen_vector_comparator(Type, E, {==})
+
+        // NOTE(Jesse): Can't gen != because the condition welding it together
+        // is not &&, it's ||
+        //
+        /* gen_vector_comparator(Type, {!=}) */
+        inline b32
+        operator!=( Type.name P1, Type.name P2 )
+        {
+          b32 Result = !(P1 == P2);
+          return Result;
+        }
+
+        gen_vector_comparator(Type, E, {<})
+
+        gen_vector_comparator(Type, E, {<=})
+
+        gen_vector_comparator(Type, E, {>})
+
+        gen_vector_comparator(Type, E, {>=})
+
+        gen_vector_infix_operators(Type, E, {+})
+
+        gen_vector_infix_operators(Type, E, {-})
+
+        gen_vector_infix_operators(Type, E, {*})
+
+        gen_vector_infix_operators(Type, E, {/})
+
+        gen_vector_mut_infix_operators(Type, E, {+=})
+
+        gen_vector_mut_infix_operators(Type, E, {-=})
+
+        gen_vector_mut_infix_operators(Type, E, {*=})
+
+        gen_vector_mut_infix_operators(Type, E, {/=})
+      }
+      {
+        poof_error { (Type.name).member(0) was not an array.  Got name((E.name)) type((E.type)). }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_vector_lerp(vec_t)
+  {
+    inline vec_t.name
+    Lerp(r32 t, vec_t.name P1, vec_t.name P2)
+    {
+      Assert(t<=1);
+      Assert(t>=0);
+      vec_t.name Result = (1.0f-t)*P1 + t*P2;
+      return Result;
+    }
+  }
+)
+
+/* poof( */
+/*   data_func get_vec_base_type(vec_t) */
+/*   { */
+/*     vec_t.member_named(E) (base_array) -> { */
+/*       base_array.is_array? */
+/*       { */
+/*         return base_array */
+/*       } */
+/*       { */
+/*         poof_error { (Type.name).member(0) was not an array.  Got name((base_array.name)) type((base_array.type)). } */
+/*       } */
+/*     } */
+/*   } */
+/* ) */
+
+/* poof( */
+/*   func gen_vector_area(vec_t) */
+/*   { */
+/*     get_vec_base_type(vec_t) (vec_base_t) */
+/*     { */
+/*       inline vec_base_t */
+/*       Area( vec_t.name Vec ) */
+/*       { */
+/*         Assert(A.x > 0); */
+/*         Assert(A.y > 0); */
+/*         vec_base_t Result = A.x * A.y; */
+/*         return Result; */
+/*       } */
+/*     } */
+/*   } */
+/* ) */
+
+poof(
+  func gen_vector_area(vec_t)
+  {
+    vec_t.member(0, (base_array)
+    {
+      base_array.is_array?
+      {
+        inline base_array.type
+        Area( vec_t.name Vec )
+        {
+          Assert(Vec.x > 0);
+          Assert(Vec.y > 0);
+          base_array.type Result = base_array.map_array(Index).sep(*) { Vec.(base_array.name)[Index] };
+          return Result;
+        }
+      }
+      {
+        poof_error { (Type.name).member(0) was not an array.  Got name((base_array.name)) type((base_array.type)). }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_common_vector(vec_t)
+  {
+    vec_t.member(0, (base_array)
+    {
+      base_array.is_array?
+      {
+        inline base_array.type
+        LengthSq( vec_t.name Vec )
+        {
+          base_array.type Result = base_array.map_array(Index).sep(+) { Vec.(base_array.name)[Index]*Vec.(base_array.name)[Index] };
+          return Result;
+        }
+
+        inline r32
+        Length( vec_t.name Vec )
+        {
+          r32 Result = (r32)sqrt(LengthSq(Vec));
+          return Result;
+        }
+
+        inline vec_t.name
+        Max( vec_t.name A, vec_t.name B )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = Max( A.(base_array.name)[Index], B.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+        inline vec_t.name
+        Min( vec_t.name A, vec_t.name B )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = Min( A.(base_array.name)[Index], B.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+        inline vec_t.name
+        Abs( vec_t.name Vec )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = ((base_array.type))Abs( Vec.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+
+        inline vec_t.name
+        GetSign( vec_t.name Vec )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = GetSign( Vec.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+
+        inline vec_t.name
+        Bilateral( vec_t.name Vec )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = Bilateral( Vec.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+        inline vec_t.name
+        ClampNegative( vec_t.name V )
+        {
+          vec_t.name Result = V;
+          base_array.map_array(Index)
+          {
+            if ( V.base_array.name[Index] > base_array.type(0) ) Result.base_array.name[Index] = base_array.type(0);
+          }
+          return Result;
+        }
+
+        inline vec_t.name
+        ClampPositive( vec_t.name V )
+        {
+          vec_t.name Result = V;
+          base_array.map_array(Index)
+          {
+            if ( V.base_array.name[Index] < base_array.type(0) ) Result.base_array.name[Index] = base_array.type(0);
+          }
+          return Result;
+        }
+
+
+      }
+      {
+        poof_error { (Type.name).member(0) was not an array.  Got name((base_array.name)) type((base_array.type)). }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_vector_normalize(vec_t)
+  {
+    vec_t.member(0, (base_array)
+    {
+      base_array.is_array?
+      {
+        inline vec_t.name
+        Normalize( vec_t.name Vec, r32 Length)
+        {
+          if (Length == 0.f) return {};
+          vec_t.name Result = Vec/Length;
+          return Result;
+        }
+
+        inline vec_t.name
+        Normalize( vec_t.name Vec )
+        {
+          vec_t.name Result = Normalize(Vec, Length(Vec));
+          return Result;
+        }
+      }
+      {
+        poof_error { (Type.name).member(0) was not an array.  Got name((base_array.name)) type((base_array.type)). }
+      }
+    })
+  }
+)
+
 poof(
   func index_of(Type)
   {

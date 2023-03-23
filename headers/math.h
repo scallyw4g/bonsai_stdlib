@@ -1,11 +1,29 @@
 // TODO(Jesse): Remove this??  Probably worth it.
 #include <math.h>
 
+link_internal umm
+SafeDecrement(umm *N)
+{
+  umm Result = *N;
+  if (Result > 0)
+  {
+    Result -= 1;
+  }
+  return Result;
+}
+
 inline u64
 SaturatingAdd(u64 N)
 {
   if (N < u64_MAX) { N = N+1; }
   return N;
+}
+
+inline u64
+Desaturate(u64 Target, u64 SubValue)
+{
+  if (Target >= SubValue ) { Target = Target-SubValue; } else { Target = 0; }
+  return Target;
 }
 
 inline u64
