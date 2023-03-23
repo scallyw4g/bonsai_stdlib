@@ -31,13 +31,37 @@ struct input
   input_event RMB;
   input_event LMB;
   input_event MMB;
+
+  input_event Q;
   input_event W;
+  input_event E;
+  input_event R;
+  input_event T;
+  input_event Y;
+  input_event U;
+  input_event I;
+  input_event O;
+  input_event P;
+
   input_event A;
   input_event S;
   input_event D;
+  input_event F;
+  input_event G;
+  input_event H;
+  input_event J;
+  input_event K;
+  input_event L;
 
-  input_event Q;
-  input_event E;
+  input_event Z;
+  input_event X;
+  input_event C;
+  input_event V;
+  input_event B;
+  input_event N;
+  input_event M;
+
+  s32 MouseWheelDelta;
 };
 
 struct hotkeys
@@ -69,8 +93,6 @@ struct hotkeys
   b32 Player_Proton;
   b32 Player_Jump;
   b32 Player_Spawn;
-
-  /* s32 MouseWheelDelta; */
 };
 
 inline v3

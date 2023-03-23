@@ -136,7 +136,11 @@ V4( f32 x, f32 y, f32 z, f32 w)
 
 #pragma GCC diagnostic pop
 
+
 typedef v3i voxel_position;
+typedef v3i chunk_dimension;
+typedef v3i world_position;
+
 inline voxel_position
 Voxel_Position(v3 Offset)
 {
@@ -148,6 +152,7 @@ Voxel_Position(v3 Offset)
 
   return Result;
 }
+
 
 poof(gen_vector_operators(v2))
 #include <generated/gen_vector_operators_v2.h>
@@ -164,6 +169,20 @@ poof(gen_vector_operators(v3i))
 poof(gen_vector_operators(v4))
 #include <generated/gen_vector_operators_v4.h>
 
+poof(gen_hetero_vector_operators(v2, v2i))
+#include <generated/gen_hetero_vector_operators_v2_v2i.h>
+
+poof(gen_hetero_vector_operators(v2i, v2))
+#include <generated/gen_hetero_vector_operators_v2i_v2.h>
+
+poof(gen_hetero_vector_operators(v3, v3i))
+#include <generated/gen_hetero_vector_operators_v3_v3i.h>
+
+poof(gen_hetero_vector_operators(v3i, v3))
+#include <generated/gen_hetero_vector_operators_v3i_v3.h>
+
+
+
 inline v3i
 operator~(v3i P)
 {
@@ -172,55 +191,6 @@ operator~(v3i P)
     .y = ~P.y,
     .z = ~P.z
   };
-  return Result;
-}
-
-inline v3
-operator*(v3 P1, voxel_position P2)
-{
-  v3 Result;
-  Result.x = (f32)P2.x * P1.x;
-  Result.y = (f32)P2.y * P1.y;
-  Result.z = (f32)P2.z * P1.z;
-  return Result;
-}
-
-inline v3
-operator+(v3 Vec, voxel_position Pos)
-{
-  v3 Result = {
-    .x = Vec.x + (r32)Pos.x,
-    .y = Vec.y + (r32)Pos.y,
-    .z = Vec.z + (r32)Pos.z,
-  };
-
-  return Result;
-}
-
-inline voxel_position
-operator+(voxel_position Pos, v3 Vec)
-{
-  voxel_position Result = Voxel_Position(Vec + Pos);
-  return Result;
-}
-
-inline voxel_position
-operator-(voxel_position Pos, v3 Vec)
-{
-  voxel_position Result;
-  Result.x = Pos.x- (s32)Vec.x;
-  Result.y = Pos.y- (s32)Vec.y;
-  Result.z = Pos.z- (s32)Vec.z;
-  return Result;
-}
-
-inline v3
-operator-(v3 Vec, voxel_position Pos)
-{
-  v3 Result;
-  Result.x = Vec.x - (r32)Pos.x;
-  Result.y = Vec.y - (r32)Pos.y;
-  Result.z = Vec.z - (r32)Pos.z;
   return Result;
 }
 
@@ -234,8 +204,6 @@ operator*(voxel_position P1, f32 f)
   return Result;
 }
 
-typedef voxel_position chunk_dimension;
-typedef voxel_position world_position;
 
 inline v3i
 V3i(v3 V)
@@ -420,7 +388,6 @@ Volume(chunk_dimension Dim)
   Dim.x = Max(Dim.x, 0);
   Dim.y = Max(Dim.y, 0);
   Dim.z = Max(Dim.z, 0);
-
   return (Dim.x*Dim.y*Dim.z);
 }
 
@@ -484,34 +451,6 @@ V2i(u32 x, u32 y)
   return Result;
 }
 
-v2
-operator*(v2i A, v2 B)
-{
-  v2 Result = { V2(A) * B };
-  return Result;
-}
-
-v2
-operator*(v2 A, v2i B)
-{
-  v2 Result = B*A;
-  return Result;
-}
-
-inline v2
-operator/(v2i A, v2 B)
-{
-  v2 Result = V2(A) / B;
-  return Result;
-}
-
-inline v2
-operator/(v2 A, v2i B)
-{
-  v2 Result = B/A;
-  return Result;
-}
-
 inline v3i
 operator%(v3i A, v3i B)
 {
@@ -542,16 +481,6 @@ operator/(voxel_position A, r32 f)
   return Result;
 }
 
-
-inline v3
-operator/(v3 A, voxel_position B)
-{
-  v3 Result;
-  Result.x = A.x / (r32)B.x;
-  Result.y = A.y / (r32)B.y;
-  Result.z = A.z / (r32)B.z;
-  return Result;
-}
 
 union f32_reg {
   r32 F[4];
@@ -658,8 +587,9 @@ poof(gen_vector_lerp(v3))
 #include <generated/gen_lerp_v3.h>
 
 // TODO(Jesse): The heck do we use this for?
-poof(gen_vector_lerp(v4))
-#include <generated/gen_lerp_v4.h>
+// UPDATE(Jesse): Apparently nothing..
+/* poof(gen_vector_lerp(v4)) */
+/* #include <generated/gen_lerp_v4.h> */
 
 poof(gen_vector_area(v2))
 #include <generated/gen_vector_area_v2.h>

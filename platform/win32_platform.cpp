@@ -366,12 +366,32 @@ WindowMessageCallback(
     {
       switch ((int)wParam)
       {
-        BindKeyupToInput(0x57, W);
-        BindKeyupToInput(0x44, D);
-        BindKeyupToInput(0x53, S);
         BindKeyupToInput(0x41, A);
-        BindKeyupToInput(0x51, Q);
+        BindKeyupToInput(0x42, B);
+        BindKeyupToInput(0x43, C);
+        BindKeyupToInput(0x44, D);
         BindKeyupToInput(0x45, E);
+        BindKeyupToInput(0x46, F);
+        BindKeyupToInput(0x47, G);
+        BindKeyupToInput(0x48, H);
+        BindKeyupToInput(0x49, I);
+        BindKeyupToInput(0x4A, J);
+        BindKeyupToInput(0x4B, K);
+        BindKeyupToInput(0x4C, L);
+        BindKeyupToInput(0x4D, M);
+        BindKeyupToInput(0x4E, N);
+        BindKeyupToInput(0x4F, O);
+        BindKeyupToInput(0x50, P);
+        BindKeyupToInput(0x51, Q);
+        BindKeyupToInput(0x52, R);
+        BindKeyupToInput(0x53, S);
+        BindKeyupToInput(0x54, T);
+        BindKeyupToInput(0x55, U);
+        BindKeyupToInput(0x56, V);
+        BindKeyupToInput(0x57, W);
+        BindKeyupToInput(0x58, X);
+        BindKeyupToInput(0x59, Y);
+        BindKeyupToInput(0x5A, Z);
 
         BindKeyupToInput(VK_F12, F12);
         BindKeyupToInput(VK_F11, F11);
@@ -406,12 +426,32 @@ WindowMessageCallback(
           DestroyWindow(hWnd);
         } return 0;
 
-        BindKeydownToInput(0x57, W);
-        BindKeydownToInput(0x44, D);
-        BindKeydownToInput(0x53, S);
         BindKeydownToInput(0x41, A);
-        BindKeydownToInput(0x51, Q);
+        BindKeydownToInput(0x42, B);
+        BindKeydownToInput(0x43, C);
+        BindKeydownToInput(0x44, D);
         BindKeydownToInput(0x45, E);
+        BindKeydownToInput(0x46, F);
+        BindKeydownToInput(0x47, G);
+        BindKeydownToInput(0x48, H);
+        BindKeydownToInput(0x49, I);
+        BindKeydownToInput(0x4A, J);
+        BindKeydownToInput(0x4B, K);
+        BindKeydownToInput(0x4C, L);
+        BindKeydownToInput(0x4D, M);
+        BindKeydownToInput(0x4E, N);
+        BindKeydownToInput(0x4F, O);
+        BindKeydownToInput(0x50, P);
+        BindKeydownToInput(0x51, Q);
+        BindKeydownToInput(0x52, R);
+        BindKeydownToInput(0x53, S);
+        BindKeydownToInput(0x54, T);
+        BindKeydownToInput(0x55, U);
+        BindKeydownToInput(0x56, V);
+        BindKeydownToInput(0x57, W);
+        BindKeydownToInput(0x58, X);
+        BindKeydownToInput(0x59, Y);
+        BindKeydownToInput(0x5A, Z);
 
         BindKeydownToInput(VK_F12, F12);
         BindKeydownToInput(VK_F11, F11);

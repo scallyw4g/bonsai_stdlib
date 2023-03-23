@@ -203,13 +203,32 @@ ProcessOsMessages(os *Os, platform *Plat)
         u64 KeySym = XLookupKeysym(&Event.xkey, 0);
         switch (KeySym)
         {
-
-          BindKeyupToInput(XK_w, W);
-          BindKeyupToInput(XK_s, S);
           BindKeyupToInput(XK_a, A);
+          BindKeyupToInput(XK_b, B);
+          BindKeyupToInput(XK_c, C);
           BindKeyupToInput(XK_d, D);
-          BindKeyupToInput(XK_q, Q);
           BindKeyupToInput(XK_e, E);
+          BindKeyupToInput(XK_f, F);
+          BindKeyupToInput(XK_g, G);
+          BindKeyupToInput(XK_h, H);
+          BindKeyupToInput(XK_i, I);
+          BindKeyupToInput(XK_j, J);
+          BindKeyupToInput(XK_k, K);
+          BindKeyupToInput(XK_l, L);
+          BindKeyupToInput(XK_m, M);
+          BindKeyupToInput(XK_n, N);
+          BindKeyupToInput(XK_o, O);
+          BindKeyupToInput(XK_p, P);
+          BindKeyupToInput(XK_q, Q);
+          BindKeyupToInput(XK_r, R);
+          BindKeyupToInput(XK_s, S);
+          BindKeyupToInput(XK_t, T);
+          BindKeyupToInput(XK_u, U);
+          BindKeyupToInput(XK_v, V);
+          BindKeyupToInput(XK_w, W);
+          BindKeyupToInput(XK_x, X);
+          BindKeyupToInput(XK_y, Y);
+          BindKeyupToInput(XK_z, Z);
 
           BindKeyupToInput(XK_F1, F1);
           BindKeyupToInput(XK_F2, F2);
@@ -238,13 +257,32 @@ ProcessOsMessages(os *Os, platform *Plat)
         u64 KeySym = XLookupKeysym(&Event.xkey, 0);
         switch (KeySym)
         {
-
-          BindKeydownToInput(XK_w, W);
-          BindKeydownToInput(XK_s, S);
           BindKeydownToInput(XK_a, A);
+          BindKeydownToInput(XK_b, B);
+          BindKeydownToInput(XK_c, C);
           BindKeydownToInput(XK_d, D);
-          BindKeydownToInput(XK_q, Q);
           BindKeydownToInput(XK_e, E);
+          BindKeydownToInput(XK_f, F);
+          BindKeydownToInput(XK_g, G);
+          BindKeydownToInput(XK_h, H);
+          BindKeydownToInput(XK_i, I);
+          BindKeydownToInput(XK_j, J);
+          BindKeydownToInput(XK_k, K);
+          BindKeydownToInput(XK_l, L);
+          BindKeydownToInput(XK_m, M);
+          BindKeydownToInput(XK_n, N);
+          BindKeydownToInput(XK_o, O);
+          BindKeydownToInput(XK_p, P);
+          BindKeydownToInput(XK_q, Q);
+          BindKeydownToInput(XK_r, R);
+          BindKeydownToInput(XK_s, S);
+          BindKeydownToInput(XK_t, T);
+          BindKeydownToInput(XK_u, U);
+          BindKeydownToInput(XK_v, V);
+          BindKeydownToInput(XK_w, W);
+          BindKeydownToInput(XK_x, X);
+          BindKeydownToInput(XK_y, Y);
+          BindKeydownToInput(XK_z, Z);
 
           BindKeydownToInput(XK_F1, F1);
           BindKeydownToInput(XK_F2, F2);

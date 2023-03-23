@@ -38,6 +38,29 @@ poof(
 /* ) */
 
 poof(
+  func gen_hetero_vector_operator(type_datatype t1, type_datatype t2, type_poof_symbol Operator)
+  {
+    t1.member(0, (E)
+    {
+      E.is_array?
+      {
+        inline t1.name
+        operator(Operator)( t1.name P1, t2.name P2 )
+        {
+          t1.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] Operator E.type( P2.(E.name)[Index] ),
+          }
+          };
+          return Result;
+        }
+      }
+    })
+  }
+)
+
+poof(
   func gen_vector_infix_operator(type_datatype Type, type_poof_symbol Operator)
   {
     Type.member(0, (E)
@@ -93,7 +116,7 @@ poof(
       Type.name Result = {
       E.map_array(Index)
       {
-        .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
+        .(E.name)[Index] = Scalar Operator P1.(E.name)[Index],
       }
       };
       return Result;
@@ -108,7 +131,7 @@ poof(
     inline b32
     operator(Comparator)( Type.name P1, Type.name P2 )
     {
-      b32 Result = ( E.map_array(Index).sep( &&) { P1.(E.name)[Index] (Comparator) P2.(E.name)[Index] });
+      b32 Result = ( E.map_array(Index).sep(&&) { P1.(E.name)[Index] (Comparator) P2.(E.name)[Index] });
       return Result;
     }
   }
@@ -189,6 +212,25 @@ poof(
 )
 
 poof(
+  func gen_hetero_vector_operators(t1, t2)
+  {
+    t1.member(0, (m0)
+    {
+      m0.is_array?
+      {
+        gen_hetero_vector_operator(t1, t2, {+})
+        gen_hetero_vector_operator(t1, t2, {-})
+        gen_hetero_vector_operator(t1, t2, {*})
+        gen_hetero_vector_operator(t1, t2, {/})
+      }
+      {
+        poof_error { (t1.name).member(0) was not an array.  Got name((m0.name)) t1((m0.t1)). }
+      }
+    })
+  }
+)
+
+poof(
   func gen_vector_lerp(vec_t)
   {
     inline vec_t.name
@@ -208,7 +250,7 @@ poof(
 /*     vec_t.member_named(E) (base_array) -> { */
 /*       base_array.is_array? */
 /*       { */
-/*         return base_array */
+/*         return base_array.type */
 /*       } */
 /*       { */
 /*         poof_error { (Type.name).member(0) was not an array.  Got name((base_array.name)) type((base_array.type)). } */
@@ -220,7 +262,7 @@ poof(
 /* poof( */
 /*   func gen_vector_area(vec_t) */
 /*   { */
-/*     get_vec_base_type(vec_t) (vec_base_t) */
+/*     vec_t.get_vec_base_type (vec_base_t) */
 /*     { */
 /*       inline vec_base_t */
 /*       Area( vec_t.name Vec ) */
