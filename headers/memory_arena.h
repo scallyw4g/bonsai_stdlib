@@ -426,7 +426,7 @@ AllocateArena(umm RequestedBytes = Megabytes(1), b32 MemProtect = True)
   Result->At = Bytes;
 
   Result->End = Bytes + AllocationSize;
-  Result->NextBlockSize = AllocationSize * 2;
+  Result->NextBlockSize = Min(AllocationSize * 2, Gigabytes(1)); // Max out at 1gb blocks
 
 #if MEMPROTECT_OVERFLOW
   if (MemProtect)

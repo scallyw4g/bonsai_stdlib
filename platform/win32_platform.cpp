@@ -619,7 +619,7 @@ PlatformAllocateSize(umm AllocationSize)
 
   if (!Result)
   {
-    Error("Allocating %d bytes.", AllocationSize);
+    Error("Allocating %lu bytes.", AllocationSize);
   }
 
   return Result;
