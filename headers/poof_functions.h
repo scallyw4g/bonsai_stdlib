@@ -23,8 +23,12 @@ poof(
   }
 )
 
+  // TODO(Jesse)(poof): Implement .sep on .map_members
+  // TODO(Jesse)(poof): Alternatively, collapse all the map_whatever functions
+  // down to just .map, and then it's automagically dealt with.
+
 /* poof( */
-/*   func constructors(Type) */
+/*   func gen_constructor(Type) */
 /*   { */
 /*     link_internal Type.name */
 /*     Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.name.to_capital_case } ) */
