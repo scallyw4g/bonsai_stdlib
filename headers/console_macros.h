@@ -99,8 +99,8 @@ SetTerminalColorsOff()
 
 #define LogDirect(...) PrintToStdout(FormatCountedString_(TempDebugOutputBuffer, TempDebugOutputBufferSize, __VA_ARGS__))
 
-#define InvalidCase(C) case C: {Error("Invalid Case (" #C ") " __FILE__ ":" STRINGIZE(__LINE__));} break
-#define InvalidDefaultCase default: {Error("InvalidCase (default) " __FILE__ ":" STRINGIZE(__LINE__));} break
+#define InvalidCase(C) case C: {Error("Invalid case value (" #C ") " __FILE__ ":" STRINGIZE(__LINE__));} break
+#define InvalidDefaultCase default: {Error("Invalid case value (default) " __FILE__ ":" STRINGIZE(__LINE__));} break
 
 #define DEFAULT_FILE_IDENTIFIER  __FILE__ ":" STRINGIZE(__LINE__)
 

@@ -58,7 +58,7 @@ SafeTruncateToU16(umm Size)
 link_internal u8
 SafeTruncateU8(u32 Size)
 {
-  Assert(Size < u8_MAX);
+  Assert(Size <= u8_MAX);
   u8 Result = (u8)Size;
   return Result;
 }
@@ -66,7 +66,7 @@ SafeTruncateU8(u32 Size)
 link_internal u8
 SafeTruncateU8(s32 Size)
 {
-  Assert(Size < u8_MAX);
+  Assert(Size <= u8_MAX);
   u8 Result = (u8)Size;
   return Result;
 }
