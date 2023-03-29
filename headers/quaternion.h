@@ -48,11 +48,20 @@ GetTheta(v3 P1, v3 P2)
   r32 LP1 = Length(P1);
   r32 LP2 = Length(P2);
 
-  Assert(LP1 != 0.0f);
-  Assert(LP2 != 0.0f);
 
-  r32 cosTheta = ClampBilateral(DotP1P2 / (LP1*LP2));
-  r32 Theta = (r32)ArcCos( cosTheta );
+  r32 Theta = 0.f;
+  if (LP1 == 0.f || LP2 == 0.f)
+  {
+    // Fundamentally, if either point is 0, getting a theta mesurement between
+    // that and another point is undefined, so we just return 0
+  }
+  else
+  {
+    Assert(LP1 != 0.0f);
+    Assert(LP2 != 0.0f);
+    r32 cosTheta = ClampBilateral(DotP1P2 / (LP1*LP2));
+    Theta = (r32)ArcCos( cosTheta );
+  }
 
   return Theta;
 }
@@ -97,6 +106,18 @@ Rotate(line Line, Quaternion Rotation)
   Result.MinP = Rotate(Line.MinP, Rotation);
   Result.MaxP = Rotate(Line.MaxP, Rotation);
 
+  return Result;
+}
+
+inline Quaternion
+RandomRotation(random_series *Entropy)
+{
+  v3 RotP = {};
+  RotP.x = Sin(RandomUnilateral(Entropy));
+  RotP.y = Sin(RandomUnilateral(Entropy));
+  RotP.z = Sin(RandomUnilateral(Entropy));
+
+  Quaternion Result = RotatePoint(V3(0.f, -1.f, 0.f), RotP);
   return Result;
 }
 
