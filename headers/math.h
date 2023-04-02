@@ -69,6 +69,12 @@ ArcCos(r32 CosTheta)
   return Theta;
 }
 
+// TODO(Jesse)(crt): Get this going in here so we can one day (hopefully soon
+// after) remove the CRT.
+// https://github.com/ifduyue/musl/blob/master/src/math/cos.c
+// https://github.com/ifduyue/musl/blob/master/src/math/__cos.c
+// https://github.com/ifduyue/musl/blob/master/src/math/__rem_pio2.c
+// https://github.com/ifduyue/musl/blob/master/src/math/__rem_pio2_large.c
 inline r32
 Cos(r32 Theta)
 {
@@ -257,6 +263,13 @@ ClampBilateral(r32 F)
 {
   r32 Result = ClampBetween(-1.0f, F, 1.0f);
   return Result;
+}
+
+inline r32
+Clamp01(r32 Value)
+{
+  Value = ClampBetween(0.f, Value, 1.f);
+  return Value;
 }
 
 s32

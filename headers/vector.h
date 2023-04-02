@@ -628,6 +628,14 @@ Distance( v3 P1, v3 P2 )
 }
 
 inline r32
+DistanceSq( v3 P1, v3 P2 )
+{
+  r32 Result = LengthSq(P1-P2);
+  return Result;
+}
+
+
+inline r32
 Dot( v3 A, v3 B)
 {
   r32 Result;

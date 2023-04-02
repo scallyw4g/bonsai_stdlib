@@ -686,7 +686,15 @@ ToU64(counted_string S)
 link_internal s32
 ToS32(counted_string S)
 {
-  s32 Result = SafeTruncateToS32(ToUMM(ToU64(S)));
+  s32 Negative = 1;
+  if (S.Count && S.Start[0] == '-')
+  {
+    Negative = -1;
+    S.Count--;
+    S.Start++;
+  }
+
+  s32 Result = Negative*SafeTruncateToS32(ToUMM(ToU64(S)));
   return Result;
 }
 

@@ -89,6 +89,57 @@ struct aabb
   aabb() { Clear(this); }
 };
 
+
+struct sphere
+{
+  v3 P;
+  r32 Radius;
+};
+
+link_internal sphere
+Sphere(v3 P, r32 Radius)
+{
+  sphere Result = { .P = P, .Radius = Radius };
+  return Result;
+}
+
+v3 GetMax(aabb *Box)
+{
+  v3 Result = Box->Center + Box->Radius;
+  return Result;
+}
+
+v3 GetMin(aabb *Box)
+{
+  v3 Result = Box->Center - Box->Radius;
+  return Result;
+}
+
+link_internal v3
+ClipPToAABB(aabb *AABB, v3 P)
+{
+  v3 AABBMin = GetMin(AABB);
+  v3 AABBMax = GetMax(AABB);
+
+  v3 Result = {};
+  Result.x = Max(AABBMin.x, Min(P.x, AABBMax.x));
+  Result.y = Max(AABBMin.y, Min(P.y, AABBMax.y));
+  Result.z = Max(AABBMin.z, Min(P.z, AABBMax.z));
+  return Result;
+}
+
+link_internal b32
+Intersect(aabb *AABB, sphere *S)
+{
+  v3 ClippedSphereCenter = ClipPToAABB(AABB, S->P);
+  r32 DistSq = (ClippedSphereCenter.x - S->P.x)*(ClippedSphereCenter.x - S->P.x) +
+               (ClippedSphereCenter.y - S->P.y)*(ClippedSphereCenter.y - S->P.y) +
+               (ClippedSphereCenter.z - S->P.z)*(ClippedSphereCenter.z - S->P.z);
+
+  b32 Result = DistSq < Square(S->Radius);
+  return Result;
+}
+
 inline b32
 Intersect(aabb *First, aabb *Second)
 {
@@ -140,18 +191,6 @@ AABBMinDim(v3 Min, v3 Dim)
   v3 Radius = Dim/2.f;
   v3 Center = Min + Radius;
   aabb Result(Center, Radius);
-  return Result;
-}
-
-v3 GetMax(aabb *Box)
-{
-  v3 Result = Box->Center + Box->Radius;
-  return Result;
-}
-
-v3 GetMin(aabb *Box)
-{
-  v3 Result = Box->Center - Box->Radius;
   return Result;
 }
 

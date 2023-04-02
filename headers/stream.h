@@ -1,10 +1,3 @@
-struct u32_stream
-{
-  u32* Start;
-  u32* At;
-  u32* End;
-};
-
 struct u8_stream
 {
   u8* Start;
@@ -319,17 +312,6 @@ u8_stream
 U8_Stream(u8* Start, u8* End)
 {
   u8_stream Result = {
-    Start,
-    Start,
-    End
-  };
-  return Result;
-}
-
-u32_stream
-U32_Stream(u32* Start, u32* End)
-{
-  u32_stream Result = {
     Start,
     Start,
     End
