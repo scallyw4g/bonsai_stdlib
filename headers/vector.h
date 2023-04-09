@@ -533,6 +533,24 @@ operator*(v3 A, v3 B)
 }
 #endif
 
+v3 operator+(v3 A, v2 B)
+{
+  v3 Result = {
+    .x = A.x + B.x,
+    .y = A.y + B.y,
+    .z = A.z,
+  };
+  return Result;
+}
+
+v3 &
+operator+=(v3 &A, v2 B)
+{
+  A = A + B;
+  return A;
+}
+
+
 v4
 operator*(v4 A, s32 B)
 {
