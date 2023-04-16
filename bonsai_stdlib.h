@@ -8,6 +8,7 @@
 #include <bonsai_stdlib/headers/console_macros.h>
 #include <bonsai_stdlib/headers/globals.h>
 #include <bonsai_stdlib/headers/platform.h>
+#include <bonsai_stdlib/headers/atomic.h>
 #include <bonsai_stdlib/headers/thread.h>
 #include <bonsai_stdlib/headers/math.h>
 #include <bonsai_stdlib/headers/file.h>
@@ -16,8 +17,8 @@
 #include <bonsai_stdlib/headers/random.h>
 #include <bonsai_stdlib/headers/perlin.h>
 #include <bonsai_stdlib/headers/input.h>
-#include <bonsai_stdlib/headers/work_queue.h>
 #include <bonsai_stdlib/headers/mutex.h>
+#include <bonsai_stdlib/headers/work_queue.h>
 #include <bonsai_stdlib/headers/memory_arena.h>
 #include <bonsai_stdlib/headers/gl.h>
 #include <bonsai_stdlib/headers/platform_struct.h>
@@ -111,8 +112,11 @@ struct untextured_3d_geometry_buffer
   v4 *Colors;
   v3 *Normals;
 
+  // TODO(Jesse): The fuck are these doing as 32bit?!
   u32 End;
   u32 At;
+
+  u64 Timestamp;
 };
 
 struct gpu_mapped_element_buffer
@@ -138,6 +142,6 @@ struct render_entity_to_texture_group
   shader GameGeoShader;
   m4 ViewProjection;
   gpu_mapped_element_buffer GameGeo;
-  shader DebugGameGeoTextureShader;
+  /* shader DebugGameGeoTextureShader; */
 };
 

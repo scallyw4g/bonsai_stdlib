@@ -1,3 +1,446 @@
+// TODO(Jesse): This would be better if we could specifically target the anonymous union
+// instead of just doing it for every union we find in the type. Probably it'll never
+// be a problem, but probably it will be eventually ..
+poof(
+  func d_union_constructors(DUnionType)
+  {
+    DUnionType.map_members(M) {
+      M.is_union? {
+        M.map_members (ConstructorArgT)
+        {
+          link_internal DUnionType.name
+          DUnionType.name.to_capital_case((ConstructorArgT.name) A)
+          {
+            DUnionType.name Reuslt = {
+              .Type = type_(ConstructorArgT.name),
+              .(ConstructorArgT.name) = A
+            };
+            return Reuslt;
+          }
+        }
+      }
+    }
+  }
+)
+
+  // TODO(Jesse)(poof): Implement .sep on .map_members
+  // TODO(Jesse)(poof): Alternatively, collapse all the map_whatever functions
+  // down to just .map, and then it's automagically dealt with.
+
+/* poof( */
+/*   func gen_constructor(Type) */
+/*   { */
+/*     link_internal Type.name */
+/*     Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.name.to_capital_case } ) */
+/*     { */
+/*       Type.name Reuslt = { */
+/*         Type.map_members(M).sep(,) { .M.name = M.name.to_capital_case } */
+/*       }; */
+/*       return Reuslt; */
+/*     } */
+/*   } */
+/* ) */
+
+poof(
+  func gen_hetero_vector_operator(type_datatype t1, type_datatype t2, type_poof_symbol Operator)
+  {
+    t1.member(0, (E)
+    {
+      E.is_array?
+      {
+        inline t1.name
+        operator(Operator)( t1.name P1, t2.name P2 )
+        {
+          t1.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] Operator E.type( P2.(E.name)[Index] ),
+          }
+          };
+          return Result;
+        }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_vector_infix_operator(type_datatype Type, type_poof_symbol Operator)
+  {
+    Type.member(0, (E)
+    {
+      E.is_array?
+      {
+        inline Type.name
+        operator(Operator)( Type.name P1, Type.name P2 )
+        {
+          Type.name Result = {
+          E.map_array(Index)
+          {
+            .(E.name)[Index] = P1.(E.name)[Index] Operator P2.(E.name)[Index],
+          }
+          };
+          return Result;
+        }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_vector_infix_operators(type_datatype Type, type_datatype E, type_poof_symbol Operator)
+  {
+    inline Type.name
+    operator(Operator)( Type.name P1, Type.name P2 )
+    {
+      Type.name Result = {
+      E.map_array(Index)
+      {
+        .(E.name)[Index] = P1.(E.name)[Index] Operator P2.(E.name)[Index],
+      }
+      };
+      return Result;
+    }
+
+    inline Type.name
+    operator(Operator)( Type.name P1, E.type Scalar )
+    {
+      Type.name Result = {
+      E.map_array(Index)
+      {
+        .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
+      }
+      };
+      return Result;
+    }
+
+    inline Type.name
+    operator(Operator)( E.type Scalar, Type.name P1 )
+    {
+      Type.name Result = {
+      E.map_array(Index)
+      {
+        .(E.name)[Index] = Scalar Operator P1.(E.name)[Index],
+      }
+      };
+      return Result;
+    }
+
+  }
+)
+
+poof(
+  func gen_vector_comparator(type_datatype Type, type_datatype E, type_poof_symbol Comparator)
+  {
+    inline b32
+    operator(Comparator)( Type.name P1, Type.name P2 )
+    {
+      b32 Result = ( E.map_array(Index).sep(&&) { P1.(E.name)[Index] (Comparator) P2.(E.name)[Index] });
+      return Result;
+    }
+  }
+)
+
+poof(
+  func gen_vector_mut_infix_operators(type_datatype Type, type_datatype E, type_poof_symbol Operator)
+  {
+    inline Type.name &
+    operator(Operator)( Type.name &P1, Type.name P2 )
+    {
+      E.map_array(Index) {
+        P1.(E.name)[Index] (Operator) P2.(E.name)[Index];
+      }
+      return P1;
+    }
+
+    inline Type.name &
+    operator(Operator)( Type.name &P1, E.type Scalar )
+    {
+      E.map_array(Index) {
+        P1.(E.name)[Index] (Operator) Scalar;
+      }
+      return P1;
+    }
+  }
+)
+
+poof(
+  func gen_vector_operators(Type)
+  {
+    Type.member(0, (E)
+    {
+      E.is_array?
+      {
+        gen_vector_comparator(Type, E, {==})
+
+        // NOTE(Jesse): Can't gen != because the condition welding it together
+        // is not &&, it's ||
+        //
+        /* gen_vector_comparator(Type, {!=}) */
+        inline b32
+        operator!=( Type.name P1, Type.name P2 )
+        {
+          b32 Result = !(P1 == P2);
+          return Result;
+        }
+
+        gen_vector_comparator(Type, E, {<})
+
+        gen_vector_comparator(Type, E, {<=})
+
+        gen_vector_comparator(Type, E, {>})
+
+        gen_vector_comparator(Type, E, {>=})
+
+        gen_vector_infix_operators(Type, E, {+})
+
+        gen_vector_infix_operators(Type, E, {-})
+
+        gen_vector_infix_operators(Type, E, {*})
+
+        gen_vector_infix_operators(Type, E, {/})
+
+        gen_vector_mut_infix_operators(Type, E, {+=})
+
+        gen_vector_mut_infix_operators(Type, E, {-=})
+
+        gen_vector_mut_infix_operators(Type, E, {*=})
+
+        gen_vector_mut_infix_operators(Type, E, {/=})
+      }
+      {
+        poof_error { (Type.name).member(0) was not an array.  Got name((E.name)) type((E.type)). }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_hetero_vector_operators(t1, t2)
+  {
+    t1.member(0, (m0)
+    {
+      m0.is_array?
+      {
+        gen_hetero_vector_operator(t1, t2, {+})
+        gen_hetero_vector_operator(t1, t2, {-})
+        gen_hetero_vector_operator(t1, t2, {*})
+        gen_hetero_vector_operator(t1, t2, {/})
+      }
+      {
+        poof_error { (t1.name).member(0) was not an array.  Got name((m0.name)) t1((m0.t1)). }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_vector_lerp(vec_t)
+  {
+    inline vec_t.name
+    Lerp(r32 t, vec_t.name P1, vec_t.name P2)
+    {
+      Assert(t<=1);
+      Assert(t>=0);
+      vec_t.name Result = (1.0f-t)*P1 + t*P2;
+      return Result;
+    }
+  }
+)
+
+/* poof( */
+/*   data_func get_vec_base_type(vec_t) */
+/*   { */
+/*     vec_t.member_named(E) (base_array) -> { */
+/*       base_array.is_array? */
+/*       { */
+/*         return base_array.type */
+/*       } */
+/*       { */
+/*         poof_error { (Type.name).member(0) was not an array.  Got name((base_array.name)) type((base_array.type)). } */
+/*       } */
+/*     } */
+/*   } */
+/* ) */
+
+/* poof( */
+/*   func gen_vector_area(vec_t) */
+/*   { */
+/*     vec_t.get_vec_base_type (vec_base_t) */
+/*     { */
+/*       inline vec_base_t */
+/*       Area( vec_t.name Vec ) */
+/*       { */
+/*         Assert(A.x > 0); */
+/*         Assert(A.y > 0); */
+/*         vec_base_t Result = A.x * A.y; */
+/*         return Result; */
+/*       } */
+/*     } */
+/*   } */
+/* ) */
+
+poof(
+  func gen_vector_area(vec_t)
+  {
+    vec_t.member(0, (base_array)
+    {
+      base_array.is_array?
+      {
+        inline base_array.type
+        Area( vec_t.name Vec )
+        {
+          Assert(Vec.x > 0);
+          Assert(Vec.y > 0);
+          base_array.type Result = base_array.map_array(Index).sep(*) { Vec.(base_array.name)[Index] };
+          return Result;
+        }
+      }
+      {
+        poof_error { (Type.name).member(0) was not an array.  Got name((base_array.name)) type((base_array.type)). }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_common_vector(vec_t)
+  {
+    vec_t.member(0, (base_array)
+    {
+      base_array.is_array?
+      {
+        inline base_array.type
+        LengthSq( vec_t.name Vec )
+        {
+          base_array.type Result = base_array.map_array(Index).sep(+) { Vec.(base_array.name)[Index]*Vec.(base_array.name)[Index] };
+          return Result;
+        }
+
+        inline r32
+        Length( vec_t.name Vec )
+        {
+          r32 Result = (r32)sqrt(LengthSq(Vec));
+          return Result;
+        }
+
+        inline vec_t.name
+        Max( vec_t.name A, vec_t.name B )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = Max( A.(base_array.name)[Index], B.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+        inline vec_t.name
+        Min( vec_t.name A, vec_t.name B )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = Min( A.(base_array.name)[Index], B.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+        inline vec_t.name
+        Abs( vec_t.name Vec )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = ((base_array.type))Abs( Vec.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+
+        inline vec_t.name
+        GetSign( vec_t.name Vec )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = GetSign( Vec.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+
+        inline vec_t.name
+        Bilateral( vec_t.name Vec )
+        {
+          vec_t.name Result;
+          base_array.map_array(Index)
+          {
+            Result.(base_array.name)[Index] = Bilateral( Vec.(base_array.name)[Index] );
+          }
+          return Result;
+        }
+
+        inline vec_t.name
+        ClampNegative( vec_t.name V )
+        {
+          vec_t.name Result = V;
+          base_array.map_array(Index)
+          {
+            if ( V.base_array.name[Index] > base_array.type(0) ) Result.base_array.name[Index] = base_array.type(0);
+          }
+          return Result;
+        }
+
+        inline vec_t.name
+        ClampPositive( vec_t.name V )
+        {
+          vec_t.name Result = V;
+          base_array.map_array(Index)
+          {
+            if ( V.base_array.name[Index] < base_array.type(0) ) Result.base_array.name[Index] = base_array.type(0);
+          }
+          return Result;
+        }
+
+
+      }
+      {
+        poof_error { (Type.name).member(0) was not an array.  Got name((base_array.name)) type((base_array.type)). }
+      }
+    })
+  }
+)
+
+poof(
+  func gen_vector_normalize(vec_t)
+  {
+    vec_t.member(0, (base_array)
+    {
+      base_array.is_array?
+      {
+        inline vec_t.name
+        Normalize( vec_t.name Vec, r32 Length)
+        {
+          if (Length == 0.f) return {};
+          vec_t.name Result = Vec/Length;
+          return Result;
+        }
+
+        inline vec_t.name
+        Normalize( vec_t.name Vec )
+        {
+          vec_t.name Result = Normalize(Vec, Length(Vec));
+          return Result;
+        }
+      }
+      {
+        poof_error { (Type.name).member(0) was not an array.  Got name((base_array.name)) type((base_array.type)). }
+      }
+    })
+  }
+)
+
 poof(
   func index_of(Type)
   {
@@ -44,6 +487,7 @@ poof(
 
 /* poof( tuple([counted_string, counted_string]) ) */
 
+  // TODO(Jesse): Replace this with stream?  Probably
 poof(
 
   func buffer_builder(Type)
@@ -267,6 +711,7 @@ poof(
     struct (Type.name)_cursor
     {
       Type.name *Start;
+      // TODO(Jesse)(immediate): For the love of fucksakes change these to indices
       Type.name *At;
       Type.name *End;
     };
@@ -274,7 +719,7 @@ poof(
     link_internal (Type.name)_cursor
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
-      Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name)), 1, 0);
+      Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name))*ElementCount, 1, 0);
       (Type.name)_cursor Result = {
         .Start = Start,
         .End = Start+ElementCount,
@@ -365,6 +810,8 @@ poof(
       Assert(NextChunk->Next == 0);
       Assert(Stream->LastChunk->Next == 0);
 
+      Stream->ChunkCount += 1;
+
       Type.name *Result = &NextChunk->Element;
       return Result;
     }
@@ -379,6 +826,7 @@ poof(
       memory_arena *Memory;
       (Type.name)_stream_chunk* FirstChunk;
       (Type.name)_stream_chunk* LastChunk;
+      umm ChunkCount;
     };
 
     link_internal void
@@ -446,6 +894,36 @@ poof(
     }
   }
 )
+
+poof(
+  func generate_stream_compact(InputTypeDef)
+  {
+    link_internal (InputTypeDef.name)_buffer
+    Compact((InputTypeDef.name)_stream *Stream, memory_arena *PermMemory)
+    {
+      (InputTypeDef.name)_buffer Result = {};
+      if (Stream->ChunkCount)
+      {
+        Result = (InputTypeDef.name.to_capital_case)Buffer(Stream->ChunkCount, PermMemory);
+        /* DebugLine("compact %u", Result.Count); */
+
+        u32 Index = 0;
+        ITERATE_OVER(Stream)
+        {
+          (InputTypeDef.name) *Spot = GET_ELEMENT(Iter);
+          Result.Start[Index] = *Spot;
+
+          ++Index;
+        }
+
+        Deallocate(Stream);
+      }
+
+      return Result;
+    }
+  }
+)
+
 
 poof(
   func generate_stream(Type)

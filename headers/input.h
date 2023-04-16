@@ -31,29 +31,58 @@ struct input
   input_event RMB;
   input_event LMB;
   input_event MMB;
+
+  input_event Q;
   input_event W;
+  input_event E;
+  input_event R;
+  input_event T;
+  input_event Y;
+  input_event U;
+  input_event I;
+  input_event O;
+  input_event P;
+
   input_event A;
   input_event S;
   input_event D;
+  input_event F;
+  input_event G;
+  input_event H;
+  input_event J;
+  input_event K;
+  input_event L;
 
-  input_event Q;
-  input_event E;
+  input_event Z;
+  input_event X;
+  input_event C;
+  input_event V;
+  input_event B;
+  input_event N;
+  input_event M;
 
   s32 MouseWheelDelta;
 };
 
 struct hotkeys
 {
+  b32 Debug_ToggleMenu;
+  b32 Debug_ToggleProfiling;
+
+  b32 Debug_TriangulateIncrement;
+  b32 Debug_TriangulateDecrement;
+
+  b32 Debug_PickChunks_All;
+  b32 Debug_PickChunks_Terrain;
+  b32 Debug_PickChunks_Voxel;
+
+  b32 Debug_Action_ComputeStandingSpot;
+
   b32 Debug_RedrawEveryPush;
   b32 Debug_ToggleLoopedGamePlayback;
   b32 Debug_ToggleTriggeredRuntimeBreak;
+
   b32 Debug_Pause;
-  b32 Debug_ToggleProfiling;
-  b32 Debug_ToggleMenu;
-  b32 Debug_TriangulateIncrement;
-  b32 Debug_TriangulateDecrement;
-  b32 Debug_PickChunks_All;
-  b32 Debug_PickChunks_Terrain;
 
   b32 Left;
   b32 Right;
@@ -64,7 +93,6 @@ struct hotkeys
   b32 Player_Proton;
   b32 Player_Jump;
   b32 Player_Spawn;
-
 };
 
 inline v3
@@ -107,6 +135,9 @@ BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
   // NOTE(Jesse): Intentionally 'Pressed'
   if (Input->F5.Pressed) { Hotkeys->Debug_PickChunks_All     = True; }
   if (Input->F6.Pressed) { Hotkeys->Debug_PickChunks_Terrain = True; }
+  if (Input->F7.Pressed) { Hotkeys->Debug_PickChunks_Voxel   = True; }
+
+  if (Input->F9.Pressed) { Hotkeys->Debug_Action_ComputeStandingSpot = True; }
 
   /* Hotkeys->Debug_TriangulateDecrement = Input->F5.Clicked; */
   /* Hotkeys->Debug_TriangulateIncrement = Input->F6.Clicked; */
@@ -138,7 +169,10 @@ poof(
   {
     InputDef.map_members (Member)
     {
-      Input->(Member.name).Clicked = False;
+      Member.is_type(input_event)?
+      {
+        Input->(Member.name).Clicked = False;
+      }
     }
   }
 )
@@ -150,7 +184,7 @@ poof(
 link_internal void
 ResetInputForFrameStart(input *Input, hotkeys *Hotkeys)
 {
-  Input->MouseWheelDelta = 0;
+  /* Input->MouseWheelDelta = 0; */
   ClearClickedFlags(Input);
   Clear(Hotkeys);
 }

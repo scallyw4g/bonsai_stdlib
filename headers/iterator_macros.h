@@ -1,4 +1,8 @@
-#define SafeAccess(T, Ptr) (&(Ptr)->T); Assert((Ptr)->Type == type_##T)
+
+#define TryCast(T, Ptr) ((Ptr)->Type == type_##T ? (&(Ptr)->T) : 0)
+#define SafeCast(T, Ptr) (T*)(&(Ptr)->T); Assert((Ptr)->Type == type_##T)
+
+#define SafeAccess(T, Ptr) SafeCast(T, Ptr)
 #define SafeAccessPtr(T, Ptr) ((Ptr)->T); Assert((Ptr)->Type == type_##T)
 
 #define ITERATE_OVER_AS(prefix, value_ptr)        \

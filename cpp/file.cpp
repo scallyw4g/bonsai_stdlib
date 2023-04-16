@@ -69,6 +69,7 @@ DeleteDirectory(counted_string Filepath)
   b32 Result = DeleteDirectory(zPath);
   return Result;
 }
+
 link_internal b32
 TryDeleteDirectory(const char* zPath)
 {
@@ -170,6 +171,12 @@ OpenFile(const char* FilePath, const char* Permissions)
   native_file Result = {
     .Path = CS(FilePath)
   };
+
+  counted_string PermStr = CS(Permissions);
+  if (!Contains(PermStr, CSz("b")))
+  {
+    Error("Files must be opened in binary mode.");
+  }
 
   if (Permissions == 0)
   {
@@ -316,6 +323,7 @@ ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest)
   Assert(BytesToRead);
   u64 BytesRead = fread(Dest, 1, BytesToRead, Src);
   b32 Result = BytesRead == BytesToRead;
+  Assert(Result);
   return Result;
 }
 
@@ -326,12 +334,18 @@ ReadBytesIntoBuffer(native_file *Src, umm BytesToRead, u8* Dest)
   return Result;
 }
 
+link_internal void
+Rewind(native_file *File)
+{
+  rewind(File->Handle);
+}
+
 link_internal b32
 FileExists(const char* Path)
 {
   b32 Result = False;
 
-  native_file File = OpenFile(Path, "r");
+  native_file File = OpenFile(Path, "r+b");
   if (File.Handle)
   {
     Result = True;

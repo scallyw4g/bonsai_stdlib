@@ -63,53 +63,66 @@ RandomBilateral(random_series *Entropy)
   return Result;
 }
 
-// TODO(Jesse)(metaprogramming): Metaprogram these functions
-link_internal r32
-MapValueToRange(r32 LowestPossibleValue, r32 Value, r32 HighestPossibleValue)
-{
-  r32 Range = HighestPossibleValue - LowestPossibleValue;
-  r32 Result = (Value*Range) + LowestPossibleValue;
-  Assert(Result >= LowestPossibleValue);
-  Assert(Result <= HighestPossibleValue);
-  return Result;
-}
+poof(
+  func gen_map_value_to_range(t)
+  {
+    link_internal t.name
+    MapValueToRange( t.name LowestPossibleValue, r32 Value, t.name HighestPossibleValue)
+    {
+      r32 Range = r32(HighestPossibleValue - LowestPossibleValue);
+      t.name Result = t.name(Value*Range) + LowestPossibleValue;
+      Assert(Result >= LowestPossibleValue);
+      Assert(Result <= HighestPossibleValue);
+      return Result;
+    }
+  }
+)
 
-link_internal u32
-MapValueToRange(u32 LowestPossibleValue, r32 Value, u32 HighestPossibleValue)
-{
-  u32 Range = HighestPossibleValue - LowestPossibleValue;
-  u32 Result = (u32)(Value*(r32)Range) + LowestPossibleValue;
-  Assert(Result >= LowestPossibleValue);
-  Assert(Result <= HighestPossibleValue);
-  return Result;
-}
 
-inline r32
-RandomBetween(r32 LowestPossibleValue, random_series* Entropy, r32 HighestPossibleValue)
-{
-  Assert(LowestPossibleValue <= HighestPossibleValue);
-  r32 Value = RandomUnilateral(Entropy);
-  r32 Result = MapValueToRange(LowestPossibleValue, Value, HighestPossibleValue);
-  Assert(Result >= LowestPossibleValue);
-  Assert(Result <= HighestPossibleValue);
-  return Result;
-}
+// TODO(Jesse)(immediate, easy, bug, metaprogramming): Don't emit spaces in these filenames LOL
+poof(gen_map_value_to_range(r32))
+#include <generated/gen_map_value_to_range_float .h>
 
-inline u32
-RandomBetween(u32 LowestPossibleValue, random_series* Entropy, u32 HighestPossibleValue)
-{
-  Assert(LowestPossibleValue <= HighestPossibleValue);
-  r32 Value = RandomUnilateral(Entropy);
-  u32 Result = MapValueToRange(LowestPossibleValue, Value, HighestPossibleValue);
-  Assert(Result >= LowestPossibleValue);
-  Assert(Result <= HighestPossibleValue);
-  return Result;
-}
+poof(gen_map_value_to_range(u32))
+#include <generated/gen_map_value_to_range_unsigned int .h>
+
+poof(
+  func gen_random_between(t)
+  {
+    link_internal t.name
+    RandomBetween( t.name LowestPossibleValue, random_series *Entropy, t.name HighestPossibleValue)
+    {
+      Assert(LowestPossibleValue <= HighestPossibleValue);
+      r32 Value = RandomUnilateral(Entropy);
+      t.name Result = MapValueToRange(LowestPossibleValue, Value, HighestPossibleValue);
+      Assert(Result >= LowestPossibleValue);
+      Assert(Result <= HighestPossibleValue);
+      return Result;
+    }
+  }
+)
+
+poof(gen_random_between(r32))
+#include <generated/gen_random_between_float .h>
+
+
+poof(gen_random_between(u32))
+#include <generated/gen_random_between_unsigned int .h>
+
 
 inline b32
 RandomChoice(random_series* Entropy)
 {
   b32 Result = RandomBilateral(Entropy) > 0.0f;
+  return Result;
+}
+
+inline v3
+RandomV3Bilateral(random_series *Entropy)
+{
+  v3 Result =  {{ RandomBilateral(Entropy),
+                  RandomBilateral(Entropy),
+                  RandomBilateral(Entropy) }};
   return Result;
 }
 

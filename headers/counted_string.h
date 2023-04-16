@@ -205,6 +205,7 @@ Dirname(counted_string FilePath)
 
   return Result;
 }
+
 link_internal counted_string
 Basename(counted_string FilePath)
 {
@@ -356,6 +357,13 @@ Contains(const char *S1, const char *S2)
 }
 
 link_internal b32
+IsWhitespace(char Type)
+{
+  b32 Result = Type == '\n' || Type == '\r' || Type == ' ' || Type == '\t';
+  return Result;
+}
+
+link_internal b32
 IsNBSP(char Type)
 {
   b32 Result = Type == ' ' || Type == '\t';
@@ -372,6 +380,46 @@ IsNBSP(counted_string *S)
   {
     Result &= IsNBSP(S->Start[CharIndex]);
   }
+  return Result;
+}
+
+link_internal b32
+TrimTrailingNewline(counted_string *S)
+{
+  b32 Result = False;
+  if (LastChar(S) == '\n')
+  {
+    Result = True;
+    Assert(S->Count);
+    S->Count -= 1;
+  }
+  return Result;
+}
+
+// TODO(Jesse): Not sure if returning a 0 here is appropriate, but it'll do for now
+link_internal char
+LastNBSPChar(counted_string *S)
+{
+  s32 Index = (s32)Desaturate(S->Count, 1);
+  if (S)
+  {
+    while (Index >= 0)
+    {
+      if ( IsNBSP(S->Start[Index]) )
+      {
+        --Index;
+      }
+      else
+      {
+        break;
+      }
+    }
+  }
+
+  char Result = 0;
+  if (Index >= 0)
+    Result = S->Start[Index];
+
   return Result;
 }
 
@@ -398,49 +446,49 @@ link_internal counted_string
 TrimTrailingNBSP(counted_string String)
 {
   counted_string Result = String;
-  while (Result.Count)
+  TrimTrailingNBSP(&Result);
+  return Result;
+}
+
+link_internal void
+TrimLeadingWhitespace(cs *Str)
+{
+  while (Str->Count)
   {
-    if ( IsNBSP(Result.Start[Result.Count-1]) )
+    if ( IsWhitespace(Str->Start[0]) )
     {
-      --Result.Count;
+      --Str->Count;
+      ++Str->Start;
     }
     else
     {
       break;
     }
   }
-  return Result;
+}
+
+link_internal void
+TrimTrailingWhitespace(cs *Str)
+{
+  while (Str->Count)
+  {
+    if ( IsWhitespace(Str->Start[Str->Count-1]) )
+    {
+      --Str->Count;
+    }
+    else
+    {
+      break;
+    }
+  }
 }
 
 link_internal counted_string
 Trim(counted_string String)
 {
   counted_string Result = String;
-  while (Result.Count)
-  {
-    if (Result.Start[0] == ' ' || Result.Start[0] == '\n' || Result.Start[0] == '\r')
-    {
-      --Result.Count;
-      ++Result.Start;
-    }
-    else
-    {
-      break;
-    }
-  }
-
-  while (Result.Count)
-  {
-    if (Result.Start[Result.Count-1] == ' ' || Result.Start[Result.Count-1] == '\n' || Result.Start[Result.Count-1] == '\r')
-    {
-      --Result.Count;
-    }
-    else
-    {
-      break;
-    }
-  }
-
+  TrimLeadingWhitespace(&Result);
+  TrimTrailingWhitespace(&Result);
   return Result;
 }
 
@@ -638,7 +686,15 @@ ToU64(counted_string S)
 link_internal s32
 ToS32(counted_string S)
 {
-  s32 Result = SafeTruncateToS32(ToUMM(ToU64(S)));
+  s32 Negative = 1;
+  if (S.Count && S.Start[0] == '-')
+  {
+    Negative = -1;
+    S.Count--;
+    S.Start++;
+  }
+
+  s32 Result = Negative*SafeTruncateToS32(ToUMM(ToU64(S)));
   return Result;
 }
 

@@ -1,11 +1,29 @@
 // TODO(Jesse): Remove this??  Probably worth it.
 #include <math.h>
 
+link_internal umm
+SafeDecrement(umm *N)
+{
+  umm Result = *N;
+  if (Result > 0)
+  {
+    Result -= 1;
+  }
+  return Result;
+}
+
 inline u64
 SaturatingAdd(u64 N)
 {
   if (N < u64_MAX) { N = N+1; }
   return N;
+}
+
+inline u64
+Desaturate(u64 Target, u64 SubValue)
+{
+  if (Target >= SubValue ) { Target = Target-SubValue; } else { Target = 0; }
+  return Target;
 }
 
 inline u64
@@ -51,6 +69,12 @@ ArcCos(r32 CosTheta)
   return Theta;
 }
 
+// TODO(Jesse)(crt): Get this going in here so we can one day (hopefully soon
+// after) remove the CRT.
+// https://github.com/ifduyue/musl/blob/master/src/math/cos.c
+// https://github.com/ifduyue/musl/blob/master/src/math/__cos.c
+// https://github.com/ifduyue/musl/blob/master/src/math/__rem_pio2.c
+// https://github.com/ifduyue/musl/blob/master/src/math/__rem_pio2_large.c
 inline r32
 Cos(r32 Theta)
 {
@@ -184,6 +208,14 @@ Abs(s32 Int)
   return Result;
 }
 
+inline r64
+Abs(r64 F)
+{
+  r64 Result = F;
+  Result = Result < 0 ? -Result : Result;
+  return Result;
+}
+
 inline r32
 Abs(r32 F)
 {
@@ -231,6 +263,13 @@ ClampBilateral(r32 F)
 {
   r32 Result = ClampBetween(-1.0f, F, 1.0f);
   return Result;
+}
+
+inline r32
+Clamp01(r32 Value)
+{
+  Value = ClampBetween(0.f, Value, 1.f);
+  return Value;
 }
 
 s32

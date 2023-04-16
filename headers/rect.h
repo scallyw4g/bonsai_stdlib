@@ -1,4 +1,4 @@
- 
+
 struct rect2
 {
   v2 Min;
@@ -44,6 +44,31 @@ TopRight(rect2 Rect)
   return Result;
 }
 
+struct rect3i
+{
+  v3i Min;
+  v3i Max;
+};
+
+/* link_internal rect3i */
+/* Rect3i(v3i Min, v3i Max) */
+/* { */
+/* } */
+
+link_internal rect3i
+Rect3iMinDim(v3i Min, v3i Dim)
+{
+  rect3i Result = {Min, Min+Dim};
+  return Result;
+}
+
+link_internal rect3i
+Rect3iMinMax(v3i Min, v3i Max)
+{
+  rect3i Result = {Min, Max};
+  return Result;
+}
+
 struct aabb
 {
   v3 Center;
@@ -64,6 +89,57 @@ struct aabb
   aabb() { Clear(this); }
 };
 
+
+struct sphere
+{
+  v3 P;
+  r32 Radius;
+};
+
+link_internal sphere
+Sphere(v3 P, r32 Radius)
+{
+  sphere Result = { .P = P, .Radius = Radius };
+  return Result;
+}
+
+v3 GetMax(aabb *Box)
+{
+  v3 Result = Box->Center + Box->Radius;
+  return Result;
+}
+
+v3 GetMin(aabb *Box)
+{
+  v3 Result = Box->Center - Box->Radius;
+  return Result;
+}
+
+link_internal v3
+ClipPToAABB(aabb *AABB, v3 P)
+{
+  v3 AABBMin = GetMin(AABB);
+  v3 AABBMax = GetMax(AABB);
+
+  v3 Result = {};
+  Result.x = Max(AABBMin.x, Min(P.x, AABBMax.x));
+  Result.y = Max(AABBMin.y, Min(P.y, AABBMax.y));
+  Result.z = Max(AABBMin.z, Min(P.z, AABBMax.z));
+  return Result;
+}
+
+link_internal b32
+Intersect(aabb *AABB, sphere *S)
+{
+  v3 ClippedSphereCenter = ClipPToAABB(AABB, S->P);
+  r32 DistSq = (ClippedSphereCenter.x - S->P.x)*(ClippedSphereCenter.x - S->P.x) +
+               (ClippedSphereCenter.y - S->P.y)*(ClippedSphereCenter.y - S->P.y) +
+               (ClippedSphereCenter.z - S->P.z)*(ClippedSphereCenter.z - S->P.z);
+
+  b32 Result = DistSq < Square(S->Radius);
+  return Result;
+}
+
 inline b32
 Intersect(aabb *First, aabb *Second)
 {
@@ -73,6 +149,15 @@ Intersect(aabb *First, aabb *Second)
   Result &= (Abs(First->Center.y - Second->Center.y) < (First->Radius.y + Second->Radius.y));
   Result &= (Abs(First->Center.z - Second->Center.z) < (First->Radius.z + Second->Radius.z));
 
+  return Result;
+}
+
+link_internal aabb
+AABBMinMax(v3i Min, v3i Max)
+{
+  v3 Radius = V3(Max - Min)/2.0f;
+  v3 Center = V3(Min + Radius);
+  aabb Result(Center, Radius);
   return Result;
 }
 
@@ -101,6 +186,32 @@ AABBCenterDim(v3 Center, v3 Dim)
 }
 
 link_internal aabb
+AABBMinRad(v3 Min, v3 Radius)
+{
+  v3 Center = Min + Radius;
+  aabb Result(Center, Radius);
+  return Result;
+}
+
+link_internal aabb
+AABBMinDim(v3 Min, v3i Dim)
+{
+  v3 Radius = V3(Dim)/2.f;
+  v3 Center = Min + Radius;
+  aabb Result(Center, Radius);
+  return Result;
+}
+
+link_internal aabb
+AABBMinDim(v3i Min, v3i Dim)
+{
+  v3 Radius = V3(Dim)/2.f;
+  v3 Center = V3(Min + Radius);
+  aabb Result(Center, Radius);
+  return Result;
+}
+
+link_internal aabb
 AABBMinDim(v3 Min, v3 Dim)
 {
   v3 Radius = Dim/2.f;
@@ -109,13 +220,53 @@ AABBMinDim(v3 Min, v3 Dim)
   return Result;
 }
 
+inline rect3i
+Union(rect3i *First, rect3i *Second)
+{
+  v3i ResultMin = Max(First->Min, Second->Min);
+  v3i ResultMax = Min(First->Max, Second->Max);
+  rect3i Result = Rect3iMinMax(ResultMin, ResultMax);
+
+  return Result;
+}
+
+inline aabb
+Union(aabb *First, aabb *Second)
+{
+  v3 FirstMin = GetMin(First);
+  v3 SecondMin = GetMin(Second);
+
+  v3 FirstMax = GetMax(First);
+  v3 SecondMax = GetMax(Second);
+
+  v3 ResultMin = Max(FirstMin, SecondMin);
+  v3 ResultMax = Min(FirstMax, SecondMax);
+  aabb Result = AABBMinMax(ResultMin, ResultMax);
+
+  return Result;
+}
+
 link_internal b32
-IsInside(aabb AABB, v3 P)
+Contains(rect3i Rect, v3i P)
+{
+  b32 Result = (P >= Rect.Min && P < Rect.Max);
+  return Result;
+}
+
+link_internal b32
+Contains(aabb AABB, v3 P)
 {
   v3 Min = AABB.Center-AABB.Radius;
   v3 Max = AABB.Center+AABB.Radius;
 
   b32 Result = (P >= Min && P < Max);
+  return Result;
+}
+
+link_internal b32
+IsInside(aabb AABB, v3 P)
+{
+  b32 Result = Contains(AABB, P);
   return Result;
 }
 
@@ -150,6 +301,16 @@ operator+=(rect2 &R1, v2 P)
 {
   R1.Min += P;
   R1.Max += P;
+}
+
+link_internal rect3i
+operator-(rect3i R1, v3i P)
+{
+  rect3i Result = {
+    .Min = R1.Min - P,
+    .Max = R1.Max - P,
+  };
+  return Result;
 }
 
 link_internal rect2
@@ -221,9 +382,41 @@ r32 Area(rect2 Rect)
   return Result;
 }
 
-v2
+link_internal v3i
+GetDim(rect3i Rect)
+{
+  v3i Dim = Rect.Max - Rect.Min;
+  return Dim;
+}
+
+link_internal v2
 GetDim(rect2 Rect)
 {
   v2 Dim = Rect.Max - Rect.Min;
   return Dim;
 }
+
+link_internal v3
+GetDim(aabb Rect)
+{
+  v3 Dim = Rect.Radius * 2.f;
+  return Dim;
+}
+
+inline s32
+Volume(rect3i Rect)
+{
+  v3i Dim = GetDim(Rect);
+  s32 Result = Volume(Dim);
+  return Result;
+}
+
+inline s32
+Volume(aabb Rect)
+{
+  v3 Dim = Rect.Radius*2.f;
+  s32 Result = Volume(Dim);
+  return Result;
+}
+
+

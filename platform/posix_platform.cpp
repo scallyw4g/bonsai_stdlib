@@ -25,11 +25,11 @@ PrintSemValue(semaphore *Semaphore)
   return;
 }
 
-void
+inline b32 
 PlatformInitializeMutex(mutex *Mutex)
 {
-  pthread_mutex_init(&Mutex->M, NULL);
-  return;
+  b32 Result = (pthread_mutex_init(&Mutex->M, NULL) == 0);
+  return Result;
 }
 
 void
@@ -224,17 +224,24 @@ CreateSemaphore(void)
   return Result;
 }
 
-typedef pthread_t thread_handle; // TODO(Jesse id: 265): Unnecessary .. I just added it as a hack get parsing to work
+/* typedef pthread_t thread_handle; // TODO(Jesse id: 265): Unnecessary .. I just added it as a hack get parsing to work */
 typedef pthread_attr_t thread_attributes; // TODO(Jesse id: 266): Unnecessary .. I just added it as a hack get parsing to work
 
 u32
-PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, u32 ThreadId)
+PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, s32 ThreadId)
 {
   thread_attributes Attribs;
   pthread_attr_init(&Attribs);
 
-  thread_handle Thread;
-  thread_id Result = pthread_create(&Thread, &Attribs, ThreadMain, Params);
+  pthread_t Thread;
+  b32 Success = (pthread_create(&Thread, &Attribs, ThreadMain, Params) == 0);
+
+  u32 Result = u32(INVALID_THREAD_HANDLE);
+  if (Success)
+  {
+    Result = u32(Thread);
+  }
+
   return Result;
 }
 

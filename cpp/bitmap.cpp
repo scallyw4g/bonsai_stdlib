@@ -30,7 +30,7 @@ struct bitmap_header
 struct bitmap
 {
   v2i Dim;
-  u32_stream Pixels;
+  u32_cursor Pixels;
 };
 #pragma pack(pop)
 
@@ -38,7 +38,7 @@ bitmap
 ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 {
   bitmap_header Header = {};
-  native_file File = OpenFile(CS(Filename), "rb");
+  native_file File = OpenFile(CS(Filename), "r+b");
   s32 SizeReadFromDisk = 0;
   u32* Pixels = 0;
   u32 PixelCount = 0;
@@ -59,7 +59,7 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 
   bitmap Result = {};
   Result.Dim = V2i(Header.Image.WidthInPixels, Header.Image.HeightInPixels);
-  Result.Pixels = U32_Stream(Pixels, Pixels+PixelCount);
+  Result.Pixels = U32Cursor(Pixels, Pixels+PixelCount);
 
   return Result;
 }
@@ -109,7 +109,7 @@ AllocateBitmap(v2i Dim, memory_arena *Arena)
   u32 Size = (u32)(Dim.x*Dim.y);
   u32* PixelPtr = Allocate(u32, Arena, Size);
 
-  u32_stream Pixels = U32_Stream(PixelPtr, PixelPtr+Size);
+  u32_cursor Pixels = U32Cursor(PixelPtr, PixelPtr+Size);
 
   bitmap Bitmap = {};
   Bitmap.Dim = Dim;

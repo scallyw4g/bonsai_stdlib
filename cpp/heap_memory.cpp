@@ -20,8 +20,13 @@ InitHeap(umm AllocationSize)
 u8*
 HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 {
+  NotImplemented;
+
   Assert(Allocator->Heap && Allocator->Size);
 
+#if 1
+  u8 *Result = (u8*)calloc(u64(RequestedSize), u64(1));
+#else
   u8* Result = 0;
   u8* EndOfHeap = (u8*)Allocator->Heap + Allocator->Size;
 
@@ -60,6 +65,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
       }
     }
   }
+#endif
 
   return Result;
 }

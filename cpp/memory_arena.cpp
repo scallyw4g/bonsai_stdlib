@@ -5,17 +5,20 @@ inline b32
 VaporizeArena(memory_arena *Arena)
 {
   TIMED_FUNCTION();
-
   b32 Result = True;
-  if(Arena->Prev)
-  {
-    Result = VaporizeArena(Arena->Prev);
-    Arena->Prev = 0;
-  }
 
-  if (Arena->Start)
+  if (Arena)
   {
-    Result &= DeallocateArena(Arena);
+    if(Arena->Prev)
+    {
+      Result = VaporizeArena(Arena->Prev);
+      Arena->Prev = 0;
+    }
+
+    if (Arena->Start)
+    {
+      Result &= DeallocateArena(Arena);
+    }
   }
   return Result;
 }
@@ -54,7 +57,9 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 
   b32 Result = True;
 
+#if BONSAI_INTERNAL
   AcquireFutex(&Arena->DebugFutex);
+#endif
 
   // Check for start because when we allocate an arena on the stack it's
   // cleared to zero and treated as a sentinal.
@@ -96,7 +101,9 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 
   }
 
+#if BONSAI_INTERNAL
   ReleaseFutex(&Arena->DebugFutex);
+#endif
 
   return Result;
 }

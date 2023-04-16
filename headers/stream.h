@@ -1,10 +1,3 @@
-struct u32_stream
-{
-  u32* Start;
-  u32* At;
-  u32* End;
-};
-
 struct u8_stream
 {
   u8* Start;
@@ -56,17 +49,18 @@ struct r32_stream
 template <typename element_t, typename stream_t>inline element_t *
 Push(element_t Element, stream_t *Array)
 {
-  element_t *Result = Array->At;
   Assert( Array->At < Array->End );
+  element_t *Result = Array->At;
   *Array->At++ = Element;
   return Result;
 }
 
-template <typename element_t, typename stream_t> inline element_t
-Pop(stream_t *Stream)
+template <typename element_t, typename cursor_t> inline element_t
+Pop(cursor_t *Cursor)
 {
-  Assert(Remaining(Stream));
-  element_t Element = *Stream->At++;
+  Assert( Cursor->At > Cursor->Start );
+  Cursor->At--;
+  element_t Element = *Cursor->At;
   return Element;
 }
 
@@ -318,17 +312,6 @@ u8_stream
 U8_Stream(u8* Start, u8* End)
 {
   u8_stream Result = {
-    Start,
-    Start,
-    End
-  };
-  return Result;
-}
-
-u32_stream
-U32_Stream(u32* Start, u32* End)
-{
-  u32_stream Result = {
     Start,
     Start,
     End

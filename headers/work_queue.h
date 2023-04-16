@@ -1,9 +1,11 @@
-#define WORK_QUEUE_SIZE (4096)
+#define WORK_QUEUE_SIZE (4096*8)
 
 // Note(Jesse): The userland code must define work_queue_entry
 struct work_queue_entry;
 struct work_queue
 {
+  bonsai_futex EnqueueFutex;
+
   volatile u32 EnqueueIndex;
   volatile u32 DequeueIndex;
   volatile work_queue_entry *Entries;

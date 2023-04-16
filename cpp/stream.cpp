@@ -1,5 +1,26 @@
+
+poof(buffer(u32))
+#include <generated/buffer_unsigned int .h>
+
+poof(stream_and_cursor(u32))
+#include <generated/stream_and_cursor_unsigned int .h>
+
+poof(generate_stream_compact(u32))
+#include <generated/generate_stream_compact_unsigned int .h>
+
 poof(generate_cursor(v3))
 #include <generated/generate_cursor_v3.h>
+
+u32_cursor
+U32Cursor(u32* Start, u32* End)
+{
+  u32_cursor Result = {
+    Start,
+    Start,
+    End
+  };
+  return Result;
+}
 
 template <typename stream_t, typename element_t>inline stream_t
 AllocateBuffer(u32 Count, memory_arena* Memory)
@@ -27,11 +48,11 @@ R32_Stream(u32 Count, memory_arena *Memory)
   return Result;
 }
 
-u32_stream
-U32_Stream(u32 Count, memory_arena *Memory)
+u32_cursor
+U32Cursor(u32 Count, memory_arena *Memory)
 {
   u32 *Elements = Allocate(u32, Memory, Count);
-  u32_stream Result = {};
+  u32_cursor Result = {};
 
   Result.Start = Elements;
   Result.At = Elements;
@@ -63,7 +84,7 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
   u8* FileContents = 0;
   umm FileSize = 0;
 
-  native_file File = OpenFile(SourceFile, "rb");
+  native_file File = OpenFile(SourceFile, "r+b");
   if (File.Handle)
   {
     fseek(File.Handle, 0L, SEEK_END);

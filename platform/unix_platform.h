@@ -35,6 +35,9 @@
 // getenv
 #include <stdlib.h>
 
+// memset
+#include <cstring>
+
 #define PLATFORM_RUNTIME_LIB_EXTENSION ".so"
 
 #define WindowEventMasks StructureNotifyMask | PointerMotionMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask

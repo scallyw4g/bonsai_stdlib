@@ -21,7 +21,7 @@ using std::vector;
 struct perlin_noise
 {
   vector<int> p;
-  perlin_noise(unsigned int seed = DEBUG_NOISE_SEED);
+  /* perlin_noise(unsigned int seed = DEBUG_NOISE_SEED); */
 
   /* thing */
   // Get a noise value, for 2D images z can have any value
@@ -31,8 +31,9 @@ struct perlin_noise
   double grad(int hash, double x, double y, double z);
 };
 
-perlin_noise::perlin_noise(unsigned int seed) {
-
+link_internal void
+InitPerlinNoise(perlin_noise *Perlin, u32 seed = DEBUG_NOISE_SEED)
+{
   // Gymnastics to make MSVC happy :/
   int IV[] = {
         151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,
@@ -50,23 +51,23 @@ perlin_noise::perlin_noise(unsigned int seed) {
   };
 
   std::vector<int> InitialVector(IV, IV + sizeof(IV) / sizeof(int) );
-  p = InitialVector;
+  Perlin->p = InitialVector;
 
   // Duplicate the permutation vector
-  p.insert(p.end(), p.begin(), p.end());
-  p.resize(256);
+  Perlin->p.insert(Perlin->p.end(), Perlin->p.begin(), Perlin->p.end());
+  Perlin->p.resize(256);
 
   // Fill p with values from 0 to 255
-  std::iota(p.begin(), p.end(), 0);
+  std::iota(Perlin->p.begin(), Perlin->p.end(), 0);
 
   // Initialize a random engine with seed
   std::default_random_engine engine(seed);
 
   // Suffle  using the above random engine
-  std::shuffle(p.begin(), p.end(), engine);
+  std::shuffle(Perlin->p.begin(), Perlin->p.end(), engine);
 
   // Duplicate the permutation vector
-  p.insert(p.end(), p.begin(), p.end());
+  Perlin->p.insert(Perlin->p.end(), Perlin->p.begin(), Perlin->p.end());
 }
 
 double
