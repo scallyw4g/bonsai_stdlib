@@ -43,15 +43,19 @@
 
 #define CACHE_LINE_SIZE (64)
 
+// TODO(Jesse)(metaprogramming): This can certainly be metaprogrammed.  Probably
+// we can do the BindKey[down|up] directly instead of having this helper macro.
 #define BindToInput(Keysym, InputField, Boolean) \
   case Keysym: {                                 \
     Plat->Input.InputField.Clicked = Boolean; \
     Plat->Input.InputField.Pressed = Boolean;     \
   } break;
 
+// TODO(Jesse)(metaprogramming): This can maybe be metaprogrammed?
 #define BindKeydownToInput(Keysym, InputField) \
     BindToInput(Keysym, InputField, True)
 
+// TODO(Jesse)(metaprogramming): This can maybe be metaprogrammed?
 #define BindKeyupToInput(Keysym, InputField) \
     BindToInput(Keysym, InputField, False)
 
