@@ -26,7 +26,7 @@
 #define THREAD_MAIN_RETURN void*
 
 
-typedef s32 thread_handle;
+/* typedef s32 thread_handle; */
 typedef sem_t semaphore;
 typedef pthread_mutex_t native_mutex;
 

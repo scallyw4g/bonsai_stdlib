@@ -191,63 +191,20 @@ Contains(T *Start, T *At, T* End)
   return Result;
 }
 
-#if 1
-struct temp_memory_handle
+template <typename T> inline void
+Fill(T *Struct, u8 ByteValue)
 {
-  memory_arena *Arena;
-  u8* BeginMark;
-};
-
-link_internal void
-EndTemporaryMemory(temp_memory_handle *Handle, b32 ReportLeaks = True)
-{
-  memory_arena *Arena = Handle->Arena;
-  u8 *BeginMark = Handle->BeginMark;
-  if (Contains(Arena->Start, BeginMark, Arena->End))
-  {
-    Assert(BeginMark <= Arena->At);
-
 #if 1
-    ZeroMemory(BeginMark, Arena->At-BeginMark);
+  memset((void*)Struct, 0, sizeof(T));
 #else
-    u8* TmpAt = Handle->BeginMark;
-    while (TmpAt < Arena->At)
-    {
-      *TmpAt = 0x00;
-      TmpAt++;
-    }
-#endif
-
-    Arena->At = BeginMark;
-  }
-  else
+  for ( umm Byte = 0;
+      Byte < sizeof(T);
+      ++Byte)
   {
-    if (ReportLeaks)
-    {
-      Leak("Leaking memory when doing EndTemporaryMemory.");
-    }
+    *(((u8*)Struct) + Byte) = ByteValue;
   }
-
-  return;
-}
-
-link_internal temp_memory_handle
-BeginTemporaryMemory(memory_arena *Arena, b32 ReportLeaks = True)
-{
-  temp_memory_handle Result = {
-    .Arena = Arena,
-    .BeginMark = Arena->At,
-  };
-
-  if (Arena->Start == 0)
-  {
-    Leak("Need to make sure the arena is initialized before starting temporary memory!");
-  }
-
-  return Result;
-}
 #endif
-
+}
 
 b32
 OnPageBoundary(memory_arena *Arena, umm PageSize)
@@ -687,6 +644,65 @@ PushStruct(memory_arena *Memory, umm sizeofStruct, umm Alignment = 1, b32 MemPro
   void* Result = PushSize(Memory, sizeofStruct, Alignment, MemProtect);
   return Result;
 }
+
+#if 1
+struct temp_memory_handle
+{
+  memory_arena *Arena;
+  u8* BeginMark;
+};
+
+link_internal void
+EndTemporaryMemory(temp_memory_handle *Handle, b32 ReportLeaks = True)
+{
+  memory_arena *Arena = Handle->Arena;
+  u8 *BeginMark = Handle->BeginMark;
+  if (Contains(Arena->Start, BeginMark, Arena->End))
+  {
+    Assert(BeginMark <= Arena->At);
+
+#if 1
+    // TODO(Jesse): Improve this from its current state of a thunk to memset
+    ZeroMemory(BeginMark, (size_t)(Arena->At-BeginMark));
+#else
+    u8* TmpAt = Handle->BeginMark;
+    while (TmpAt < Arena->At)
+    {
+      *TmpAt = 0x00;
+      TmpAt++;
+    }
+#endif
+
+    Arena->At = BeginMark;
+  }
+  else
+  {
+    if (ReportLeaks)
+    {
+      Leak("Leaking memory when doing EndTemporaryMemory.");
+    }
+  }
+
+  return;
+}
+
+link_internal temp_memory_handle
+BeginTemporaryMemory(memory_arena *Arena, b32 ReportLeaks = True)
+{
+  if (Arena->Start == 0)
+  {
+    ReallocateArena(Arena, Megabytes(1), True);
+  }
+
+  temp_memory_handle Result = {
+    .Arena = Arena,
+    .BeginMark = Arena->At,
+  };
+
+  return Result;
+}
+#endif
+
 
 
 inline b32 VaporizeArena(memory_arena *Arena);
