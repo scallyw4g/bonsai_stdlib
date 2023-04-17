@@ -23,23 +23,21 @@ poof(
   }
 )
 
-  // TODO(Jesse)(poof): Implement .sep on .map_members
-  // TODO(Jesse)(poof): Alternatively, collapse all the map_whatever functions
-  // down to just .map, and then it's automagically dealt with.
-
-/* poof( */
-/*   func gen_constructor(Type) */
-/*   { */
-/*     link_internal Type.name */
-/*     Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.name.to_capital_case } ) */
-/*     { */
-/*       Type.name Reuslt = { */
-/*         Type.map_members(M).sep(,) { .M.name = M.name.to_capital_case } */
-/*       }; */
-/*       return Reuslt; */
-/*     } */
-/*   } */
-/* ) */
+poof(
+  func gen_constructor(Type)
+  {
+    link_internal Type.name
+    Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.name.to_capital_case } )
+    {
+      Type.name Reuslt = {
+        Type.map_members(M).sep(,) {
+          .M.name = M.name.to_capital_case
+        }
+      };
+      return Reuslt;
+    }
+  }
+)
 
 poof(
   func gen_hetero_vector_operator(type_datatype t1, type_datatype t2, type_poof_symbol Operator)
