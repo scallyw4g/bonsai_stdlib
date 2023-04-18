@@ -201,7 +201,7 @@ SleepMs(u32 Ms)
 {
   TIMED_FUNCTION();
 
-  u32 Ns = Ms*100000;
+  s32 Ns = s32(Ms)*100000;
   timespec TReq = { .tv_sec = 0, .tv_nsec = Ns };
   timespec TRem = {};
 

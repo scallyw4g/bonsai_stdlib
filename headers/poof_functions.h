@@ -550,6 +550,7 @@ poof(
 
 
 
+// TODO(Jesse): Should the hashes this operates on not be 64-bit?
 poof( func hashtable(Type) { (hashtable_struct(Type)) (hashtable_impl(Type)) })
 
 poof(

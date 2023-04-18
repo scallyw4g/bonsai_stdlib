@@ -1,11 +1,11 @@
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 
-#define RED_TERMINAL ""
-#define BLUE_TERMINAL ""
-#define GREEN_TERMINAL ""
-#define YELLOW_TERMINAL ""
-#define WHITE_TERMINAL ""
+/* #define RED_TERMINAL "" */
+/* #define BLUE_TERMINAL "" */
+/* #define GREEN_TERMINAL "" */
+/* #define YELLOW_TERMINAL "" */
+/* #define WHITE_TERMINAL "" */
 
 #define PLATFORM_RUNTIME_LIB_EXTENSION ".so"
 

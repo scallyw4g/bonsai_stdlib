@@ -214,7 +214,7 @@ GetCountMatchingTags(xml_token_stream* Tokens, xml_token_stream* Selectors, u32 
   xml_token_stream FirstSelectorStream = *Selectors;
   xml_tag FirstSelector = XmlTagFromReverseStream(&Selectors);
 
-  xml_tag_linked_list_node *RootTag = GetHashBucket(Hash(&FirstSelector), &Tokens->Hashes);
+  xml_tag_linked_list_node *RootTag = GetHashBucket(umm(Hash(&FirstSelector)), &Tokens->Hashes);
 
   u32 MaxTagCount = CountTagsInHashBucket(RootTag);
   xml_tag_stream Result = AllocateXmlTagStream(MaxTagCount, Memory);

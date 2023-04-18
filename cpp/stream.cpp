@@ -48,6 +48,7 @@ R32_Stream(u32 Count, memory_arena *Memory)
   return Result;
 }
 
+#if 0
 u32_cursor
 U32Cursor(u32 Count, memory_arena *Memory)
 {
@@ -60,6 +61,7 @@ U32Cursor(u32 Count, memory_arena *Memory)
 
   return Result;
 }
+#endif
 
 #if 0
 v3_cursor

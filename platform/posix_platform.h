@@ -25,6 +25,8 @@
 
 #define THREAD_MAIN_RETURN void*
 
+// Windows defines this for us
+#define ZeroMemory(Start, Count) memset((Start), 0, (Count));
 
 /* typedef s32 thread_handle; */
 typedef sem_t semaphore;
@@ -130,6 +132,11 @@ struct native_file
   FILE* Handle;
   counted_string Path;
 
+#if 0
+  // NOTE(Jesse): Put this in to randomly check if we were leaking file handes.
+  // Turns out we're not, but it would be nice to put back in some day.. maybe.
+  // It started causing me headaches, so I 0'd it out
+  //
   native_file() = default;
   native_file(native_file &) = default;
 
@@ -140,6 +147,7 @@ struct native_file
       Leak("file handle %S(%p)", Path, Handle);
     }
   }
+#endif
 };
 
 inline r64
