@@ -42,7 +42,7 @@ poof(
 poof(
   func gen_hetero_vector_operator(type_datatype t1, type_datatype t2, type_poof_symbol Operator)
   {
-    t1.member(E, (E)
+    t1.member(0, (E)
     {
       E.is_array?
       {
@@ -247,9 +247,9 @@ poof(
 )
 
 /* poof( */
-/*   data_func get_vec_base_type(vec_t) */
+/*   data_func get_vec_base_type(vec_t) -> type_datatype */
 /*   { */
-/*     vec_t.member_named(E) (base_array) -> { */
+/*     vec_t.member(E) (base_array) { */
 /*       base_array.is_array? */
 /*       { */
 /*         return base_array.type */
@@ -475,15 +475,18 @@ poof(
   }
 )
 
+poof(
+  func tuple(type_poof_symbol Types)
+  {
+    struct tuple(Types.map (T) {_(T.name)})
+    {
+      Types.map (T, Index) {
+        (T.name) E(Index);
+      }
+    };
+  }
+)
 
-/* poof( */
-/*   func tuple(type_list Types) */
-/*   { */
-/*     tuple(Types.map (T) { _(T.name) }) */
-/*   } */
-/* ) */
-
-/* poof( tuple([counted_string, counted_string]) ) */
 
   // TODO(Jesse): Replace this with stream?  Probably
 poof(
