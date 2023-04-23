@@ -42,7 +42,7 @@ poof(
 poof(
   func gen_hetero_vector_operator(type_datatype t1, type_datatype t2, type_poof_symbol Operator)
   {
-    t1.member(0, (E)
+    t1.member(E, (E)
     {
       E.is_array?
       {
