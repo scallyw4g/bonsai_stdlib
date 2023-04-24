@@ -226,7 +226,7 @@ poof(
         gen_hetero_vector_operator(t1, t2, {/})
       }
       {
-        poof_error { (t1.name).member(0) was not an array.  Got name((m0.name)) t1((m0.t1)). }
+        poof_error { (t1.name).member(0) was not an array.  Got name((m0.name)) type((m0.type)). }
       }
     })
   }
@@ -478,15 +478,32 @@ poof(
 poof(
   func tuple(type_poof_symbol Types)
   {
-    struct tuple(Types.map (T) {_(T.name)})
+    struct tuple_(Types.map.sep(_) (T) {(T.name)})
     {
       Types.map (T, Index) {
         (T.name) E(Index);
       }
     };
+
+    /* poof_bind( TupleType <- { tuple_(Types.map.sep(_) (T) {(T.name)} } )*/
+    /* gen_constructor(TupleType) */
+
+    link_internal tuple_(Types.map.sep(_) (T) {(T.name)})
+    Tuple( Types.map.sep(,) (T, Index) { (T.name) E(Index)} )
+    {
+      /* TupleType Result = */
+      tuple_(Types.map.sep(_) (T, Index) {(T.name)}) Result =
+      {
+        Types.map (T, Index)
+        {
+          .E(Index) = E(Index),
+        }
+      };
+      return Result;
+    }
+
   }
 )
-
 
   // TODO(Jesse): Replace this with stream?  Probably
 poof(
