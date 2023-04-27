@@ -145,3 +145,5 @@ struct render_entity_to_texture_group
   /* shader DebugGameGeoTextureShader; */
 };
 
+#include <bonsai_stdlib/headers/2d.h>
+#include <bonsai_stdlib/headers/interactable.h>

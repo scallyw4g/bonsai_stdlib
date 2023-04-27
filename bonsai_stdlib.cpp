@@ -1,10 +1,8 @@
 #define SCREEN_RATIO (1)
 #define SCR_WIDTH (3840/SCREEN_RATIO)
 #define SCR_HEIGHT (2160/SCREEN_RATIO)
+#define SHADER_PATH "shaders"
 
-#include <bonsai_debug/headers/debug_ui.h>
-#include <bonsai_debug/headers/interactable.h>
-#include <bonsai_debug/headers/debug_render.h>
 #include <bonsai_debug/debug.h>
 #include <bonsai_debug/headers/api.h>
 
@@ -23,4 +21,8 @@
 #include <bonsai_stdlib/cpp/file.cpp>
 #include <bonsai_stdlib/cpp/filesystem.cpp>
 #include <bonsai_stdlib/cpp/gl.cpp>
+#include <bonsai_stdlib/cpp/interactable.cpp>
+#include <bonsai_stdlib/cpp/texture.cpp>
+#include <bonsai_stdlib/cpp/shader.cpp>
+#include <bonsai_stdlib/cpp/2d.cpp>
 

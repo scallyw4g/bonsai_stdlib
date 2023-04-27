@@ -938,3 +938,47 @@ PlatformGetEnvironmentVar(const char *VarName)
   return Result;
 }
 
+void *
+OpenLibrary(const char *filename)
+{
+  void* Result = dlopen(filename, RTLD_NOW);
+
+  if (!Result)
+  {
+    char *error = dlerror();
+    Warn("OpenLibrary Failed (%s)", error);
+  }
+  else
+  {
+    Info("Library (%s) loaded!", filename);
+  }
+
+  return Result;
+}
+
+void
+CloseLibrary(shared_lib Lib)
+{
+  s32 E = dlclose(Lib);
+  if (E != 0)
+  {
+    Error("Closing Shared Library");
+  }
+
+  return;
+}
+
+inline void*
+GetProcFromLib(shared_lib Lib, const char *Name)
+{
+  void* Result = dlsym(Lib, Name);
+  if (Result == 0) { Warn("Unable to retrieve (%s) from shared library", Name); }
+  return Result;
+}
+
+inline u32
+GetCurrentThreadId()
+{
+  u32 Result = (u32)pthread_self();
+  return Result;
+}

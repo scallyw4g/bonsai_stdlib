@@ -20,7 +20,7 @@ InitHeap(umm AllocationSize)
 u8*
 HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 {
-  NotImplemented;
+  /* NotImplemented; */
 
   Assert(Allocator->Heap && Allocator->Size);
 

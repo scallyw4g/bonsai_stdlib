@@ -2,37 +2,6 @@
 #include <bonsai_net/network.h>
 #endif
 
-
-void *
-OpenLibrary(const char *filename)
-{
-  void* Result = dlopen(filename, RTLD_NOW);
-
-  if (!Result)
-  {
-    char *error = dlerror();
-    Warn("OpenLibrary Failed (%s)", error);
-  }
-  else
-  {
-    Info("Library (%s) loaded!", filename);
-  }
-
-  return Result;
-}
-
-void
-CloseLibrary(shared_lib Lib)
-{
-  s32 E = dlclose(Lib);
-  if (E != 0)
-  {
-    Error("Closing Shared Library");
-  }
-
-  return;
-}
-
 #if PLATFORM_LIBRARY_AND_WINDOW_IMPLEMENTATIONS
 // TODO(Jesse id: 267): Unnecessary .. I just added these as a hack get parsing to work
 typedef Colormap x_colormap;
@@ -117,14 +86,6 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
   SetVSync(Os, VSyncFrames);
 
   return True;
-}
-
-inline void*
-GetProcFromLib(shared_lib Lib, const char *Name)
-{
-  void* Result = dlsym(Lib, Name);
-  if (Result == 0) { Warn("Unable to retrieve (%s) from shared library", Name); }
-  return Result;
 }
 
 inline void

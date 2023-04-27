@@ -90,6 +90,13 @@ AtomicIncrement( volatile s32 *Source )
   return;
 }
 
+inline void*
+AtomicExchange( volatile void **Source, volatile void *NewValue )
+{
+  void *Result = (void*)__sync_lock_test_and_set( Source, NewValue );
+  return Result;
+}
+
 inline u32
 AtomicExchange( volatile u32 *Source, const u32 NewValue )
 {
@@ -105,7 +112,7 @@ AtomicCompareExchange( volatile char **Source, volatile char *NewValue, volatile
 }
 
 inline bool
-AtomicCompareExchange( volatile void** Source, void* NewValue, void* Comparator )
+AtomicCompareExchange( volatile void **Source, void* NewValue, void* Comparator )
 {
   bool Result = __sync_bool_compare_and_swap ( Source, Comparator, NewValue );
   return Result;
