@@ -43,3 +43,9 @@ Finalize(string_builder* Builder, memory_arena* PermMemory, b32 IncludeNullTermi
 }
 
 
+link_internal void
+Discard(string_builder* Builder)
+{
+  VaporizeArena(Builder->Memory);
+}
+

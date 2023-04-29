@@ -23,23 +23,21 @@ poof(
   }
 )
 
-  // TODO(Jesse)(poof): Implement .sep on .map_members
-  // TODO(Jesse)(poof): Alternatively, collapse all the map_whatever functions
-  // down to just .map, and then it's automagically dealt with.
-
-/* poof( */
-/*   func gen_constructor(Type) */
-/*   { */
-/*     link_internal Type.name */
-/*     Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.name.to_capital_case } ) */
-/*     { */
-/*       Type.name Reuslt = { */
-/*         Type.map_members(M).sep(,) { .M.name = M.name.to_capital_case } */
-/*       }; */
-/*       return Reuslt; */
-/*     } */
-/*   } */
-/* ) */
+poof(
+  func gen_constructor(Type)
+  {
+    link_internal Type.name
+    Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.name.to_capital_case } )
+    {
+      Type.name Reuslt = {
+        Type.map_members(M).sep(,) {
+          .M.name = M.name.to_capital_case
+        }
+      };
+      return Reuslt;
+    }
+  }
+)
 
 poof(
   func gen_hetero_vector_operator(type_datatype t1, type_datatype t2, type_poof_symbol Operator)
@@ -228,7 +226,7 @@ poof(
         gen_hetero_vector_operator(t1, t2, {/})
       }
       {
-        poof_error { (t1.name).member(0) was not an array.  Got name((m0.name)) t1((m0.t1)). }
+        poof_error { (t1.name).member(0) was not an array.  Got name((m0.name)) type((m0.type)). }
       }
     })
   }
@@ -249,9 +247,9 @@ poof(
 )
 
 /* poof( */
-/*   data_func get_vec_base_type(vec_t) */
+/*   data_func get_vec_base_type(vec_t) -> type_datatype */
 /*   { */
-/*     vec_t.member_named(E) (base_array) -> { */
+/*     vec_t.member(E) (base_array) { */
 /*       base_array.is_array? */
 /*       { */
 /*         return base_array.type */
@@ -477,15 +475,35 @@ poof(
   }
 )
 
+poof(
+  func tuple(type_poof_symbol Types)
+  {
+    struct tuple_(Types.map.sep(_) (T) {(T.name)})
+    {
+      Types.map (T, Index) {
+        (T.name) E(Index);
+      }
+    };
 
-/* poof( */
-/*   func tuple(type_list Types) */
-/*   { */
-/*     tuple(Types.map (T) { _(T.name) }) */
-/*   } */
-/* ) */
+    /* poof_bind( TupleType <- { tuple_(Types.map.sep(_) (T) {(T.name)} } )*/
+    /* gen_constructor(TupleType) */
 
-/* poof( tuple([counted_string, counted_string]) ) */
+    link_internal tuple_(Types.map.sep(_) (T) {(T.name)})
+    Tuple( Types.map.sep(,) (T, Index) { (T.name) E(Index)} )
+    {
+      /* TupleType Result = */
+      tuple_(Types.map.sep(_) (T, Index) {(T.name)}) Result =
+      {
+        Types.map (T, Index)
+        {
+          .E(Index) = E(Index),
+        }
+      };
+      return Result;
+    }
+
+  }
+)
 
   // TODO(Jesse): Replace this with stream?  Probably
 poof(
@@ -552,6 +570,7 @@ poof(
 
 
 
+// TODO(Jesse): Should the hashes this operates on not be 64-bit?
 poof( func hashtable(Type) { (hashtable_struct(Type)) (hashtable_impl(Type)) })
 
 poof(
