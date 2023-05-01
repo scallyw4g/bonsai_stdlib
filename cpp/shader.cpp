@@ -107,28 +107,6 @@ PushShaderUniform( memory_arena *Mem, const char *Name)
 }
 
 
-poof(
-  func gen_shader_uniform_push(uniform_t)
-  {
-    shader_uniform *
-    PushShaderUniform( memory_arena *Mem, const char *Name, uniform_t.name *Value)
-    {
-      shader_uniform *Uniform = PushShaderUniform(Mem, Name);
-      Uniform->Type = ShaderUniform_(uniform_t.name.to_capital_case);
-      Uniform->uniform_t.name.to_capital_case = Value;
-      return Uniform;
-    }
-
-    shader_uniform *
-    GetUniform(memory_arena *Mem, shader *Shader, uniform_t.name *Value, const char *Name)
-    {
-      shader_uniform *Uniform = PushShaderUniform(Mem, Name, Value);
-      Uniform->ID = GetShaderUniform(Shader, Name);
-      return Uniform;
-    }
-  }
-);
-
 poof(gen_shader_uniform_push(texture));
 #include <generated/gen_shader_uniform_push_texture.h>
 

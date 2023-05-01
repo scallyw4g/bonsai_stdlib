@@ -1,6 +1,12 @@
-#define SCREEN_RATIO (1)
-#define SCR_WIDTH (3840/SCREEN_RATIO)
-#define SCR_HEIGHT (2160/SCREEN_RATIO)
+
+// NOTE(Jesse): These have to match defines in the header.glsl file
+#define SCREEN_RATIO (2)
+/* #define SCR_WIDTH (3840/SCREEN_RATIO) */
+/* #define SCR_HEIGHT (2160/SCREEN_RATIO) */
+#define SCR_WIDTH (1920)
+#define SCR_HEIGHT (1080)
+
+
 #define SHADER_PATH "shaders"
 
 #include <bonsai_debug/debug.h>

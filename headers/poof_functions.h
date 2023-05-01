@@ -1,3 +1,27 @@
+// TODO(Jesse)(bug, poof): If I put this function in bonsai_stdlib/shader.cpp
+// poof fails to call it when it gets to engine/shader.cpp
+poof(
+  func gen_shader_uniform_push(uniform_t)
+  {
+    shader_uniform *
+    PushShaderUniform( memory_arena *Mem, const char *Name, uniform_t.name *Value)
+    {
+      shader_uniform *Uniform = PushShaderUniform(Mem, Name);
+      Uniform->Type = ShaderUniform_(uniform_t.name.to_capital_case);
+      Uniform->uniform_t.name.to_capital_case = Value;
+      return Uniform;
+    }
+
+    shader_uniform *
+    GetUniform(memory_arena *Mem, shader *Shader, uniform_t.name *Value, const char *Name)
+    {
+      shader_uniform *Uniform = PushShaderUniform(Mem, Name, Value);
+      Uniform->ID = GetShaderUniform(Shader, Name);
+      return Uniform;
+    }
+  }
+);
+
 // TODO(Jesse): This would be better if we could specifically target the anonymous union
 // instead of just doing it for every union we find in the type. Probably it'll never
 // be a problem, but probably it will be eventually ..
@@ -719,6 +743,14 @@ poof(
         Warn("Attempted to allocate (Type.name)_buffer of 0 length.");
       }
 
+      return Result;
+    }
+
+    link_inline (Type.name) *
+    Get((Type.name)_buffer *Buf, u32 Index)
+    {
+      Assert(Index < Buf->Count);
+      Type.name *Result = Buf->Start + Index;
       return Result;
     }
   }

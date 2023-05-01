@@ -7,6 +7,7 @@
 
 // Internal linkage
 #define link_internal     static
+#define link_inline       inline
 
 // External linkage (pointer is from another lib)
 #define link_external     extern "C"

@@ -1,14 +1,14 @@
 
 poof(buffer(u32))
-#include </home/scallywag/work/poof/generated/buffer_u32.h>
+#include <generated/buffer_unsigned int .h>
 
 
 poof(stream_and_cursor(u32))
-#include </home/scallywag/work/poof/generated/stream_and_cursor_u32.h>
+#include <generated/stream_and_cursor_unsigned int .h>
 
 
 poof(generate_stream_compact(u32))
-#include </home/scallywag/work/poof/generated/generate_stream_compact_u32.h>
+#include <generated/generate_stream_compact_unsigned int .h>
 
 
 poof(generate_cursor(v3))

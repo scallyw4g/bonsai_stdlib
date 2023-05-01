@@ -2,8 +2,8 @@
 #define FOURCC_DXT3 0x33545844 // Equivalent to "DXT3" in ASCII
 #define FOURCC_DXT5 0x35545844 // Equivalent to "DXT5" in ASCII
 
-// Note(Jesse): Must match shader define in header.glsl
-#define DEBUG_TEXTURE_DIM 512
+/* // Note(Jesse): Must match shader define in header.glsl */
+/* #define DEBUG_TEXTURE_DIM 512 */
 
 #if 0
 texture
@@ -160,7 +160,7 @@ MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, u32 MaxTextureSlices = 1
 
     s32 Mips = (s32)MaxTextureSlices;
     GL.TexStorage3D(GL_TEXTURE_2D_ARRAY, Mips, InternalFormat,
-                    DEBUG_TEXTURE_DIM, DEBUG_TEXTURE_DIM, (s32)MaxTextureSlices);
+                    Dim.x, Dim.x, (s32)MaxTextureSlices);
 #endif
 
     s32 xOffset = 0;
