@@ -527,7 +527,7 @@ MemorySize(r64 Number)
   }
 
 
-  counted_string Result = FormatCountedString(TranArena, CSz("%.1f%c"), (r32)Display, Units);
+  counted_string Result = FormatCountedString(TranArena, CSz("%.1f%c"), Display, Units);
   return Result;
 }
 
@@ -576,14 +576,14 @@ CS(r64 Number)
 link_internal counted_string
 CS(r32 Number)
 {
-  counted_string Result = FormatCountedString(TranArena, CSz("%.2f"), Number);
+  counted_string Result = FormatCountedString(TranArena, CSz("%.2f"), (r64)Number);
   return Result;
 }
 
 link_internal counted_string
 CS(v2 V)
 {
-  counted_string Result = FormatCountedString(TranArena, CSz("(%.2f,%.2f)"), V.x, V.y);
+  counted_string Result = FormatCountedString(TranArena, CSz("(%.2f,%.2f)"), (r64)V.x, (r64)V.y);
   return Result;
 }
 
@@ -600,7 +600,7 @@ FormatThousands(u64 Number)
     Units = 'K';
   }
 
-  counted_string Result = FormatCountedString(TranArena, CSz("%.1f%c"), Display, Units);
+  counted_string Result = FormatCountedString(TranArena, CSz("%.1f%c"), (r64)Display, Units);
   return Result;
 }
 

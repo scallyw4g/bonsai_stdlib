@@ -882,9 +882,9 @@ f64ToChar(char_cursor* Dest, r64 Value, u32 Precision = DEFAULT_FORMAT_PRECISION
       PrecisionIndex < Precision;
       ++PrecisionIndex)
   {
-      Value *= 10.0f;
+      Value *= 10.;
       u32 Int = (u32)Value;
-      Value -= (r32)Int;
+      Value -= Int;
       CopyToDest(Dest, DecChars[Int]);
   }
 

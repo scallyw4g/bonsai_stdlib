@@ -104,6 +104,10 @@ CAssert(sizeof(u8) == 1);
 #define f32_MAX (1E+37f)
 #define f32_MIN (1E-37f)
 
+// https://learn.microsoft.com/en-us/dotnet/visual-basic/language-reference/data-types/double-data-type
+#define f64_MAX ( 1.79769313486231570E+308)
+#define f64_MIN (-1.79769313486231570E+308)
+
 #if BONSAI_EMCC
 #define umm_MAX u32_MAX
 #define umm_MIN u32_MIN
