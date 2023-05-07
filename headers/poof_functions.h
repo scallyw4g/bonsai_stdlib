@@ -778,6 +778,14 @@ poof(
       };
       return Result;
     }
+
+    link_internal (Type.name)
+    Get((Type.name)_cursor *Cursor, umm ElementIndex)
+    {
+      Assert(ElementIndex < CurrentCount(Cursor));
+      Type.name Result = Cursor->Start[ElementIndex];
+      return Result;
+    }
   }
 )
 

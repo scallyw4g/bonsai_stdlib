@@ -8,6 +8,7 @@
 #include <bonsai_stdlib/headers/console_macros.h>
 #include <bonsai_stdlib/headers/globals.h>
 #include <bonsai_stdlib/headers/platform.h>
+#include <bonsai_stdlib/headers/bit_tricks.h>
 #include <bonsai_stdlib/headers/atomic.h>
 #include <bonsai_stdlib/headers/thread.h>
 #include <bonsai_stdlib/headers/math.h>
@@ -23,12 +24,13 @@
 #include <bonsai_stdlib/headers/gl.h>
 #include <bonsai_stdlib/headers/platform_struct.h>
 #include <bonsai_stdlib/headers/heap_allocator.h>
+#include <bonsai_stdlib/headers/stream.h>
 #include <bonsai_stdlib/headers/counted_string.h>
 #include <bonsai_stdlib/headers/console_io.h>
 #include <bonsai_stdlib/headers/line.h>
 #include <bonsai_stdlib/headers/quaternion.h>
 #include <bonsai_stdlib/headers/string_builder.h>
-#include <bonsai_stdlib/headers/stream.h>
+#include <bonsai_stdlib/headers/ansi_stream.h>
 #include <bonsai_stdlib/headers/matrix.h>
 #include <bonsai_stdlib/headers/rect.h>
 #include <bonsai_stdlib/headers/ray.h>
