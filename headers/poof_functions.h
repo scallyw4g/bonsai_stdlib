@@ -195,6 +195,14 @@ poof(
       {
         gen_vector_comparator(Type, E, {==})
 
+        // NOTE(Jesse): This is for contaiers that call AreEqual()
+        link_internal b32
+        AreEqual((Type.name) V1, (Type.name) V2)
+        {
+          b32 Result = V1 == V2;
+          return Result;
+        }
+
         // NOTE(Jesse): Can't gen != because the condition welding it together
         // is not &&, it's ||
         //
@@ -784,6 +792,64 @@ poof(
     {
       Assert(ElementIndex < CurrentCount(Cursor));
       Type.name Result = Cursor->Start[ElementIndex];
+      return Result;
+    }
+
+    link_internal void
+    Set((Type.name)_cursor *Cursor, umm ElementIndex, (Type.name) Element)
+    {
+      umm CurrentElementCount = CurrentCount(Cursor);
+      Assert (ElementIndex <= CurrentElementCount);
+
+      Cursor->Start[ElementIndex] = Element;
+      if (ElementIndex == CurrentElementCount)
+      {
+        Cursor->At++;
+      }
+    }
+
+    link_internal Type.name *
+    Push((Type.name)_cursor *Cursor, (Type.name) Element)
+    {
+      Assert( Cursor->At < Cursor->End );
+      Type.name *Result = Cursor->At;
+      *Cursor->At++ = Element;
+      return Result;
+    }
+
+    link_internal Type.name
+    Pop((Type.name)_cursor *Cursor)
+    {
+      Assert( Cursor->At > Cursor->Start );
+      Type.name Result = Cursor->At[-1];
+      Cursor->At--;
+      return Result;
+    }
+
+    link_internal s32
+    LastIndex((Type.name)_cursor *Cursor)
+    {
+      s32 Result = s32(CurrentCount(Cursor))-1;
+      return Result;
+    }
+
+    link_internal b32
+    Remove((Type.name)_cursor *Cursor, (Type.name) Query)
+    {
+      b32 Result = False;
+      CursorIterator(ElementIndex, Cursor)
+      {
+        Type.name Element = Get(Cursor, ElementIndex);
+        if (AreEqual(Element, Query))
+        {
+          b32 IsLastIndex = LastIndex(Cursor) == s32(ElementIndex);
+          Type.name Tmp = Pop(Cursor);
+
+          if (IsLastIndex) { Assert(AreEqual(Tmp, Query)); }
+          else { Set(Cursor, ElementIndex, Tmp); }
+          Result = True;
+        }
+      }
       return Result;
     }
   }

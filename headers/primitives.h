@@ -147,3 +147,23 @@ Clear(T *Struct)
 {
   Fill(Struct, 0);
 }
+
+poof(
+  func gen_are_equal( type_poof_symbol Types)
+  {
+    Types.map (Type)
+    {
+      link_internal b32
+      AreEqual( (Type.name) E1, (Type.name) E2 )
+      {
+        b32 Result = E1 == E2;
+        return Result;
+      }
+    }
+  }
+)
+
+poof( gen_are_equal({s64 u64 r64 s32 u32 r32 s16 u16 s8 u8 }) )
+#include <generated/gen_are_equal_665365505.h>
+
+
