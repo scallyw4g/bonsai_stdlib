@@ -151,13 +151,6 @@ b32 PlatformDeleteDir(const char* Path)
   return 0;
 }
 
-link_internal const char *
-PlatformGetEnvironmentVar(const char *VarName)
-{
-  const char* Result = getenv(VarName);
-  return Result;
-}
-
 inline u32
 AtomicDecrement( u32 volatile *Dest)
 {

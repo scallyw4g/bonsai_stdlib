@@ -79,15 +79,11 @@ poof(
 )
 
 
-// TODO(Jesse)(immediate, easy, bug, metaprogramming): Don't emit spaces in these filenames LOL
 poof(gen_map_value_to_range(r32))
-#include <generated/gen_map_value_to_range_float .h>
-
-
+#include <generated/gen_map_value_to_range_r32.h>
 
 poof(gen_map_value_to_range(u32))
-#include <generated/gen_map_value_to_range_unsigned int .h>
-
+#include <generated/gen_map_value_to_range_u32.h>
 
 
 poof(
@@ -107,14 +103,12 @@ poof(
 )
 
 poof(gen_random_between(r32))
-#include <generated/gen_random_between_float .h>
-
+#include <generated/gen_random_between_r32.h>
 
 
 
 poof(gen_random_between(u32))
-#include <generated/gen_random_between_unsigned int .h>
-
+#include <generated/gen_random_between_u32.h>
 
 
 

@@ -144,7 +144,8 @@ ComputeDtForFrame(r64 *LastTime)
 void
 Terminate(os *Os, platform *Plat)
 {
-  timeEndPeriod(1);
+  // TODO(Jesse)(immediate, begin_end_time_period): I was getting a linker error on windows .. Reinstate this!
+  // timeEndPeriod(1);
 
   if (Os->GlContext) // Cleanup Opengl context
   {
@@ -543,9 +544,20 @@ int attribs[] =
 
   /* SetVSync(Os, 0); */
 
-  timeBeginPeriod(1);
+  // TODO(Jesse)(immediate, begin_end_time_period): I was getting a linker error on windows .. Reinstate this!
+  // timeBeginPeriod(1);
 
   return True;
+}
+
+link_internal const char *
+PlatformGetEnvironmentVar(const char *VarName, memory_arena *Memory)
+{
+  // TODO(Jesse)(memory): What's the max length for an environment variable?
+  char *Result = Allocate(char, Memory, 4096);
+  umm BufCount = 1;
+  _dupenv_s(&Result, &BufCount, VarName);
+  return Result;
 }
 
 #define CwdBufferLen 2048

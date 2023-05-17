@@ -1,18 +1,22 @@
 
 poof(buffer(u32))
-#include <generated/buffer_unsigned int .h>
+#include <generated/buffer_u32.h>
+
 poof(stream_and_cursor(u32))
-#include <generated/stream_and_cursor_unsigned int .h>
+#include <generated/stream_and_cursor_u32.h>
+
 poof(generate_stream_compact(u32))
-#include <generated/generate_stream_compact_unsigned int .h>
+#include <generated/generate_stream_compact_u32.h>
+
 
 poof(buffer(u64))
-#include <generated/buffer_unsigned long long int .h>
-poof(stream_and_cursor(u64))
-#include <generated/stream_and_cursor_unsigned long long int .h>
-poof(generate_stream_compact(u64))
-#include <generated/generate_stream_compact_unsigned long long int .h>
+#include <generated/buffer_u64.h>
 
+poof(stream_and_cursor(u64))
+#include <generated/stream_and_cursor_u64.h>
+
+poof(generate_stream_compact(u64))
+#include <generated/generate_stream_compact_u64.h>
 
 
 poof(generate_cursor(v3))
