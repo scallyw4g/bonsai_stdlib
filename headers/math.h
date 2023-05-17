@@ -58,14 +58,14 @@ myFmodf( r32 F, r32 mod )
 inline r32
 Sin(r32 Theta)
 {
-  r32 Result = (r32)sin(Theta);
+  r32 Result = (r32)sin((double)Theta);
   return Result;
 }
 
 inline r32
 ArcCos(r32 CosTheta)
 {
-  r32 Theta = (r32)acos(CosTheta);
+  r32 Theta = (r32)acos((double)CosTheta);
   return Theta;
 }
 
@@ -78,7 +78,7 @@ ArcCos(r32 CosTheta)
 inline r32
 Cos(r32 Theta)
 {
-  r32 Result = (r32)cos(Theta);
+  r32 Result = (r32)cos(double(Theta));
   return Result;
 }
 
@@ -301,7 +301,7 @@ Floorf(r32 f)
 r32
 Ceilf(r32 F)
 {
-  r32 Result = (r32)ceil(F);
+  r32 Result = (r32)ceil(double(F));
   return Result;
 }
 
