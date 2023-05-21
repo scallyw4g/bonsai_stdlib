@@ -765,6 +765,103 @@ poof(
 )
 
 poof(
+  func generate_stack(Type)
+  {
+    struct (Type.name)_stack
+    {
+      Type.name *Start;
+      umm At;
+      umm End;
+    };
+
+    link_internal (Type.name)_stack
+    (Type.name.to_capital_case)Stack(umm ElementCount, memory_arena* Memory)
+    {
+      Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name))*ElementCount, 1, 0);
+      (Type.name)_stack Result = {
+        .Start = Start,
+        .End = ElementCount,
+        .At = 0,
+      };
+      return Result;
+    }
+
+    link_internal umm
+    CurrentCount((Type.name)_stack *Cursor)
+    {
+      umm Result = Cursor->At;
+      return Result;
+    }
+
+    link_internal s32
+    LastIndex((Type.name)_stack *Cursor)
+    {
+      s32 Result = s32(Cursor->At)-1;
+      return Result;
+    }
+
+    link_internal (Type.name)
+    Get((Type.name)_stack *Cursor, umm ElementIndex)
+    {
+      Assert(ElementIndex < Cursor->At);
+      Type.name Result = Cursor->Start[ElementIndex];
+      return Result;
+    }
+
+    link_internal void
+    Set((Type.name)_stack *Cursor, umm ElementIndex, (Type.name) Element)
+    {
+      umm CurrentElementCount = Cursor->At;
+      Assert (ElementIndex <= CurrentElementCount);
+
+      Cursor->Start[ElementIndex] = Element;
+      if (ElementIndex == CurrentElementCount)
+      {
+        Cursor->At++;
+      }
+    }
+
+    link_internal Type.name *
+    Push((Type.name)_stack *Cursor, (Type.name) Element)
+    {
+      Assert( Cursor->At < Cursor->End );
+      Type.name *Result = Cursor->Start+Cursor->At;
+      Cursor->Start[Cursor->At++] = Element;
+      return Result;
+    }
+
+    link_internal Type.name
+    Pop((Type.name)_stack *Cursor)
+    {
+      Assert( Cursor->At > 0 );
+      Type.name Result = Cursor->Start[LastIndex(Cursor)];
+      Cursor->At--;
+      return Result;
+    }
+
+    link_internal b32
+    RemoveUnordered((Type.name)_stack *Cursor, (Type.name) Query)
+    {
+      b32 Result = False;
+      StackIterator(ElementIndex, Cursor)
+      {
+        Type.name Element = Get(Cursor, ElementIndex);
+        if (AreEqual(Element, Query))
+        {
+          b32 IsLastIndex = LastIndex(Cursor) == s32(ElementIndex);
+          Type.name Tmp = Pop(Cursor);
+
+          if (IsLastIndex) { Assert(AreEqual(Tmp, Query)); }
+          else { Set(Cursor, ElementIndex, Tmp); }
+          Result = True;
+        }
+      }
+      return Result;
+    }
+  }
+)
+
+poof(
   func generate_cursor(Type)
   {
     struct (Type.name)_cursor

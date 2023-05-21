@@ -2,6 +2,8 @@
 #define CursorIterator( ArgName, Cursor ) \
   for (umm ArgName = 0; ArgName < CurrentCount(Cursor); ++ArgName)
 
+#define StackIterator( ArgName, Stack ) CursorIterator(ArgName, Stack)
+
 #define RangeIterator( ArgName, RangeMax) \
   for (s32 ArgName = 0; ArgName < RangeMax; ++ArgName)
 
