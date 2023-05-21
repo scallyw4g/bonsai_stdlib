@@ -150,8 +150,9 @@ struct memory_arena
 void noop() { }
 
 #define DEBUG_REGISTER_ARENA(Arena, ThreadId)             do { GetDebugState() ? GetDebugState()->RegisterArena(#Arena, Arena, ThreadId) : noop(); } while (false)
-#define DEBUG_REGISTER_NAMED_ARENA(Arena, ThreadId, Name) do { GetDebugState() ? GetDebugState()->RegisterArena(Name, Arena, ThreadId) : noop(); } while (false)
-#define DEBUG_REGISTER_THREAD(TParams)                    do { GetDebugState() ? GetDebugState()->RegisterThread(TParams) : noop(); } while (false)
+#define DEBUG_REGISTER_NAMED_ARENA(Arena, ThreadId, Name) do { GetDebugState() ? GetDebugState()->RegisterArena(Name, Arena, ThreadId)   : noop(); } while (false)
+#define DEBUG_UNREGISTER_ARENA(Arena)                     do { GetDebugState() ? GetDebugState()->UnregisterArena(Arena)                 : noop(); } while (false)
+#define DEBUG_REGISTER_THREAD(TParams)                    do { GetDebugState() ? GetDebugState()->RegisterThread(TParams)                : noop(); } while (false)
 
 #else // BONSAI_INTERNAL
 
@@ -400,6 +401,8 @@ AllocateArena(umm RequestedBytes = Megabytes(1), b32 MemProtect = True)
   Assert(OnPageBoundary(Result, PageSize));
   Assert(Remaining(Result) >= RequestedBytes);
 #endif
+
+  InitializeFutex(&Result->DebugFutex);
 
   return Result;
 }

@@ -5,6 +5,8 @@ inline b32
 VaporizeArena(memory_arena *Arena)
 {
   TIMED_FUNCTION();
+  DEBUG_UNREGISTER_ARENA(Arena);
+
   b32 Result = True;
 
   if (Arena)
@@ -20,6 +22,7 @@ VaporizeArena(memory_arena *Arena)
       Result &= DeallocateArena(Arena);
     }
   }
+
   return Result;
 }
 

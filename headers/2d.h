@@ -203,12 +203,12 @@ MakeFont(v2 Size)
 
 // TODO(Jesse, id: 77, tags: font, cleanup): Axe this!
 debug_global font Global_Font = {
-  .Size = V2(26, 34) * 0.8f,
+  .Size = V2(26, 34) * 0.6f,
 };
 
 // TODO(Jesse, tags: font, cleanup): Axe this!
 debug_global font Global_SmallFont =  {
-  .Size = V2(26, 34) * 0.5f,
+  .Size = V2(26, 34) * 0.4f,
 };
 
 
