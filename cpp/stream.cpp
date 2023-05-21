@@ -8,6 +8,7 @@ poof(stream_and_cursor(u32))
 poof(generate_stream_compact(u32))
 #include <generated/generate_stream_compact_u32.h>
 
+typedef u32_cursor* u32_cursor_ptr;
 
 poof(buffer(u64))
 #include <generated/buffer_u64.h>

@@ -728,6 +728,32 @@ poof(
 )
 
 poof(
+  func staticbuffer(Type, type_poof_symbol StaticCount)
+  {
+    struct (Type.name)_staticbuffer
+    {
+      Type.name Start[StaticCount];
+    };
+
+    link_inline (Type.name)*
+    GetPtr((Type.name)_staticbuffer *Buf, u32 Index)
+    {
+      Assert(Index < StaticCount);
+      Type.name *Result = Buf->Start+Index;
+      return Result;
+    }
+
+    link_inline (Type.name)
+    Get((Type.name)_staticbuffer *Buf, u32 Index)
+    {
+      Assert(Index < StaticCount);
+      Type.name Result = Buf->Start[Index];
+      return Result;
+    }
+  }
+)
+
+poof(
   func buffer(Type)
   {
     struct (Type.name)_buffer
