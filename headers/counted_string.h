@@ -1,3 +1,17 @@
+link_internal void
+CopyString(cs *S1, cs *S2)
+{
+  Assert(S1->Count <= S2->Count);
+  MemCopy((u8*)S1->Start, (u8*)S2->Start, S1->Count);
+  S2->Count = S1->Count;
+}
+
+link_internal void
+DeepCopy(cs *S1, cs *S2)
+{
+  CopyString(S1, S2);
+}
+
 inline b32
 StringsMatch(const char *S1, const char *S2)
 {

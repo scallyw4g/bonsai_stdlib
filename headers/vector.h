@@ -1,4 +1,15 @@
 
+#define IterateOver(Container, ElementPtrName, IndexVariableName) \
+  auto *ElementPtrName = GetPtr(Container, 0); \
+  for (umm IndexVariableName = 0; IndexVariableName < AtElements(Container); ++IndexVariableName, ElementPtrName = GetPtr((Container), (umm)IndexVariableName))
+
+/* #define IterateOverTotal(Container, ElementPtrName, IndexVariableName) \ */
+/*   auto *ElementPtrName = GetPtr(Container, 0); \ */
+/*   for (umm IndexVariableName = 0; IndexVariableName < TotalElements(Container); ++IndexVariableName, ElementPtrName = GetPtr((Container), (umm)IndexVariableName)) */
+
+#define RangeIterator( ArgName, RangeMax) \
+  for (s32 ArgName = 0; ArgName < RangeMax; ++ArgName)
+
 #define CursorIterator( ArgName, Cursor ) \
   for (umm ArgName = 0; ArgName < CurrentCount(Cursor); ++ArgName)
 

@@ -193,6 +193,12 @@ poof(
     {
       E.is_array?
       {
+        link_internal void
+        DeepCopy((Type.name) *Src, (Type.name) *Dest)
+        {
+          *Dest = *Src;
+        }
+
         gen_vector_comparator(Type, E, {==})
 
         // NOTE(Jesse): This is for contaiers that call AreEqual()
@@ -736,20 +742,47 @@ poof(
     };
 
     link_inline (Type.name)*
-    GetPtr((Type.name)_staticbuffer *Buf, u32 Index)
+    GetPtr((Type.name)_staticbuffer *Buf, umm Index)
     {
-      Assert(Index < StaticCount);
-      Type.name *Result = Buf->Start+Index;
+      Type.name *Result = {};
+      if ( Index < umm((StaticCount)) )
+      {
+        Result = Buf->Start+Index;
+      }
       return Result;
     }
 
     link_inline (Type.name)
-    Get((Type.name)_staticbuffer *Buf, u32 Index)
+    Get((Type.name)_staticbuffer *Buf, umm Index)
     {
-      Assert(Index < StaticCount);
+      Assert(Index >= 0);
+      Assert(Index < umm((StaticCount)));
       Type.name Result = Buf->Start[Index];
       return Result;
     }
+
+    link_internal umm
+    AtElements((Type.name)_staticbuffer *Buf)
+    {
+      return StaticCount;
+    }
+
+    link_internal umm
+    TotalElements((Type.name)_staticbuffer *Buf)
+    {
+      return StaticCount;
+    }
+
+    link_internal void
+    DeepCopy((Type.name)_staticbuffer *Src, (Type.name)_staticbuffer *Dest)
+    {
+      Assert(TotalElements(Src) <= TotalElements(Dest));
+      IterateOver(Src, Element, ElementIndex)
+      {
+        DeepCopy(Element, Dest->Start+ElementIndex);
+      }
+    }
+
   }
 )
 
@@ -910,6 +943,16 @@ poof(
       return Result;
     }
 
+    link_internal (Type.name)*
+    GetPtr((Type.name)_cursor *Cursor, umm ElementIndex)
+    {
+      Type.name *Result = {};
+      if (ElementIndex < AtElements(Cursor)) {
+        Result = Cursor->Start+ElementIndex;
+      }
+      return Result;
+    }
+
     link_internal (Type.name)
     Get((Type.name)_cursor *Cursor, umm ElementIndex)
     {
@@ -974,6 +1017,21 @@ poof(
         }
       }
       return Result;
+    }
+
+    link_internal void
+    DeepCopy((Type.name)_cursor *Src, (Type.name)_cursor *Dest)
+    {
+      umm SrcAt = AtElements(Src);
+      Assert(SrcAt <= TotalElements(Dest));
+
+      IterateOver(Src, Element, ElementIndex)
+      {
+        DeepCopy(Element, Dest->Start+ElementIndex);
+      }
+
+      Dest->At = Dest->Start+SrcAt;
+      Assert(Dest->At < Dest->End);
     }
   }
 )

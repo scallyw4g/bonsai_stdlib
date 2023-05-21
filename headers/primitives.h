@@ -166,4 +166,20 @@ poof(
 poof( gen_are_equal({s64 u64 r64 s32 u32 r32 s16 u16 s8 u8 }) )
 #include <generated/gen_are_equal_665365505.h>
 
+poof(
+  func gen_primitive_deep_copy( type_poof_symbol Types )
+  {
+    Types.map (Type)
+    {
+      link_internal void
+      DeepCopy( (Type.name) *Src, (Type.name) *Dest )
+      {
+        *Dest = *Src;
+      }
+    }
+  }
+)
+
+poof( gen_primitive_deep_copy({s64 u64 r64 s32 u32 r32 s16 u16 s8 u8 }) )
+#include <generated/gen_primitive_deep_copy_715421923.h>
 
