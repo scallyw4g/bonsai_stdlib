@@ -13,6 +13,8 @@
 #define CursorIterator( ArgName, Cursor ) \
   for (umm ArgName = 0; ArgName < CurrentCount(Cursor); ++ArgName)
 
+#define BufferIterator( Stack, ArgName ) CursorIterator(ArgName, Stack)
+
 #define StackIterator( ArgName, Stack ) CursorIterator(ArgName, Stack)
 
 #define RangeIterator( ArgName, RangeMax) \

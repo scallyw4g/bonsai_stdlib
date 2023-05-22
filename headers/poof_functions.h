@@ -813,6 +813,13 @@ poof(
       return Result;
     }
 
+    link_inline umm
+    CurrentCount((Type.name)_buffer *Buf)
+    {
+      umm Result = Buf->Count;
+      return Result;
+    }
+
     link_inline (Type.name) *
     Get((Type.name)_buffer *Buf, u32 Index)
     {
