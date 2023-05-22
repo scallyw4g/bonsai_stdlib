@@ -96,10 +96,10 @@ CAssert(sizeof(u8) == 1);
 #define s32_MIN ((s32)0x80000000)
 #define s64_MIN ((s64)0x8000000000000000)
 
-#define u8_MAX  (0xff)
-#define u16_MAX (0xffff)
-#define u32_MAX (0xffffffff)
-#define u64_MAX (0xffffffffffffffff)
+#define u8_MAX  (0xffu)
+#define u16_MAX (0xffffu)
+#define u32_MAX (0xffffffffu)
+#define u64_MAX (0xffffffffffffffffllu)
 
 #define f32_MAX (1E+37f)
 #define f32_MIN (1E-37f)
