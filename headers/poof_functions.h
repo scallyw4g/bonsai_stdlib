@@ -1038,7 +1038,7 @@ poof(
       }
 
       Dest->At = Dest->Start+SrcAt;
-      Assert(Dest->At < Dest->End);
+      Assert(Dest->At <= Dest->End);
     }
   }
 )
