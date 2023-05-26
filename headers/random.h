@@ -85,6 +85,9 @@ poof(gen_map_value_to_range(r32))
 poof(gen_map_value_to_range(u32))
 #include <generated/gen_map_value_to_range_u32.h>
 
+poof(gen_map_value_to_range(s32))
+#include <generated/gen_map_value_to_range_s32.h>
+
 
 poof(
   func gen_random_between(t)
@@ -105,11 +108,11 @@ poof(
 poof(gen_random_between(r32))
 #include <generated/gen_random_between_r32.h>
 
-
-
 poof(gen_random_between(u32))
 #include <generated/gen_random_between_u32.h>
 
+poof(gen_random_between(s32))
+#include <generated/gen_random_between_s32.h>
 
 
 inline b32
@@ -134,6 +137,19 @@ RandomV3(random_series *Entropy)
   v3 Result =  {{ RandomUnilateral(Entropy),
                   RandomUnilateral(Entropy),
                   RandomUnilateral(Entropy) }};
+  return Result;
+}
+
+inline v3i
+RandomV3i(random_series *Entropy, v3i MaxValue)
+{
+  Assert(MaxValue.E[0] > 0);
+  Assert(MaxValue.E[1] > 0);
+  Assert(MaxValue.E[2] > 0);
+
+  v3i Result =  {{ s32(RandomBetween(0u, Entropy, u32(MaxValue.x))),
+                   s32(RandomBetween(0u, Entropy, u32(MaxValue.y))),
+                   s32(RandomBetween(0u, Entropy, u32(MaxValue.z))) }};
   return Result;
 }
 

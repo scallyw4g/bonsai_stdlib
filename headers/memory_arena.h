@@ -337,6 +337,17 @@ MemCopy(u8 *Src, u8 *Dest, umm Size)
   }
 }
 
+#ifdef CopyMemory
+#undef CopyMemory
+#endif
+
+inline void
+CopyMemory(u8 *Src, u8 *Dest, umm Size)
+{
+  MemCopy(Src, Dest, Size);
+}
+
+
 inline void
 ClearBuffer(u8 *Src, umm Size)
 {
