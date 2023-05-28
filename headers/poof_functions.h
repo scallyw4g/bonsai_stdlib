@@ -48,6 +48,25 @@ poof(
 )
 
 poof(
+  func gen_default_equality_operator(Type)
+  {
+    link_internal b32
+    operator==( Type.name E1, Type.name E2 )
+    {
+      b32 Reuslt = Type.map_members(M).sep(&&) { E1.(M.name) == E2.(M.name) };
+      return Reuslt;
+    }
+
+    link_internal b32
+    operator!=( Type.name E1, Type.name E2 )
+    {
+      b32 Reuslt = !(E1 == E2);
+      return Reuslt;
+    }
+  }
+)
+
+poof(
   func gen_constructor(Type)
   {
     link_internal Type.name
