@@ -26,18 +26,19 @@
   for (s32 xArg = 0; xArg < Dim.x; ++xArg)
 
 #define MinDimIterator( xArg, yArg, zArg, Min, Dim)  \
-  for (s32 zArg = Min.z; zArg < Min.z+Dim.z; ++zArg) \
-  for (s32 yArg = Min.y; yArg < Min.y+Dim.y; ++yArg) \
-  for (s32 xArg = Min.x; xArg < Min.x+Dim.x; ++xArg)
+  for (s32 zArg = (Min).z; zArg < (Min).z+(Dim).z; ++zArg) \
+  for (s32 yArg = (Min).y; yArg < (Min).y+(Dim).y; ++yArg) \
+  for (s32 xArg = (Min).x; xArg < (Min).x+(Dim).x; ++xArg)
 
 #define MinMaxIterator( xArg, yArg, zArg, Min, Max)  \
-  for (s32 zArg = Min.z; zArg < Max.z; ++zArg)       \
-  for (s32 yArg = Min.y; yArg < Max.y; ++yArg)       \
-  for (s32 xArg = Min.x; xArg < Max.x; ++xArg)
+  for (s32 zArg = (Min).z; zArg < (Max).z; ++zArg)       \
+  for (s32 yArg = (Min).y; yArg < (Max).y; ++yArg)       \
+  for (s32 xArg = (Min).x; xArg < (Max).x; ++xArg)
 
 
 
 
+#define Cast(T, Ptr) ((T)(Ptr))
 #define TryCast(T, Ptr) ((Ptr)->Type == type_##T ? (&(Ptr)->T) : 0)
 #define SafeCast(T, Ptr) (T*)(&(Ptr)->T); Assert((Ptr)->Type == type_##T)
 

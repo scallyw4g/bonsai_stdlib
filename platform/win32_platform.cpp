@@ -349,6 +349,17 @@ WindowMessageCallback(
       Plat->Input.RMB.Pressed = False;
     } return 0;
 
+    case WM_MBUTTONDOWN:
+    {
+      Plat->Input.MMB.Clicked = True;
+      Plat->Input.MMB.Pressed = True;
+    } return 0;
+
+    case WM_MBUTTONUP:
+    {
+      Plat->Input.MMB.Pressed = False;
+    } return 0;
+
     case WM_MOUSEMOVE:
     {
       Plat->MouseP.x = (r32)GET_X_LPARAM(lParam);
