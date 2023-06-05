@@ -5,7 +5,7 @@ GetTotalThreadCount()
 {
   /* TIMED_FUNCTION(); */
   /* u32 Result = PlatformGetLogicalCoreCount() ; */
-  u32 Result = 8;
+  u32 Result = 12;
   /* u32 Result = 16; */
   /* u32 Result = 2; */
   return Result;

@@ -75,6 +75,9 @@ ArcCos(r32 CosTheta)
 // https://github.com/ifduyue/musl/blob/master/src/math/__cos.c
 // https://github.com/ifduyue/musl/blob/master/src/math/__rem_pio2.c
 // https://github.com/ifduyue/musl/blob/master/src/math/__rem_pio2_large.c
+//
+// Another source, which seems plausibly easier to follow, and apparently 4x faster than math.h
+// https://web.archive.org/web/20210513043002/http://web.eecs.utk.edu/~azh/blog/cosine.html
 inline r32
 Cos(r32 Theta)
 {
