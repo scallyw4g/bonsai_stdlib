@@ -98,7 +98,6 @@ struct perlin_noise;
 struct engine_resources;
 struct memory_arena;
 
-// TODO(Jesse): Make these cache-line sized
 struct thread_local_state
 {
   memory_arena *PermMemory;
@@ -110,10 +109,12 @@ struct thread_local_state
   void* DebugStuff;
 
   s32 Index;
+  s32 Pad0[5];
 
   /* mesh_freelist *MeshFreelist; */
   /* perlin_noise   Noise; */
 };
+CAssert(sizeof(thread_local_state) == CACHE_LINE_SIZE);
 
 global_variable
 thread_local_state *Global_ThreadStates;
