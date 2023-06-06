@@ -144,8 +144,7 @@ ComputeDtForFrame(r64 *LastTime)
 void
 Terminate(os *Os, platform *Plat)
 {
-  // TODO(Jesse)(immediate, begin_end_time_period): I was getting a linker error on windows .. Reinstate this!
-  // timeEndPeriod(1);
+  timeEndPeriod(1);
 
   if (Os->GlContext) // Cleanup Opengl context
   {
@@ -555,8 +554,7 @@ int attribs[] =
 
   /* SetVSync(Os, 0); */
 
-  // TODO(Jesse)(immediate, begin_end_time_period): I was getting a linker error on windows .. Reinstate this!
-  // timeBeginPeriod(1);
+  timeBeginPeriod(1);
 
   return True;
 }
@@ -619,6 +617,7 @@ IsFilesystemRoot(const char *Filepath)
 inline void
 BonsaiSwapBuffers(os *Os)
 {
+  TIMED_FUNCTION();
   SwapBuffers(Os->Display);
 }
 
