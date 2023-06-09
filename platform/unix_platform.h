@@ -152,7 +152,7 @@ PlatformGetGlFunction(const char* Name)
   void *Result = (void*)glXGetProcAddress((const u8*)Name);
   if (!Result)
   {
-    Error("Couldn't load Opengl fucntion (%s)", Name);
+    Error("Couldn't load Opengl function (%s)", Name);
   }
 
   return Result;
