@@ -69,27 +69,27 @@ InitRenderToTextureGroup(texture *DebugTextureArray, render_entity_to_texture_gr
 texture* LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount);
 
 link_internal b32
-InitRenderer2D(renderer_2d *UiGroup, heap_allocator *Heap, memory_arena *PermMemory)
+InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMemory, v2 *MouseP = 0, v2 *MouseDP = 0, input *Input = 0)
 {
-  UiGroup->TextGroup     = Allocate(render_buffers_2d, PermMemory, 1);
-  UiGroup->CommandBuffer = Allocate(ui_render_command_buffer, PermMemory, 1);
+  Renderer->TextGroup     = Allocate(render_buffers_2d, PermMemory, 1);
+  Renderer->CommandBuffer = Allocate(ui_render_command_buffer, PermMemory, 1);
 
   // TODO(Jesse, memory): Instead of allocate insanely massive buffers (these are ~400x overkill)
   // we should have a system that streams blocks of memory in as-necessary
   // @streaming_ui_render_memory
   u32 ElementCount = (u32)Megabytes(2);
-  AllocateAndInitGeoBuffer(&UiGroup->TextGroup->Geo, ElementCount, PermMemory);
-  AllocateAndInitGeoBuffer(&UiGroup->Geo, ElementCount, PermMemory);
+  AllocateAndInitGeoBuffer(&Renderer->TextGroup->Geo, ElementCount, PermMemory);
+  AllocateAndInitGeoBuffer(&Renderer->Geo, ElementCount, PermMemory);
 
 
-  auto TextGroup = UiGroup->TextGroup;
+  auto TextGroup = Renderer->TextGroup;
   TextGroup->DebugTextureArray = LoadBitmap("texture_atlas_0.bmp", PermMemory, DebugTextureArraySlice_Count);
   GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
   GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
   GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
   TextGroup->Text2DShader = LoadShaders( CSz("TextVertexShader.vertexshader"), CSz("TextVertexShader.fragmentshader") );
   TextGroup->TextTextureUniform = GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
-  UiGroup->TextGroup->SolidUIShader = LoadShaders( CSz("SimpleColor.vertexshader"), CSz("SimpleColor.fragmentshader") );
+  Renderer->TextGroup->SolidUIShader = LoadShaders( CSz("SimpleColor.vertexshader"), CSz("SimpleColor.fragmentshader") );
 
   v2i TextureDim = V2i(DEBUG_TEXTURE_DIM, DEBUG_TEXTURE_DIM);
   texture *DepthTexture = MakeDepthTexture( TextureDim, PermMemory );
@@ -105,8 +105,12 @@ InitRenderer2D(renderer_2d *UiGroup, heap_allocator *Heap, memory_arena *PermMem
   random_series Entropy = {54623153};
   for (u32 ColorIndex = 0; ColorIndex < RANDOM_COLOR_COUNT; ++ColorIndex)
   {
-    UiGroup->DebugColors[ColorIndex] = RandomV3(&Entropy);
+    Renderer->DebugColors[ColorIndex] = RandomV3(&Entropy);
   }
+
+  Renderer->MouseP = MouseP;
+  Renderer->MouseDP = MouseDP;
+  Renderer->Input = Input;
 
   return Result;
 }

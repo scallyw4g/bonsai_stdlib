@@ -535,6 +535,13 @@ UiStyleFromLightestColor(v3 Color, font Font)
 global_variable v2
 DefaultWindowSize = V2(1800, 800);
 
+link_internal v2
+DefaultWindowBasis(v2 ScreenDim)
+{
+  v2 Basis = V2(20, ScreenDim.y - DefaultWindowSize.y - 20);
+  return Basis;
+}
+
 link_internal window_layout
 WindowLayout(const char* Title, v2 Basis, v2 MaxClip = DefaultWindowSize)
 {
