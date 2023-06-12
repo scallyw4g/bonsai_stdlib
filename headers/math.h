@@ -295,9 +295,9 @@ Floori(r32 f)
 r32
 Floorf(r32 f)
 {
-  r32 Result;
-  s32 i =  (s32)(f);
-  Result = (r32)i;
+  if (f < 0) { f -= 1.f; }
+  s32 i = (s32)(f);
+  r32 Result = (r32)i;
   return Result;
 }
 
