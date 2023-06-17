@@ -108,6 +108,19 @@ struct untextured_2d_geometry_buffer
   u32 At;
 };
 
+/* poof( */
+/*   func compound_buffer(type_poof_symbol TypeName, type_poof_symbol Types ) */
+/*   { */
+/*     struct TypeName */
+/*     { */
+/*       Types */
+      /* u32 At; */
+      /* u32 End; */
+    /* }; */
+  /* } */
+/* ) */
+/* poof( compound_buffer( { untextured_3d_geometry_buffer }, { v3 *Verts; v4 *Colors; v3 *Normals; u64 Timestamp; })) */
+
 struct untextured_3d_geometry_buffer
 {
   v3 *Verts;
@@ -120,6 +133,20 @@ struct untextured_3d_geometry_buffer
 
   u64 Timestamp;
 };
+
+link_internal void
+DeepCopy(untextured_3d_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest)
+{
+  Assert(Dest->End >= Src->End);
+
+  umm Count = Src->At;
+
+  CopyMemory((u8*)Src->Verts,   (u8*)Dest->Verts,   Count*sizeof(v3));
+  CopyMemory((u8*)Src->Colors,  (u8*)Dest->Colors,  Count*sizeof(v4));
+  CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3));
+
+  Dest->At = u32(Count);
+}
 
 struct gpu_mapped_element_buffer
 {
