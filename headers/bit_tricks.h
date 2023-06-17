@@ -65,10 +65,10 @@ poof(
 )
 
 poof(gen_bit_operators(u32))
-#include <generated/gen_bit_operators_unsigned int .h>
+#include <generated/gen_bit_operators_u32.h>
 
 poof(gen_bit_operators(u64))
-#include <generated/gen_bit_operators_unsigned long long int .h>
+#include <generated/gen_bit_operators_u64.h>
 
 // TODO(Jesse): This is probably _hella_ braindead, but I couldn't think of a
 // clever way of doing this, so I used a vim macro ;)

@@ -753,15 +753,15 @@ poof(
 )
 
 poof(
-  func staticbuffer(Type, type_poof_symbol StaticCount)
+  func staticbuffer(Type, type_poof_symbol StaticCount, type_poof_symbol TypeName )
   {
-    struct (Type.name)_staticbuffer
+    struct TypeName
     {
       Type.name Start[StaticCount];
     };
 
     link_inline (Type.name)*
-    GetPtr((Type.name)_staticbuffer *Buf, umm Index)
+    GetPtr( TypeName *Buf, umm Index)
     {
       Type.name *Result = {};
       if ( Index < umm((StaticCount)) )
@@ -772,7 +772,7 @@ poof(
     }
 
     link_inline (Type.name)
-    Get((Type.name)_staticbuffer *Buf, umm Index)
+    Get( TypeName *Buf, umm Index)
     {
       Assert(Index >= 0);
       Assert(Index < umm((StaticCount)));
@@ -781,19 +781,26 @@ poof(
     }
 
     link_internal umm
-    AtElements((Type.name)_staticbuffer *Buf)
+    AtElements( TypeName  *Buf)
     {
       return StaticCount;
     }
 
     link_internal umm
-    TotalElements((Type.name)_staticbuffer *Buf)
+    TotalElements( TypeName *Buf)
     {
       return StaticCount;
     }
 
+
+  }
+)
+
+poof(
+  func deep_copy(Type)
+  {
     link_internal void
-    DeepCopy((Type.name)_staticbuffer *Src, (Type.name)_staticbuffer *Dest)
+    DeepCopy( Type.name *Src, Type.name *Dest)
     {
       Assert(TotalElements(Src) <= TotalElements(Dest));
       IterateOver(Src, Element, ElementIndex)
@@ -801,7 +808,6 @@ poof(
         DeepCopy(Element, Dest->Start+ElementIndex);
       }
     }
-
   }
 )
 

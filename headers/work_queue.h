@@ -1,4 +1,4 @@
-#define WORK_QUEUE_SIZE (4096*8)
+#define WORK_QUEUE_SIZE (4096*16)
 
 // Note(Jesse): The userland code must define work_queue_entry
 struct work_queue_entry;

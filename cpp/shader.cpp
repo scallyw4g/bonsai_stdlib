@@ -117,13 +117,13 @@ poof(gen_shader_uniform_push(v3));
 #include <generated/gen_shader_uniform_push_v3.h>
 
 poof(gen_shader_uniform_push(u32));
-#include <generated/gen_shader_uniform_push_unsigned int .h>
+#include <generated/gen_shader_uniform_push_u32.h>
 
 poof(gen_shader_uniform_push(s32));
-#include <generated/gen_shader_uniform_push_int .h>
+#include <generated/gen_shader_uniform_push_s32.h>
 
 poof(gen_shader_uniform_push(r32));
-#include <generated/gen_shader_uniform_push_float .h>
+#include <generated/gen_shader_uniform_push_r32.h>
 
 
 
