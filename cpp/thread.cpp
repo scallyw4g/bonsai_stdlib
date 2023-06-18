@@ -59,7 +59,7 @@ DefaultThreadLocalState(engine_resources *EngineResources, s32 ThreadId)
   Thread.EngineResources = EngineResources;
 
   Thread.TempMemory = AllocateArena();
-  Thread.PermMemory = AllocateArena(Megabytes(256));
+  Thread.PermMemory = AllocateArena(Megabytes(8));
 
   // TODO(Jesse)(safety): Given the below, how exactly is it safe to register
   // the PermMemory?  Seems to me like that's still just as liable to cause bad

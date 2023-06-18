@@ -137,15 +137,15 @@ struct untextured_3d_geometry_buffer
 link_internal void
 DeepCopy(untextured_3d_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest)
 {
-  Assert(Dest->End >= Src->End);
-
   umm Count = Src->At;
+  Assert(Dest->End >= Count);
 
   CopyMemory((u8*)Src->Verts,   (u8*)Dest->Verts,   Count*sizeof(v3));
   CopyMemory((u8*)Src->Colors,  (u8*)Dest->Colors,  Count*sizeof(v4));
   CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3));
 
   Dest->At = u32(Count);
+  Dest->Timestamp = Src->Timestamp;
 }
 
 struct gpu_mapped_element_buffer
