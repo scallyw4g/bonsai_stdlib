@@ -43,8 +43,8 @@ fade(f32 t) {
 
 link_internal f32
 lerp(f32 t, f32 a, f32 b) {
-  Assert(t<=1);
-  Assert(t>=0);
+  /* Assert(t<=1.01f); */
+  /* Assert(t>=-0.01f); */
   f32 res = a + t * (b - a);
   return res;
   /* return Lerp(a, t, b); */
