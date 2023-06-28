@@ -16,6 +16,7 @@
 #include <bonsai_stdlib/headers/filesystem.h>
 #include <bonsai_stdlib/headers/vector.h>
 #include <bonsai_stdlib/headers/random.h>
+#include <bonsai_stdlib/headers/noise.h>
 #include <bonsai_stdlib/headers/perlin.h>
 #include <bonsai_stdlib/headers/input.h>
 #include <bonsai_stdlib/headers/mutex.h>

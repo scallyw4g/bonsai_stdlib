@@ -98,6 +98,18 @@ union v4
 
 
 link_internal v4
+V4(f32 x, v3 v)
+{
+  v4 Result = {
+    .x = x,
+    .y = v.x,
+    .z = v.y,
+    .w = v.z,
+  };
+  return Result;
+}
+
+link_internal v4
 V4(v3 v, f32 w)
 {
   v4 Result = {
