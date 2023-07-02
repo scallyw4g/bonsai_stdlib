@@ -38,6 +38,9 @@
 // memset
 #include <cstring>
 
+// INT_MIN
+#include <climits>
+
 #define PLATFORM_RUNTIME_LIB_EXTENSION ".so"
 
 #define WindowEventMasks StructureNotifyMask | PointerMotionMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask
