@@ -3,11 +3,10 @@
 #include <windowsx.h> // Macros to retrieve mouse coordinates
 #include <WinBase.h>
 #include <wingdi.h>
+
 #include <bonsai_stdlib/headers/wgl.h>
 
 #include <sys/stat.h>
-
-#include <stdint.h>
 
 #include <direct.h> // Chdir
 
@@ -30,7 +29,6 @@
 
 #define bonsaiGlGetProcAddress(procName) wglGetProcAddress(procName)
 typedef PFNWGLSWAPINTERVALEXTPROC PFNSWAPINTERVALPROC;
-
 
 typedef HANDLE thread_handle;
 typedef HANDLE semaphore;

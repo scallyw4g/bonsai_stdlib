@@ -35,6 +35,7 @@
 // getenv
 #include <stdlib.h>
 
+// TODO(Jesse): Get rid of this
 // memset
 #include <cstring>
 
