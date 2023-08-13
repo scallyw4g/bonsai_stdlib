@@ -1,5 +1,3 @@
-#if PLATFORM_GL_IMPLEMENTATIONS
-
 // Wrapper so assertions give us file/line numbers
 #define AssertNoGlErrors
 
@@ -497,5 +495,3 @@ SetVSync(os *Os, s32 VSyncFrames)
 #endif
 
 }
-
-#endif

@@ -26,9 +26,12 @@
 #include <bonsai_stdlib/src/xml.cpp>
 #include <bonsai_stdlib/src/file.cpp>
 #include <bonsai_stdlib/src/filesystem.cpp>
+
+#if PLATFORM_GL_IMPLEMENTATIONS
 #include <bonsai_stdlib/src/gl.cpp>
 #include <bonsai_stdlib/src/interactable.cpp>
 #include <bonsai_stdlib/src/texture.cpp>
 #include <bonsai_stdlib/src/shader.cpp>
 #include <bonsai_stdlib/src/2d.cpp>
 #include <bonsai_stdlib/src/ui.cpp>
+#endif

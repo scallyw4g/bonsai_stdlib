@@ -53,3 +53,10 @@ FastForward(stream_t* Stream)
   }
 }
 
+template <typename T> b32
+BufferHasRoomFor(T *Buffer, u32 Count)
+{
+  b32 Result = (Buffer->At + Count) <= Buffer->End;
+  return Result;
+}
+
