@@ -1,6 +1,6 @@
 
 #if BONSAI_LINUX || BONSAI_EMCC
-#include <bonsai_stdlib/platform/posix_platform.cpp>
+#include <bonsai_stdlib/src/platform/posix_platform.cpp>
 #endif
 
 #if BONSAI_WIN32
