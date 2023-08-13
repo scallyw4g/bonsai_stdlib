@@ -1,49 +1,46 @@
 
 #define poof(...)
 
-#include <bonsai_stdlib/headers/poof_functions.h>
-#include <bonsai_stdlib/headers/iterators.h>
-#include <bonsai_stdlib/headers/assert.h>
-#include <bonsai_stdlib/headers/primitives.h>
-#include <bonsai_stdlib/headers/console_macros.h>
-#include <bonsai_stdlib/headers/globals.h>
-#include <bonsai_stdlib/headers/platform.h>
-#include <bonsai_stdlib/headers/bit_tricks.h>
-#include <bonsai_stdlib/headers/atomic.h>
-#include <bonsai_stdlib/headers/thread.h>
-#include <bonsai_stdlib/headers/math.h>
-#include <bonsai_stdlib/headers/file.h>
-#include <bonsai_stdlib/headers/filesystem.h>
-#include <bonsai_stdlib/headers/vector.h>
+#include <bonsai_stdlib/src/poof_functions.h>
+#include <bonsai_stdlib/src/iterators.h>
+#include <bonsai_stdlib/src/assert.h>
+#include <bonsai_stdlib/src/primitives.h>
+#include <bonsai_stdlib/src/console_macros.h>
+#include <bonsai_stdlib/src/globals.h>
+#include <bonsai_stdlib/src/platform.h>
+#include <bonsai_stdlib/src/bit_tricks.h>
+#include <bonsai_stdlib/src/atomic.h>
+#include <bonsai_stdlib/src/thread.h>
+#include <bonsai_stdlib/src/math.h>
+#include <bonsai_stdlib/src/file.h>
+#include <bonsai_stdlib/src/filesystem.h>
+#include <bonsai_stdlib/src/vector.h>
+#include <bonsai_stdlib/src/colors.h>
+#include <bonsai_stdlib/src/texture.h>
+#include <bonsai_stdlib/src/shader.h>
+#include <bonsai_stdlib/src/random.h>
+#include <bonsai_stdlib/src/noise.h>
+#include <bonsai_stdlib/src/perlin.h>
+#include <bonsai_stdlib/src/input.h>
+#include <bonsai_stdlib/src/mutex.h>
+#include <bonsai_stdlib/src/work_queue.h>
+#include <bonsai_stdlib/src/memory_arena.h>
+#include <bonsai_stdlib/src/gl.h>
+#include <bonsai_stdlib/src/platform_struct.h>
+#include <bonsai_stdlib/src/heap_allocator.h>
+#include <bonsai_stdlib/src/stream.h>
+#include <bonsai_stdlib/src/counted_string.h>
+#include <bonsai_stdlib/src/console_io.h>
+#include <bonsai_stdlib/src/line.h>
+#include <bonsai_stdlib/src/quaternion.h>
+#include <bonsai_stdlib/src/string_builder.h>
+#include <bonsai_stdlib/src/ansi_stream.h>
+#include <bonsai_stdlib/src/matrix.h>
+#include <bonsai_stdlib/src/rect.h>
+#include <bonsai_stdlib/src/ray.h>
+#include <bonsai_stdlib/src/xml.h>
 
-#include <bonsai_stdlib/headers/colors.h>
-
-#include <bonsai_stdlib/headers/texture.h>
-#include <bonsai_stdlib/headers/shader.h>
-
-#include <bonsai_stdlib/headers/random.h>
-#include <bonsai_stdlib/headers/noise.h>
-#include <bonsai_stdlib/headers/perlin.h>
-#include <bonsai_stdlib/headers/input.h>
-#include <bonsai_stdlib/headers/mutex.h>
-#include <bonsai_stdlib/headers/work_queue.h>
-#include <bonsai_stdlib/headers/memory_arena.h>
-#include <bonsai_stdlib/headers/gl.h>
-#include <bonsai_stdlib/headers/platform_struct.h>
-#include <bonsai_stdlib/headers/heap_allocator.h>
-#include <bonsai_stdlib/headers/stream.h>
-#include <bonsai_stdlib/headers/counted_string.h>
-#include <bonsai_stdlib/headers/console_io.h>
-#include <bonsai_stdlib/headers/line.h>
-#include <bonsai_stdlib/headers/quaternion.h>
-#include <bonsai_stdlib/headers/string_builder.h>
-#include <bonsai_stdlib/headers/ansi_stream.h>
-#include <bonsai_stdlib/headers/matrix.h>
-#include <bonsai_stdlib/headers/rect.h>
-#include <bonsai_stdlib/headers/ray.h>
-#include <bonsai_stdlib/headers/xml.h>
-
-/* #include <bonsai_debug/headers/debug.h> */
+/* #include <bonsai_debug/src/debug.h> */
 
 
 struct light;
@@ -161,5 +158,5 @@ struct render_entity_to_texture_group
   /* shader DebugGameGeoTextureShader; */
 };
 
-#include <bonsai_stdlib/headers/2d.h>
-#include <bonsai_stdlib/headers/interactable.h>
+#include <bonsai_stdlib/src/2d.h>
+#include <bonsai_stdlib/src/interactable.h>

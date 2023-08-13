@@ -4,7 +4,7 @@
 #include <WinBase.h>
 #include <wingdi.h>
 
-#include <bonsai_stdlib/headers/wgl.h>
+#include <bonsai_stdlib/src/platform/wgl.h>
 
 #include <sys/stat.h>
 
