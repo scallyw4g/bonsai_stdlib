@@ -56,6 +56,18 @@ myFmodf( r32 F, r32 mod )
 #endif
 
 inline r32
+Pow(r32 N, int Exp)
+{
+  r32 Result = N;
+  RangeIterator(i, Exp)
+  {
+    Result *= N;
+  }
+  return Result;
+}
+
+
+inline r32
 Sin(r32 Theta)
 {
   r32 Result = (r32)sin((double)Theta);
@@ -245,6 +257,13 @@ ClampMinus1toInfinity( float f )
   }
 
   return Result;
+}
+
+inline r32
+ClampMin(r32 Value, r32 Min)
+{
+  if (Value < Min) { Value = Min; }
+  return Value;
 }
 
 inline void
