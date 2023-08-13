@@ -1,4 +1,5 @@
-#if PLATFORM_GL_IMPLEMENTATIONS
+// Note(Jesse): Must match shader define in header.glsl
+#define DEBUG_TEXTURE_DIM 512
 
 #define u32_COUNT_PER_QUAD (6)
 
@@ -116,102 +117,6 @@ SelectColorState(render_state* RenderState, ui_style *Style)
   return Result;
 }
 
-
-
-/******************************                *******************************/
-/******************************  2D Buffering  *******************************/
-/******************************                *******************************/
-
-
-
-link_internal void
-ClearFramebuffer(framebuffer FBO)
-{
-  GL.BindFramebuffer(GL_FRAMEBUFFER, FBO.ID);
-  GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-link_internal void
-ClearFramebuffers(render_entity_to_texture_group *Group)
-{
-  ClearFramebuffer(Group->GameGeoFBO);
-}
-
-link_internal void
-FlushBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer, v2 ScreenDim)
-{
-  TIMED_FUNCTION();
-
-  if (TextGroup)
-  {
-    GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
-    SetViewport(ScreenDim);
-    UseShader(&TextGroup->SolidUIShader);
-
-    u32 AttributeIndex = 0;
-    BufferVertsToCard(TextGroup->SolidUIVertexBuffer, Buffer, &AttributeIndex);
-    BufferColorsToCard(TextGroup->SolidUIColorBuffer, Buffer, &AttributeIndex);
-
-    Draw(Buffer->At);
-    Buffer->At = 0;
-
-    GL.DisableVertexAttribArray(0);
-    GL.DisableVertexAttribArray(1);
-
-    AssertNoGlErrors;
-  }
-  else
-  {
-    Warn("FlushBuffer call issued without a RenderGroup!");
-  }
-
-  return;
-}
-
-link_internal void
-FlushBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 ScreenDim)
-{
-  GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
-  SetViewport(ScreenDim);
-  GL.UseProgram(TextGroup->Text2DShader.ID);
-
-  GL.ActiveTexture(GL_TEXTURE0);
-  GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray->ID);
-
-  GL.Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
-
-  u32 AttributeIndex = 0;
-  BufferVertsToCard( TextGroup->SolidUIVertexBuffer, Geo, &AttributeIndex);
-  BufferUVsToCard(   TextGroup->SolidUIUVBuffer,     Geo, &AttributeIndex);
-  BufferColorsToCard(TextGroup->SolidUIColorBuffer,  Geo, &AttributeIndex);
-
-  GL.Enable(GL_BLEND);
-  GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  Draw(Geo->At);
-  Geo->At = 0;
-
-  GL.Disable(GL_BLEND);
-
-  GL.DisableVertexAttribArray(0);
-  GL.DisableVertexAttribArray(1);
-  GL.DisableVertexAttribArray(2);
-
-  AssertNoGlErrors;
-}
-
-link_internal void
-FlushUIBuffers(renderer_2d *UiGroup, v2 ScreenDim)
-{
-  if (UiGroup->TextGroup)
-  {
-    FlushBuffer(UiGroup->TextGroup, &UiGroup->Geo, ScreenDim);
-    FlushBuffer(UiGroup->TextGroup, &UiGroup->TextGroup->Geo, ScreenDim);
-  }
-
-  return;
-}
 
 link_internal void
 BufferQuadUVs(textured_2d_geometry_buffer* Geo, rect2 UV, debug_texture_array_slice Slice)
@@ -2065,7 +1970,9 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
   Group->SolidGeoCountLastFrame = Group->Geo.At;
   Group->TextGeoCountLastFrame = Group->TextGroup->Geo.At;
 
+#if PLATFORM_GL_IMPLEMENTATIONS
   FlushUIBuffers(Group, Group->ScreenDim);
+#endif
 
   return;
 }
@@ -2084,4 +1991,77 @@ BasisRightOf(window_layout* Window, v2 WindowSpacing = V2(50, 0))
   return Result;
 }
 
+link_internal void
+AllocateAndInitGeoBuffer(textured_2d_geometry_buffer *Geo, u32 ElementCount, memory_arena *DebugArena)
+{
+  Geo->Verts  = Allocate(v3, DebugArena, ElementCount);
+  Geo->Colors = Allocate(v3, DebugArena, ElementCount);
+  Geo->UVs    = Allocate(v3, DebugArena, ElementCount);
+
+  Geo->End = ElementCount;
+  Geo->At = 0;
+}
+
+link_internal void
+AllocateAndInitGeoBuffer(untextured_2d_geometry_buffer *Geo, u32 ElementCount, memory_arena *DebugArena)
+{
+  Geo->Verts = Allocate(v3, DebugArena, ElementCount);
+  Geo->Colors = Allocate(v3, DebugArena, ElementCount);
+
+  Geo->End = ElementCount;
+  Geo->At = 0;
+  return;
+}
+
+texture* LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount);
+
+link_internal b32
+InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMemory, v2 *MouseP = 0, v2 *MouseDP = 0, input *Input = 0)
+{
+  b32 Result = True;
+
+  Renderer->TextGroup     = Allocate(render_buffers_2d, PermMemory, 1);
+  Renderer->CommandBuffer = Allocate(ui_render_command_buffer, PermMemory, 1);
+
+  // TODO(Jesse, memory): Instead of allocate insanely massive buffers (these are ~400x overkill)
+  // we should have a system that streams blocks of memory in as-necessary
+  // @streaming_ui_render_memory
+  u32 ElementCount = (u32)Megabytes(2);
+  AllocateAndInitGeoBuffer(&Renderer->TextGroup->Geo, ElementCount, PermMemory);
+  AllocateAndInitGeoBuffer(&Renderer->Geo, ElementCount, PermMemory);
+
+#if PLATFORM_GL_IMPLEMENTATIONS
+  auto TextGroup = Renderer->TextGroup;
+  TextGroup->DebugTextureArray = LoadBitmap("texture_atlas_0.bmp", PermMemory, DebugTextureArraySlice_Count);
+  GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
+  GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
+  GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
+  TextGroup->Text2DShader = LoadShaders( CSz("TextVertexShader.vertexshader"), CSz("TextVertexShader.fragmentshader") );
+  TextGroup->TextTextureUniform = GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
+  Renderer->TextGroup->SolidUIShader = LoadShaders( CSz("SimpleColor.vertexshader"), CSz("SimpleColor.fragmentshader") );
+
+  v2i TextureDim = V2i(DEBUG_TEXTURE_DIM, DEBUG_TEXTURE_DIM);
+  texture *DepthTexture = MakeDepthTexture( TextureDim, PermMemory );
+  FramebufferDepthTexture(DepthTexture);
+
+  Result = CheckAndClearFramebuffer();
+  Assert(Result);
+
+  GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
+  GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  AssertNoGlErrors;
 #endif
+
+  random_series Entropy = {54623153};
+  for (u32 ColorIndex = 0; ColorIndex < RANDOM_COLOR_COUNT; ++ColorIndex)
+  {
+    Renderer->DebugColors[ColorIndex] = RandomV3(&Entropy);
+  }
+
+  Renderer->MouseP = MouseP;
+  Renderer->MouseDP = MouseDP;
+  Renderer->Input = Input;
+
+  return Result;
+}
+

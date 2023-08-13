@@ -15,6 +15,7 @@
 #include <bonsai_stdlib/src/file.h>
 #include <bonsai_stdlib/src/filesystem.h>
 #include <bonsai_stdlib/src/vector.h>
+#include <bonsai_stdlib/src/matrix.h>
 #include <bonsai_stdlib/src/colors.h>
 #include <bonsai_stdlib/src/texture.h>
 #include <bonsai_stdlib/src/shader.h>
@@ -25,9 +26,12 @@
 #include <bonsai_stdlib/src/mutex.h>
 #include <bonsai_stdlib/src/work_queue.h>
 #include <bonsai_stdlib/src/memory_arena.h>
+
 #if PLATFORM_GL_IMPLEMENTATIONS
 #include <bonsai_stdlib/src/gl.h>
+#include <bonsai_stdlib/src/ui/gl.h>
 #endif
+
 #include <bonsai_stdlib/src/platform_struct.h>
 #include <bonsai_stdlib/src/heap_allocator.h>
 #include <bonsai_stdlib/src/stream.h>
@@ -37,7 +41,6 @@
 #include <bonsai_stdlib/src/quaternion.h>
 #include <bonsai_stdlib/src/string_builder.h>
 #include <bonsai_stdlib/src/ansi_stream.h>
-#include <bonsai_stdlib/src/matrix.h>
 #include <bonsai_stdlib/src/rect.h>
 #include <bonsai_stdlib/src/ray.h>
 #include <bonsai_stdlib/src/xml.h>
@@ -49,33 +52,6 @@
 
 struct light;
 struct camera;
-
-// TODO(Jesse, id: 83, tags: metaprogramming, immediate): d_union-ify this
-struct shader_uniform
-{
-  shader_uniform_type Type;
-  union {
-    texture *Texture;
-    m4 *M4;
-    v3 *V3;
-    s32 *S32;
-    u32 *U32;
-    r32 *R32;
-    camera *Camera;
-    light *Light;
-    void *Data;
-  };
-
-  s32 ID;
-  const char *Name;
-  shader_uniform *Next;
-};
-
-struct shader
-{
-  u32 ID;
-  shader_uniform *FirstUniform;
-};
 
 struct textured_2d_geometry_buffer
 {
@@ -109,92 +85,5 @@ struct untextured_2d_geometry_buffer
 /* ) */
 /* poof( compound_buffer( { untextured_3d_geometry_buffer }, { v3 *Verts; v4 *Colors; v3 *Normals; u64 Timestamp; })) */
 
-struct untextured_3d_geometry_buffer
-{
-  v3 *Verts;
-  v4 *Colors;
-  v3 *Normals;
-
-  // TODO(Jesse): The fuck are these doing as 32bit?!
-  u32 End;
-  u32 At;
-
-  u64 Timestamp;
-};
-
-untextured_3d_geometry_buffer
-ReserveBufferSpace(untextured_3d_geometry_buffer* Reservation, u32 ElementsToReserve)
-{
-  /* TIMED_FUNCTION(); */
-  Assert(ElementsToReserve);
-
-  untextured_3d_geometry_buffer Result = {};
-
-  for (;;)
-  {
-    umm ReservationAt = Reservation->At;
-    umm ReservationRequest = ReservationAt + ElementsToReserve;
-    if (ReservationRequest < Reservation->End)
-    {
-      if ( AtomicCompareExchange(&Reservation->At, (u32)ReservationRequest, (u32)ReservationAt) )
-      {
-        Result.Verts = Reservation->Verts + ReservationAt;
-        Result.Colors = Reservation->Colors + ReservationAt;
-        Result.Normals = Reservation->Normals + ReservationAt;
-        Result.End = ElementsToReserve;
-
-        break;
-      }
-    }
-    else
-    {
-      Warn("Failed to reserve buffer space");
-      break;
-    }
-  }
-
-  return Result;
-}
-
-link_internal void
-DeepCopy(untextured_3d_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest)
-{
-  umm Count = Src->At;
-  Assert(Dest->End >= Count);
-
-  CopyMemory((u8*)Src->Verts,   (u8*)Dest->Verts,   Count*sizeof(v3));
-  CopyMemory((u8*)Src->Colors,  (u8*)Dest->Colors,  Count*sizeof(v4));
-  CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3));
-
-  Dest->At = u32(Count);
-  Dest->Timestamp = Src->Timestamp;
-}
-
-struct gpu_mapped_element_buffer
-{
-  u32 VertexHandle;
-  u32 NormalHandle;
-  u32 ColorHandle;
-
-  untextured_3d_geometry_buffer Buffer;
-};
-
-struct framebuffer
-{
-  u32 ID;
-  u32 Attachments;
-};
-
-struct render_entity_to_texture_group
-{
-  // For the GameGeo
-  camera *Camera;
-  framebuffer GameGeoFBO;
-  shader GameGeoShader;
-  m4 ViewProjection;
-  gpu_mapped_element_buffer GameGeo;
-  /* shader DebugGameGeoTextureShader; */
-};
-
-#include <bonsai_stdlib/src/ui/2d.h>
+#include <bonsai_stdlib/src/ui/ui.h>
 #include <bonsai_stdlib/src/ui/interactable.h>

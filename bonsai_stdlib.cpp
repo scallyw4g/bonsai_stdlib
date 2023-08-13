@@ -31,7 +31,8 @@
 #include <bonsai_stdlib/src/gl.cpp>
 #include <bonsai_stdlib/src/texture.cpp>
 #include <bonsai_stdlib/src/shader.cpp>
-#include <bonsai_stdlib/src/ui/interactable.cpp>
-#include <bonsai_stdlib/src/ui/2d.cpp>
-#include <bonsai_stdlib/src/ui/ui.cpp>
+#include <bonsai_stdlib/src/ui/gl.cpp>
 #endif
+
+#include <bonsai_stdlib/src/ui/interactable.cpp>
+#include <bonsai_stdlib/src/ui/ui.cpp>
