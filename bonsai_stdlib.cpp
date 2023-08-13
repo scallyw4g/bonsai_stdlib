@@ -10,7 +10,7 @@
 #define SHADER_PATH "shaders"
 
 #include <bonsai_debug/debug.h>
-#include <bonsai_debug/headers/api.h>
+#include <bonsai_debug/src/api.h>
 
 #include <bonsai_stdlib/src/memory_arena.cpp>
 #include <bonsai_stdlib/src/vector.cpp>
