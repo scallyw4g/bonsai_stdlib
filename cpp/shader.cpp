@@ -149,3 +149,108 @@ CheckAndClearFramebuffer()
 
   return Result;
 }
+
+// NOTE(Jesse): The engine defines this function such that we can bind
+// engine-specific structs as uniforms, instead of using a pile of values.
+// We're using `weak` magic here such that we can have this live in stdlib,
+// but also support thunking through to engine code, if it's present.
+void BindEngineUniform(shader_uniform*) __attribute__((weak));
+
+link_internal void
+BindShaderUniforms(shader *Shader)
+{
+  TIMED_FUNCTION();
+
+  shader_uniform *Uniform = Shader->FirstUniform;
+
+  u32 TextureUnit = 0;
+
+  while (Uniform)
+  {
+    switch(Uniform->Type)
+    {
+      case ShaderUniform_Texture:
+      {
+        TIMED_BLOCK("ShaderUniform_Texture");
+        Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
+
+        GL.ActiveTexture(GL_TEXTURE0 + TextureUnit);
+        GL.Uniform1i(Uniform->ID, (s32)TextureUnit);
+        GL.BindTexture(GL_TEXTURE_2D, Uniform->Texture->ID);
+
+        TextureUnit++;
+        END_BLOCK();
+      } break;
+
+      case ShaderUniform_U32:
+      {
+        TIMED_BLOCK("ShaderUniform_U32");
+        GL.Uniform1ui(Uniform->ID, *Uniform->U32);
+        END_BLOCK();
+      } break;
+
+      case ShaderUniform_R32:
+      {
+        TIMED_BLOCK("ShaderUniform_R32");
+        GL.Uniform1f(Uniform->ID, *Uniform->R32);
+        END_BLOCK();
+      } break;
+
+      case ShaderUniform_S32:
+      {
+        TIMED_BLOCK("ShaderUniform_S32");
+        GL.Uniform1i(Uniform->ID, *Uniform->S32);
+        END_BLOCK();
+      } break;
+
+      case ShaderUniform_M4:
+      {
+        TIMED_BLOCK("ShaderUniform_M4");
+        GL.UniformMatrix4fv(Uniform->ID, 1, GL_FALSE, (r32*)Uniform->M4);
+        END_BLOCK();
+      } break;
+
+      case ShaderUniform_V3:
+      {
+        TIMED_BLOCK("ShaderUniform_V3");
+        GL.Uniform3fv(Uniform->ID, 1, (r32*)Uniform->V3);
+        END_BLOCK();
+      } break;
+
+      default:
+      {
+#if BONSAI_ENGINE
+        // NOTE(Jesse): If this fails, we changed the name of BindEngineUniform
+        // without updating this callsite
+        Assert(BindEngineUniform);
+#endif
+
+        // @use_shader_bind_engine_uniform_callsite
+        if (BindEngineUniform)
+        {
+          BindEngineUniform(Uniform);
+        }
+        else
+        {
+          SoftError("Attempted to bind an engine uniform, but the engine bind function was not found!");
+        }
+      }
+    }
+
+    TIMED_BLOCK("AssertNoGlErrors");
+    AssertNoGlErrors;
+    END_BLOCK();
+
+    Uniform = Uniform->Next;
+  }
+
+  return;
+}
+
+void
+UseShader(shader *Shader)
+{
+  GL.UseProgram(Shader->ID);
+  BindShaderUniforms(Shader);
+  return;
+}

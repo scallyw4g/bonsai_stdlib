@@ -15,6 +15,12 @@
 #include <bonsai_stdlib/headers/file.h>
 #include <bonsai_stdlib/headers/filesystem.h>
 #include <bonsai_stdlib/headers/vector.h>
+
+#include <bonsai_stdlib/headers/colors.h>
+
+#include <bonsai_stdlib/headers/texture.h>
+#include <bonsai_stdlib/headers/shader.h>
+
 #include <bonsai_stdlib/headers/random.h>
 #include <bonsai_stdlib/headers/noise.h>
 #include <bonsai_stdlib/headers/perlin.h>
@@ -40,20 +46,6 @@
 /* #include <bonsai_debug/headers/debug.h> */
 
 
-enum shader_uniform_type
-{
-  ShaderUniform_Undefined,
-  ShaderUniform_M4,
-  ShaderUniform_V3,
-  ShaderUniform_S32,
-  ShaderUniform_U32,
-  ShaderUniform_R32,
-  ShaderUniform_Texture,
-  ShaderUniform_Light,
-  ShaderUniform_Camera,
-};
-
-struct texture;
 struct light;
 struct camera;
 
@@ -63,13 +55,13 @@ struct shader_uniform
   shader_uniform_type Type;
   union {
     texture *Texture;
-    light *Light;
     m4 *M4;
     v3 *V3;
     s32 *S32;
     u32 *U32;
     r32 *R32;
     camera *Camera;
+    light *Light;
     void *Data;
   };
 
@@ -82,12 +74,6 @@ struct shader
 {
   u32 ID;
   shader_uniform *FirstUniform;
-};
-
-struct texture
-{
-  u32 ID;
-  v2i Dim;
 };
 
 struct textured_2d_geometry_buffer

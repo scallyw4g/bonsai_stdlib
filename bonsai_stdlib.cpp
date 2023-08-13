@@ -31,4 +31,4 @@
 #include <bonsai_stdlib/cpp/texture.cpp>
 #include <bonsai_stdlib/cpp/shader.cpp>
 #include <bonsai_stdlib/cpp/2d.cpp>
-
+#include <bonsai_stdlib/cpp/ui.cpp>
