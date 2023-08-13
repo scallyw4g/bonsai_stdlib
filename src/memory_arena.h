@@ -664,15 +664,41 @@ PushStruct(memory_arena *Memory, umm sizeofStruct, umm Alignment = 1, b32 MemPro
   return Result;
 }
 
+
 #if 1
+struct temp_memory_handle;
+link_internal void EndTemporaryMemory(temp_memory_handle *Handle, b32 ReportLeaks = True);
+
 struct temp_memory_handle
 {
   memory_arena *Arena;
   u8* BeginMark;
+
+
+  // NOTE(Jesse): This is some fucking nonsense to shut up a warning because
+  // apparently we're not allowed to have a destructor with implicitly defined constructors
+  temp_memory_handle() = default;
+  temp_memory_handle(const temp_memory_handle &) = default;
+
+/* #if !POOF_PREPROCESSOR */
+  ~temp_memory_handle()
+  {
+    if (Arena || BeginMark)
+    {
+      Assert(Arena);
+      Assert(BeginMark);
+
+      EndTemporaryMemory(this);
+    }
+  }
+/* #endif */
+
 };
 
+
+
 link_internal void
-EndTemporaryMemory(temp_memory_handle *Handle, b32 ReportLeaks = True)
+EndTemporaryMemory(temp_memory_handle *Handle, b32 ReportLeaks)
 {
   memory_arena *Arena = Handle->Arena;
   u8 *BeginMark = Handle->BeginMark;
@@ -702,6 +728,9 @@ EndTemporaryMemory(temp_memory_handle *Handle, b32 ReportLeaks = True)
     }
   }
 
+  Handle->Arena = 0;
+  Handle->BeginMark = 0;
+
   return;
 }
 
@@ -713,10 +742,10 @@ BeginTemporaryMemory(memory_arena *Arena, b32 ReportLeaks = True)
     ReallocateArena(Arena, Megabytes(1), True);
   }
 
-  temp_memory_handle Result = {
-    .Arena = Arena,
-    .BeginMark = Arena->At,
-  };
+  temp_memory_handle Result = {};
+
+  Result.Arena = Arena;
+  Result.BeginMark = Arena->At;
 
   return Result;
 }

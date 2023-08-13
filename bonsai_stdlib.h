@@ -44,6 +44,8 @@
 
 /* #include <bonsai_debug/src/debug.h> */
 
+// nocheckin Move this stuff to respective places they should live.
+// 3d stuff is supposed to live in the engine
 
 struct light;
 struct camera;
@@ -119,6 +121,40 @@ struct untextured_3d_geometry_buffer
 
   u64 Timestamp;
 };
+
+untextured_3d_geometry_buffer
+ReserveBufferSpace(untextured_3d_geometry_buffer* Reservation, u32 ElementsToReserve)
+{
+  /* TIMED_FUNCTION(); */
+  Assert(ElementsToReserve);
+
+  untextured_3d_geometry_buffer Result = {};
+
+  for (;;)
+  {
+    umm ReservationAt = Reservation->At;
+    umm ReservationRequest = ReservationAt + ElementsToReserve;
+    if (ReservationRequest < Reservation->End)
+    {
+      if ( AtomicCompareExchange(&Reservation->At, (u32)ReservationRequest, (u32)ReservationAt) )
+      {
+        Result.Verts = Reservation->Verts + ReservationAt;
+        Result.Colors = Reservation->Colors + ReservationAt;
+        Result.Normals = Reservation->Normals + ReservationAt;
+        Result.End = ElementsToReserve;
+
+        break;
+      }
+    }
+    else
+    {
+      Warn("Failed to reserve buffer space");
+      break;
+    }
+  }
+
+  return Result;
+}
 
 link_internal void
 DeepCopy(untextured_3d_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest)
