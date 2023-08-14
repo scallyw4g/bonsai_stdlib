@@ -2,7 +2,11 @@
 #include <bonsai_net/network.h>
 #endif
 
-#if PLATFORM_LIBRARY_AND_WINDOW_IMPLEMENTATIONS
+
+#if !PLATFORM_GL_IMPLEMENTATIONS
+#error "Cannot open a window without including GL implementations"
+#endif
+
 // TODO(Jesse id: 267): Unnecessary .. I just added these as a hack get parsing to work
 typedef Colormap x_colormap;
 typedef XSetWindowAttributes x_set_window_attribs;
@@ -278,9 +282,6 @@ ProcessOsMessages(os *Os, platform *Plat)
 
   return EventFound;
 }
-#endif // PLATFORM_LIBRARY_AND_WINDOW_IMPLEMENTATIONS
-
-#if PLATFORM_GL_IMPLEMENTATIONS
 
 inline void
 BonsaiSwapBuffers(os *Os)
@@ -289,7 +290,6 @@ BonsaiSwapBuffers(os *Os)
   glXSwapBuffers(Os->Display, Os->Window);
 }
 
-#endif // PLATFORM_GL_IMPLEMENTATIONS
 
 #if BONSAI_NETWORK_IMPLEMENTATION
 inline void
