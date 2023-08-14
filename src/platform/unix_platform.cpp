@@ -3,8 +3,11 @@
 #endif
 
 
+#if PLATFORM_WINDOW_IMPLEMENTATIONS
+
 #if !PLATFORM_GL_IMPLEMENTATIONS
-#error "Cannot open a window without including GL implementations"
+// TODO(Jesse): Should this be a thing everywhere?  Or maybe not a thing at all?  IDK.
+#error "Cannot open a window without including GL implementations on Linux"
 #endif
 
 // TODO(Jesse id: 267): Unnecessary .. I just added these as a hack get parsing to work
@@ -289,7 +292,7 @@ BonsaiSwapBuffers(os *Os)
   TIMED_FUNCTION();
   glXSwapBuffers(Os->Display, Os->Window);
 }
-
+#endif
 
 #if BONSAI_NETWORK_IMPLEMENTATION
 inline void
