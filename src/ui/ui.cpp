@@ -303,8 +303,10 @@ template <typename T> link_internal void
 BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 ScreenDim)
 {
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
-  Assert(ScreenDim.x > 0);
-  Assert(ScreenDim.y > 0);
+
+  // NOTE(Jesse): If we minimize the window these fire
+  /* Assert(ScreenDim.x > 0); */
+  /* Assert(ScreenDim.y > 0); */
 
   r32 Left   = MinP.x;
   r32 Right  = Left+Dim.x;

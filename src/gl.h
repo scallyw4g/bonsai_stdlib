@@ -288,19 +288,6 @@ DeepCopy(untextured_3d_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest
 
 #endif
 
-struct untextured_3d_geometry_buffer
-{
-  v3 *Verts;
-  v4 *Colors;
-  v3 *Normals;
-
-  // TODO(Jesse): The fuck are these doing as 32bit?!
-  u32 End;
-  u32 At;
-
-  u64 Timestamp;
-};
-
 struct gpu_mapped_element_buffer
 {
   u32 VertexHandle;

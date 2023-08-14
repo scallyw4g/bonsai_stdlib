@@ -26,6 +26,7 @@
 #include <bonsai_stdlib/src/mutex.h>
 #include <bonsai_stdlib/src/work_queue.h>
 #include <bonsai_stdlib/src/memory_arena.h>
+#include <bonsai_stdlib/src/mesh.h>
 
 #if PLATFORM_GL_IMPLEMENTATIONS
 #include <bonsai_stdlib/src/gl.h>

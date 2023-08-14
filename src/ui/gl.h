@@ -13,7 +13,3 @@ ClearFramebuffers(render_entity_to_texture_group *Group)
   ClearFramebuffer(Group->GameGeoFBO);
 }
 
-
-
-
-
