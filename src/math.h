@@ -56,6 +56,13 @@ myFmodf( r32 F, r32 mod )
 #endif
 
 inline r32
+Round(r32 N)
+{
+  r32 Result = roundf(N);
+  return Result;
+}
+
+inline r32
 Pow(r32 N, int Exp)
 {
   r32 Result = N;

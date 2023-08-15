@@ -665,6 +665,17 @@ DistanceSq( v3 P1, v3 P2 )
 }
 
 
+inline v3
+Round( v3 A )
+{
+  v3 Result = {{
+    Round(A.E[0]),
+    Round(A.E[1]),
+    Round(A.E[2]),
+  }};
+  return Result;
+}
+
 inline r32
 Dot( v3 A, v3 B)
 {
