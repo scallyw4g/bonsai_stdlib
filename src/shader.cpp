@@ -156,6 +156,22 @@ CheckAndClearFramebuffer()
 // but also support thunking through to engine code, if it's present.
 void BindEngineUniform(shader_uniform*) __attribute__((weak));
 
+
+// TODO(Jesse): We should generate the set of these?
+link_internal void
+BindUniform(shader *Shader, counted_string Name, s32 Value)
+{
+  GL.Uniform1i(GL.GetUniformLocation(Shader->ID, Name.Start), Value);
+}
+
+link_internal void
+BindUniform(shader *Shader, counted_string Name, texture *Texture, u32 TextureUnit)
+{
+  GL.ActiveTexture(GL_TEXTURE0 + TextureUnit);
+  GL.Uniform1i(GL.GetUniformLocation(Shader->ID, Name.Start), (s32)TextureUnit);
+  GL.BindTexture(GL_TEXTURE_2D, Texture->ID);
+}
+
 link_internal void
 BindShaderUniforms(shader *Shader)
 {
