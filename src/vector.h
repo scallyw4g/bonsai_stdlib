@@ -763,3 +763,19 @@ GetSigni(v3 P)
   v3i Result = V3i( GetSign(P.x), GetSign(P.y), GetSign(P.z));
   return Result;
 }
+
+inline voxel_position
+Clamp01( voxel_position V )
+{
+  voxel_position Result = V;
+  if (Result.x < 0) Result.x = 0;
+  if (Result.y < 0) Result.y = 0;
+  if (Result.z < 0) Result.z = 0;
+
+  if (Result.x > 1) Result.x = 1;
+  if (Result.y > 1) Result.y = 1;
+  if (Result.z > 1) Result.z = 1;
+
+  return Result;
+}
+
