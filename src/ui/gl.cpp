@@ -82,10 +82,6 @@ FlushUIBuffers(renderer_2d *UiGroup, v2 ScreenDim)
   return;
 }
 
-
-
-
-
 link_internal shader
 MakeRenderToTextureShader(memory_arena *Memory, m4 *ViewProjection)
 {
@@ -98,25 +94,3 @@ MakeRenderToTextureShader(memory_arena *Memory, m4 *ViewProjection)
 
   return Shader;
 }
-
-#if 0
-void AllocateGpuElementBuffer(gpu_mapped_element_buffer *GpuMap, u32 ElementCount);
-void
-InitRenderToTextureGroup(texture *DebugTextureArray, render_entity_to_texture_group *Group, memory_arena *PermMemory)
-{
-  AllocateGpuElementBuffer(&Group->GameGeo, (u32)Megabytes(4));
-
-  Group->GameGeoFBO = GenFramebuffer();
-  GL.BindFramebuffer(GL_FRAMEBUFFER, Group->GameGeoFBO.ID);
-
-  FramebufferTextureLayer(&Group->GameGeoFBO, DebugTextureArray, DebugTextureArraySlice_Viewport);
-  SetDrawBuffers(&Group->GameGeoFBO);
-  Group->GameGeoShader = MakeRenderToTextureShader(PermMemory, &Group->ViewProjection);
-  Group->Camera = Allocate(camera, PermMemory, 1);
-  StandardCamera(Group->Camera, 10000.0f, 100.0f, {});
-
-  GL.ClearColor(f32_MAX, f32_MAX, f32_MAX, f32_MAX);
-  GL.ClearDepth(f32_MAX);
-}
-#endif
-

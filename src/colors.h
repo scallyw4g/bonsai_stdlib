@@ -8,8 +8,8 @@
 
 #define RED            36
 #define LIGHT_RED     104
-#define DARK_RED      147
-#define DARK_DARK_RED 182
+#define DARK_RED      144
+#define DARK_DARK_RED 180
 
 #define GREEN       186
 #define LIGHT_GREEN  75
@@ -579,7 +579,7 @@ static v4 DefaultPalette[] = {
 CAssert( ArrayCount( DefaultPalette ) <= (0xff+1) );
 
 inline v4
-GetColorData(v4 *Src, u32 ColorIndex, r32 Emission = 1.0f)
+GetColorData(v4 *Src, u32 ColorIndex, r32 Emission = 0.0f)
 {
   Assert(ColorIndex <= 0xff);
 
@@ -600,7 +600,7 @@ FillColorArray(v4 Color, v4 *Dest, s32 Count)
 }
 
 inline void
-FillColorArray(u32 ColorIndex, v4 *Dest, v4 *Src, s32 Count, r32 Emission = 1.0f)
+FillColorArray(u32 ColorIndex, v4 *Dest, v4 *Src, s32 Count, r32 Emission = 0.0f)
 {
   FillColorArray(GetColorData(Src, ColorIndex, Emission), Dest, Count);
 }
