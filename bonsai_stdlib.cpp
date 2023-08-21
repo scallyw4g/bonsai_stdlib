@@ -27,12 +27,10 @@
 #include <bonsai_stdlib/src/file.cpp>
 #include <bonsai_stdlib/src/filesystem.cpp>
 
-#if PLATFORM_GL_IMPLEMENTATIONS
 #include <bonsai_stdlib/src/gl.cpp>
 #include <bonsai_stdlib/src/texture.cpp>
 #include <bonsai_stdlib/src/shader.cpp>
 #include <bonsai_stdlib/src/ui/gl.cpp>
-#endif
 
 #include <bonsai_stdlib/src/texture_cursor.cpp>
 #include <bonsai_stdlib/src/ui/interactable.cpp>

@@ -1,12 +1,8 @@
-#if PLATFORM_GL_IMPLEMENTATIONS
-
 inline void
 BonsaiSwapBuffers(os *Os)
 {
   NotImplemented;
 }
-
-#endif // PLATFORM_GL_IMPLEMENTATIONS
 
 void
 PlatformDebugStacktrace()

@@ -1994,10 +1994,6 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
   Group->SolidGeoCountLastFrame = Group->Geo.At;
   Group->TextGeoCountLastFrame = Group->TextGroup->Geo.At;
 
-#if PLATFORM_GL_IMPLEMENTATIONS
-  FlushUIBuffers(Group, Group->ScreenDim);
-#endif
-
   return;
 }
 
@@ -2040,7 +2036,7 @@ AllocateAndInitGeoBuffer(untextured_2d_geometry_buffer *Geo, u32 ElementCount, m
 texture* LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount);
 
 link_internal b32
-InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMemory, v2 *MouseP, v2 *MouseDP, v2 *ScreenDim, input *Input)
+InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMemory, v2 *MouseP, v2 *MouseDP, v2 *ScreenDim, input *Input, b32 Headless = False)
 {
   b32 Result = True;
 
@@ -2054,28 +2050,29 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   AllocateAndInitGeoBuffer(&Renderer->TextGroup->Geo, ElementCount, PermMemory);
   AllocateAndInitGeoBuffer(&Renderer->Geo, ElementCount, PermMemory);
 
-#if PLATFORM_GL_IMPLEMENTATIONS
-  auto TextGroup = Renderer->TextGroup;
-  TextGroup->DebugTextureArray = LoadBitmap("texture_atlas_0.bmp", PermMemory, DebugTextureArraySlice_Count);
-  GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
-  GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
-  GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
-  TextGroup->Text2DShader = LoadShaders( CSz("TextVertexShader.vertexshader"), CSz("TextVertexShader.fragmentshader") );
-  TextGroup->TextTextureUniform = GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
-  Renderer->TextGroup->SolidUIShader = LoadShaders( CSz("SimpleColor.vertexshader"), CSz("SimpleColor.fragmentshader") );
+  if (Headless == False)
+  {
+    auto TextGroup = Renderer->TextGroup;
+    TextGroup->DebugTextureArray = LoadBitmap("texture_atlas_0.bmp", PermMemory, DebugTextureArraySlice_Count);
+    GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
+    GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
+    GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
+    TextGroup->Text2DShader = LoadShaders( CSz("TextVertexShader.vertexshader"), CSz("TextVertexShader.fragmentshader") );
+    TextGroup->TextTextureUniform = GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
+    Renderer->TextGroup->SolidUIShader = LoadShaders( CSz("SimpleColor.vertexshader"), CSz("SimpleColor.fragmentshader") );
 
-  v2i TextureDim = V2i(DEBUG_TEXTURE_DIM, DEBUG_TEXTURE_DIM);
-  texture *DepthTexture = MakeDepthTexture( TextureDim, PermMemory );
-  FramebufferDepthTexture(DepthTexture);
+    v2i TextureDim = V2i(DEBUG_TEXTURE_DIM, DEBUG_TEXTURE_DIM);
+    texture *DepthTexture = MakeDepthTexture( TextureDim, PermMemory );
+    FramebufferDepthTexture(DepthTexture);
 
-  Result = CheckAndClearFramebuffer();
-  Assert(Result);
+    Result = CheckAndClearFramebuffer();
+    Assert(Result);
 
-  GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
-  GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
+    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  /* AssertNoGlErrors; */
-#endif
+    AssertNoGlErrors;
+  }
 
   random_series Entropy = {54623153};
   for (u32 ColorIndex = 0; ColorIndex < RANDOM_COLOR_COUNT; ++ColorIndex)
@@ -2120,6 +2117,8 @@ UiFrameEnd(renderer_2d *Ui)
   }
 
   FlushCommandBuffer(Ui, Ui->CommandBuffer);
+
+  FlushUIBuffers(Ui, Ui->ScreenDim);
 
   if (Ui->PressedInteractionId == 0 &&
       (Input->LMB.Pressed || Input->RMB.Pressed))

@@ -28,10 +28,8 @@
 #include <bonsai_stdlib/src/memory_arena.h>
 #include <bonsai_stdlib/src/mesh.h>
 
-#if PLATFORM_GL_IMPLEMENTATIONS
 #include <bonsai_stdlib/src/gl.h>
 #include <bonsai_stdlib/src/ui/gl.h>
-#endif
 
 #include <bonsai_stdlib/src/platform_struct.h>
 #include <bonsai_stdlib/src/heap_allocator.h>

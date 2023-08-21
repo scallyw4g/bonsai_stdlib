@@ -5,11 +5,6 @@
 
 #if PLATFORM_WINDOW_IMPLEMENTATIONS
 
-#if !PLATFORM_GL_IMPLEMENTATIONS
-// TODO(Jesse): Should this be a thing everywhere?  Or maybe not a thing at all?  IDK.
-#error "Cannot open a window without including GL implementations on Linux"
-#endif
-
 // TODO(Jesse id: 267): Unnecessary .. I just added these as a hack get parsing to work
 typedef Colormap x_colormap;
 typedef XSetWindowAttributes x_set_window_attribs;
