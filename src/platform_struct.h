@@ -22,8 +22,11 @@ struct platform
   r32 GameTime;
 
   r32 dt;
+
+  // TODO(Jesse): Superscede these ffs
   s32 WindowWidth;
   s32 WindowHeight;
+  v2 ScreenDim;
 
   input Input;
 

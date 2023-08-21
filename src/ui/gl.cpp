@@ -8,10 +8,10 @@ FramebufferTextureLayer(framebuffer *FBO, texture *Tex, debug_texture_array_slic
 }
 
 link_internal void
-FlushBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 ScreenDim)
+FlushBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 *ScreenDim)
 {
   GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
-  SetViewport(ScreenDim);
+  SetViewport(*ScreenDim);
   GL.UseProgram(TextGroup->Text2DShader.ID);
 
   GL.ActiveTexture(GL_TEXTURE0);
@@ -40,14 +40,14 @@ FlushBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 S
 }
 
 link_internal void
-FlushBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer, v2 ScreenDim)
+FlushBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer, v2 *ScreenDim)
 {
   TIMED_FUNCTION();
 
   if (TextGroup)
   {
     GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
-    SetViewport(ScreenDim);
+    SetViewport(*ScreenDim);
     UseShader(&TextGroup->SolidUIShader);
 
     u32 AttributeIndex = 0;
@@ -71,7 +71,7 @@ FlushBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer,
 }
 
 link_internal void
-FlushUIBuffers(renderer_2d *UiGroup, v2 ScreenDim)
+FlushUIBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
 {
   if (UiGroup->TextGroup)
   {

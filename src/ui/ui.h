@@ -66,7 +66,7 @@ struct renderer_2d
 
   v2 *MouseP;
   v2 *MouseDP;
-  v2 ScreenDim;
+  v2 *ScreenDim;
   input *Input;
 
 #define MAX_MINIMIZED_WINDOWS 64

@@ -300,7 +300,7 @@ ClipRect3AgainstRect2(v2 MinP, v2 Dim, r32 Z, rect2 *UV, rect2 Clip)
 
 
 template <typename T> link_internal void
-BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 ScreenDim)
+BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
 {
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
 
@@ -320,7 +320,7 @@ BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 ScreenDim)
 
 
   #define TO_NDC(P) ((P * ToNDC) - 1.0f)
-  v3 ToNDC = 2.0f/V3(ScreenDim.x, ScreenDim.y, 1.0f);
+  v3 ToNDC = 2.0f/V3(ScreenDim->x, ScreenDim->y, 1.0f);
 
   // Native OpenGL screen coordinates are {0,0} at the bottom-left corner. This
   // maps the origin to the top-left of the screen.
@@ -341,7 +341,7 @@ BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 ScreenDim)
 
 #if 0
 template <typename T> link_internal clip_result
-BufferQuadDirect(T* Geo, v2 MinP, v2 Dim, r32 Z, v2 ScreenDim, rect2 Clip)
+BufferQuadDirect(T* Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim, rect2 Clip)
 {
   clip_result Result = ClipRect3AgainstRect2(MinP, Dim, Z, 0, Clip);
   // NOTE(Jesse): Intentionally not switching on the clip_result.ClipStatus
@@ -974,7 +974,7 @@ UnminimizeWindow(renderer_2d *Group, window_layout *Window)
 }
 
 link_internal void
-PushWindowStart(renderer_2d *Group, window_layout *Window, b32 DrawWindowOrnaments = True)
+PushWindowStart(renderer_2d *Group, window_layout *Window)
 {
   TIMED_FUNCTION();
 
@@ -1021,7 +1021,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window, b32 DrawWindowOrnamen
 
     v2 WindowOffsetFromCornerOfScreen = V2(20);
     v2 WindowDim  = MinimizedTitleBarBounds.Max + V2(ResizeHandleDim.x, 0) + V2(20, 0);
-    v2 WindowBasis = V2(Group->ScreenDim.x - WindowDim.x - WindowOffsetFromCornerOfScreen.x, (Window->MinimizeIndex * Global_TitleBarHeight) + WindowOffsetFromCornerOfScreen.y );
+    v2 WindowBasis = V2(Group->ScreenDim->x - WindowDim.x - WindowOffsetFromCornerOfScreen.x, (Window->MinimizeIndex * Global_TitleBarHeight) + WindowOffsetFromCornerOfScreen.y );
 
     Window->Basis = WindowBasis;
     Window->MaxClip = WindowDim;
@@ -2040,7 +2040,7 @@ AllocateAndInitGeoBuffer(untextured_2d_geometry_buffer *Geo, u32 ElementCount, m
 texture* LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount);
 
 link_internal b32
-InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMemory, v2 *MouseP = 0, v2 *MouseDP = 0, input *Input = 0)
+InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMemory, v2 *MouseP, v2 *MouseDP, v2 *ScreenDim, input *Input)
 {
   b32 Result = True;
 
@@ -2083,14 +2083,48 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     Renderer->DebugColors[ColorIndex] = RandomV3(&Entropy);
   }
 
-  Renderer->MouseP = MouseP;
-  Renderer->MouseDP = MouseDP;
-  Renderer->Input = Input;
+  Renderer->MouseP    = MouseP;
+  Renderer->MouseDP   = MouseDP;
+  Renderer->ScreenDim = ScreenDim;
+  Renderer->Input     = Input;
 
   return Result;
 }
 
 link_internal void
+UiFrameBegin(renderer_2d *Ui)
+{
+  Assert(Ui->Input);
+  Assert(Ui->MouseP);
+  Assert(Ui->MouseDP);
+  Assert(Ui->ScreenDim->x > 0.f);
+  Assert(Ui->ScreenDim->y > 0.f);
+
+  input *Input = Ui->Input;
+  if ( ! (Input->LMB.Pressed || Input->RMB.Pressed) )
+  {
+    Ui->PressedInteractionId = 0;
+  }
+}
+
+link_internal void
 UiFrameEnd(renderer_2d *Ui)
 {
+  input *Input = Ui->Input;
+
+  Ui->HighestWindow = GetHighestWindow(Ui, Ui->CommandBuffer);
+
+  if (Ui->HighestWindow)
+  {
+    Ui->HighestWindow->Scroll.y += Input->MouseWheelDelta * 5;
+  }
+
+  FlushCommandBuffer(Ui, Ui->CommandBuffer);
+
+  if (Ui->PressedInteractionId == 0 &&
+      (Input->LMB.Pressed || Input->RMB.Pressed))
+  {
+    Ui->PressedInteractionId = StringHash("GameViewport");
+  }
+
 }
