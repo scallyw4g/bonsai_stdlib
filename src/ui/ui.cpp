@@ -871,6 +871,28 @@ GetDrawBounds(counted_string String, ui_style *Style)
 }
 
 link_internal void
+PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowBasis, v2 WindowMaxClip = V2(f32_MAX))
+{
+  rect2 AbsWindowBounds = RectMinDim(WindowBasis, WindowMaxClip);
+  rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max);
+
+  ui_render_command Command = {
+    .Type = type_ui_render_command_window_start,
+
+    .ui_render_command_window_start = {
+      .Window = Window,
+      .ClipRect = ClipRect,
+      .Layout = {
+        .Basis = WindowBasis,
+        .DrawBounds = InvertedInfinityRectangle(),
+      }
+    }
+  };
+
+  PushUiRenderCommand(Group, &Command);
+}
+
+link_internal void
 PushWindowStartInternal( renderer_2d *Group,
                          window_layout *Window,
                          cs TitleText,
@@ -952,7 +974,7 @@ UnminimizeWindow(renderer_2d *Group, window_layout *Window)
 }
 
 link_internal void
-PushWindowStart(renderer_2d *Group, window_layout *Window)
+PushWindowStart(renderer_2d *Group, window_layout *Window, b32 DrawWindowOrnaments = True)
 {
   TIMED_FUNCTION();
 
@@ -2068,3 +2090,7 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   return Result;
 }
 
+link_internal void
+UiFrameEnd(renderer_2d *Ui)
+{
+}
