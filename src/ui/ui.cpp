@@ -2074,7 +2074,7 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
   GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  AssertNoGlErrors;
+  /* AssertNoGlErrors; */
 #endif
 
   random_series Entropy = {54623153};

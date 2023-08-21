@@ -855,6 +855,7 @@ poof(
   }
 )
 
+// TODO(Jesse)(immediate): Rewrite this in terms of a cursor.
 poof(
   func generate_stack(Type)
   {

@@ -34,5 +34,6 @@
 #include <bonsai_stdlib/src/ui/gl.cpp>
 #endif
 
+#include <bonsai_stdlib/src/texture_cursor.cpp>
 #include <bonsai_stdlib/src/ui/interactable.cpp>
 #include <bonsai_stdlib/src/ui/ui.cpp>
