@@ -1,3 +1,23 @@
+poof(are_equal(texture))
+#include <generated/are_equal_texture.h>
+
+link_internal b32
+AreEqual(texture Thing1, texture Thing2)
+{
+  b32 Result = MemoryIsEqual((u8*)&Thing1, (u8*)&Thing2, sizeof( texture ) );
+  return Result;
+}
+
+link_internal void
+DeepCopy(texture *E0, texture *E1)
+{
+  *E1 = *E0;
+}
+
+
+poof(generate_cursor(texture))
+#include <generated/generate_cursor_texture.h>
+
 #define FOURCC_DXT1 0x31545844 // Equivalent to "DXT1" in ASCII
 #define FOURCC_DXT3 0x33545844 // Equivalent to "DXT3" in ASCII
 #define FOURCC_DXT5 0x35545844 // Equivalent to "DXT5" in ASCII
