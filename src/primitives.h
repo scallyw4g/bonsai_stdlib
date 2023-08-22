@@ -29,6 +29,8 @@
 // 8 Bit types
 typedef char           s8;
 typedef unsigned char  u8;
+typedef bool           b8;
+CAssert(sizeof(b8) == 1);
 
 // 16 Bit types
 typedef short          s16;
@@ -39,7 +41,7 @@ typedef int          s32;
 typedef unsigned int u32;
 typedef float        r32;
 typedef float        f32;
-typedef bool         b32;
+typedef u32          b32;
 
 typedef r32      radians;
 typedef r32      degrees;
