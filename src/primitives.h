@@ -39,7 +39,7 @@ typedef int          s32;
 typedef unsigned int u32;
 typedef float        r32;
 typedef float        f32;
-typedef u32          b32;
+typedef bool         b32;
 
 typedef r32      radians;
 typedef r32      degrees;
