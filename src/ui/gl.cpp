@@ -73,13 +73,15 @@ FlushBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer,
 link_internal void
 FlushUIBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
 {
+  GL.Disable(GL_CULL_FACE);
+
   if (UiGroup->TextGroup)
   {
     FlushBuffer(UiGroup->TextGroup, &UiGroup->Geo, ScreenDim);
     FlushBuffer(UiGroup->TextGroup, &UiGroup->TextGroup->Geo, ScreenDim);
   }
 
-  return;
+  GL.Enable(GL_CULL_FACE);
 }
 
 link_internal shader
