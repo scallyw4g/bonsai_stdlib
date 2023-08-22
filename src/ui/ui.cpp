@@ -527,10 +527,12 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
     UpdateDrawBounds(Layout, MaxP);
   }
 
-/* #if DEBUG_UI_OUTLINE_VALUES */
+#if DEBUG_UI_OUTLINE_VALUES
   /* v2 EndingP = Layout->Basis + MaxClipP; */
-  /* BufferBorder(Group, RectMinMax(StartingP, EndingP), V3(0, 0, 1), Z, DISABLE_CLIPPING); */
-/* #endif */
+  v2 StartingP = AbsAt;
+  v2 EndingP = AbsAt + V2(xDelta, Style->Font.Size.y);
+  BufferBorder(Group, RectMinMax(StartingP, EndingP), V3(0, 0, 1), Z, DISABLE_CLIPPING);
+#endif
 
   return;
 }
@@ -1130,7 +1132,7 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, umm InteractionId, window_la
 }
 
 link_internal b32
-Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* Style = 0, v4 Padding = DefaultButtonPadding)
+Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding)
 {
   // TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
   interactable_handle Button = PushButtonStart(Group, ButtonId, Style);
