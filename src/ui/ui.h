@@ -539,9 +539,9 @@ global_variable v2
 DefaultWindowSize = V2(1800, 800);
 
 link_internal v2
-DefaultWindowBasis(v2 ScreenDim)
+DefaultWindowBasis(v2 ScreenDim, v2 WindowDim = DefaultWindowSize)
 {
-  v2 Basis = V2(20, ScreenDim.y - DefaultWindowSize.y - 20);
+  v2 Basis = V2(20, ScreenDim.y - WindowDim.y - 20);
   return Basis;
 }
 
