@@ -390,17 +390,6 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
   return Result;
 }
 
-link_internal counted_string
-FormatCountedString_(char_cursor* DestCursor, counted_string FS, ...)
-{
-  va_list Args;
-  va_start(Args, FS);
-  counted_string Result = FormatCountedString_(DestCursor, FS, Args);
-  va_end(Args);
-
-  return Result;
-}
-
 // This is to silence the warnings when passing counted_strings
 #define FormatCountedString(Memory, Fmt, ...)             \
   _Pragma("clang diagnostic push")                        \
@@ -432,21 +421,6 @@ FormatCountedString_(memory_arena* Memory, counted_string FS, ...)
   return Result;
 }
 
-// TODO(Jesse, id: 364, tags: speed): This should probably go away and make sure we always just use counted strings
-link_internal counted_string
-FormatCountedString_(char* Buffer, umm BufferSize, const char *FS, va_list Args)
-{
-  TIMED_FUNCTION();
-
-  char_cursor DestCursor = {
-    .Start = Buffer,
-    .At    = Buffer,
-    .End   = Buffer + BufferSize,
-  };
-  counted_string Result = FormatCountedString_(&DestCursor, CS(FS), Args);
-  return Result;
-}
-
 // TODO(Jesse, id: 365, tags: speed): This should probably go away and make sure we always just use counted strings
 link_internal counted_string
 FormatCountedString_(char* Buffer, umm BufferSize, const char *FS, ...)
@@ -464,20 +438,6 @@ FormatCountedString_(char* Buffer, umm BufferSize, const char *FS, ...)
   counted_string Result = FormatCountedString_(&DestCursor, CS(FS), Args);
   va_end(Args);
 
-  return Result;
-}
-
-link_internal counted_string
-FormatCountedString_(char* Buffer, umm BufferSize, counted_string FS, va_list Args)
-{
-  TIMED_FUNCTION();
-
-  char_cursor DestCursor = {
-    .Start = Buffer,
-    .At    = Buffer,
-    .End   = Buffer + BufferSize,
-  };
-  counted_string Result = FormatCountedString_(&DestCursor, FS, Args);
   return Result;
 }
 
