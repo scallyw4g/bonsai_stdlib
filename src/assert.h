@@ -52,7 +52,7 @@
 
 
 #if DEBUG_SYSTEM_API
-#define TriggeredRuntimeBreak() do { if (GetDebugState && GetDebugState()->TriggerRuntimeBreak) { RuntimeBreak(); } } while (0)
+#define TriggeredRuntimeBreak(BoolPointer) do { if (*(BoolPointer)) { *(BoolPointer) = False; RuntimeBreak(); } } while (0)
 
 #else
 

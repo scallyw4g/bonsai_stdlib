@@ -2138,8 +2138,18 @@ UiFrameBegin(renderer_2d *Ui)
 }
 
 global_variable interactable Global_ViewportInteraction = {
-  .ID = (umm)"GameViewport"
+   // TODO(Jesse): Come up with a less nonsense way of doing this!  Cannot use
+   // a string constant because with multiple DLLs there are multiple of them!
+   // Could do a comptime string hash if poof supported that..
+  .ID = 420_8142317, // 420 blazeit.  Couldn't spell faggot.. rip.
 };
+
+link_internal b32
+UiCapturedMouseInput(renderer_2d *Ui)
+{
+  b32 Result = (Ui->Pressed.ID != 0 && Ui->Pressed.ID != Global_ViewportInteraction.ID);
+  return Result;
+}
 
 link_internal void
 UiFrameEnd(renderer_2d *Ui)
@@ -2157,10 +2167,9 @@ UiFrameEnd(renderer_2d *Ui)
 
   FlushUIBuffers(Ui, Ui->ScreenDim);
 
-  if (Ui->Pressed.ID == 0 &&
-      (Input->LMB.Pressed || Input->RMB.Pressed))
+  if ( UiCapturedMouseInput(Ui) == False &&
+       (Input->LMB.Pressed || Input->RMB.Pressed) )
   {
     Ui->Pressed = Global_ViewportInteraction;
   }
-
 }
