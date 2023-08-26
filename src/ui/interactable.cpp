@@ -3,21 +3,21 @@
 link_internal b32
 Hover(debug_ui_render_group* Group, interactable_handle *Interaction)
 {
-  b32 Result = Group->HoverInteractionId == Interaction->Id;
+  b32 Result = Group->HoverInteraction.Interaction.ID == Interaction->Id;
   return Result;
 }
 
 link_internal b32
 Clicked(debug_ui_render_group* Group, interactable_handle *Interaction)
 {
-  b32 Result = Group->ClickedInteractionId == Interaction->Id;
+  b32 Result = Group->ClickedInteraction.Interaction.ID == Interaction->Id;
   return Result;
 }
 
 link_internal b32
 Pressed(debug_ui_render_group* Group, interactable_handle *Interaction)
 {
-  b32 Result = Group->PressedInteractionId == Interaction->Id;
+  b32 Result = Group->PressedInteraction.Interaction.ID == Interaction->Id;
   return Result;
 }
 
@@ -43,10 +43,10 @@ Clicked(debug_ui_render_group* Group, interactable *Interaction)
   b32 MouseButtonClicked = Group->Input->LMB.Clicked || Group->Input->RMB.Clicked;
 
   b32 Result = False;
-  if ( !Group->PressedInteractionId &&
+  if ( !Group->PressedInteraction.Interaction.ID &&
        MouseButtonClicked && Hover(Group, Interaction))
   {
-    Group->PressedInteractionId = Interaction->ID;
+    Group->PressedInteraction.Interaction.ID = Interaction->ID;
     Result = True;
   }
 
@@ -63,7 +63,7 @@ Clicked(debug_ui_render_group* Group, interactable Interaction)
 link_internal b32
 Pressed(debug_ui_render_group* Group, interactable *Interaction)
 {
-  umm CurrentInteraction = Group->PressedInteractionId;
+  umm CurrentInteraction = Group->PressedInteraction.Interaction.ID;
   b32 CurrentInteractionMatches = CurrentInteraction == Interaction->ID;
   b32 MouseDepressed = Group->Input->LMB.Pressed || Group->Input->RMB.Pressed;
 
@@ -74,9 +74,16 @@ Pressed(debug_ui_render_group* Group, interactable *Interaction)
   }
   else if (MouseDepressed && !CurrentInteraction && Hover(Group, Interaction))
   {
-    Group->PressedInteractionId = Interaction->ID;
+    Group->PressedInteraction.Interaction.ID = Interaction->ID;
     Result = True;
   }
 
   return Result;
+}
+
+
+link_internal v2
+GetElementRelativeOffset(renderer_2d *Ui, interactable_handle *Handle)
+{
+  return V2(0);
 }

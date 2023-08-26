@@ -1,3 +1,6 @@
+struct layout;
+struct window_layout;
+
 struct interactable_handle
 {
   umm Id;
@@ -17,6 +20,8 @@ struct button_interaction_result
   b32 Pressed;
   b32 Clicked;
   b32 Hover;
+
+  interactable Interaction;
 };
 
 link_internal interactable

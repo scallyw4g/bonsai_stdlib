@@ -84,5 +84,5 @@ struct untextured_2d_geometry_buffer
 /* ) */
 /* poof( compound_buffer( { untextured_3d_geometry_buffer }, { v3 *Verts; v4 *Colors; v3 *Normals; u64 Timestamp; })) */
 
-#include <bonsai_stdlib/src/ui/ui.h>
 #include <bonsai_stdlib/src/ui/interactable.h>
+#include <bonsai_stdlib/src/ui/ui.h>

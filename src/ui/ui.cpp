@@ -1100,6 +1100,7 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, umm InteractionId, window_la
   button_interaction_result Result = {};
 
   interactable Interaction = Interactable(Bounds, InteractionId, Window);
+  Result.Interaction = Interaction;
 
 #if DEBUG_UI_OUTLINE_BUTTONS
   BufferBorder(Group, Rect2(Interaction), V3(1,0,0), 1.0f, DISABLE_CLIPPING);
@@ -1141,6 +1142,36 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
 
   b32 Result = Clicked(Group, &Button);
   return Result;
+}
+
+
+
+/**************************                      *****************************/
+/************************** Composite Structures *****************************/
+/**************************                      *****************************/
+
+
+
+link_internal void
+PushBargraph(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor, r32 BarWidth, r32 BarHeight = Global_Font.Size.y)
+{
+  v2 BackgroundQuadDim = V2(BarWidth, BarHeight);
+  v2 ShadedQuadDim = BackgroundQuadDim * V2(PercFilled, 1);
+
+  v2 UnshadedQuadDim = V2(BackgroundQuadDim.x - ShadedQuadDim.x, BackgroundQuadDim.y);
+
+  ui_style Style = UiStyleFromLightestColor(FColor);
+  /* PushUntexturedQuad(Group, V2(0), ShadedQuadDim, zDepth_TitleBar, &Style, V4(0), QuadRenderParam_NoAdvance); */
+  PushUntexturedQuad(Group, V2(0), ShadedQuadDim, zDepth_TitleBar, &Style);
+
+  Style = UiStyleFromLightestColor(BColor);
+  /* PushUntexturedQuad(Group, V2(0), UnshadedQuadDim, zDepth_TitleBar, &Style, V4(0), QuadRenderParam_NoAdvance); */
+  PushUntexturedQuad(Group, V2(0), UnshadedQuadDim, zDepth_TitleBar, &Style);
+
+  /* PushForceAdvance(Group, BackgroundQuadDim); */
+  /* PushForceAdvance(Group, V2(BackgroundQuadDim.x, 0)); */
+
+  return;
 }
 
 
@@ -1247,17 +1278,17 @@ GetHighestWindow(renderer_2d* Group, ui_render_command_buffer* CommandBuffer)
 link_internal void
 ProcessButtonStart(renderer_2d* Group, render_state* RenderState, umm ButtonId)
 {
-  if (ButtonId == Group->HoverInteractionId)
+  if (ButtonId == Group->HoverInteraction.Interaction.ID)
   {
-    Group->HoverInteractionId = 0;
+    Group->HoverInteraction = {};
     RenderState->Hover = True;
   }
-  if (ButtonId == Group->ClickedInteractionId)
+  if (ButtonId == Group->ClickedInteraction.Interaction.ID)
   {
-    Group->ClickedInteractionId = 0;
+    Group->ClickedInteraction = {};;
     RenderState->Clicked = True;
   }
-  if (ButtonId == Group->PressedInteractionId)
+  if (ButtonId == Group->PressedInteraction.Interaction.ID)
   {
     // Intentionally reset to 0 outside of this bonsai_function, because it's
     // dependant on the mouse buttons being released.
@@ -1273,25 +1304,25 @@ ProcessButtonEnd(renderer_2d *Group, umm InteractionId, render_state* RenderStat
 {
   Assert(InteractionId);
 
-  button_interaction_result Button = ButtonInteraction( Group,
-                                                        AbsButtonBounds,
-                                                        InteractionId,
-                                                        RenderState->Window,
-                                                        Style);
+  button_interaction_result Interaction = ButtonInteraction( Group,
+                                                             AbsButtonBounds,
+                                                             InteractionId,
+                                                             RenderState->Window,
+                                                             Style);
 
-  if (Button.Hover)
+  if (Interaction.Hover)
   {
-    Group->HoverInteractionId = InteractionId;
+    Group->HoverInteraction = Interaction;
   }
 
-  if (Button.Clicked)
+  if (Interaction.Clicked)
   {
-    Group->ClickedInteractionId = InteractionId;
+    Group->ClickedInteraction = Interaction;
   }
 
-  if (Button.Pressed)
+  if (Interaction.Pressed)
   {
-    Group->PressedInteractionId = InteractionId;
+    Group->PressedInteraction = Interaction;
   }
 
   RenderState->Hover = False;
@@ -2102,7 +2133,7 @@ UiFrameBegin(renderer_2d *Ui)
   input *Input = Ui->Input;
   if ( ! (Input->LMB.Pressed || Input->RMB.Pressed) )
   {
-    Ui->PressedInteractionId = 0;
+    Ui->PressedInteraction = {};
   }
 }
 
@@ -2122,10 +2153,10 @@ UiFrameEnd(renderer_2d *Ui)
 
   FlushUIBuffers(Ui, Ui->ScreenDim);
 
-  if (Ui->PressedInteractionId == 0 &&
-      (Input->LMB.Pressed || Input->RMB.Pressed))
-  {
-    Ui->PressedInteractionId = StringHash("GameViewport");
-  }
+  /* if (Ui->PressedInteraction.Interaction.ID == 0 && */
+      /* (Input->LMB.Pressed || Input->RMB.Pressed)) */
+  /* { */
+    /* Ui->PressedInteractionId = StringHash("GameViewport"); */
+  /* } */
 
 }
