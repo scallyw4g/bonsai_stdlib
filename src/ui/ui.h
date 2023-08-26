@@ -73,9 +73,9 @@ struct renderer_2d
   window_layout *MinimizedWindowBuffer[MAX_MINIMIZED_WINDOWS];
   window_layout *HighestWindow; // NOTE(Jesse): Highest in terms of InteractionStackIndex
 
-  button_interaction_result HoverInteraction;
-  button_interaction_result ClickedInteraction;
-  button_interaction_result PressedInteraction;
+  interactable Hover;
+  interactable Clicked;
+  interactable Pressed;
 
   u32 SolidGeoCountLastFrame;
   u32 TextGeoCountLastFrame;

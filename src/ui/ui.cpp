@@ -1278,17 +1278,17 @@ GetHighestWindow(renderer_2d* Group, ui_render_command_buffer* CommandBuffer)
 link_internal void
 ProcessButtonStart(renderer_2d* Group, render_state* RenderState, umm ButtonId)
 {
-  if (ButtonId == Group->HoverInteraction.Interaction.ID)
+  if (ButtonId == Group->Hover.ID)
   {
-    Group->HoverInteraction = {};
+    Group->Hover = {};
     RenderState->Hover = True;
   }
-  if (ButtonId == Group->ClickedInteraction.Interaction.ID)
+  if (ButtonId == Group->Clicked.ID)
   {
-    Group->ClickedInteraction = {};;
+    Group->Clicked = {};;
     RenderState->Clicked = True;
   }
-  if (ButtonId == Group->PressedInteraction.Interaction.ID)
+  if (ButtonId == Group->Pressed.ID)
   {
     // Intentionally reset to 0 outside of this bonsai_function, because it's
     // dependant on the mouse buttons being released.
@@ -1304,25 +1304,25 @@ ProcessButtonEnd(renderer_2d *Group, umm InteractionId, render_state* RenderStat
 {
   Assert(InteractionId);
 
-  button_interaction_result Interaction = ButtonInteraction( Group,
-                                                             AbsButtonBounds,
-                                                             InteractionId,
-                                                             RenderState->Window,
-                                                             Style);
+  button_interaction_result Button = ButtonInteraction( Group,
+                                                        AbsButtonBounds,
+                                                        InteractionId,
+                                                        RenderState->Window,
+                                                        Style);
 
-  if (Interaction.Hover)
+  if (Button.Hover)
   {
-    Group->HoverInteraction = Interaction;
+    Group->Hover = Button.Interaction;
   }
 
-  if (Interaction.Clicked)
+  if (Button.Clicked)
   {
-    Group->ClickedInteraction = Interaction;
+    Group->Clicked = Button.Interaction;
   }
 
-  if (Interaction.Pressed)
+  if (Button.Pressed)
   {
-    Group->PressedInteraction = Interaction;
+    Group->Pressed = Button.Interaction;
   }
 
   RenderState->Hover = False;
@@ -2133,9 +2133,13 @@ UiFrameBegin(renderer_2d *Ui)
   input *Input = Ui->Input;
   if ( ! (Input->LMB.Pressed || Input->RMB.Pressed) )
   {
-    Ui->PressedInteraction = {};
+    Ui->Pressed = {};
   }
 }
+
+global_variable interactable Global_ViewportInteraction = {
+  .ID = (umm)"GameViewport"
+};
 
 link_internal void
 UiFrameEnd(renderer_2d *Ui)
@@ -2153,10 +2157,10 @@ UiFrameEnd(renderer_2d *Ui)
 
   FlushUIBuffers(Ui, Ui->ScreenDim);
 
-  /* if (Ui->PressedInteraction.Interaction.ID == 0 && */
-      /* (Input->LMB.Pressed || Input->RMB.Pressed)) */
-  /* { */
-    /* Ui->PressedInteractionId = StringHash("GameViewport"); */
-  /* } */
+  if (Ui->Pressed.ID == 0 &&
+      (Input->LMB.Pressed || Input->RMB.Pressed))
+  {
+    Ui->Pressed = Global_ViewportInteraction;
+  }
 
 }

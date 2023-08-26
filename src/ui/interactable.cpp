@@ -1,28 +1,36 @@
 
 
 link_internal b32
-Hover(debug_ui_render_group* Group, interactable_handle *Interaction)
+Hover(renderer_2d* Group, interactable_handle *Interaction)
 {
-  b32 Result = Group->HoverInteraction.Interaction.ID == Interaction->Id;
+  b32 Result = Group->Hover.ID == Interaction->Id;
   return Result;
 }
 
 link_internal b32
-Clicked(debug_ui_render_group* Group, interactable_handle *Interaction)
+Clicked(renderer_2d* Group, interactable_handle *Interaction)
 {
-  b32 Result = Group->ClickedInteraction.Interaction.ID == Interaction->Id;
+  b32 Result = Group->Clicked.ID == Interaction->Id;
   return Result;
 }
 
 link_internal b32
-Pressed(debug_ui_render_group* Group, interactable_handle *Interaction)
+Pressed(renderer_2d* Group, interactable_handle *Interaction, v2 *Offset_out = 0)
 {
-  b32 Result = Group->PressedInteraction.Interaction.ID == Interaction->Id;
+  b32 Result = Group->Pressed.ID == Interaction->Id;
+
+  if (Result && Offset_out)
+  {
+    v2 MouseP = *Group->MouseP;
+    v2 RelativeOffset = MouseP - Group->Pressed.MinP ;
+    *Offset_out = RelativeOffset;
+  }
+
   return Result;
 }
 
 link_internal b32
-Hover(debug_ui_render_group* Group, interactable *Interaction)
+Hover(renderer_2d* Group, interactable *Interaction)
 {
   v2 MouseP = *Group->MouseP;
 
@@ -38,15 +46,15 @@ Hover(debug_ui_render_group* Group, interactable *Interaction)
 }
 
 link_internal b32
-Clicked(debug_ui_render_group* Group, interactable *Interaction)
+Clicked(renderer_2d* Group, interactable *Interaction)
 {
   b32 MouseButtonClicked = Group->Input->LMB.Clicked || Group->Input->RMB.Clicked;
 
   b32 Result = False;
-  if ( !Group->PressedInteraction.Interaction.ID &&
+  if ( !Group->Pressed.ID &&
        MouseButtonClicked && Hover(Group, Interaction))
   {
-    Group->PressedInteraction.Interaction.ID = Interaction->ID;
+    Group->Pressed.ID = Interaction->ID;
     Result = True;
   }
 
@@ -54,16 +62,16 @@ Clicked(debug_ui_render_group* Group, interactable *Interaction)
 }
 
 link_internal b32
-Clicked(debug_ui_render_group* Group, interactable Interaction)
+Clicked(renderer_2d* Group, interactable Interaction)
 {
   b32 Result = Clicked(Group, &Interaction);
   return Result;
 }
 
 link_internal b32
-Pressed(debug_ui_render_group* Group, interactable *Interaction)
+Pressed(renderer_2d* Group, interactable *Interaction)
 {
-  umm CurrentInteraction = Group->PressedInteraction.Interaction.ID;
+  umm CurrentInteraction = Group->Pressed.ID;
   b32 CurrentInteractionMatches = CurrentInteraction == Interaction->ID;
   b32 MouseDepressed = Group->Input->LMB.Pressed || Group->Input->RMB.Pressed;
 
@@ -74,16 +82,10 @@ Pressed(debug_ui_render_group* Group, interactable *Interaction)
   }
   else if (MouseDepressed && !CurrentInteraction && Hover(Group, Interaction))
   {
-    Group->PressedInteraction.Interaction.ID = Interaction->ID;
+    Group->Pressed.ID = Interaction->ID;
     Result = True;
   }
 
   return Result;
 }
 
-
-link_internal v2
-GetElementRelativeOffset(renderer_2d *Ui, interactable_handle *Handle)
-{
-  return V2(0);
-}
