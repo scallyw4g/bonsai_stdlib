@@ -129,7 +129,7 @@ Rename(counted_string CurrentFilePath, counted_string NewFilePath)
   counted_string TmpFilename = {};
   if (FileExists(NewFilePath))
   {
-    TmpFilename = GetTmpFilename(&TempFileEntropy, TranArena);
+    TmpFilename = GetTmpFilename(&TempFileEntropy, GetTranArena());
     Rename(NewFilePath, TmpFilename);
   }
 
@@ -376,8 +376,8 @@ PrintToStdout(counted_string Output)
   }
 
 #if BONSAI_WIN32
-  /* temp_memory_handle TMH = BeginTemporaryMemory(TranArena, False); */
-  /* OutputDebugString(GetNullTerminated(Output, TranArena)); */
+  /* temp_memory_handle TMH = BeginTemporaryMemory(GetTranArena(), False); */
+  /* OutputDebugString(GetNullTerminated(Output, GetTranArena())); */
   /* EndTemporaryMemory(&TMH, False); */
 #endif
 

@@ -79,7 +79,7 @@ link_internal const char*
 GetNullTerminated(counted_string Str, memory_arena* Memory = 0)
 {
   if (Memory == 0) { Memory = GetTranArena(); }
-  /* if (Memory == 0) { Memory = TranArena; } */
+  /* if (Memory == 0) { Memory = GetTranArena(); } */
 
   const char* Result = AllocateProtection(const char, Memory, Str.Count+1, False);
   MemCopy((u8*)Str.Start, (u8*)Result, Str.Count);
@@ -487,7 +487,7 @@ MemorySize(r64 Number)
   }
 
 
-  counted_string Result = FormatCountedString(TranArena, CSz("%.1f%c"), Display, Units);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("%.1f%c"), Display, Units);
   return Result;
 }
 
@@ -501,49 +501,49 @@ MemorySize(u64 Number)
 link_internal counted_string
 CS(s64 Number)
 {
-  counted_string Result = FormatCountedString(TranArena, CSz("%ld"), Number);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("%ld"), Number);
   return Result;
 }
 
 link_internal counted_string
 CS(u64 Number)
 {
-  counted_string Result = FormatCountedString(TranArena, CSz("%lu"), Number);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("%lu"), Number);
   return Result;
 }
 
 link_internal counted_string
 CS(s32 Number)
 {
-  counted_string Result = FormatCountedString(TranArena, CSz("%d"), Number);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("%d"), Number);
   return Result;
 }
 
 link_internal counted_string
 CS(u32 Number)
 {
-  counted_string Result = FormatCountedString(TranArena, CSz("%u"), Number);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("%u"), Number);
   return Result;
 }
 
 link_internal counted_string
 CS(r64 Number)
 {
-  counted_string Result = FormatCountedString(TranArena, CSz("%.2f"), Number);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("%.2f"), Number);
   return Result;
 }
 
 link_internal counted_string
 CS(r32 Number)
 {
-  counted_string Result = FormatCountedString(TranArena, CSz("%.2f"), (r64)Number);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("%.2f"), (r64)Number);
   return Result;
 }
 
 link_internal counted_string
 CS(v2 V)
 {
-  counted_string Result = FormatCountedString(TranArena, CSz("(%.2f,%.2f)"), (r64)V.x, (r64)V.y);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("(%.2f,%.2f)"), (r64)V.x, (r64)V.y);
   return Result;
 }
 
@@ -560,14 +560,14 @@ FormatThousands(u64 Number)
     Units = 'K';
   }
 
-  counted_string Result = FormatCountedString(TranArena, CSz("%.1f%c"), (r64)Display, Units);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("%.1f%c"), (r64)Display, Units);
   return Result;
 }
 
 link_internal r32
 ToF64(counted_string* String)
 {
-  const char* Temp = GetNullTerminated(*String, TranArena);
+  const char* Temp = GetNullTerminated(*String, GetTranArena());
   r32 Result = (r32)atof(Temp);
   return Result;
 }

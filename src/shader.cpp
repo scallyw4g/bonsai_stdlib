@@ -38,12 +38,12 @@ LoadShaders(counted_string VertShaderPath, counted_string FragFilePath)
 {
   Info("Creating shader : %S | %S", VertShaderPath, FragFilePath);
 
-  counted_string ComputedVertPath = FormatCountedString( TranArena, CSz("%S/%S"), CSz(SHADER_PATH), VertShaderPath);
-  counted_string ComputedFragPath = FormatCountedString( TranArena, CSz("%S/%S"), CSz(SHADER_PATH), FragFilePath);
+  counted_string ComputedVertPath = FormatCountedString( GetTranArena(), CSz("%S/%S"), CSz(SHADER_PATH), VertShaderPath);
+  counted_string ComputedFragPath = FormatCountedString( GetTranArena(), CSz("%S/%S"), CSz(SHADER_PATH), FragFilePath);
 
-  ansi_stream HeaderCode       = ReadEntireFileIntoAnsiStream(CSz(SHADER_PATH "/header.glsl"), TranArena);
-  ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(ComputedVertPath, TranArena);
-  ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(ComputedFragPath, TranArena);
+  ansi_stream HeaderCode       = ReadEntireFileIntoAnsiStream(CSz(SHADER_PATH "/header.glsl"), GetTranArena());
+  ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(ComputedVertPath, GetTranArena());
+  ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(ComputedFragPath, GetTranArena());
 
   s32 Result = GL_FALSE;
   int InfoLogLength;
@@ -63,7 +63,7 @@ LoadShaders(counted_string VertShaderPath, counted_string FragFilePath)
   GL.GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
   if ( InfoLogLength > 0 )
   {
-    char *ProgramErrorMessage = Allocate(char, TranArena, InfoLogLength+1);
+    char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
     GL.GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
     Error("%s", ProgramErrorMessage);
   }

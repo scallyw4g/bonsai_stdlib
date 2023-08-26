@@ -981,7 +981,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   TIMED_FUNCTION();
 
   v2 ResizeHandleDim = V2(20);
-  counted_string TitleText = FormatCountedString(TranArena, CSz("%S (%u)"), Window->Title, Window->InteractionStackIndex);
+  counted_string TitleText = FormatCountedString(GetTranArena(), CSz("%S (%u)"), Window->Title, Window->InteractionStackIndex);
   counted_string MinimizedIcon = CSz("_");
   rect2 TitleRect = GetDrawBounds(TitleText, &DefaultStyle);
 
@@ -1426,7 +1426,7 @@ GetWindowSortParams(ui_render_command_buffer *CommandBuffer)
   }
 
 
-  Result.SortKeys = Allocate(sort_key, TranArena, Result.Count);
+  Result.SortKeys = Allocate(sort_key, GetTranArena(), Result.Count);
 
   {
     u32 AtKey = 0;
@@ -1739,7 +1739,7 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
     }
   }
 
-  r32* MaxColumnWidths = Allocate(r32, TranArena, ColumnCount);
+  r32* MaxColumnWidths = Allocate(r32, GetTranArena(), ColumnCount);
 
   {
     u32 NextColumnIndex = 0;
@@ -2141,7 +2141,7 @@ global_variable interactable Global_ViewportInteraction = {
    // TODO(Jesse): Come up with a less nonsense way of doing this!  Cannot use
    // a string constant because with multiple DLLs there are multiple of them!
    // Could do a comptime string hash if poof supported that..
-  .ID = 420_8142317, // 420 blazeit.  Couldn't spell faggot.. rip.
+  .ID = 4208142317, // 420 blazeit.  Couldn't spell faggot.. rip.
 };
 
 link_internal b32

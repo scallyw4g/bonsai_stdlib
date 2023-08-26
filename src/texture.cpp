@@ -266,7 +266,7 @@ FramebufferTexture(framebuffer *FBO, texture *Tex)
 texture*
 LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount)
 {
-  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, Arena);
+  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, GetTranArena());
   texture* Result = MakeTexture_RGBA(TexBitmap.Dim, TexBitmap.Pixels.Start, Arena, SliceCount);
   return Result;
 }
@@ -274,7 +274,7 @@ LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount)
 texture*
 LoadBitmap(const char* FilePath, memory_arena *Arena)
 {
-  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, TranArena);
+  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, GetTranArena());
   texture* Result = MakeTexture_RGBA(TexBitmap.Dim, TexBitmap.Pixels.Start, Arena);
   return Result;
 }

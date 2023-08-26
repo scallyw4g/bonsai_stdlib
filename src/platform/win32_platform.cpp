@@ -95,7 +95,7 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_param
 #if 1
   s32 PhysicalProcessorIndex = 0;
 
-  SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *RelationshipBuffer = Allocate(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, TranArena, 64);
+  SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *RelationshipBuffer = Allocate(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, GetTranArena(), 64);
   unsigned long AllocatedSize = sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)*64;
   if (GetLogicalProcessorInformationEx(RelationProcessorCore, RelationshipBuffer, &AllocatedSize))
   {

@@ -1,5 +1,3 @@
-global_variable memory_arena gTranArena;
-global_variable memory_arena* TranArena = &gTranArena;
 
 inline b32
 VaporizeArena(memory_arena *Arena)
