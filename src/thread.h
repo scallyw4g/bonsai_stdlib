@@ -106,10 +106,9 @@ struct thread_local_state
   // TODO(Jesse): ?
   engine_resources *EngineResources;
   perlin_noise *PerlinNoise;
-  void* DebugStuff;
 
   s32 Index;
-  s32 Pad0[5];
+  s32 Pad0[7];
 
   /* mesh_freelist *MeshFreelist; */
   /* perlin_noise   Noise; */
