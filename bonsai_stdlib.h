@@ -44,7 +44,6 @@
 #include <bonsai_stdlib/src/ray.h>
 #include <bonsai_stdlib/src/xml.h>
 
-/* #include <bonsai_debug/src/debug.h> */
 
 // nocheckin Move this stuff to respective places they should live.
 // 3d stuff is supposed to live in the engine

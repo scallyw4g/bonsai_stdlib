@@ -4,12 +4,16 @@
 #define DISABLE_CLIPPING RectMinMax(V2(f32_MIN), V2(f32_MAX) )
 #define DISABLE_CLIPPING_MAX V2(f32_MAX)
 
-#define DEBUG_UI_OUTLINE_VALUES  1
-#define DEBUG_UI_OUTLINE_BUTTONS 1
-#define DEBUG_UI_OUTLINE_TABLES  0
 
 
+struct ui_debug
+{
+  b8 OutlineUiValues;
+  b8 OutlineUiButtons;
+  b8 OutlineUiTables;
+};
 
+link_external ui_debug *GetUiDebug() __attribute__((weak));
 
 /******************************               ********************************/
 /******************************   Rendering   ********************************/

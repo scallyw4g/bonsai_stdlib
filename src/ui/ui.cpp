@@ -527,12 +527,12 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
     UpdateDrawBounds(Layout, MaxP);
   }
 
-#if DEBUG_UI_OUTLINE_VALUES
-  /* v2 EndingP = Layout->Basis + MaxClipP; */
-  v2 StartingP = AbsAt;
-  v2 EndingP = AbsAt + V2(xDelta, Style->Font.Size.y);
-  BufferBorder(Group, RectMinMax(StartingP, EndingP), V3(0, 0, 1), Z, DISABLE_CLIPPING);
-#endif
+  if (GetUiDebug && GetUiDebug()->OutlineUiValues)
+  {
+    v2 StartingP = AbsAt;
+    v2 EndingP = AbsAt + V2(xDelta, Style->Font.Size.y);
+    BufferBorder(Group, RectMinMax(StartingP, EndingP), V3(0, 0, 1), Z, DISABLE_CLIPPING);
+  }
 
   return;
 }
@@ -1102,9 +1102,10 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, umm InteractionId, window_la
   interactable Interaction = Interactable(Bounds, InteractionId, Window);
   Result.Interaction = Interaction;
 
-#if DEBUG_UI_OUTLINE_BUTTONS
-  BufferBorder(Group, Rect2(Interaction), V3(1,0,0), 1.0f, DISABLE_CLIPPING);
-#endif
+  if (GetUiDebug && GetUiDebug()->OutlineUiButtons)
+  {
+    BufferBorder(Group, Rect2(Interaction), V3(1,0,0), 1.0f, DISABLE_CLIPPING);
+  }
 
   if (Hover(Group, &Interaction))
   {
@@ -1905,9 +1906,10 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       {
         if (RenderState.Layout->At.x > 0.0f) { AdvanceLayoutStackBy( V2(0.f, Global_Font.Size.y), RenderState.Layout); }
 
-#if DEBUG_UI_OUTLINE_TABLES
-        BufferBorder(Group, GetAbsoluteDrawBounds(RenderState.Layout), V3(0,0,1), 0.9f, DISABLE_CLIPPING);
-#endif
+        if (GetUiDebug && GetUiDebug()->OutlineUiTables)
+        {
+          BufferBorder(Group, GetAbsoluteDrawBounds(RenderState.Layout), V3(0,0,1), 0.9f, DISABLE_CLIPPING);
+        }
 
         PopLayout(&RenderState.Layout);
         NewRow(RenderState.Layout);
