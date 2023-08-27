@@ -365,6 +365,9 @@ WindowMessageCallback(
       Plat->MouseP.y = (r32)GET_Y_LPARAM(lParam);
     } return 0;
 
+    // TODO(Jesse): Implement these events so my laptop trackpad doesn't suck so bad!
+    // https://learn.microsoft.com/en-us/windows/win32/wintouch/wm-gesture
+    //
     case WM_MOUSEWHEEL:
     {
       // NOTE(Jesse): The tick-rate for mouse wheels on windows is 120..
