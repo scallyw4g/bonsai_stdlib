@@ -492,6 +492,7 @@ BufferBorder(renderer_2d *Group, interactable* PickerListInteraction, v3 Color, 
 link_internal void
 AdvanceLayoutStackBy(v2 Delta, layout* Layout)
 {
+  UpdateDrawBounds(Layout);
   while (Layout)
   {
     Layout->At += Delta;
@@ -831,11 +832,11 @@ PushTableEnd(renderer_2d *Group)
 }
 
 link_internal void
-PushBorder(renderer_2d *Group, rect2 BoundsRelativeToCurrentWindow, v3 Color)
+PushBorder(renderer_2d *Group, rect2 AbsoluteBounds, v3 Color)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_border,
-    .ui_render_command_border.Bounds = BoundsRelativeToCurrentWindow,
+    .ui_render_command_border.Bounds = AbsoluteBounds,
     .ui_render_command_border.Color = Color,
   };
 
@@ -1934,9 +1935,7 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
         TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState.Layout) + TypedCommand->Offset;
 
         PushLayout(&RenderState.Layout, &TypedCommand->Layout);
-
         BufferValue(TypedCommand->String, Group, &RenderState, &TypedCommand->Style, TypedCommand->Clip, TypedCommand->Params);
-
         PopLayout(&RenderState.Layout);
       } break;
 

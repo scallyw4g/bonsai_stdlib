@@ -1,9 +1,17 @@
 
 
 link_internal b32
-Hover(renderer_2d* Group, interactable_handle *Interaction)
+Hover(renderer_2d* Group, interactable_handle *Interaction, v2 *Offset_out = 0)
 {
   b32 Result = Group->Hover.ID == Interaction->Id;
+
+  if (Result && Offset_out)
+  {
+    v2 MouseP = *Group->MouseP;
+    v2 RelativeOffset = MouseP - Group->Pressed.MinP;
+    *Offset_out = RelativeOffset;
+  }
+
   return Result;
 }
 
@@ -22,12 +30,17 @@ Pressed(renderer_2d* Group, interactable_handle *Interaction, v2 *Offset_out = 0
   if (Result && Offset_out)
   {
     v2 MouseP = *Group->MouseP;
-    v2 RelativeOffset = MouseP - Group->Pressed.MinP ;
+    v2 RelativeOffset = MouseP - Group->Pressed.MinP;
     *Offset_out = RelativeOffset;
   }
 
   return Result;
 }
+
+
+
+
+
 
 link_internal b32
 Hover(renderer_2d* Group, interactable *Interaction)
