@@ -492,7 +492,6 @@ BufferBorder(renderer_2d *Group, interactable* PickerListInteraction, v3 Color, 
 link_internal void
 AdvanceLayoutStackBy(v2 Delta, layout* Layout)
 {
-  UpdateDrawBounds(Layout);
   while (Layout)
   {
     Layout->At += Delta;
@@ -1200,6 +1199,11 @@ PushLayout(layout** Dest, layout* Layout)
   Assert(!Layout->Prev);
   Layout->Prev = *Dest;
   *Dest = Layout;
+
+  // NOTE(Jesse): We have to do this such that the padding we're about to advance 
+  // by gets accounted for (or, rather, the basis we're starting at is accurate).
+  // If we do not, the padding space does not get included in the final draw bounds
+  UpdateDrawBounds(Layout);
 
   v2 Pad = V2(Layout->Padding.Left, Layout->Padding.Top);
   AdvanceLayoutStackBy(Pad, Layout);
