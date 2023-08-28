@@ -1059,6 +1059,8 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     }
   }
 
+  Window->Basis = Max(V2(-(Window->MaxClip.x-20.f), 0.f), Window->Basis);
+
   PushWindowStartInternal( Group,
                            Window,
                            TitleText,
@@ -1146,6 +1148,7 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
 
 
 
+
 /**************************                      *****************************/
 /************************** Composite Structures *****************************/
 /**************************                      *****************************/
@@ -1172,6 +1175,46 @@ PushBargraph(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor,
   /* PushForceAdvance(Group, V2(BackgroundQuadDim.x, 0)); */
 
   return;
+}
+
+link_internal void
+DrawToggleButtonGroup(renderer_2d *Ui, ui_element_toggle_button_group *Group)
+{
+  RangeIterator(ButtonIndex, Group->Count)
+  {
+    ui_element_toggle_button *UiButton = Group->Buttons + ButtonIndex;
+
+    ui_style *Style = (UiButton->On) ? &DefaultSelectedStyle : &DefaultStyle;
+    if (Button(Ui, UiButton->Text, (umm)UiButton->Text.Start, Style, DefaultToggleButtonPadding))
+    {
+      if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
+      {
+        RangeIterator(InnerButtonIndex, Group->Count) { Group->Buttons[InnerButtonIndex].On = False; }
+      }
+      UiButton->On = !UiButton->On;
+    }
+
+    if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
+    {
+      PushNewRow(Ui);
+    }
+  }
+}
+
+link_internal b32
+ToggledOn(ui_element_toggle_button_group *Group, cs ButtonName)
+{
+  b32 Result = False;
+  RangeIterator(ButtonIndex, Group->Count)
+  {
+    auto Button = Group->Buttons + ButtonIndex;
+    if (StringsMatch(Button->Text, ButtonName))
+    {
+      Result = Button->On;
+      break;
+    }
+  }
+  return Result;
 }
 
 
@@ -2177,50 +2220,3 @@ UiFrameEnd(renderer_2d *Ui)
     Ui->Pressed = Global_ViewportInteraction;
   }
 }
-
-
-
-
-
-
-
-link_internal void
-DrawToggleButtonGroup(renderer_2d *Ui, ui_element_toggle_button_group *Group)
-{
-  RangeIterator(ButtonIndex, Group->Count)
-  {
-    ui_element_toggle_button *UiButton = Group->Buttons + ButtonIndex;
-
-    ui_style *Style = (UiButton->On) ? &DefaultSelectedStyle : &DefaultStyle;
-    if (Button(Ui, UiButton->Text, (umm)UiButton->Text.Start, Style, DefaultToggleButtonPadding))
-    {
-      if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
-      {
-        RangeIterator(InnerButtonIndex, Group->Count) { Group->Buttons[InnerButtonIndex].On = False; }
-      }
-      UiButton->On = !UiButton->On;
-    }
-
-    if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
-    {
-      PushNewRow(Ui);
-    }
-  }
-}
-
-link_internal b32
-ToggledOn(ui_element_toggle_button_group *Group, cs ButtonName)
-{
-  b32 Result = False;
-  RangeIterator(ButtonIndex, Group->Count)
-  {
-    auto Button = Group->Buttons + ButtonIndex;
-    if (StringsMatch(Button->Text, ButtonName))
-    {
-      Result = Button->On;
-      break;
-    }
-  }
-  return Result;
-}
-
