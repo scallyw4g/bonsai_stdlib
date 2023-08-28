@@ -126,6 +126,33 @@ struct render_state
 
 
 
+
+struct ui_element_toggle_button
+{
+  counted_string Text;
+  b32 On;
+};
+
+enum ui_element_toggle_button_group_flags
+{
+  ToggleButtonGroupFlags_None = 0,
+  ToggleButtonGroupFlags_RadioButtons = (1 << 0),
+  ToggleButtonGroupFlags_DrawVertical = (1 << 1),
+};
+
+struct ui_element_toggle_button_group
+{
+  ui_element_toggle_button *Buttons;
+  s32 Count;
+  ui_element_toggle_button_group_flags Flags;
+};
+
+global_variable v4 DefaultToggleButtonPadding = V4(15,0,15,0);
+
+
+
+
+
 /***************************                **********************************/
 /*************************** Command Buffer **********************************/
 /***************************                **********************************/
@@ -240,6 +267,8 @@ struct ui_style
 
 
 link_internal ui_style UiStyleFromLightestColor(v3 Color, font Font = Global_Font);
+link_internal ui_style FlatUiStyle(v3 Color, font Font = Global_Font);
+
 debug_global v4 DefaultColumnPadding = V4(0, 0, 30, 12);
 debug_global v4 DefaultButtonPadding = DefaultColumnPadding;
 /* debug_global v4 DefaultColumnPadding = V4(0); */
@@ -270,6 +299,7 @@ struct ui_render_command_border
   window_layout* Window;
   rect2 Bounds;
   v3 Color;
+  v4 Thickness;
 };
 
 struct ui_render_command_window_start
@@ -519,6 +549,19 @@ StandardStyling(v3 StartingColor, v3 HoverMultiplier = V3(1.3f), v3 ClickMultipl
   Result.ClickedColor = StartingColor*ClickMultiplier;
 
   return Result;
+}
+
+link_internal ui_style
+FlatUiStyle(v3 Color, font Font)
+{
+  ui_style Style  = {
+    .Color        = Color,
+    .HoverColor   = Color,
+    .PressedColor = Color,
+    .ClickedColor = Color,
+    .Font         = Font,
+  };
+  return Style;
 }
 
 link_internal ui_style

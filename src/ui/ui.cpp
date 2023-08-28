@@ -460,18 +460,17 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, u32 Color, r32 Z, 
 }
 
 link_internal void
-BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip)
+BufferBorder(renderer_2d *Group, rect2 Rect,  v3 Color, r32 Z, rect2 Clip, v4 Thickness = V4(1))
 {
   v2 TopLeft     = Rect.Min;
   v2 BottomRight = Rect.Max;
   v2 TopRight    = V2(Rect.Max.x, Rect.Min.y);
   v2 BottomLeft  = V2(Rect.Min.x, Rect.Max.y);
 
-  r32 BorderWidth = 1;
-  rect2 TopRect    = RectMinMax(TopLeft ,    TopRight    + V2(0, BorderWidth));
-  rect2 BottomRect = RectMinMax(BottomLeft,  BottomRight - V2(0, BorderWidth));
-  rect2 LeftRect   = RectMinMax(TopLeft ,    BottomLeft  + V2(BorderWidth, 0));
-  rect2 RightRect  = RectMinMax(TopRight,    BottomRight + V2(BorderWidth, 0));
+  rect2 TopRect    = RectMinMax(TopLeft ,    TopRight    + V2(0, Thickness.Top));
+  rect2 BottomRect = RectMinMax(BottomLeft,  BottomRight - V2(0, Thickness.Bottom));
+  rect2 LeftRect   = RectMinMax(TopLeft ,    BottomLeft  + V2(Thickness.Left, 0));
+  rect2 RightRect  = RectMinMax(TopRight,    BottomRight - V2(Thickness.Right, 0));
 
   BufferUntexturedQuad(Group, &Group->Geo, TopRect,    Color, Z, Clip);
   BufferUntexturedQuad(Group, &Group->Geo, LeftRect,   Color, Z, Clip);
@@ -482,10 +481,10 @@ BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip)
 }
 
 link_internal void
-BufferBorder(renderer_2d *Group, interactable* PickerListInteraction, v3 Color, r32 Z, rect2 Clip)
+BufferBorder(renderer_2d *Group, interactable* PickerListInteraction, v3 Color, r32 Z, rect2 Clip, v4 Thickness = V4(1))
 {
   rect2 Bounds = RectMinMax(PickerListInteraction->MinP, PickerListInteraction->MaxP);
-  BufferBorder(Group, Bounds, Color, Z, Clip);
+  BufferBorder(Group, Bounds, Color, Z, Clip, Thickness);
   return;
 }
 
@@ -831,16 +830,16 @@ PushTableEnd(renderer_2d *Group)
 }
 
 link_internal void
-PushBorder(renderer_2d *Group, rect2 AbsoluteBounds, v3 Color)
+PushBorder(renderer_2d *Group, rect2 AbsoluteBounds, v3 Color, v4 Thickness = V4(1))
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_border,
     .ui_render_command_border.Bounds = AbsoluteBounds,
     .ui_render_command_border.Color = Color,
+    .ui_render_command_border.Thickness = Thickness,
   };
 
   PushUiRenderCommand(Group, &Command);
-
 }
 
 link_internal void
@@ -1999,7 +1998,7 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_border:
       {
         ui_render_command_border* Border = RenderCommandAs(border, Command);
-        BufferBorder(Group, Border->Bounds, Border->Color, GetZ(zDepth_Border, RenderState.Window), DISABLE_CLIPPING);
+        BufferBorder(Group, Border->Bounds, Border->Color, GetZ(zDepth_Border, RenderState.Window), DISABLE_CLIPPING, Border->Thickness);
       } break;
 
       case type_ui_render_command_force_advance:
@@ -2178,3 +2177,50 @@ UiFrameEnd(renderer_2d *Ui)
     Ui->Pressed = Global_ViewportInteraction;
   }
 }
+
+
+
+
+
+
+
+link_internal void
+DrawToggleButtonGroup(renderer_2d *Ui, ui_element_toggle_button_group *Group)
+{
+  RangeIterator(ButtonIndex, Group->Count)
+  {
+    ui_element_toggle_button *UiButton = Group->Buttons + ButtonIndex;
+
+    ui_style *Style = (UiButton->On) ? &DefaultSelectedStyle : &DefaultStyle;
+    if (Button(Ui, UiButton->Text, (umm)UiButton->Text.Start, Style, DefaultToggleButtonPadding))
+    {
+      if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
+      {
+        RangeIterator(InnerButtonIndex, Group->Count) { Group->Buttons[InnerButtonIndex].On = False; }
+      }
+      UiButton->On = !UiButton->On;
+    }
+
+    if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
+    {
+      PushNewRow(Ui);
+    }
+  }
+}
+
+link_internal b32
+ToggledOn(ui_element_toggle_button_group *Group, cs ButtonName)
+{
+  b32 Result = False;
+  RangeIterator(ButtonIndex, Group->Count)
+  {
+    auto Button = Group->Buttons + ButtonIndex;
+    if (StringsMatch(Button->Text, ButtonName))
+    {
+      Result = Button->On;
+      break;
+    }
+  }
+  return Result;
+}
+
