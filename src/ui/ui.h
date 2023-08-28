@@ -583,8 +583,7 @@ UiStyleFromLightestColor(v3 Color, font Font)
   return Style;
 }
 
-global_variable v2
-DefaultWindowSize = V2(1800, 800);
+global_variable v2 DefaultWindowSize = V2(1800, 800);
 
 link_internal v2
 DefaultWindowBasis(v2 ScreenDim, v2 WindowDim = DefaultWindowSize)
