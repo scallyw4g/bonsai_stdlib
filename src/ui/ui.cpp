@@ -1059,7 +1059,9 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     }
   }
 
-  Window->Basis = Max(V2(-(Window->MaxClip.x-20.f), 0.f), Window->Basis);
+  f32 KeepOnTheScreenThreshold = 30.f;
+  Window->Basis = Max(V2(-(Window->MaxClip.x-KeepOnTheScreenThreshold), 0.f), Window->Basis);
+  Window->Basis = Min(*Group->ScreenDim-V2(KeepOnTheScreenThreshold), Window->Basis);
 
   PushWindowStartInternal( Group,
                            Window,
