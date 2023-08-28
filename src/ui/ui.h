@@ -131,6 +131,7 @@ struct ui_element_toggle_button
 {
   counted_string Text;
   b32 On;
+  b32 Clicked;
 };
 
 enum ui_element_toggle_button_group_flags
@@ -569,9 +570,9 @@ UiStyleFromLightestColor(v3 Color, font Font)
 {
   ui_style Style  = {
     .Color        = Color,
-    .HoverColor   = Color*0.85f,
-    .PressedColor = Color,
-    .ClickedColor = Color,
+    .HoverColor   = Color*1.1f,
+    .PressedColor = Color*1.2f,
+    .ClickedColor = Color*1.2f,
     /* .ActiveColor  = V3(.85f, 1.f, .85f), */
 
     .Font         = Font,

@@ -926,9 +926,11 @@ PushWindowStartInternal( renderer_2d *Group,
 
   PushUiRenderCommand(Group, &Command);
 
+  ui_style TitleBarStyle = UiStyleFromLightestColor(V3(0.22f, 0.f, 0.20f));
+
   // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
   PushButtonStart(Group, ResizeHandleInteractionId);
-    PushUntexturedQuadAt(Group, WindowResizeHandleMin, WindowResizeHandleDim, zDepth_Border);
+    PushUntexturedQuadAt(Group, WindowResizeHandleMin, WindowResizeHandleDim, zDepth_Border, &TitleBarStyle);
   PushButtonEnd(Group);
 
   PushForceAdvance(Group, V2(Global_TitleBarPadding));
@@ -944,13 +946,13 @@ PushWindowStartInternal( renderer_2d *Group,
   }
 
   PushButtonStart(Group, TitleBarInteractionId);
-    ui_style TitleBarStyle = UiStyleFromLightestColor(V3(0.20f, 0.f, 0.20f));
     PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &TitleBarStyle);
   PushButtonEnd(Group);
 
-  PushBorder(Group, AbsWindowBounds, V3(1.f));
+  PushBorder(Group, AbsWindowBounds, TitleBarStyle.HoverColor, V4(2.f));
+  /* PushBorder(Group, AbsWindowBounds, V3(0.5f), V4(2.f)); */
 
-  ui_style BackgroundStyle = UiStyleFromLightestColor(V3(.1f, 0.f, .1f));
+  ui_style BackgroundStyle = UiStyleFromLightestColor(V3(0.07f, 0.01f, 0.08f));
   PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &BackgroundStyle);
 
   PushForceAdvance(Group, V2(0.f, Global_TitleBarHeight));
@@ -1194,6 +1196,11 @@ DrawToggleButtonGroup(renderer_2d *Ui, ui_element_toggle_button_group *Group)
         RangeIterator(InnerButtonIndex, Group->Count) { Group->Buttons[InnerButtonIndex].On = False; }
       }
       UiButton->On = !UiButton->On;
+      UiButton->Clicked = True;
+    }
+    else
+    {
+      UiButton->Clicked = False;
     }
 
     if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
@@ -1201,6 +1208,22 @@ DrawToggleButtonGroup(renderer_2d *Ui, ui_element_toggle_button_group *Group)
       PushNewRow(Ui);
     }
   }
+}
+
+link_internal b32
+Clicked(ui_element_toggle_button_group *Group, cs ButtonName)
+{
+  b32 Result = False;
+  RangeIterator(ButtonIndex, Group->Count)
+  {
+    auto Button = Group->Buttons + ButtonIndex;
+    if (StringsMatch(Button->Text, ButtonName))
+    {
+      Result = Button->Clicked;
+      break;
+    }
+  }
+  return Result;
 }
 
 link_internal b32
