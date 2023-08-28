@@ -76,7 +76,19 @@ NewRow(layout *Layout)
   // NOTE(Jesse): This adds DrawBounds.Max.y such that if we draw stuff other
   // than text on the line we get proper advancement.  Expanded callgraph nodes
   // are a good example
-  Layout->At.y = Layout->DrawBounds.Max.y;
+  //
+  // NOTE(Jesse): If we push a new line as the first thing we'd set the At to
+  // inverted infinity max, so we have to check for that.  We also wanted to
+  // advance a line, so we set the VerticalAdvance.
+  if (Layout->DrawBounds.Max.y == InvertedInfinityRectangle().Max.y)
+  {
+    VerticalAdvance = Global_Font.Size.y;
+  }
+  else
+  {
+    Layout->At.y = Layout->DrawBounds.Max.y;
+  }
+
   Layout->At.y += VerticalAdvance;
 
   // TODO(Jesse): Do we actually want to call this here?  Probably not if we
