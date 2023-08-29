@@ -1194,9 +1194,9 @@ PushBargraph(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor,
 }
 
 link_internal void
-DrawToggleButtonGroup(renderer_2d *Ui, ui_element_toggle_button_group *Group)
+DrawToggleButtonGroup(renderer_2d *Ui, ui_element_toggle_button_group *Group, relative_position Position = Position_None,  ui_element_reference RelativeTo = {})
 {
-  PushTableStart(Ui);
+  PushTableStart(Ui, Position, RelativeTo);
   RangeIterator(ButtonIndex, Group->Count)
   {
     ui_element_toggle_button *UiButton = Group->Buttons + ButtonIndex;
