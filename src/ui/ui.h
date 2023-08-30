@@ -584,11 +584,20 @@ UiStyleFromLightestColor(v3 Color, font Font)
 }
 
 global_variable v2 DefaultWindowSize = V2(1800, 800);
+global_variable f32 DefaultWindowTopOffset = 200.f;
+global_variable f32 DefaultWindowSideOffset = 20.f;
 
 link_internal v2
 DefaultWindowBasis(v2 ScreenDim, v2 WindowDim = DefaultWindowSize)
 {
-  v2 Basis = V2(20, ScreenDim.y - WindowDim.y - 20);
+  v2 Basis = V2(DefaultWindowSideOffset, ScreenDim.y - WindowDim.y - DefaultWindowSideOffset);
+  return Basis;
+}
+
+link_internal v2
+AlignRightWindowBasis(v2 ScreenDim, v2 WindowDim = DefaultWindowSize)
+{
+  v2 Basis = V2(ScreenDim.x - WindowDim.x - DefaultWindowSideOffset, DefaultWindowSideOffset);
   return Basis;
 }
 
