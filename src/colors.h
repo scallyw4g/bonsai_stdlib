@@ -26,7 +26,7 @@
 #define ORANGE       18
 #define DARK_ORANGE  24
 
-#define GREY   6
+/* #define GREY   6 */
 
 
 #define DARK_GREY      254

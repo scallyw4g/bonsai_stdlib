@@ -46,10 +46,11 @@ struct aabb_intersect_result
 //
 // NOTE(Jesse): Result is tmin value along the ray .. ie closest intersection
 // to origin of the ray.  f32_MAX means no intersection
+// 
+// TODO(Jesse): Should this not take an aabb pointer?!
 link_internal aabb_intersect_result
 Intersect(aabb AABB, ray *Ray)
 {
-
   v3 AABBMin = AABB.Center - AABB.Radius;
   v3 AABBMax = AABB.Center + AABB.Radius;
 
@@ -93,13 +94,13 @@ Intersect(aabb AABB, ray *Ray)
   r32 tzmin = (AABBMin.z - Ray->Origin.z) / Ray->Dir.z;
   r32 tzmax = (AABBMax.z - Ray->Origin.z) / Ray->Dir.z;
 
-  face_index zFace = FaceIndex_Top;
+  face_index zFace = FaceIndex_Bot;
   if (tzmin > tzmax)
   {
     r32 temp = tzmin;
     tzmin = tzmax;
     tzmax = temp;
-    zFace = FaceIndex_Bot;
+    zFace = FaceIndex_Top;
   }
 
   if ((tmin > tzmax) || (tzmin > tmax))
