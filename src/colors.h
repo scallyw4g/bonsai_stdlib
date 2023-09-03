@@ -591,9 +591,7 @@ GetColorData(v4 *Src, u32 ColorIndex, r32 Emission = 0.0f)
 inline void
 FillColorArray(v4 Color, v4 *Dest, s32 Count)
 {
-  for (s32 Index = 0;
-      Index < Count;
-      ++Index)
+  for (s32 Index = 0; Index < Count; ++Index)
   {
     Dest[Index] = Color;
   }

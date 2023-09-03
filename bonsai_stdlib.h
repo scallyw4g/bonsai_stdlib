@@ -41,47 +41,9 @@
 #include <bonsai_stdlib/src/string_builder.h>
 #include <bonsai_stdlib/src/ansi_stream.h>
 #include <bonsai_stdlib/src/rect.h>
-#include <bonsai_stdlib/src/ray.h>
 #include <bonsai_stdlib/src/xml.h>
-
-
-// nocheckin Move this stuff to respective places they should live.
-// 3d stuff is supposed to live in the engine
-
+#include <bonsai_stdlib/src/geometry_buffer.h>
 struct light;
 struct camera;
-
-struct textured_2d_geometry_buffer
-{
-  v3 *Verts;
-  v3 *Colors;
-  v3 *UVs;
-
-  u32 End;
-  u32 At;
-};
-
-struct untextured_2d_geometry_buffer
-{
-  v3 *Verts;
-  v3 *Colors;
-
-  u32 End;
-  u32 At;
-};
-
-/* poof( */
-/*   func compound_buffer(type_poof_symbol TypeName, type_poof_symbol Types ) */
-/*   { */
-/*     struct TypeName */
-/*     { */
-/*       Types */
-      /* u32 At; */
-      /* u32 End; */
-    /* }; */
-  /* } */
-/* ) */
-/* poof( compound_buffer( { untextured_3d_geometry_buffer }, { v3 *Verts; v4 *Colors; v3 *Normals; u64 Timestamp; })) */
-
 #include <bonsai_stdlib/src/ui/interactable.h>
 #include <bonsai_stdlib/src/ui/ui.h>

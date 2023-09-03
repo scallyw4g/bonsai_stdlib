@@ -24,17 +24,6 @@ struct maybe_ray
   ray Ray;
 };
 
-enum face_index
-{
-  FaceIndex_None,
-
-  FaceIndex_Top,
-  FaceIndex_Bot,
-  FaceIndex_Left,
-  FaceIndex_Right,
-  FaceIndex_Front,
-  FaceIndex_Back,
-};
 
 struct aabb_intersect_result
 {

@@ -709,6 +709,19 @@ Cross( v3 A, v3 B )
 }
 
 inline v3
+Perp( v3 A )
+{
+  v3 B = V3(0.f, 0.f, 1.f);
+  if (A == B)
+  {
+    B = V3(1.f, 0.f, 0.f);
+  }
+
+  v3 Result = Cross(A, B);
+  return Result;
+}
+
+inline v3
 SafeDivide0(v3 Dividend, r32 Divisor)
 {
   v3 Result = {};
