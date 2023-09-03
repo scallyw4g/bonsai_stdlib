@@ -17,6 +17,7 @@ enum maybe_tag
   Maybe_No,
   Maybe_Yes,
 };
+CAssert(Maybe_Yes == True);
 
 struct maybe_ray
 {
@@ -102,6 +103,23 @@ Intersect(aabb AABB, ray *Ray)
   if (tzmax < tmax) tmax = tzmax;
 
   return {Face, tmin};
+}
+
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection.html
+// l1 = ray dir
+link_internal b32
+Intersect(v3 PlaneNormal, v3 PlaneOrigin, v3 RayOrigin, v3 RayDir, f32 *tRay)
+{
+  b32 Result = False;
+
+  f32 denom = Dot(PlaneNormal, RayDir);
+  if (denom > 1e-6) {
+      v3 RayOriginToPlaneOrigin = p0 - RayOrigin;
+      *tRay = Dot(RayOriginToPlaneOrigin, PlaneNormal) / denom; 
+      Result = (tRay >= 0);
+  }
+
+  return Result;
 }
 
 /* // TODO(Jesse): Remove this? */
