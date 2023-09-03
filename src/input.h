@@ -3,6 +3,9 @@ struct input_event
 {
   b32 Clicked;
   b32 Pressed;
+
+  // TODO(Jesse): Add this?
+  // b32 Released;
 };
 
 struct input
