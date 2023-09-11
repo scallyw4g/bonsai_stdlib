@@ -742,3 +742,76 @@ PlatformDebugStacktrace()
 
   Warn("Stack traces unavailable on windows.");
 }
+
+
+enum file_traversal_type
+{
+  FileTraversalType_None,
+
+  FileTraversalType_Dir,
+  FileTraversalType_File,
+};
+
+struct file_traversal_node
+{
+  file_traversal_type Type;
+  cs Name;
+  cs Dir;
+};
+poof(are_equal(file_traversal_node))
+#include <generated/are_equal_file_traversal_node.h>
+
+typedef void (*file_callback)(file_traversal_node*);
+
+link_internal b32
+PlatformTraverseDirectoryTree(cs Dirname, file_callback Callback)
+{
+  TIMED_FUNCTION();
+
+  WIN32_FIND_DATA FindFileDescriptor;
+  HANDLE FindHandle = 0;
+
+  cs SearchTokens = CSz("/*.*");
+
+  cs Thing = Concat(Dirname, SearchTokens, GetTranArena());
+  if( (FindHandle = FindFirstFile(Thing.Start, &FindFileDescriptor)) == INVALID_HANDLE_VALUE)
+  {
+    SoftError("Path not found (%S)", Dirname);
+    return false;
+  }
+
+  do
+  {
+    cs Filename = CopyString(FindFileDescriptor.cFileName, GetTranArena());
+    if(StringsMatch(Filename, CSz(".")) || StringsMatch(Filename, CSz("..")))
+    {
+      // Skip . and ..
+    }
+    else
+    {
+      file_traversal_type Type = FileTraversalType_File;
+      if(FindFileDescriptor.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        Type = FileTraversalType_Dir;
+        // TODO(Jesse): This should use a string builder
+        cs SubDir = Concat(Dirname, CSz("/"), GetTranArena());
+        SubDir    = Concat(SubDir, Filename, GetTranArena());
+        PlatformTraverseDirectoryTree(SubDir, Callback);
+      }
+
+      file_traversal_node CBArg = {
+        .Type = Type,
+        .Name = Filename,
+        .Dir = Dirname,
+      };
+
+      Callback(&CBArg);
+    }
+  }
+  while(FindNextFile(FindHandle, &FindFileDescriptor));
+
+  FindClose(FindHandle);
+
+  return true;
+}
+

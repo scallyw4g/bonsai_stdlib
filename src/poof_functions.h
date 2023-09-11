@@ -30,17 +30,22 @@ poof(
   {
     DUnionType.map_members(M) {
       M.is_union? {
+
         M.map_members (ConstructorArgT)
         {
           link_internal DUnionType.name
           DUnionType.name.to_capital_case((ConstructorArgT.name) A)
           {
-            DUnionType.name Reuslt = {
+            DUnionType.name Result = {
               .Type = type_(ConstructorArgT.name),
               .(ConstructorArgT.name) = A
             };
-            return Reuslt;
+            return Result;
           }
+
+          // TODO(Jesse)(poof): This is bugged!  It can't find the members for the ConstructorArgT.
+          // Pasting the implementation here does not help.
+          /* gen_constructor(ConstructorArgT) */
         }
       }
     }

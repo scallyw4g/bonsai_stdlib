@@ -85,6 +85,7 @@ struct renderer_2d
   u32 TextGeoCountLastFrame;
 
   untextured_2d_geometry_buffer Geo;
+  shader TexturedQuadShader;
 
   ui_render_command_buffer *CommandBuffer;
 
@@ -359,11 +360,28 @@ struct ui_render_command_untextured_quad_at
   z_depth zDepth;
 };
 
+enum textured_quad_source
+{
+  TexturedQuadSource_Undefined,
+
+  // Are we referring to a slice in the pre-loaded texture array, or a discrete
+  // texture we rendered to?
+  TexturedQuadSource_ArraySlice,
+  TexturedQuadSource_Discrete,
+};
+
 struct ui_render_command_textured_quad
 {
+  textured_quad_source Source;
+  union {
+    debug_texture_array_slice TextureSlice;
+    texture *Texture;
+  };
+
   layout Layout;
-  v2 Dim;
-  debug_texture_array_slice TextureSlice;
+  // TODO(Jesse): Add this
+  /* ui_style Style; */
+  v2 QuadDim;
   z_depth zDepth;
 };
 
@@ -682,3 +700,4 @@ GetWindowBounds(window_layout *Window)
   return Result;
 }
 
+link_internal void DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer);

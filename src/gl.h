@@ -193,13 +193,16 @@ struct framebuffer
 
 struct render_entity_to_texture_group
 {
-  // For the GameGeo
-  camera *Camera;
-  framebuffer GameGeoFBO;
-  shader GameGeoShader;
-  m4 ViewProjection;
-  gpu_mapped_element_buffer GameGeo;
-  /* shader DebugGameGeoTextureShader; */
+  // TODO(Jesse): This gpu_mapped_element_buffer _should_ really be able to be
+  // taken out of here and used for all instances of render_to_texture_group
+  // that we create.. I think..
+  gpu_mapped_element_buffer  GameGeo;
+  framebuffer                GameGeoFBO;
+  shader                     GameGeoShader;
+  texture                   *Texture;
+
+  camera                    *Camera;
+  m4                         ViewProjection;
 };
 
 

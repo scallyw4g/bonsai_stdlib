@@ -33,6 +33,23 @@ CountedString(const char* Start, memory_arena* Memory)
 }
 
 counted_string
+CopyString(const char* Start, memory_arena* Memory)
+{
+  TIMED_FUNCTION();
+
+  umm Count = Length(Start);
+
+  counted_string Result = {
+    .Count = Count,
+    .Start = AllocateProtection(const char, Memory, Count, False),
+  };
+
+  MemCopy((u8*)Start, (u8*)Result.Start, Count);
+
+  return Result;
+}
+
+counted_string
 CopyString(const char* Start, umm Count, memory_arena* Memory)
 {
   TIMED_FUNCTION();

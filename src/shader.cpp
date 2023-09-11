@@ -126,7 +126,7 @@ poof(gen_shader_uniform_push(r32));
 shader
 MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
-  shader SimpleTextureShader = LoadShaders( CSz("Passthrough.vertexshader"), CSz("SimpleTexture.fragmentshader") );
+  shader SimpleTextureShader = LoadShaders( CSz("FullPassthrough.vertexshader"), CSz("SimpleTexture.fragmentshader") );
 
   SimpleTextureShader.FirstUniform = GetUniform(GraphicsMemory, &SimpleTextureShader, Texture, "Texture");
 

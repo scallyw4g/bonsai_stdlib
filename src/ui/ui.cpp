@@ -351,18 +351,6 @@ BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
   #undef TO_NDC
 }
 
-#if 0
-template <typename T> link_internal clip_result
-BufferQuadDirect(T* Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim, rect2 Clip)
-{
-  clip_result Result = ClipRect3AgainstRect2(MinP, Dim, Z, 0, Clip);
-  // NOTE(Jesse): Intentionally not switching on the clip_result.ClipStatus
-  // It's the callers responsibility to do that (and advance the Geo->At pointer)
-  BufferQuadDirect(Geo, Result.ClippedMin, Result.ClippedMax-Result.ClippedMin, Z, ScreenDim);
-  return Result;
-}
-#endif
-
 link_internal clip_result
 BufferTexturedQuad(renderer_2d *Group,
                    debug_texture_array_slice TextureSlice,
@@ -404,6 +392,14 @@ BufferTexturedQuad(renderer_2d *Group,
 
 
   return Result;
+}
+
+link_internal void
+DrawTexturedQuadImmediate( renderer_2d *Group,
+                           texture *Tex,
+                           v2 MinP, v2 Dim, rect2 UV, v3 Color, r32 Z,
+                           rect2 Clip, rect2 *ClipOptional )
+{
 }
 
 link_internal clip_result
@@ -718,13 +714,29 @@ PushTooltip(renderer_2d *Group, counted_string Text)
 }
 
 link_internal void
+PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth)
+{
+  ui_render_command Command = {
+    .Type = type_ui_render_command_textured_quad,
+
+    .ui_render_command_textured_quad.Source = TexturedQuadSource_Discrete,
+    .ui_render_command_textured_quad.Texture = Texture,
+    .ui_render_command_textured_quad.QuadDim = Dim,
+    .ui_render_command_textured_quad.zDepth = zDepth,
+  };
+
+  PushUiRenderCommand(Group, &Command);
+}
+
+link_internal void
 PushTexturedQuad(renderer_2d *Group, debug_texture_array_slice TextureSlice, v2 Dim, z_depth zDepth)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
 
+    .ui_render_command_textured_quad.Source = TexturedQuadSource_ArraySlice,
     .ui_render_command_textured_quad.TextureSlice = TextureSlice,
-    .ui_render_command_textured_quad.Dim = Dim,
+    .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
   };
 
@@ -1420,23 +1432,31 @@ ProcessButtonEnd(renderer_2d *Group, umm InteractionId, render_state* RenderStat
 }
 
 link_internal void
-ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Command, render_state* RenderState, b32 DoBuffering = True)
+ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Command, render_state* RenderState)
 {
   v2 MinP    = GetAbsoluteAt(RenderState->Layout);
-  v2 Dim     = Command->Dim; // RenderState->Window->MaxClip;
+  v2 Dim     = Command->QuadDim;
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
-  rect2 Clip = RenderState->ClipRect; //GetAbsoluteClip(RenderState->Window);
+  rect2 Clip = RenderState->ClipRect;
 
-  if (DoBuffering)
+  switch (Command->Source)
   {
-    BufferTexturedQuad( Group, Command->TextureSlice, MinP, Dim, UVsForFullyCoveredQuad(), V3(1), Z, Clip, 0);
+    InvalidCase(TexturedQuadSource_Undefined);
+
+    case TexturedQuadSource_ArraySlice:
+    {
+      BufferTexturedQuad( Group, Command->TextureSlice, MinP, Dim, UVsForFullyCoveredQuad(), V3(1), Z, Clip, 0);
+    } break;
+
+    case TexturedQuadSource_Discrete:
+    {
+      // There's a second pass that draws all discrete textures
+      /* DrawTexturedQuadImmediate( Group, Command->Texture, MinP, Dim, UVsForFullyCoveredQuad(), V3(1), Z, Clip, 0); */
+    } break;
   }
 
   AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
   UpdateDrawBounds(RenderState->Layout, MinP+Dim);
-
-  /* Command->Layout.Basis = MinP; */
-  /* Command->Layout.DrawBounds.Max = Clip.MaxClip - MinP; */
 }
 
 link_internal void
@@ -1902,20 +1922,8 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
 }
 
 link_internal void
-FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
+FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_command_buffer *CommandBuffer, layout *DefaultLayout)
 {
-  TIMED_FUNCTION();
-
-  layout DefaultLayout = {};
-  DefaultLayout.DrawBounds = InvertedInfinityRectangle();
-
-  render_state RenderState = { .Layout = &DefaultLayout, .ClipRect = DISABLE_CLIPPING };
-
-  /* GetDebugState()->DebugValue_u32(Group->SolidGeoCountLastFrame, "Solid Geo"); */
-  /* GetDebugState()->DebugValue_u32(Group->TextGeoCountLastFrame, "Text Geo"); */
-
-  SetWindowZDepths(CommandBuffer);
-
   u32 NextCommandIndex = 0;
   ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
   while (Command)
@@ -1924,35 +1932,35 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
     {
       case type_ui_render_command_window_start:
       {
-        Assert(LengthSq(DefaultLayout.Padding.xy) == 0);
-        Assert(LengthSq(DefaultLayout.Padding.zw) == 0);
+        Assert(LengthSq(DefaultLayout->Padding.xy) == 0);
+        Assert(LengthSq(DefaultLayout->Padding.zw) == 0);
 
-        Assert(RenderState.Layout == &DefaultLayout);
-        PopLayout(&RenderState.Layout);
+        Assert(RenderState->Layout == DefaultLayout);
+        PopLayout(&RenderState->Layout);
 
 
-        Assert(!RenderState.Window);
+        Assert(!RenderState->Window);
         ui_render_command_window_start* TypedCommand = RenderCommandAs(window_start, Command);
-        RenderState.WindowStartCommandIndex = NextCommandIndex-1;
-        PushLayout(&RenderState.Layout, &TypedCommand->Layout);
-        RenderState.Window = TypedCommand->Window;
-        RenderState.ClipRect = TypedCommand->ClipRect;
+        RenderState->WindowStartCommandIndex = NextCommandIndex-1;
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
+        RenderState->Window = TypedCommand->Window;
+        RenderState->ClipRect = TypedCommand->ClipRect;
       } break;
 
       case type_ui_render_command_window_end:
       {
         ui_render_command_window_end* TypedCommand = RenderCommandAs(window_end, Command);
-        Assert(TypedCommand->Window == RenderState.Window);
-        RenderState.Window = 0;
-        PopLayout(&RenderState.Layout);
-        Assert(RenderState.Layout == 0);
+        Assert(TypedCommand->Window == RenderState->Window);
+        RenderState->Window = 0;
+        PopLayout(&RenderState->Layout);
+        Assert(RenderState->Layout == 0);
 
-        RenderState.WindowStartCommandIndex = 0;
+        RenderState->WindowStartCommandIndex = 0;
 
-        PushLayout(&RenderState.Layout, &DefaultLayout);
-        Assert(RenderState.Layout == &DefaultLayout);
+        PushLayout(&RenderState->Layout, DefaultLayout);
+        Assert(RenderState->Layout == DefaultLayout);
 
-        RenderState.ClipRect = DISABLE_CLIPPING;
+        RenderState->ClipRect = DISABLE_CLIPPING;
       } break;
 
       case type_ui_render_command_table_start:
@@ -1961,14 +1969,14 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
         if (OnePastTableEnd)
         {
           ui_render_command_table_start* TypedCommand = RenderCommandAs(table_start, Command);
-          r32 BasisX = RenderState.Layout->Basis.x;
-          r32 BasisY = GetAbsoluteAt(RenderState.Layout).y;
+          r32 BasisX = RenderState->Layout->Basis.x;
+          r32 BasisY = GetAbsoluteAt(RenderState->Layout).y;
           TypedCommand->Layout.Basis = V2(BasisX, BasisY);
 
           // TODO(Jesse, bug): Seems to me like we should fully setup the basis
           // point then call this very last, though the Position_RightOf path
           // doesn't do that..
-          PushLayout(&RenderState.Layout, &TypedCommand->Layout);
+          PushLayout(&RenderState->Layout, &TypedCommand->Layout);
 
           if (TypedCommand->Position == Position_RightOf)
           {
@@ -1985,45 +1993,45 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
       case type_ui_render_command_table_end:
       {
-        if (RenderState.Layout->At.x > 0.0f) { AdvanceLayoutStackBy( V2(0.f, Global_Font.Size.y), RenderState.Layout); }
+        if (RenderState->Layout->At.x > 0.0f) { AdvanceLayoutStackBy( V2(0.f, Global_Font.Size.y), RenderState->Layout); }
 
         if (GetUiDebug && GetUiDebug()->OutlineUiTables)
         {
-          BufferBorder(Group, GetAbsoluteDrawBounds(RenderState.Layout), V3(0,0,1), 0.9f, DISABLE_CLIPPING);
+          BufferBorder(Group, GetAbsoluteDrawBounds(RenderState->Layout), V3(0,0,1), 0.9f, DISABLE_CLIPPING);
         }
 
-        PopLayout(&RenderState.Layout);
-        NewRow(RenderState.Layout);
+        PopLayout(&RenderState->Layout);
+        NewRow(RenderState->Layout);
 
       } break;
 
       case type_ui_render_command_column_start:
       {
         ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
-        TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState.Layout);
+        TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState->Layout);
 
-        PushLayout(&RenderState.Layout, &TypedCommand->Layout);
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
 
         if (TypedCommand->Params & ColumnRenderParam_RightAlign)
         {
           v2 Advance = V2(TypedCommand->MaxWidth - TypedCommand->Width, 0);
-          AdvanceLayoutStackBy(Advance, RenderState.Layout);
+          AdvanceLayoutStackBy(Advance, RenderState->Layout);
         }
       } break;
 
       case type_ui_render_command_column_end:
       {
-        PopLayout(&RenderState.Layout);
+        PopLayout(&RenderState->Layout);
       } break;
 
       case type_ui_render_command_text:
       {
         ui_render_command_text* TypedCommand = RenderCommandAs(text, Command);
-        TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState.Layout) + TypedCommand->Offset;
+        TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState->Layout) + TypedCommand->Offset;
 
-        PushLayout(&RenderState.Layout, &TypedCommand->Layout);
-        BufferValue(TypedCommand->String, Group, &RenderState, &TypedCommand->Style, TypedCommand->Clip, TypedCommand->Params);
-        PopLayout(&RenderState.Layout);
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
+        BufferValue(TypedCommand->String, Group, RenderState, &TypedCommand->Style, TypedCommand->Clip, TypedCommand->Params);
+        PopLayout(&RenderState->Layout);
       } break;
 
       case type_ui_render_command_text_at:
@@ -2035,38 +2043,38 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_textured_quad:
       {
         ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
-        TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState.Layout);
+        TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState->Layout);
 
-        PushLayout(&RenderState.Layout, &TypedCommand->Layout);
-        ProcessTexturedQuadPush(Group, TypedCommand, &RenderState);
-        PopLayout(&RenderState.Layout);
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
+        ProcessTexturedQuadPush(Group, TypedCommand, RenderState);
+        PopLayout(&RenderState->Layout);
       } break;
 
       case type_ui_render_command_untextured_quad:
       {
         ui_render_command_untextured_quad* TypedCommand = RenderCommandAs(untextured_quad, Command);
-        TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState.Layout);
+        TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState->Layout);
 
-        PushLayout(&RenderState.Layout, &TypedCommand->Layout);
-        ProcessUntexturedQuadPush(Group, TypedCommand, &RenderState);
-        PopLayout(&RenderState.Layout);
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
+        ProcessUntexturedQuadPush(Group, TypedCommand, RenderState);
+        PopLayout(&RenderState->Layout);
       } break;
 
       case type_ui_render_command_untextured_quad_at:
       {
         ui_render_command_untextured_quad_at* TypedCommand = RenderCommandAs(untextured_quad_at, Command);
-        ProcessUntexturedQuadAtPush(Group, TypedCommand, &RenderState);
+        ProcessUntexturedQuadAtPush(Group, TypedCommand, RenderState);
       } break;
 
       case type_ui_render_command_new_row:
       {
-        NewRow(RenderState.Layout);
+        NewRow(RenderState->Layout);
       } break;
 
       case type_ui_render_command_button_start:
       {
         ui_render_command_button_start* TypedCommand = RenderCommandAs(button_start, Command);
-        ProcessButtonStart(Group, &RenderState, TypedCommand->ID);
+        ProcessButtonStart(Group, RenderState, TypedCommand->ID);
       } break;
 
       case type_ui_render_command_button_end:
@@ -2074,26 +2082,137 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
         u32 ButtonStartIndex = FindPreviousButtonStart(CommandBuffer, NextCommandIndex-1);
         rect2 AbsDrawBounds = FindAbsoluteDrawBoundsBetween(CommandBuffer, ButtonStartIndex, NextCommandIndex);
         ui_render_command_button_start* ButtonStart = RenderCommandAs(button_start, CommandBuffer->Commands+ButtonStartIndex);
-        ProcessButtonEnd(Group, ButtonStart->ID, &RenderState, AbsDrawBounds, &ButtonStart->Style);
+        ProcessButtonEnd(Group, ButtonStart->ID, RenderState, AbsDrawBounds, &ButtonStart->Style);
       } break;
 
       case type_ui_render_command_border:
       {
         ui_render_command_border* Border = RenderCommandAs(border, Command);
-        BufferBorder(Group, Border->Bounds, Border->Color, GetZ(zDepth_Border, RenderState.Window), DISABLE_CLIPPING, Border->Thickness);
+        BufferBorder(Group, Border->Bounds, Border->Color, GetZ(zDepth_Border, RenderState->Window), DISABLE_CLIPPING, Border->Thickness);
       } break;
 
       case type_ui_render_command_force_advance:
       {
         ui_render_command_force_advance* TypedCommand = RenderCommandAs(force_advance, Command);
-        PushLayout(&RenderState.Layout, &TypedCommand->Layout);
-        AdvanceLayoutStackBy(TypedCommand->Offset, RenderState.Layout);
-        PopLayout(&RenderState.Layout);
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
+        AdvanceLayoutStackBy(TypedCommand->Offset, RenderState->Layout);
+        PopLayout(&RenderState->Layout);
       } break;
 
       case type_ui_render_command_reset_draw_bounds:
       {
-        RenderState.Layout->DrawBounds = InvertedInfinityRectangle();
+        RenderState->Layout->DrawBounds = InvertedInfinityRectangle();
+      } break;
+
+      InvalidDefaultCase;
+    }
+
+    Command = GetCommand(CommandBuffer, NextCommandIndex++);
+  }
+}
+
+link_internal void
+DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
+{
+  TIMED_FUNCTION();
+
+  layout DefaultLayout = {};
+  DefaultLayout.DrawBounds = InvertedInfinityRectangle();
+
+  render_state RenderState = { .Layout = &DefaultLayout, .ClipRect = DISABLE_CLIPPING };
+
+  SetWindowZDepths(CommandBuffer);
+
+  FlushCommandBuffer(Group, &RenderState, CommandBuffer, &DefaultLayout);
+
+  Group->SolidGeoCountLastFrame = Group->Geo.At;
+  Group->TextGeoCountLastFrame = Group->TextGroup->Geo.At;
+  DrawUiBuffers(Group, Group->ScreenDim);
+
+  u32 NextCommandIndex = 0;
+  ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
+  while (Command)
+  {
+    switch(Command->Type)
+    {
+      case type_ui_render_command_window_start:
+      case type_ui_render_command_window_end:
+      case type_ui_render_command_table_start:
+      case type_ui_render_command_table_end:
+      case type_ui_render_command_column_start:
+      case type_ui_render_command_column_end:
+      case type_ui_render_command_text:
+      case type_ui_render_command_text_at:
+      case type_ui_render_command_untextured_quad:
+      case type_ui_render_command_untextured_quad_at:
+      case type_ui_render_command_new_row:
+      case type_ui_render_command_button_start:
+      case type_ui_render_command_button_end:
+      case type_ui_render_command_border:
+      case type_ui_render_command_force_advance:
+      case type_ui_render_command_reset_draw_bounds:
+        { break; }
+
+      case type_ui_render_command_textured_quad:
+      {
+        ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
+        /* TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState.Layout); */
+
+        /* PushLayout(&RenderState.Layout, &TypedCommand->Layout); */
+        /* ProcessTexturedQuadPush(Group, TypedCommand, &RenderState); */
+        if (TypedCommand->Source == TexturedQuadSource_Discrete)
+        {
+          v2 MinP    = GetAbsoluteAt(&TypedCommand->Layout);
+          /* v2 MinP    = {}; */
+          v2 Dim     = TypedCommand->QuadDim;
+          r32 Z      = 1.0f; //GetZ(Command->zDepth, RenderState->Window);
+          rect2 Clip = DISABLE_CLIPPING; //RenderState->ClipRect;
+          /* DrawTexturedQuadImmediate( Group, TypedCommand->Texture, MinP, Dim, UVsForFullyCoveredQuad(), V3(1), Z, Clip, 0); */
+
+          Assert(Group->TextGroup->Geo.At == 0);
+          Assert(Group->TexturedQuadShader.FirstUniform->Next == 0);
+
+          /* Group->TexturedQuadShader.FirstUniform->Texture = Tex; */
+          /* UseShader(Group->TexturedQuadShader); */
+
+          GL.Disable(GL_DEPTH_TEST);
+          /* GL.DepthFunc(GL_LEQUAL); */
+
+          texture *Texture = TypedCommand->Texture;
+          r32 Scale = 0.5f;
+          /* SetViewport( V2(QuadDim)*Scale ); */
+          /* SetViewport( V2(Texture->Dim.x, Texture->Dim.y)*Scale ); */
+          SetViewport(*Group->ScreenDim);
+
+          /* SetupToDrawTexturedQuad( &Group->TexturedQuadShader, TypedCommand->Texture); */
+          shader *Shader = &Group->TexturedQuadShader;
+          GL.UseProgram(Shader->ID);
+
+          Shader->FirstUniform->Texture = Texture;
+          Assert(Shader->FirstUniform->Next == 0);
+
+          /* GL.ActiveTexture(GL_TEXTURE0); */
+          /* GL.BindTexture(GL_TEXTURE_2D, TypedCommand->Texture->ID); */
+          /* GL.Uniform1i(Group->TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform */
+
+          BindShaderUniforms(Shader);
+
+          // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
+          BufferTexturedQuad(Group, debug_texture_array_slice(0), MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
+
+          /* PushLayout(&RenderState->Layout, &TypedCommand->Layout); */
+          /* ProcessTexturedQuadPush(Group, TypedCommand, RenderState); */
+          /* PopLayout(&RenderState->Layout); */
+
+          FlushCommandBuffer(Group, &RenderState, CommandBuffer, &DefaultLayout);
+
+          Group->SolidGeoCountLastFrame += Group->Geo.At;
+          Group->TextGeoCountLastFrame += Group->TextGroup->Geo.At;
+          /* DrawUiBuffers(Group, Group->ScreenDim); */
+          DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
+
+          GL.Enable(GL_DEPTH_TEST);
+        }
       } break;
 
       InvalidDefaultCase;
@@ -2102,18 +2221,7 @@ FlushCommandBuffer(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
     Command = GetCommand(CommandBuffer, NextCommandIndex++);
   }
 
-  /* FlushUIBuffers(Group, Group->ScreenDim); */
-/*   DefaultLayout.At = {}; */
-/*   DefaultLayout.DrawBounds = InvertedInfinityRectangle(); */
-/*   RenderState = { .Layout = &DefaultLayout }; */
-/*   ResetAllLayouts(CommandBuffer); */
-
   CommandBuffer->CommandCount = 0;
-
-  Group->SolidGeoCountLastFrame = Group->Geo.At;
-  Group->TextGeoCountLastFrame = Group->TextGroup->Geo.At;
-
-  return;
 }
 
 link_internal v2
@@ -2193,6 +2301,9 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     AssertNoGlErrors;
   }
 
+  // Generic shader that gets reused to draw simple textured quads
+  Renderer->TexturedQuadShader = MakeSimpleTextureShader(0, PermMemory);
+
   random_series Entropy = {54623153};
   for (u32 ColorIndex = 0; ColorIndex < RANDOM_COLOR_COUNT; ++ColorIndex)
   {
@@ -2249,12 +2360,10 @@ UiFrameEnd(renderer_2d *Ui)
     Ui->HighestWindow->Scroll.y += Input->MouseWheelDelta * 5;
   }
 
-  FlushCommandBuffer(Ui, Ui->CommandBuffer);
-
-  FlushUIBuffers(Ui, Ui->ScreenDim);
+  DrawUi(Ui, Ui->CommandBuffer);
 
   if ( UiCapturedMouseInput(Ui) == False &&
-       (Input->LMB.Pressed || Input->RMB.Pressed) )
+      (Input->LMB.Pressed || Input->RMB.Pressed) )
   {
     Ui->Pressed = Global_ViewportInteraction;
   }

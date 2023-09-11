@@ -30,6 +30,7 @@
 #include <bonsai_stdlib/src/gl.cpp>
 #include <bonsai_stdlib/src/texture.cpp>
 #include <bonsai_stdlib/src/shader.cpp>
+#include <bonsai_stdlib/src/2d_render_utils.cpp>
 #include <bonsai_stdlib/src/ui/gl.cpp>
 
 #include <bonsai_stdlib/src/texture_cursor.cpp>

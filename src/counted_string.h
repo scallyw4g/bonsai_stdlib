@@ -235,6 +235,26 @@ IsPathSeparator(char C)
 }
 
 link_internal counted_string
+Extension(counted_string FilePath)
+{
+  counted_string Result = FilePath;
+
+  for (umm CharIndex = 0;
+      CharIndex < Result.Count;
+      ++CharIndex)
+  {
+    if (Result.Start[CharIndex] == '.')
+    {
+      Result.Start = FilePath.Start + CharIndex + 1;
+      Result.Count = FilePath.Count - CharIndex - 1;
+      break;
+    }
+  }
+
+  return Result;
+}
+
+link_internal counted_string
 StripExtension(counted_string FilePath)
 {
   counted_string Result = FilePath;
