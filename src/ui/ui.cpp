@@ -1451,7 +1451,8 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
     case TexturedQuadSource_Discrete:
     {
       // There's a second pass that draws all discrete textures
-      /* DrawTexturedQuadImmediate( Group, Command->Texture, MinP, Dim, UVsForFullyCoveredQuad(), V3(1), Z, Clip, 0); */
+      Command->Clip = Clip;
+      Command->Z = Z;
     } break;
   }
 
@@ -2160,14 +2161,13 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
         /* PushLayout(&RenderState.Layout, &TypedCommand->Layout); */
         /* ProcessTexturedQuadPush(Group, TypedCommand, &RenderState); */
+        /* if (false) */
         if (TypedCommand->Source == TexturedQuadSource_Discrete)
         {
           v2 MinP    = GetAbsoluteAt(&TypedCommand->Layout);
-          /* v2 MinP    = {}; */
           v2 Dim     = TypedCommand->QuadDim;
-          r32 Z      = 1.0f; //GetZ(Command->zDepth, RenderState->Window);
-          rect2 Clip = DISABLE_CLIPPING; //RenderState->ClipRect;
-          /* DrawTexturedQuadImmediate( Group, TypedCommand->Texture, MinP, Dim, UVsForFullyCoveredQuad(), V3(1), Z, Clip, 0); */
+          r32 Z      = TypedCommand->Z;
+          rect2 Clip = TypedCommand->Clip;
 
           Assert(Group->TextGroup->Geo.At == 0);
           Assert(Group->TexturedQuadShader.FirstUniform->Next == 0);
@@ -2175,7 +2175,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           /* Group->TexturedQuadShader.FirstUniform->Texture = Tex; */
           /* UseShader(Group->TexturedQuadShader); */
 
-          GL.Disable(GL_DEPTH_TEST);
+          /* GL.Disable(GL_DEPTH_TEST); */
           /* GL.DepthFunc(GL_LEQUAL); */
 
           texture *Texture = TypedCommand->Texture;
@@ -2204,14 +2204,14 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           /* ProcessTexturedQuadPush(Group, TypedCommand, RenderState); */
           /* PopLayout(&RenderState->Layout); */
 
-          FlushCommandBuffer(Group, &RenderState, CommandBuffer, &DefaultLayout);
+          /* FlushCommandBuffer(Group, &RenderState, CommandBuffer, &DefaultLayout); */
 
           Group->SolidGeoCountLastFrame += Group->Geo.At;
           Group->TextGeoCountLastFrame += Group->TextGroup->Geo.At;
           /* DrawUiBuffers(Group, Group->ScreenDim); */
           DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
 
-          GL.Enable(GL_DEPTH_TEST);
+          /* GL.Enable(GL_DEPTH_TEST); */
         }
       } break;
 
@@ -2284,9 +2284,14 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
     GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
     GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
+
     TextGroup->Text2DShader = LoadShaders( CSz("TextVertexShader.vertexshader"), CSz("TextVertexShader.fragmentshader") );
     TextGroup->TextTextureUniform = GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
+
     Renderer->TextGroup->SolidUIShader = LoadShaders( CSz("SimpleColor.vertexshader"), CSz("SimpleColor.fragmentshader") );
+
+    // Generic shader that gets reused to draw simple textured quads
+    Renderer->TexturedQuadShader = MakeSimpleTextureShader(0, PermMemory);
 
     v2i TextureDim = V2i(DEBUG_TEXTURE_DIM, DEBUG_TEXTURE_DIM);
     texture *DepthTexture = MakeDepthTexture( TextureDim, PermMemory );
@@ -2298,11 +2303,10 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
     GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
     AssertNoGlErrors;
   }
 
-  // Generic shader that gets reused to draw simple textured quads
-  Renderer->TexturedQuadShader = MakeSimpleTextureShader(0, PermMemory);
 
   random_series Entropy = {54623153};
   for (u32 ColorIndex = 0; ColorIndex < RANDOM_COLOR_COUNT; ++ColorIndex)

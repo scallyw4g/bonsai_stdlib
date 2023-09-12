@@ -383,6 +383,11 @@ struct ui_render_command_textured_quad
   /* ui_style Style; */
   v2 QuadDim;
   z_depth zDepth;
+
+  // NOTE(Jesse): Written to by the layout engine, not for use by external code
+  // At the moment, only valid for TexturedQuadSource_Discrete
+  r32 Z;
+  rect2 Clip;
 };
 
 struct ui_render_command_button_start
