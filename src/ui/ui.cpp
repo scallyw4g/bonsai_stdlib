@@ -359,17 +359,16 @@ BufferTexturedQuad(renderer_2d *Group,
 {
   textured_2d_geometry_buffer* Geo = &Group->TextGroup->Geo;
 
-  // @streaming_ui_render_memory
-  Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
-
-  clip_result Result = ClipRect3AgainstRect2(MinP, Dim, Z, &UV, Clip);
-  if (ClipOptional)
+  rect2 WindowClip = RectMinMax(V2(0), *Group->ScreenDim);
+  clip_result Result = ClipRect3AgainstRect2(MinP, Dim, Z, &UV, WindowClip);
+  if (Result.ClipStatus != ClipStatus_FullyClipped)
   {
-    clip_status PrevClipStatus = Result.ClipStatus;
-    Result = ClipRect3AgainstRect2(Result.ClippedMin, Result.ClippedMax-Result.ClippedMin, Z, &UV, *ClipOptional);
-
-    clip_status FinalClipStatus = (clip_status)Max((u32)Result.ClipStatus, (u32)PrevClipStatus);
-    Result.ClipStatus = FinalClipStatus;
+    Result = ClipRect3AgainstRect2(MinP, Dim, Z, &UV, Clip);
+    if (ClipOptional)
+    {
+      clip_status PrevClipStatus = Result.ClipStatus;
+      Result = ClipRect3AgainstRect2(Result.ClippedMin, Result.ClippedMax-Result.ClippedMin, Z, &UV, *ClipOptional);
+    }
   }
 
   switch (Result.ClipStatus)
@@ -377,6 +376,9 @@ BufferTexturedQuad(renderer_2d *Group,
     case ClipStatus_NoClipping:
     case ClipStatus_PartialClipping:
     {
+      // @streaming_ui_render_memory
+      Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
+
       BufferQuadDirect(Geo, Result.ClippedMin, Result.ClippedMax-Result.ClippedMin, Z, Group->ScreenDim);
       BufferQuadUVs(Geo, UV, TextureSlice);
       BufferColors(Group, Geo, Color);
@@ -1925,6 +1927,8 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
 link_internal void
 FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_command_buffer *CommandBuffer, layout *DefaultLayout)
 {
+  TIMED_FUNCTION();
+
   u32 NextCommandIndex = 0;
   ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
   while (Command)
