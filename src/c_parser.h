@@ -453,6 +453,13 @@ link_internal c_token   RequireTokenRaw(parser *Parser, c_token_type ExpectedTyp
 link_internal b32       TokensRemain(parser *Parser, u32 TokenLookahead = 0);
 link_internal b32       RawTokensRemain(parser *Parser, u32 TokenLookahead = 0);
 
+link_internal void EraseToken(c_token *Token);
+link_internal void EraseBetweenExcluding(parser *Parser, c_token *StartToken, c_token *OnePastLastToken);
+
+link_internal void DumpLocalTokens(parser *Parser);
+link_internal void PrintTray(char_cursor *Dest, c_token *T, u32 Columns, counted_string Color);
+link_internal void PrintTraySimple(c_token *T, b32 Force = False, u32 Depth = 0);
+
 link_internal b32       TokenIsOperator(c_token_type T);
 link_internal b32       NextTokenIsOperator(parser *Parser);
 link_internal c_token * RequireOperatorToken(parser *Parser);
@@ -475,6 +482,7 @@ link_internal parser * DuplicateParserTokens(parser *Parser, memory_arena *Memor
 link_internal parser * DuplicateParser(parser *Parser, memory_arena *Memory);
 link_internal c_token_cursor * DuplicateCTokenCursor(c_token_cursor *Tokens, memory_arena *Memory);
 link_internal parser *         DuplicateCTokenCursor2(c_token_cursor *Tokens, memory_arena *Memory);
+
 
 
 
