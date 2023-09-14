@@ -361,3 +361,357 @@ FinalizeStringFromParser(string_from_parser* Builder)
   return Result;
 }
 
+inline c_token_cursor *
+HasValidDownPointer(c_token *T)
+{
+  c_token_cursor *Result = (T && T->Down && (T->Type == CT_MacroLiteral || T->Type == CT_InsertedCode)) ? T->Down : 0;
+  return Result;
+}
+
+#if BONSAI_SLOW
+link_internal void
+SanityCheckCTokenCursor(c_token_cursor *Current)
+{
+  for (u32 TokenIndex = 0; TokenIndex < TotalElements(Current); ++TokenIndex)
+  {
+    c_token *T = Current->Start + TokenIndex;
+
+    if (HasValidDownPointer(T))
+    {
+      Assert(T->Down->Up.Tokens == Current);
+      SanityCheckCTokenCursor(T->Down);
+    }
+  }
+}
+
+link_internal void
+SanityCheckParserChain(parser *Parser)
+{
+#if 1
+  Assert(Parser->Tokens->Up.Tokens != Parser->Tokens);
+
+  c_token_cursor *FirstInChain = Parser->Tokens;
+
+  while (FirstInChain->Up.Tokens) FirstInChain = FirstInChain->Up.Tokens;
+  SanityCheckCTokenCursor(FirstInChain);
+#endif
+}
+#else
+#define SanityCheckParserChain(...)
+#define SanityCheckCTokenCursor(...)
+#endif
+
+#if 0
+link_internal void
+SinglyLinkedListSwapInplace(c_token_cursor *P0, c_token_cursor *P1)
+{
+  NotImplemented;
+  Assert(P0->Up != P0);
+  Assert(P1->Up != P1);
+
+  Assert(P1->Up == P0);
+
+  auto M0 = *P0; // Mnemonic M0 == Memory0
+  auto M1 = *P1;
+
+  *P0 = M1;
+  *P1 = M0;
+
+  P0->Up = P0;
+  P1->Up = P0;
+
+  Assert(P0->Up != P0);
+  Assert(P1->Up != P1);
+}
+#endif
+
+#if 1
+struct d_list
+{
+  d_list *Prev;
+  d_list *Next;
+};
+
+link_internal void
+DoublyLinkedListSwap(d_list *P0, d_list *P1)
+{
+  Assert(P0 != P1);
+
+  b32 Colocated = P0->Next == P1;
+  b32 ColocatedReversed = P1->Next == P0;
+
+  // TODO(Jesse): I'm fairly sure that we don't need this boolean and should
+  // be able to just go off the M pointer values .. but I didn't want to sit
+  // around and figure it out.  Same goes for ColocatedReversed.  Good news is
+  // that this routine is well tested so future-me can fearlessly modify it.
+#if 0
+  if (Colocated)
+  {
+    if (P1->Prev != P0)
+    {
+      Assert(false);
+
+      DumpLocalTokens(P0);
+      DebugChars("\n");
+      DumpLocalTokens(P1);
+      DebugChars("\n");
+      DumpLocalTokens(P1->Next);
+      DebugChars("\n");
+      DumpLocalTokens(P1->Prev);
+      DebugChars("\n");
+    }
+  }
+#endif
+
+  if (ColocatedReversed)
+  {
+    Assert(P0->Prev == P1);
+    Assert(!Colocated);
+
+    Colocated = True;
+    d_list *Temp = P1;
+    P1 = P0;
+    P0 = Temp;
+  }
+
+  d_list M0 = *P0; // Mnemonic M0 == Memory0
+  d_list M1 = *P1;
+
+  *P0 = M1;
+  *P1 = M0;
+
+  P0->Next = M1.Next;
+  P0->Prev = Colocated ? P1 : M1.Prev;
+
+  P1->Next = Colocated ? P0 : M0.Next;
+  P1->Prev = M0.Prev;
+
+  if (M1.Next)
+  {
+    M1.Next->Prev = P0;
+  }
+
+  if (M0.Prev)
+  {
+    M0.Prev->Next = P1;
+  }
+
+  if (!Colocated)
+  {
+    if (M1.Prev)
+    {
+      M1.Prev->Next = P0;
+    }
+    if (M0.Next)
+    {
+      M0.Next->Prev = P1;
+    }
+  }
+
+  return;
+}
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+link_internal c_token *
+RewindTo(parser* Parser, c_token *T)
+{
+  peek_result Current = {};
+  if (T)
+  {
+    Current = PeekTokenRawCursor(Parser->Tokens, -1);
+    while (Current.At && Current.At != T)
+    {
+      Current = PeekTokenRawCursor(&Current, -1);
+    }
+
+    if (IsValid(&Current))
+    {
+      Parser->Tokens = Current.Tokens;
+      Parser->Tokens->At = Current.At;
+    }
+    else
+    {
+      FullRewind(Parser);
+    }
+  }
+  else
+  {
+    Warn("ptr(0) passed to RewindTo");
+  }
+
+  return Current.At;
+}
+
+link_internal c_token *
+RewindTo(parser* Parser, c_token_type Type, u32 Count = 0)
+{
+  peek_result Current = {};
+  if (Type)
+  {
+    u32 Hits = 0;
+
+    Current = PeekTokenRawCursor(Parser->Tokens, -1);
+    while (Current.At)
+    {
+      if (Current.At->Type == Type)
+      {
+        if (Hits++ == Count)
+        {
+          break;
+        }
+      }
+
+      Current = PeekTokenRawCursor(&Current, -1);
+    }
+
+    if (IsValid(&Current))
+    {
+      Parser->Tokens = Current.Tokens;
+      Parser->Tokens->At = Current.At;
+    }
+    else
+    {
+      FullRewind(Parser);
+    }
+  }
+  else
+  {
+    Warn("CTokenType_Unknown passed to RewindTo");
+  }
+
+  return Current.At;
+}
+
+// NOTE(Jesse): This function should actually just be able to walk the "Up" chain
+// since we never actually modify cursors
+link_internal void
+FullRewind(parser* Parser)
+{
+  TIMED_FUNCTION();
+
+  SanityCheckParserChain(Parser);
+
+  c_token_cursor *Current = Parser->Tokens;
+  Rewind(Current);
+
+  while (Current->Up.Tokens)
+  {
+    Current = Current->Up.Tokens;
+    Rewind(Current);
+  }
+  Assert(Current->Up.Tokens == 0);
+
+  if (Current != Parser->Tokens)
+  {
+    Parser->Tokens = Current;
+  }
+  Assert(Parser->Tokens->Up.Tokens == 0);
+
+  SanityCheckParserChain(Parser);
+}
+
+link_internal c_token *
+AdvanceTo(parser *Parser, peek_result *Peek)
+{
+  c_token *Result = 0;
+  if (Parser->Tokens->At < Parser->Tokens->End)
+  {
+    // NOTE(Jesse): Yes, it's really weird we return the thing we were on here
+    // instead of what we're advancing to.  Yes, we should change it.
+    Result = Parser->Tokens->At;
+
+    if (IsValid(Peek))
+    {
+      Assert(Peek->Tokens);
+      Parser->Tokens = Peek->Tokens;
+      Parser->Tokens->At = Peek->At;
+      Assert(Peek->Tokens->At == Peek->At);
+    }
+    else
+    {
+      Parser->Tokens->At = Parser->Tokens->End;
+    }
+  }
+
+  return Result;
+}
+
+link_internal c_token *
+AdvanceTo(parser* Parser, c_token* T)
+{
+  SanityCheckParserChain(Parser);
+  peek_result Peek = PeekTokenRawCursor(Parser);
+
+  while (IsValid(&Peek) && Peek.At != T)
+  {
+    Peek = PeekTokenRawCursor(&Peek, 1);
+  }
+
+  if (IsValid(&Peek))
+  {
+    Assert(Peek.At == T);
+    AdvanceTo(Parser, &Peek);
+    Assert(Parser->Tokens->At == T);
+  }
+
+  SanityCheckParserChain(Parser);
+  return Peek.At;
+}
+
+link_internal void
+EatUntilExcluding(parser* Parser, c_token_type Close)
+{
+  // TODO(Jesse, performance, slow): This is slow AF
+  while (PeekTokenRawPointer(Parser))
+  {
+    if(PeekTokenRaw(Parser).Type == Close)
+    {
+      break;
+    }
+    else
+    {
+      PopTokenRaw(Parser);
+    }
+  }
+  return;
+}
+
+link_internal c_token *
+EatUntilIncluding(parser* Parser, c_token_type Close)
+{
+  c_token *Result = 0;
+  while (c_token *T = PopTokenRawPointer(Parser))
+  {
+    if(T->Type == Close)
+    {
+      Result = T;
+      break;
+    }
+  }
+  return Result;
+}
+
+link_internal b32
+AdvanceParser(parser *Parser)
+{
+  NotImplemented;
+  return False;
+}
+

@@ -293,3 +293,80 @@ struct c_token
 
 
 
+link_internal b32
+TokenShouldModifyLineCount(c_token *T, token_cursor_source Source)
+{
+  b32 Result = False;
+
+  if ( Source == TokenCursorSource_RootFile ||
+       Source == TokenCursorSource_Include )
+  {
+    Result = T->Type == CTokenType_Newline ||
+             T->Type == CTokenType_EscapedNewline;
+  }
+
+  return Result;
+}
+
+link_internal b32
+IsNewline(c_token_type Type)
+{
+  b32 Result = Type == CTokenType_Newline        ||
+               Type == CTokenType_EscapedNewline ||
+               Type == CT_ControlChar_Form_Feed  ||
+               Type == CTokenType_CarrigeReturn;
+
+  return Result;
+}
+
+link_internal b32
+IsNewline(c_token *T)
+{
+  b32 Result = T && IsNewline(T->Type);
+  return Result;
+}
+
+link_internal b32
+IsNBSP(c_token_type Type)
+{
+  b32 Result = Type == CTokenType_Tab            ||
+               Type == CTokenType_Space;
+
+  return Result;
+}
+
+link_internal b32
+IsNBSP(c_token *T)
+{
+  b32 Result = IsNBSP(T->Type);
+  return Result;
+}
+
+
+link_internal b32
+IsWhitespace(c_token_type Type)
+{
+  b32 Result = Type == CTokenType_Newline        ||
+               Type == CTokenType_EscapedNewline ||
+               Type == CTokenType_CarrigeReturn  ||
+               Type == CTokenType_Tab            ||
+               Type == CT_ControlChar_Form_Feed  ||
+               Type == CTokenType_Space;
+
+  return Result;
+}
+
+link_internal b32
+IsWhitespace(c_token *T)
+{
+  b32 Result = IsWhitespace(T->Type);
+  return Result;
+}
+
+link_internal b32
+IsComment(c_token *T)
+{
+  b32 Result = (T->Type == CTokenType_CommentSingleLine) || (T->Type == CTokenType_CommentMultiLine);
+  return Result;
+}
+
