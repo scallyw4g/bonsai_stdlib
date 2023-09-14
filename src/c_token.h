@@ -291,7 +291,27 @@ struct c_token
 
 };
 
+// TODO(Jesse): Add a way to append additional members to generated datatypes
+// then reenable this.
+/* poof(generate_cursor(c_token)) */
+#include <generated/generate_cursor_c_token.h>
 
+poof(buffer(c_token))
+#include <generated/buffer_c_token.h>
+
+poof(buffer(c_token_buffer))
+#include <generated/buffer_c_token_buffer.h>
+
+poof(generate_stream(c_token_buffer))
+#include <generated/generate_stream_c_token_buffer.h>
+
+
+link_internal b32
+IsValidForCursor(c_token_cursor *Tokens, c_token *T)
+{
+  b32 Result = T < Tokens->End && T >= Tokens->Start;
+  return Result;
+}
 
 link_internal b32
 TokenShouldModifyLineCount(c_token *T, token_cursor_source Source)
@@ -307,6 +327,9 @@ TokenShouldModifyLineCount(c_token *T, token_cursor_source Source)
 
   return Result;
 }
+
+
+
 
 link_internal b32
 IsNewline(c_token_type Type)

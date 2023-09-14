@@ -6,20 +6,6 @@
     default: { ParseError(P, ErrorMessage, Token); } break;
 
 
-// TODO(Jesse): Add a way to append additional members to generated datatypes
-// then reenable this.
-/* poof(generate_cursor(c_token)) */
-#include <generated/generate_cursor_c_token.h>
-
-poof(buffer(c_token))
-#include <generated/buffer_c_token.h>
-
-poof(buffer(c_token_buffer))
-#include <generated/buffer_c_token_buffer.h>
-
-poof(generate_stream(c_token_buffer))
-#include <generated/generate_stream_c_token_buffer.h>
-
 
 enum parse_warn_code
 {
@@ -283,4 +269,9 @@ CTokenCursor(c_token_cursor *Result, umm Count, memory_arena *Memory, counted_st
   c_token *Buffer = AllocateProtection(c_token, Memory, Count, False);
   CTokenCursor(Result, Buffer, Count, Filename, Source, Up);
 }
+
+
+
+
+
 
