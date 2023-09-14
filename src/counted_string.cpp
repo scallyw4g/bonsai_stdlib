@@ -8,6 +8,16 @@ poof(index_of(counted_string))
 poof(hashtable(counted_string))
 #include <generated/hashtable_counted_string.h>
 
+poof(tuple({cs cs}))
+#include <generated/tuple_822959015.h>
+
+poof(generate_stream(tuple_cs_cs))
+#include <generated/generate_stream_tuple_cs_cs.h>
+
+poof(buffer_builder(tuple_cs_cs))
+#include <generated/buffer_builder_tuple_cs_cs.h>
+
+
 
 counted_string
 CountedString(umm Count, memory_arena* Memory)
