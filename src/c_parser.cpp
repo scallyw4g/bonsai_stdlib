@@ -1,3 +1,67 @@
+
+link_internal peek_result PeekTokenRawCursor(peek_result *Peek, s32 TokenLookahead = 0);
+link_internal peek_result PeekTokenRawCursor(c_token_cursor *Tokens, s32 TokenLookahead, b32 CanSearchDown = True);
+link_internal peek_result PeekTokenRawCursor(parser *Parser, s32 TokenLookahead = 0);
+
+/* link_internal peek_result PeekTokenCursor(peek_result *Peek, s32 TokenLookahead = 0); */
+link_internal peek_result PeekTokenCursor(c_token_cursor *Tokens, s32 TokenLookahead = 0);
+link_internal peek_result PeekTokenCursor(parser *Parser, s32 TokenLookahead = 0);
+
+link_internal c_token * PeekTokenRawPointer(parser *Parser, u32 TokenLookahead);
+link_internal c_token * PeekTokenRawPointer(parser *Parser, s32 TokenLookahead = 0);
+
+link_internal c_token * PeekTokenPointer(c_token_cursor *Tokens, s32 TokenLookahead = 0);
+link_internal c_token * PeekTokenPointer(parser *Parser, u32 TokenLookahead = 0);
+
+link_internal c_token   PeekTokenRaw(parser *Parser, s32 Lookahead = 0);
+link_internal c_token   PeekToken(parser *Parser, s32 Lookahead = 0);
+link_internal c_token   PopTokenRaw(parser *Parser);
+link_internal c_token * PopTokenRawPointer(parser *Parser);
+link_internal c_token   PopToken(parser *Parser);
+link_internal b32       OptionalTokenRaw(parser *Parser, c_token_type Type);
+link_internal c_token * OptionalToken(parser *Parser, c_token T);
+link_internal c_token * OptionalToken(parser *Parser, c_token_type Type);
+link_internal c_token   RequireToken(parser *Parser, c_token *ExpectedToken);
+link_internal c_token   RequireToken(parser *Parser, c_token ExpectedToken);
+link_internal c_token   RequireToken(parser *Parser, c_token_type ExpectedType);
+link_internal c_token   RequireTokenRaw(parser *Parser, c_token Expected);
+link_internal c_token   RequireTokenRaw(parser *Parser, c_token *Expected);
+link_internal c_token   RequireTokenRaw(parser *Parser, c_token_type ExpectedType);
+
+link_internal b32       TokensRemain(parser *Parser, u32 TokenLookahead = 0);
+link_internal b32       RawTokensRemain(parser *Parser, u32 TokenLookahead = 0);
+
+link_internal void EraseToken(c_token *Token);
+link_internal void EraseBetweenExcluding(parser *Parser, c_token *StartToken, c_token *OnePastLastToken);
+
+link_internal void DumpLocalTokens(parser *Parser);
+link_internal void PrintTray(char_cursor *Dest, c_token *T, u32 Columns, counted_string Color);
+link_internal void PrintTraySimple(c_token *T, b32 Force = False, u32 Depth = 0);
+
+link_internal b32       TokenIsOperator(c_token_type T);
+link_internal b32       NextTokenIsOperator(parser *Parser);
+link_internal c_token * RequireOperatorToken(parser *Parser);
+
+link_internal void      TrimFirstToken(parser* Parser, c_token_type TokenType);
+link_internal void      TrimLastToken(parser* Parser, c_token_type TokenType);
+link_internal void      TrimLeadingWhitespace(parser* Parser);
+
+link_internal counted_string EatBetweenExcluding(ansi_stream*, char Open, char Close);
+
+link_internal void           EatBetween(parser* Parser, c_token_type Open, c_token_type Close);
+link_internal counted_string EatBetween_Str(parser* Parser, c_token_type Open, c_token_type Close);
+link_internal b32            EatWhitespace(parser* Parser);
+link_internal b32            EatSpacesTabsAndEscapedNewlines(parser *Parser);
+link_internal void           EatWhitespaceAndComments(parser *Parser);
+
+link_internal void      FullRewind(parser* Parser);
+
+link_internal parser * DuplicateParserTokens(parser *Parser, memory_arena *Memory);
+link_internal parser * DuplicateParser(parser *Parser, memory_arena *Memory);
+link_internal c_token_cursor * DuplicateCTokenCursor(c_token_cursor *Tokens, memory_arena *Memory);
+link_internal parser *         DuplicateCTokenCursor2(c_token_cursor *Tokens, memory_arena *Memory);
+
+
 inline c_token
 CToken(r32 FloatValue)
 {
@@ -243,3 +307,57 @@ IsValidForCursor(c_token_cursor *Tokens, c_token *T)
   b32 Result = T < Tokens->End && T >= Tokens->Start;
   return Result;
 }
+
+link_internal string_from_parser
+StartStringFromParser(parser* Parser)
+{
+  c_token *T = PeekTokenRawPointer(Parser);
+
+  string_from_parser Result = {};
+
+  if (T)
+  {
+    Result.Parser = Parser;
+    Result.StartToken = T;
+  }
+
+  return Result;
+}
+
+link_internal counted_string
+FinalizeStringFromParser(string_from_parser* Builder)
+{
+  counted_string Result = {};
+
+  parser *Parser = Builder->Parser;
+  c_token *StartToken = Builder->StartToken;
+
+  if (Parser)
+  {
+    if (Contains(Parser, StartToken))
+    {
+      umm Count = 0;
+      // NOTE(Jesse): This would be better if it excluded the At token, but
+      // unfortunately we wrote the calling code such that the At token is
+      // implicitly included, so we have to have this weird check.
+      if (Parser->Tokens->At == Parser->Tokens->End)
+      {
+        auto LastTokenValue = Parser->Tokens->At[-1].Value;
+        Count = (umm)( (LastTokenValue.Start+LastTokenValue.Count) - Builder->StartToken->Value.Start );
+      }
+      else
+      {
+        Count = (umm)(Parser->Tokens->At->Value.Start - Builder->StartToken->Value.Start);
+      }
+
+      Result = CS(Builder->StartToken->Value.Start, Count);
+    }
+    else
+    {
+      Warn(CSz("Unable to call FinalizeStringFromParser due to having spanned a parser chain link."));
+    }
+  }
+
+  return Result;
+}
+

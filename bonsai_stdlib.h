@@ -47,4 +47,6 @@ struct light;
 struct camera;
 #include <bonsai_stdlib/src/ui/interactable.h>
 #include <bonsai_stdlib/src/ui/ui.h>
+
+#include <bonsai_stdlib/src/c_token.h>
 #include <bonsai_stdlib/src/c_parser.h>

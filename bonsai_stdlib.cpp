@@ -36,4 +36,6 @@
 #include <bonsai_stdlib/src/texture_cursor.cpp>
 #include <bonsai_stdlib/src/ui/interactable.cpp>
 #include <bonsai_stdlib/src/ui/ui.cpp>
+
+#include <bonsai_stdlib/src/c_token.cpp>
 #include <bonsai_stdlib/src/c_parser.cpp>
