@@ -14,6 +14,17 @@ poof(tuple({cs cs}))
 poof(generate_stream(tuple_cs_cs))
 #include <generated/generate_stream_tuple_cs_cs.h>
 
+link_internal void
+ConcatStreams(counted_string_stream* S1, counted_string_stream* S2, memory_arena* Memory)
+{
+  ITERATE_OVER(S2)
+  {
+    counted_string* Element = GET_ELEMENT(Iter);
+    Push(S1, *Element);
+  }
+  return;
+}
+
 poof(buffer_builder(tuple_cs_cs))
 #include <generated/buffer_builder_tuple_cs_cs.h>
 

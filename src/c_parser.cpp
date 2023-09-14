@@ -2370,6 +2370,7 @@ EatUntil_TrackingDepth(parser *Parser, c_token_type Open, c_token_type Close, c_
 
 
 
+
 /*************************                         ***************************/
 /*************************  Comments & Whitespace  ***************************/
 /*************************                         ***************************/
@@ -2605,6 +2606,24 @@ EatSpacesTabsAndEscapedNewlines(ansi_stream *Code)
     Type = PeekToken(Code).Type;
   }
   return LinesEaten;
+}
+
+link_internal b32
+NextTokenIsSpaceOrTab(parser *Parser)
+{
+  b32 Result = PeekTokenRaw(Parser).Type == CTokenType_Space ||
+               PeekTokenRaw(Parser).Type == CTokenType_Tab;
+  return Result;
+}
+
+link_internal void
+TrimNBSPUntilNewline(parser* Parser)
+{
+  Assert(Parser->Tokens->At == Parser->Tokens->Start);
+
+  while (NextTokenIsSpaceOrTab(Parser)) { PopTokenRaw(Parser); }
+  OptionalTokenRaw(Parser, CTokenType_Newline);
+  Parser->Tokens->Start = Parser->Tokens->At;
 }
 
 
@@ -2899,6 +2918,38 @@ ParseNumericToken(ansi_stream *Code)
   return Result;
 }
 
+link_internal counted_string
+ParseIntegerConstant(parser* Parser)
+{
+  c_token T = PeekToken(Parser);
+
+  const char* Start = T.Value.Start;
+  u32 Count = 0;
+
+  if (T.Type == CTokenType_Minus)
+  {
+    ++Count;
+    RequireToken(Parser, CTokenType_Minus);
+  }
+
+  c_token NumberT = RequireToken(Parser, CTokenType_Identifier);
+  if (IsNumeric(NumberT.Value))
+  {
+    Count += NumberT.Value.Count;
+  }
+  else
+  {
+    ParseError(Parser, CSz("Expected integer constant expression."));
+  }
+
+  counted_string Result = {
+    .Count = Count,
+    .Start = Start,
+  };
+
+  return Result;
+}
+
 
 
 /*******************************           **********************************/
@@ -2906,6 +2957,96 @@ ParseNumericToken(ansi_stream *Code)
 /*******************************           **********************************/
 
 
+link_internal cs
+ToString(parser *Parser, memory_arena *Memory)
+{
+  Rewind(Parser->Tokens);
+  string_from_parser Builder = StartStringFromParser(Parser);
+
+  Parser->Tokens->At = Parser->Tokens->End;
+
+  cs Result = FinalizeStringFromParser(&Builder);
+  return Result;
+}
+
+link_internal void
+EraseToken(c_token *Token)
+{
+  Token->Erased = True;
+}
+
+link_internal void
+EraseBetweenExcluding(parser *Parser, c_token *FirstToErase, c_token *OnePastLastToErase)
+{
+  b32 E0 = (FirstToErase > OnePastLastToErase);
+  b32 E1 = (FirstToErase < Parser->Tokens->Start);
+  b32 E2 = (FirstToErase >= Parser->Tokens->End);
+  b32 E3 = (OnePastLastToErase <= Parser->Tokens->Start);
+  b32 E4 = (OnePastLastToErase > Parser->Tokens->End);
+
+  if (E0 || E1 || E2 || E3 || E4)
+  {
+    ParseError(Parser, CSz("Invalid token span passed to EraseBetweenExcluding"));
+  }
+  else
+  {
+    c_token *At = FirstToErase;
+    while (At < OnePastLastToErase)
+    {
+      EraseToken(At++);
+    }
+
+  }
+
+  return;
+}
+
+link_internal void
+TrimFirstToken(parser* Parser, c_token_type TokenType)
+{
+  Assert(Parser->Tokens->At == Parser->Tokens->Start);
+  RequireToken(Parser, TokenType);
+  Parser->Tokens->Start = Parser->Tokens->At;
+}
+
+// TODO(Jesse): WTF?  I would assume this would just look at the last token and
+// strip it.  Is this being used to trim whitespace as well or something?
+link_internal void
+TrimLastToken(parser* Parser, c_token_type TokenType)
+{
+  c_token* CurrentToken = Parser->Tokens->End-1;
+
+  while (CurrentToken >= Parser->Tokens->Start)
+  {
+    if (CurrentToken->Type == TokenType)
+    {
+      Parser->Tokens->End = CurrentToken;
+      break;
+    }
+
+    --CurrentToken;
+  }
+}
+
+inline b32
+TokenValidFor(c_token_cursor *Tokens, c_token *T)
+{
+  b32 Result = T >= Tokens->Start && T <= Tokens->End;
+  return Result;
+}
+
+link_internal c_token
+FirstNonNBSPToken(parser *Parser)
+{
+  peek_result At = PeekTokenRawCursor(Parser);
+  while (IsValid(&At) && IsNBSP(At.At))
+  {
+    At = PeekTokenRawCursor(&At, 1);
+  }
+  c_token Result = {};
+  if (IsValid(&At)) { Result = *At.At; }
+  return Result;
+}
 
 link_internal u32
 CountTokensBeforeNext(parser *Parser, c_token_type T1, c_token_type T2)
