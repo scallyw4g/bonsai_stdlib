@@ -1,10 +1,39 @@
 
 global_variable counted_string_stream Global_ErrorStream = {};
 
+//
+// Error Reporting
+//
+link_internal void ParseError(parser* Parser, parse_error_code ErrorCode, counted_string ErrorMessage, c_token* ErrorToken = 0);
+link_internal void ParseError(parser* Parser, counted_string ErrorMessage, c_token* ErrorToken = 0);
 
-// NOTE(Jesse): This transmute is special; applications can choose to override this transmute function
-// Additional transmute functions specified in poof.cpp
+
+//
+// Utility
+//
+
+// NOTE(Jesse): This transmute is special; applications can choose to override
+// this transmute function.  Additional transmute functions specified in poof.cpp
 b32 TryTransmuteKeywordToken(c_token *T, c_token *LastTokenPushed) __attribute__((weak));
+
+link_internal parser *         DuplicateParserTokens(parser *Parser, memory_arena *Memory);
+link_internal parser *         DuplicateParser(parser *Parser, memory_arena *Memory);
+link_internal c_token_cursor * DuplicateCTokenCursor(c_token_cursor *Tokens, memory_arena *Memory);
+link_internal parser *         DuplicateCTokenCursor2(c_token_cursor *Tokens, memory_arena *Memory);
+
+link_internal void DumpLocalTokens(parser *Parser);
+link_internal void PrintTray(char_cursor *Dest, c_token *T, u32 Columns, counted_string Color);
+
+link_internal b32       TokenIsOperator(c_token_type T);
+link_internal b32       NextTokenIsOperator(parser *Parser);
+link_internal c_token * RequireOperatorToken(parser *Parser);
+
+
+//
+// Token Control
+//
+
+link_internal void FullRewind(parser* Parser);
 
 link_internal peek_result PeekTokenRawCursor(peek_result *Peek, s32 TokenLookahead = 0);
 link_internal peek_result PeekTokenRawCursor(c_token_cursor *Tokens, s32 TokenLookahead, b32 CanSearchDown = True);
@@ -41,31 +70,16 @@ link_internal b32       RawTokensRemain(parser *Parser, u32 TokenLookahead = 0);
 link_internal void EraseToken(c_token *Token);
 link_internal void EraseBetweenExcluding(parser *Parser, c_token *StartToken, c_token *OnePastLastToken);
 
-link_internal void DumpLocalTokens(parser *Parser);
-link_internal void PrintTray(char_cursor *Dest, c_token *T, u32 Columns, counted_string Color);
-
-link_internal b32       TokenIsOperator(c_token_type T);
-link_internal b32       NextTokenIsOperator(parser *Parser);
-link_internal c_token * RequireOperatorToken(parser *Parser);
-
-link_internal void      TrimFirstToken(parser* Parser, c_token_type TokenType);
-link_internal void      TrimLastToken(parser* Parser, c_token_type TokenType);
-link_internal void      TrimLeadingWhitespace(parser* Parser);
+link_internal void TrimFirstToken(parser* Parser, c_token_type TokenType);
+link_internal void TrimLastToken(parser* Parser, c_token_type TokenType);
+link_internal void TrimLeadingWhitespace(parser* Parser);
 
 link_internal counted_string EatBetweenExcluding(ansi_stream*, char Open, char Close);
-
 link_internal void           EatBetween(parser* Parser, c_token_type Open, c_token_type Close);
 link_internal counted_string EatBetween_Str(parser* Parser, c_token_type Open, c_token_type Close);
 link_internal b32            EatWhitespace(parser* Parser);
 link_internal b32            EatSpacesTabsAndEscapedNewlines(parser *Parser);
 link_internal void           EatWhitespaceAndComments(parser *Parser);
-
-link_internal void      FullRewind(parser* Parser);
-
-link_internal parser * DuplicateParserTokens(parser *Parser, memory_arena *Memory);
-link_internal parser * DuplicateParser(parser *Parser, memory_arena *Memory);
-link_internal c_token_cursor * DuplicateCTokenCursor(c_token_cursor *Tokens, memory_arena *Memory);
-link_internal parser *         DuplicateCTokenCursor2(c_token_cursor *Tokens, memory_arena *Memory);
 
 
 inline c_token
@@ -2134,6 +2148,225 @@ RequireOperatorToken(parser* Parser)
 
   return Result;
 }
+
+link_internal void
+RequireToken(ansi_stream *Code, char C)
+{
+  Assert(*Code->At == C);
+  Advance(Code);
+}
+
+link_internal counted_string
+EatBetweenExcluding(ansi_stream *Code, char Open, char Close)
+{
+  u32 Depth = 0;
+  RequireToken(Code, Open);
+
+  const char* Start = Code->At;
+
+  b32 Success = False;
+  while (Remaining(Code))
+  {
+    char T = Advance(Code);
+
+    if (T == Open)
+    {
+      ++Depth;
+    }
+
+    if (T == Close)
+    {
+      if (Depth == 0)
+      {
+        Success = True;
+        break;
+      }
+      --Depth;
+    }
+  }
+
+  if (!Success)
+  {
+    InvalidCodePath();
+    /* ParseError(Code, FormatCountedString(GetTranArena(), CSz("Unable to find closing token %S"), ToString(Close))); */
+  }
+
+  Assert(Code->At-1 >= Code->Start);
+  const char* End = Code->At-1;
+
+  umm Count = (umm)(End-Start);
+
+  counted_string Result = {
+    .Count = Count,
+    .Start = Start,
+  };
+
+  return Result;
+}
+
+link_internal void
+EatBetween(parser* Parser, c_token_type Open, c_token_type Close)
+{
+  b32 Success = False;
+
+  if (Parser->ErrorCode == ParseErrorCode_None)
+  {
+    u32 Depth = 0;
+    c_token *TErr = RequireTokenPointer(Parser, Open);
+
+    while ( c_token *T = PopTokenPointer(Parser) )
+    {
+      if (T->Type == Open)
+      {
+        ++Depth;
+      }
+
+      if (T->Type == Close)
+      {
+        if (Depth == 0)
+        {
+          Success = True;
+          break;
+        }
+        --Depth;
+      }
+    }
+
+    if (!Success)
+    {
+      ParseError(Parser, FormatCountedString(GetTranArena(), CSz("Unable to find closing token %S"), ToString(Close)), TErr);
+    }
+  }
+}
+
+link_internal counted_string
+EatBetweenExcluding_Str(parser* Parser, c_token_type Open, c_token_type Close)
+{
+  counted_string Result = {};
+
+  EatWhitespace(Parser);
+  string_from_parser Builder = StartStringFromParser(Parser);
+  EatBetween(Parser, Open, Close);
+  Result = FinalizeStringFromParser(&Builder);
+
+  if (Result.Count > 1)
+  {
+    Assert(Result.Start);
+    Result.Count -= 2;
+    Result.Start++;
+  }
+
+  return Result;
+}
+
+link_internal counted_string
+EatBetween_Str(parser* Parser, c_token_type Open, c_token_type Close)
+{
+  counted_string Result = {};
+
+  string_from_parser Builder = StartStringFromParser(Parser);
+  EatBetween(Parser, Open, Close);
+  Result = FinalizeStringFromParser(&Builder);
+
+  return Result;
+}
+
+link_internal parser
+EatBetween_Parser(parser *Parser, c_token_type Open, c_token_type Close, memory_arena *Memory)
+{
+  c_token *Start = PeekTokenPointer(Parser);
+
+  c_token_cursor *Tokens = Allocate(c_token_cursor, Memory, 1);
+  CTokenCursor( Tokens,
+                Start, 0,
+                CSz("(anonymous parser)"),
+                TokenCursorSource_IntermediateRepresentaton,
+                {0,0} );
+
+  parser Result = { .Tokens = Tokens };
+
+  EatBetween(Parser, CTokenType_OpenParen, CTokenType_CloseParen);
+  Result.Tokens->End = Parser->Tokens->At;
+  return Result;
+}
+
+link_internal parser
+EatBetweenExcluding_Parser(parser *Parser, c_token_type Open, c_token_type Close, memory_arena *Memory)
+{
+  parser Result = EatBetween_Parser(Parser, Open, Close, Memory);
+  TrimFirstToken(&Result, Open);
+  TrimLastToken(&Result, Close);
+  return Result;
+}
+
+link_internal void
+EatBetweenRaw(parser* Parser, c_token_type Open, c_token_type Close)
+{
+  u32 Depth = 0;
+  RequireTokenRaw(Parser, Open);
+
+  b32 Success = False;
+  while (RawTokensRemain(Parser))
+  {
+    c_token T = PopTokenRaw(Parser);
+
+    if (T.Type == Open)
+    {
+      ++Depth;
+    }
+
+    if (T.Type == Close)
+    {
+      if (Depth == 0)
+      {
+        Success = True;
+        break;
+      }
+      --Depth;
+    }
+  }
+
+  if (!Success)
+  {
+    ParseError(Parser, FormatCountedString(GetTranArena(), CSz("Unable to find closing token %S"), ToString(Close)));
+  }
+
+  return;
+}
+
+link_internal void
+EatUntil_TrackingDepth(parser *Parser, c_token_type Open, c_token_type Close, c_token *StartToken)
+{
+  u32 Depth = 0;
+  b32 Success = False;
+  while ( c_token *T = PopTokenPointer(Parser) )
+  {
+
+    if (T->Type == Open)
+    {
+      ++Depth;
+    }
+
+    if (T->Type == Close)
+    {
+      if (Depth == 0)
+      {
+        Success = True;
+        break;
+      }
+      --Depth;
+    }
+  }
+
+  if (!Success)
+  {
+    ParseError(Parser, FormatCountedString(GetTranArena(), CSz("Unable to find closing token %S"), ToString(Close)), StartToken);
+  }
+
+  return;
+}
+
+
 
 
 
