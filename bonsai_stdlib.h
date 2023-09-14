@@ -1,6 +1,10 @@
 
 #define poof(...)
 
+// NOTE(Jesse): This is strictly present to hack around some deficiencies in
+// poof.  It should be removed in the future.
+#include <bonsai_stdlib/src/poof_crutches.h>
+
 #include <bonsai_stdlib/src/poof_functions.h>
 #include <bonsai_stdlib/src/iterators.h>
 #include <bonsai_stdlib/src/assert.h>
