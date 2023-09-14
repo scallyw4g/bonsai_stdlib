@@ -291,10 +291,41 @@ struct c_token
 
 };
 
-// TODO(Jesse): Add a way to append additional members to generated datatypes
-// then reenable this.
+// TODO(Jesse)(metaprogramming)(easy): Reenable this.
 /* poof(generate_cursor(c_token)) */
-#include <generated/generate_cursor_c_token.h>
+/* #include <generated/generate_cursor_c_token.h> */
+
+struct c_token_cursor;
+struct c_token_cursor_up
+{
+  c_token_cursor *Tokens;
+  c_token *At;
+};
+
+struct c_token_cursor
+{
+  token_cursor_source Source;
+
+  c_token* Start;
+  c_token* End;
+  c_token* At;
+
+  c_token_cursor_up Up;
+
+  counted_string Filename;
+};
+
+link_internal c_token_cursor
+CTokenCursor(umm ElementCount, memory_arena* Memory)
+{
+  c_token* Start = (c_token*)PushStruct(Memory, sizeof( c_token ), 1, 0);
+  c_token_cursor Result = {
+    .Start = Start,
+    .End = Start+ElementCount,
+    .At = Start,
+  };
+  return Result;
+}
 
 poof(buffer(c_token))
 #include <generated/buffer_c_token.h>
