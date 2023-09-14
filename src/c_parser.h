@@ -6,9 +6,14 @@
     default: { ParseError(P, ErrorMessage, Token); } break;
 
 
-struct parser;
-struct c_token;
 struct c_token_cursor;
+struct macro_def;
+struct macro_expansion
+{
+  c_token_cursor *Expansion;
+  macro_def *Def;
+};
+
 
 enum c_token_type
 {
@@ -225,6 +230,110 @@ enum c_token_type
 poof(generate_string_table(c_token_type))
 #include <generated/generate_string_table_c_token_type.h>
 
+enum c_token_flags
+{
+  CTFlags_None = 0,
+  CTFlags_RelativeInclude = 1 << 0,
+};
+
+struct c_token
+{
+  c_token_type Type;
+  counted_string Value;
+
+  counted_string Filename;
+  u32 LineNumber;
+  b32 Erased; // TODO(Jesse): Pack this into Flags
+
+  u8 Flags;
+
+  union
+  {
+     /* s64         SignedValue; */ // TODO(Jesse id: 272): Fold `-` sign into this value at tokenization time?
+     u64            UnsignedValue;
+     r64            FloatValue;
+     c_token        *QualifierName;
+
+     // NOTE(Jesse): I ordered the 'macro_expansion' struct such that the
+     // pointer to the expanded macro will be at the same place as the `Down`
+     // poninter.  This is sketchy as fuck, but it'll work, and this the
+     // assertions at @janky-macro-expansion-struct-ordering should catch the
+     // bug if we reorder the pointers.
+     c_token_cursor  *Down;
+     macro_expansion Macro;
+
+     counted_string IncludePath; // TODO(Jesse): We probably care that this (and Macro) increase struct size by 8.  Heap allocate to fix?
+  };
+
+  // TODO(Jesse)(correctness): The preprocessor doesn't support this for some reason..
+  operator bool()
+  {
+    b32 Result = (b32)((u64)Type | Value.Count);
+    return Result;
+  }
+
+};
+
+
+enum parse_warn_code
+{
+  ParseWarnCode_None,
+
+  ParseWarnCode_MacroRedefined,
+};
+
+enum parse_error_code
+{
+  ParseErrorCode_None,
+
+  // C parsing errors
+  ParseErrorCode_ExpectedSemicolonOrEquals,
+  ParseErrorCode_StreamEndedUnexpectedly,
+  ParseErrorCode_RequireTokenFailed,
+  ParseErrorCode_InvalidTokenGenerated,
+  ParseErrorCode_MalformedType,
+
+
+  // Poof errors
+  ParseErrorCode_PoofUserlandError,
+  ParseErrorCode_PoofTypeError,
+  ParseErrorCode_DUnionParse,
+  ParseErrorCode_UndefinedDatatype,
+  ParseErrorCode_InvalidOperator,
+  ParseErrorCode_InvalidMetaTransformOp,
+  ParseErrorCode_InvalidArgument,
+  ParseErrorCode_InvalidArgumentType,
+  ParseErrorCode_InvalidArgumentCount,
+  ParseErrorCode_InvalidName,
+  ParseErrorCode_InvalidFunction,
+  ParseErrorCode_NotImplemented, // NOTE(Jesse): This means the compiler should support this case, but doesn't
+
+
+  // General errors
+  ParseErrorCode_InputStreamNull,
+
+
+  // Well, shit.
+  ParseErrorCode_InternalCompilerError,
+  ParseErrorCode_StackOverflow, // Poof stack overflow.  Usually from calling a function recursively
+
+
+  // We hit an error, but didn't classify it.
+  ParseErrorCode_Unknown,
+};
+poof(generate_string_table(parse_error_code))
+#include <generated/generate_string_table_parse_error_code.h>
+
+
+struct parser
+{
+  parse_warn_code WarnCode;
+  parse_error_code ErrorCode;
+  c_token_cursor *Tokens;
+};
+
+
+
 
 
 struct peek_result
@@ -234,9 +343,6 @@ struct peek_result
   c_token *At;
   b32 DoNotDescend;
 };
-
-
-
 
 link_internal peek_result PeekTokenRawCursor(peek_result *Peek, s32 TokenLookahead = 0);
 link_internal peek_result PeekTokenRawCursor(c_token_cursor *Tokens, s32 TokenLookahead, b32 CanSearchDown = True);
