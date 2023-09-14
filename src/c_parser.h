@@ -372,6 +372,43 @@ struct parser
   c_token_cursor *Tokens;
 };
 
+link_internal b32
+AreEqual(parser P1, parser P2)
+{
+  NotImplemented;
+  return False;
+}
+
+link_internal void
+DeepCopy( parser *Src, parser *Dest)
+{
+  NotImplemented;
+}
+
+poof(generate_cursor(parser))
+#include <generated/generate_cursor_parser.h>
+
+poof(generate_stream(parser))
+#include <generated/generate_stream_parser.h>
+
+link_internal u64
+Hash(parser *Parser)
+{
+  u64 Result = Hash(&Parser->Tokens->Filename);
+  return Result;
+}
+
+poof(hashtable(parser))
+#include <generated/hashtable_parser.h>
+
+link_internal parser
+MakeParser(c_token_cursor *Tokens)
+{
+  parser Result = {
+    .Tokens = Tokens,
+  };
+  return Result;
+}
 
 
 
@@ -438,4 +475,137 @@ link_internal parser * DuplicateParserTokens(parser *Parser, memory_arena *Memor
 link_internal parser * DuplicateParser(parser *Parser, memory_arena *Memory);
 link_internal c_token_cursor * DuplicateCTokenCursor(c_token_cursor *Tokens, memory_arena *Memory);
 link_internal parser *         DuplicateCTokenCursor2(c_token_cursor *Tokens, memory_arena *Memory);
+
+
+
+
+
+
+b32 AreEqual(c_token T1, c_token T2)
+{
+  b32 Result = (T1.Type == T2.Type);
+
+  if (Result && (T1.Type == CTokenType_Newline ||
+                 T1.Type == CTokenType_EscapedNewline ) )
+  {
+    // NOTE(Jesse): On Windows newline chars can be length 2 (\r\n) so we don't
+    // check that the Value strings match for that case
+    Assert(T2.Type == CTokenType_Newline || T2.Type == CTokenType_EscapedNewline );
+  }
+  else
+  {
+    if (Result && (T1.Value.Count > 1 || T2.Value.Count > 1) )
+    {
+      Result &= StringsMatch(T1.Value, T2.Value);
+    }
+  }
+  return Result;
+}
+
+b32 AreEqual(c_token *T1, c_token T2)
+{
+  b32 Result = False;
+  if (T1)
+  {
+    Result = AreEqual(*T1, T2);
+  }
+  return Result;
+}
+
+b32 AreEqual(c_token T1, c_token *T2)
+{
+  b32 Result = False;
+  if (T2)
+  {
+    Result = AreEqual(T1, *T2);
+  }
+  return Result;
+}
+
+b32 AreEqual(c_token *T1, c_token *T2)
+{
+  b32 Result = False;
+  if (T1 && T2)
+  {
+    Result = AreEqual(*T1, *T2);
+  }
+  return Result;
+}
+
+b32
+operator==(c_token T1, c_token T2)
+{
+  b32 Result = AreEqual(T1, T2);
+  return Result;
+}
+
+b32
+operator!=(c_token T1, c_token T2)
+{
+  b32 Result = !(T1==T2);
+  return Result;
+}
+
+inline c_token
+CToken(counted_string Value)
+{
+  c_token Result = {
+    .Type = CTokenType_Identifier,
+    .Value = Value
+  };
+  return Result;
+}
+
+inline c_token
+CToken(c_token_type Type, counted_string Value = CSz(""))
+{
+  c_token Result = {};
+
+  Result.Type = Type;
+  Result.Value = Value;
+
+  return Result;
+}
+
+inline void
+CTokenCursor(c_token_cursor *Result, c_token *Buffer, umm Count, counted_string Filename, token_cursor_source Source, c_token_cursor_up Up)
+{
+  Result->Filename = Filename;
+  Result->Source = Source;
+  Result->Start = Buffer;
+  Result->At = Result->Start;
+  Result->End = Result->Start + Count;
+  Result->Up = Up;
+}
+
+// TODO(Jesse)(safety, memory): Remove this; these are not allowed to be
+// stack-allocated so we might as well not have a function that returns one..
+link_internal c_token_cursor
+CTokenCursor(c_token *Start, c_token *End, counted_string Filename, token_cursor_source Source, c_token_cursor_up Up)
+{
+  c_token_cursor Result = {
+    .Start = Start,
+    .End = End,
+    .At = Start,
+    .Filename = Filename,
+    .Source = Source,
+    .Up = Up,
+  };
+  return Result;
+}
+
+link_internal c_token_cursor
+CTokenCursor(c_token_buffer *Buf, counted_string Filename, token_cursor_source Source, c_token_cursor_up Up)
+{
+  c_token_cursor Result = CTokenCursor(Buf->Start, Buf->Start + Buf->Count, Filename, Source, Up);
+  return Result;
+}
+
+
+inline void
+CTokenCursor(c_token_cursor *Result, umm Count, memory_arena *Memory, counted_string Filename, token_cursor_source Source, c_token_cursor_up Up)
+{
+  c_token *Buffer = AllocateProtection(c_token, Memory, Count, False);
+  CTokenCursor(Result, Buffer, Count, Filename, Source, Up);
+}
 
