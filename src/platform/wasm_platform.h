@@ -22,7 +22,7 @@ b32 PlatformCreateDir(const char* Path, mode_t Mode = 0774);
 b32 PlatformDeleteDir(const char* Path, mode_t Mode = 0774);
 
 void* PlatformGetGlFunction(const char* Name);
-const char * PlatformGetEnvironmentVar(const char *, memory_arena *);
+const char * PlatformGetEnvironmentVar(const char *VarName);
 
 // @compat_with_windows_barf
 s32 _chdir(const char* DirName);

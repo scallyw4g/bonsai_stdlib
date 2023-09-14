@@ -929,6 +929,13 @@ PlatformDeleteDir(const char* Path, mode_t Mode = 0774)
   return Result;
 }
 
+link_internal const char *
+PlatformGetEnvironmentVar(const char *VarName)
+{
+  const char* Result = getenv(VarName);
+  return Result;
+}
+
 void *
 OpenLibrary(const char *filename)
 {

@@ -418,7 +418,9 @@ AllocateArena(umm RequestedBytes = Megabytes(1), b32 MemProtect = True)
   Assert(Remaining(Result) >= RequestedBytes);
 #endif
 
+#if BONSAI_INTERNAL
   InitializeFutex(&Result->DebugFutex);
+#endif
 
   return Result;
 }

@@ -1787,28 +1787,33 @@ PopTokenPointer(parser* Parser)
   // without the intermediate AdvanceTo .. I think
   //
 
+  c_token *Result = 0;
   peek_result NextT = PeekTokenCursor(Parser);
-  AdvanceTo(Parser, &NextT);
+  if (Parser->ErrorCode == ParseErrorCode_None)
+  {
+    AdvanceTo(Parser, &NextT);
 
-  peek_result NextRawT = PeekTokenRawCursor(&NextT, 1);
-  c_token *Result = AdvanceTo(Parser, &NextRawT);
+    peek_result NextRawT = PeekTokenRawCursor(&NextT, 1);
+    Result = AdvanceTo(Parser, &NextRawT);
 
 #if BONSAI_INTERNAL
-  if (DEBUG_CHECK_FOR_BREAK_HERE(Result))
-  {
-    RuntimeBreak();
-    if (PeekTokenRawPointer(Parser)) { AdvanceParser(Parser); }
-    Result = PopTokenPointer(Parser);
-  }
-  else if (Result)
-  {
-    Assert(!StringsMatch(Result->Value, CSz("break_here")));
-  }
+    if (DEBUG_CHECK_FOR_BREAK_HERE(Result))
+    {
+      RuntimeBreak();
+      if (PeekTokenRawPointer(Parser)) { AdvanceParser(Parser); }
+      Result = PopTokenPointer(Parser);
+    }
+    else if (Result)
+    {
+      Assert(!StringsMatch(Result->Value, CSz("break_here")));
+    }
 
 #endif
+  }
 
   return Result;
 }
+
 link_internal c_token
 PopToken(parser* Parser)
 {

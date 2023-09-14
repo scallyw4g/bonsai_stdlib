@@ -266,20 +266,28 @@ struct c_token
 
   union
   {
-     /* s64         SignedValue; */ // TODO(Jesse id: 272): Fold `-` sign into this value at tokenization time?
-     u64            UnsignedValue;
-     r64            FloatValue;
-     c_token        *QualifierName;
+    // NOTE(Jesse): These are to support a pattern with usage from poof of generically 
+    // accessing heterogenous types with only the type name through a macro
+    cs        as_cs;
+    u32       as_u32;
+    s32       as_s32;
+    u64       as_u64;
+    s64       as_s64;
 
-     // NOTE(Jesse): I ordered the 'macro_expansion' struct such that the
-     // pointer to the expanded macro will be at the same place as the `Down`
-     // poninter.  This is sketchy as fuck, but it'll work, and this the
-     // assertions at @janky-macro-expansion-struct-ordering should catch the
-     // bug if we reorder the pointers.
-     c_token_cursor  *Down;
-     macro_expansion Macro;
+    /* s64    SignedValue; */ // TODO(Jesse id: 272): Fold `-` sign into this value at tokenization time?
+    u64       UnsignedValue;
+    r64       FloatValue;
+    c_token   *QualifierName;
 
-     counted_string IncludePath; // TODO(Jesse): We probably care that this (and Macro) increase struct size by 8.  Heap allocate to fix?
+    // NOTE(Jesse): I ordered the 'macro_expansion' struct such that the
+    // pointer to the expanded macro will be at the same place as the `Down`
+    // poninter.  This is sketchy as fuck, but it'll work, and this the
+    // assertions at @janky-macro-expansion-struct-ordering should catch the
+    // bug if we reorder the pointers.
+    c_token_cursor  *Down;
+    macro_expansion Macro;
+
+    counted_string IncludePath; // TODO(Jesse): We probably care that this (and Macro) increase struct size by 8.  Heap allocate to fix?
   };
 
   // TODO(Jesse)(correctness): The preprocessor doesn't support this for some reason..
