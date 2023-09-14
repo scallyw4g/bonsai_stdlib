@@ -929,15 +929,6 @@ PlatformDeleteDir(const char* Path, mode_t Mode = 0774)
   return Result;
 }
 
-// TODO(Jesse): This has different semantics than the Windows one .. do we care?
-// (This one you can change the values of the pointed-to memory, and the env var updates)
-link_internal const char *
-PlatformGetEnvironmentVar(const char *VarName, memory_arena *Memory)
-{
-  const char* Result = getenv(VarName);
-  return Result;
-}
-
 void *
 OpenLibrary(const char *filename)
 {
