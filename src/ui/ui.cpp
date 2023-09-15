@@ -2186,7 +2186,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           r32 Scale = 0.5f;
           /* SetViewport( V2(QuadDim)*Scale ); */
           /* SetViewport( V2(Texture->Dim.x, Texture->Dim.y)*Scale ); */
-          SetViewport(*Group->ScreenDim);
+          /* SetViewport(*Group->ScreenDim); */
 
           /* SetupToDrawTexturedQuad( &Group->TexturedQuadShader, TypedCommand->Texture); */
           shader *Shader = &Group->TexturedQuadShader;
@@ -2295,7 +2295,7 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     Renderer->TextGroup->SolidUIShader = LoadShaders( CSz("SimpleColor.vertexshader"), CSz("SimpleColor.fragmentshader") );
 
     // Generic shader that gets reused to draw simple textured quads
-    Renderer->TexturedQuadShader = MakeSimpleTextureShader(0, PermMemory);
+    Renderer->TexturedQuadShader = MakeFullTextureShader(0, PermMemory);
 
     v2i TextureDim = V2i(DEBUG_TEXTURE_DIM, DEBUG_TEXTURE_DIM);
     texture *DepthTexture = MakeDepthTexture( TextureDim, PermMemory );

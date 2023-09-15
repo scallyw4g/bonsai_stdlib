@@ -22,7 +22,6 @@ DrawUiBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 
   BufferUVsToCard(   TextGroup->SolidUIUVBuffer,     Geo, &AttributeIndex);
   BufferColorsToCard(TextGroup->SolidUIColorBuffer,  Geo, &AttributeIndex);
 
-
   Draw(Geo->At);
   Geo->At = 0;
 
@@ -41,7 +40,6 @@ DrawUiBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer
   if (TextGroup)
   {
     GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
-    /* SetViewport(*ScreenDim); */
     /* UseShader(&TextGroup->SolidUIShader); */
 
     u32 AttributeIndex = 0;
@@ -73,6 +71,8 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
 
   auto TextGroup = UiGroup->TextGroup;
 
+  SetViewport(*ScreenDim);
+
   GL.UseProgram(TextGroup->SolidUIShader.ID);
   DrawUiBuffer(TextGroup, &UiGroup->Geo, ScreenDim);
 
@@ -80,7 +80,6 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   GL.ActiveTexture(GL_TEXTURE0);
   GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray->ID);
   GL.Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
-  SetViewport(*ScreenDim);
   GL.Enable(GL_BLEND);
   GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

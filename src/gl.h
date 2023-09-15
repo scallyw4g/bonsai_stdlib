@@ -65,6 +65,15 @@
 
 #define GL_FRAMEBUFFER                    0x8D40
 #define GL_FRAMEBUFFER_COMPLETE           0x8CD5
+#define GL_FRAMEBUFFER_UNSUPPORTED        0x8CDD
+#define GL_FRAMEBUFFER_UNDEFINED          0x8219
+#define GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT         0x8CD6
+#define GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT 0x8CD7
+#define GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER        0x8CDB
+#define GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER        0x8CDC
+#define GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE        0x8D56
+#define GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS      0x8DA8
+
 
 #define GL_PACK_ALIGNMENT                 0x0D05
 #define GL_UNPACK_ALIGNMENT               0x0CF5
@@ -196,9 +205,10 @@ struct render_entity_to_texture_group
   // TODO(Jesse): This gpu_mapped_element_buffer _should_ really be able to be
   // taken out of here and used for all instances of render_to_texture_group
   // that we create.. I think..
-  gpu_mapped_element_buffer  GameGeo;
-  framebuffer                GameGeoFBO;
-  shader                     GameGeoShader;
+  gpu_mapped_element_buffer  GeoBuffer;
+  framebuffer                FBO;
+  shader                     Shader;
+  shader                     DebugShader;
   texture                   *Texture;
 
   camera                    *Camera;
@@ -528,6 +538,13 @@ SetVSync(os *Os, s32 VSyncFrames)
   // @emcc_vsync
 #endif
 
+}
+
+inline void
+SetDefaultFramebufferClearColors()
+{
+  GL.ClearDepth(1.0); // NOTE(Jesse): Depth 1.0 is the furthest from the camera
+  GL.ClearColor(0.f, 0.f, 0.f, 1.f);
 }
 
 

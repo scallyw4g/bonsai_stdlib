@@ -126,6 +126,18 @@ poof(gen_shader_uniform_push(r32));
 shader
 MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
+  shader SimpleTextureShader = LoadShaders( CSz("Passthrough.vertexshader"), CSz("SimpleTexture.fragmentshader") );
+
+  SimpleTextureShader.FirstUniform = GetUniform(GraphicsMemory, &SimpleTextureShader, Texture, "Texture");
+
+  AssertNoGlErrors;
+
+  return SimpleTextureShader;
+}
+
+shader
+MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
+{
   shader SimpleTextureShader = LoadShaders( CSz("FullPassthrough.vertexshader"), CSz("SimpleTexture.fragmentshader") );
 
   SimpleTextureShader.FirstUniform = GetUniform(GraphicsMemory, &SimpleTextureShader, Texture, "Texture");
@@ -138,11 +150,52 @@ MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 b32
 CheckAndClearFramebuffer()
 {
-  b32 Result = (GL.CheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+  u32 FramebufferStatus = GL.CheckFramebufferStatus(GL_FRAMEBUFFER);
 
+  switch (FramebufferStatus)
+  {
+    case GL_FRAMEBUFFER_UNDEFINED:
+    {
+      SoftError("GL_FRAMEBUFFER_UNDEFINED");
+    } break;
+
+    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+    {
+      SoftError("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+    } break;
+
+    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+    {
+      SoftError("GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER");
+    } break;
+
+    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+    {
+      SoftError("GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER");
+    } break;
+
+    case GL_FRAMEBUFFER_UNSUPPORTED:
+    {
+      SoftError("GL_FRAMEBUFFER_UNSUPPORTED");
+    } break;
+
+    case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+    {
+      SoftError("GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
+    } break;
+
+    case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+    {
+      SoftError("GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS");
+    } break;
+
+  }
+
+  SetDefaultFramebufferClearColors();
   GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
 
+  b32 Result = (FramebufferStatus == GL_FRAMEBUFFER_COMPLETE);
   return Result;
 }
 

@@ -384,6 +384,16 @@ Truncate(r32 Input)
 }
 
 inline s32
+Volume(v2i Dim)
+{
+  Dim.x = Max(Dim.x, 0);
+  Dim.y = Max(Dim.y, 0);
+  s32 Result = (s32)(Dim.x*Dim.y);
+  Assert(Result > 0);
+  return Result;
+}
+
+inline s32
 Volume(v3 Dim)
 {
   Dim.x = Max(Dim.x, 0.f);
