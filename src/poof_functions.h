@@ -1435,3 +1435,14 @@ poof(
   }
 )
 
+
+poof(
+  func maybe(Type)
+  {
+    struct maybe_(Type.name)
+    {
+      maybe_tag Tag;
+      Type.name Value;
+    };
+  }
+)
