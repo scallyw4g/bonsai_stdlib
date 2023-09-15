@@ -12,6 +12,8 @@ enum parse_warn_code
   ParseWarnCode_None,
 
   ParseWarnCode_MacroRedefined,
+
+  ParseWarnCode_Generic,
 };
 
 enum parse_error_code

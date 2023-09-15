@@ -736,13 +736,19 @@ OutputIdentifierUnderline(char_cursor *Dest, u32 IdentifierLength, counted_strin
 link_internal void
 PrintTray(char_cursor *Dest, c_token *T, u32 Columns, counted_string Color = TerminalColors.White)
 {
+  // NOTE(Jesse): This is mega brain-damaged, but the FormatCountedString
+  // overload that was responsible for this path got deleted because it was
+  // confusing the compiler and causing a crash.  This kinda makes me want to 
+  // put it back in, but not for just this single case..
   if (T)
   {
-    FormatCountedString_(Dest->Start, TotalElements(Dest), CSz("%*d |"), Columns, T->LineNumber);
+    cs S = FormatCountedString_(Dest->At, Remaining(Dest), CSz("%*d |"), Columns, T->LineNumber);
+    Dest->At += S.Count;
   }
   else
   {
-    FormatCountedString_(Dest->Start, TotalElements(Dest), CSz("%*c %S|%S"), Columns, ' ', Color, TerminalColors.White);
+    cs S = FormatCountedString_(Dest->At, Remaining(Dest), CSz("%*c %S|%S"), Columns, ' ', Color, TerminalColors.White);
+    Dest->At += S.Count;
   }
 }
 
@@ -1126,10 +1132,17 @@ ParseInfoMessage(parser* Parser, counted_string Message, c_token* T)
 }
 
 link_internal void
+ParseWarn(parser* Parser, counted_string ErrorMessage, c_token* ErrorToken)
+{
+  Parser->WarnCode = ParseWarnCode_Generic;
+  OutputContextMessage(Parser, ParseErrorCode_None, CSz("Warning"), ErrorMessage, ErrorToken);
+}
+
+link_internal void
 ParseWarn(parser* Parser, parse_warn_code WarnCode, counted_string ErrorMessage, c_token* ErrorToken)
 {
   Parser->WarnCode = WarnCode;
-  OutputContextMessage(Parser, ParseErrorCode_None, CSz("Poof Warning"), ErrorMessage, ErrorToken);
+  OutputContextMessage(Parser, ParseErrorCode_None, CSz("Warning"), ErrorMessage, ErrorToken);
 }
 
 link_internal void
