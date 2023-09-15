@@ -167,10 +167,10 @@ SetTerminalColorsOff()
 } while (false)
 
 
-#define Leak(...) do {                                                              \
+#define Leak(...) do {                                                             \
                                                                                    \
   if (Global_LogLevel <= LogLevel_Error) {                                         \
-    LogDirect("%S * LEAKING %S- ", TerminalColors.Red, TerminalColors.White);      \
+    LogDirect("%S * Leaking %S- ", TerminalColors.Yellow, TerminalColors.White);   \
     LogDirect(__VA_ARGS__);                                                        \
     LogDirect(Newline);                                                            \
   }                                                                                \
