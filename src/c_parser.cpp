@@ -4051,8 +4051,7 @@ TokenizeAnsiStream(ansi_stream Code, memory_arena* Memory, b32 IgnoreQuotes, par
 
         LastTokenPushed = Push(PushT, Tokens);
 
-        c_token InsertedCodePlaceholder {};
-
+        c_token InsertedCodePlaceholder = {};
         InsertedCodePlaceholder.Type = CT_InsertedCode;
         InsertedCodePlaceholder.Filename = Code.Filename;
         InsertedCodePlaceholder.LineNumber = LineNumber;
