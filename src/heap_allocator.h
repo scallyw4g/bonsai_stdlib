@@ -13,7 +13,7 @@ struct heap_allocation_block
 
 struct heap_allocator
 {
-  heap_allocation_block* Heap;
+  heap_allocation_block* FirstBlock;
   umm Size;
 };
 

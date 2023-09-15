@@ -3,13 +3,13 @@ InitHeap(umm AllocationSize)
 {
   heap_allocator Result = {};
 
-  Result.Heap = (heap_allocation_block*)PlatformAllocateSize(AllocationSize);
-  Result.Heap->Size = AllocationSize - sizeof(heap_allocation_block);
-  Result.Heap->Type = AllocationType_Free;
+  Result.FirstBlock = (heap_allocation_block*)PlatformAllocateSize(AllocationSize);
+  Result.FirstBlock->Size = AllocationSize - sizeof(heap_allocation_block);
+  Result.FirstBlock->Type = AllocationType_Free;
 
   Result.Size = AllocationSize;
 
-  heap_allocation_block* EndBlock = (heap_allocation_block*)((u8*)Result.Heap + (AllocationSize - sizeof(heap_allocation_block)));
+  heap_allocation_block* EndBlock = (heap_allocation_block*)((u8*)Result.FirstBlock + (AllocationSize - sizeof(heap_allocation_block)));
   EndBlock->Type = AllocationType_Reserved;
   EndBlock->Size = 0;
   EndBlock->PrevAllocationSize = AllocationSize - sizeof(heap_allocation_block);
@@ -17,23 +17,33 @@ InitHeap(umm AllocationSize)
   return Result;
 }
 
-u8*
+link_internal umm
+OffsetForHeapAllocation(heap_allocator *Allocator, u8 *Alloc)
+{
+  Assert(Alloc > (u8*)Allocator->FirstBlock);
+  Assert(Alloc < (u8*)Allocator->FirstBlock+Allocator->Size);
+
+  umm Result = umm(Alloc - (u8*)Allocator->FirstBlock);
+  return Result;
+}
+
+link_internal u8*
 HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 {
 
-  Assert(Allocator->Heap && Allocator->Size);
+  Assert(Allocator->FirstBlock && Allocator->Size);
 
 #if 0
   u8 *Result = (u8*)calloc(umm(RequestedSize), u64(1));
 #else
   /* NotImplemented; */
   u8* Result = 0;
-  u8* EndOfHeap = (u8*)Allocator->Heap + Allocator->Size;
+  u8* EndOfHeap = (u8*)Allocator->FirstBlock + Allocator->Size;
 
   umm AllocationSize = RequestedSize + sizeof(heap_allocation_block);
   umm PrevAllocationSize = 0;
 
-  heap_allocation_block* At = Allocator->Heap;
+  heap_allocation_block* At = Allocator->FirstBlock;
   while ( (u8*)At < EndOfHeap )
   {
     if (At->Size > AllocationSize && At->Type == AllocationType_Free)
