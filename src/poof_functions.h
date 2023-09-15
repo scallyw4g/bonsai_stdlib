@@ -720,12 +720,16 @@ poof(
 poof(
   func dunion_debug_print(DUnion)
   {
-    link_internal void
-    DebugPrint( (DUnion.type) *Struct, u32 Depth)
+    dunion_debug_print_prototype(DUnion)
+
+    DUnion.map_members (M)
     {
-      if (Struct)
+      M.is_union?
       {
-        DebugPrint(*Struct, Depth);
+        M.map_members (UnionMember)
+        {
+          debug_print_struct(UnionMember)
+        }
       }
     }
 
@@ -753,6 +757,15 @@ poof(
         default : { DebugPrint("default while printing ((DUnion.type)) ((DUnion.name)) ", Depth+4); DebugLine("Type(%d)", Struct.Type); } break;
       }
       DebugPrint("}\n", Depth);
+    }
+
+    link_internal void
+    DebugPrint( (DUnion.type) *Struct, u32 Depth)
+    {
+      if (Struct)
+      {
+        DebugPrint(*Struct, Depth);
+      }
     }
   }
 )
@@ -1318,6 +1331,86 @@ poof(
         DebugPrint(RuntimeValue.(MemberDef.name), Depth+1);
         DebugPrint("\n");
       }
+    }
+  }
+)
+
+
+poof(
+  func debug_print_enum(TEnum)
+  {
+    link_internal void DebugPrint( TEnum.name RuntimeValue, u32 Depth)
+    {
+      switch (RuntimeValue)
+      {
+        TEnum.map_values (TValue)
+        {
+          case TValue.name:
+          {
+            DebugPrint("TValue.name", Depth);
+          } break;
+        }
+      }
+    }
+  }
+)
+
+poof(
+  func debug_print_struct(StructDef)
+  {
+    link_internal void DebugPrint( StructDef.name RuntimeStruct, u32 Depth)
+    {
+      /* if (Depth == 0) */
+      {
+        DebugPrint("StructDef.name {\n", Depth);
+      }
+
+      StructDef.map_members (Member)
+      {
+        Member.is_defined?
+        {
+          Member.name?
+          {
+            Member.is_compound?
+            {
+              DebugPrint("Member.type Member.name {\n", Depth+2);
+              DebugPrint(RuntimeStruct.(Member.name), Depth+4);
+              DebugPrint("}\n", Depth+2);
+            }
+            {
+              Member.is_function?
+              {
+                DebugPrint("Member.type Member.name = {function};", Depth+2);
+              }
+              // primitive
+              {
+                DebugPrint("Member.type Member.name =", Depth+2);
+                DebugPrint(RuntimeStruct.(Member.name), 1);
+                DebugPrint(";\n");
+              }
+            }
+          }
+          // NOTE(Jesse): an anonymous struct or union
+          {
+            DebugPrint("Member.type Member.name\n", Depth+2);
+          }
+        }
+        // NOTE(Jesse): found no definition for this type.. probably an OS type
+        {
+          DebugPrint("undefined((Member.type) (Member.name))\n", Depth+2);
+        }
+      }
+
+      /* if (Depth == 0) */
+      {
+        DebugPrint("}\n", Depth);
+      }
+    }
+
+    link_internal void DebugPrint( StructDef.name *RuntimePtr, u32 Depth)
+    {
+      if (RuntimePtr) { DebugPrint(*RuntimePtr, Depth); }
+      else { DebugPrint("ptr(0)\n", Depth); }
     }
   }
 )

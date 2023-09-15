@@ -19,7 +19,7 @@ DebugPrint(u64 E, u32 Depth = 0)
 link_internal void
 DebugPrint(r32 E, u32 Depth = 0)
 {
-  DebugChars("%*s%.2f", Depth, "", E);
+  DebugChars("%*s%.2f", Depth, "", double(E));
 }
 
 link_internal void
@@ -49,7 +49,7 @@ DebugPrint(void* E, u32 Depth = 0)
 link_internal void
 DebugPrint(__m128 E, u32 Depth = 0)
 {
-  DebugChars("%*s%f %f %f %f", Depth, "", E[0], E[1], E[2], E[3]);
+  DebugChars("%*s%f %f %f %f", Depth, "", double(E[0]), double(E[1]), double(E[2]), double(E[3]));
 }
 
 link_internal void
@@ -71,6 +71,7 @@ DebugPrint(const char *E, u32 Depth = 0)
   DebugChars("%*s%s", Depth, "", E);
 }
 
+#if 0
 // NOTE(Jesse): For the purposes of DebugPrint, counted_string needs to be implemented by hand
 poof( named_list(project_primitives) { counted_string })
 
@@ -203,5 +204,7 @@ poof(dunion_debug_print(datatype))
 
 poof(dunion_debug_print(declaration))
 #include <debug_print/debug_print_declaration.h>
+
+#endif
 
 #endif
