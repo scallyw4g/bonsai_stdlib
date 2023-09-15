@@ -136,6 +136,12 @@ CAssert(u32_MAX == UINT32_MAX);
 CAssert(u64_MAX == UINT64_MAX);
 #endif
 
+enum maybe_tag
+{
+  Maybe_No,
+  Maybe_Yes,
+};
+
 struct counted_string
 {
   umm Count;
