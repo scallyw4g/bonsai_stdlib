@@ -1388,10 +1388,11 @@ PeekTokenRawCursor(c_token_cursor *Tokens, s32 Direction, b32 CanSearchDown)
     case 1:
     {
       c_token_cursor *Down = HasValidDownPointer(Result.At);
+      if (Down) { Assert(Result.At->Down == Result.At->Macro.Expansion); } // @janky-macro-expansion-struct-ordering
+                                                             //
       b32 SearchDown = CanSearchDown && Down && RemainingForDir(Down, Direction) > 0;
       if (SearchDown)
       {
-        Assert(Result.At->Down == Result.At->Macro.Expansion); // @janky-macro-expansion-struct-ordering
 
         c_token *PrevDownAt = Down->At;
         Down->At = Down->Start;
@@ -1426,10 +1427,11 @@ PeekTokenRawCursor(c_token_cursor *Tokens, s32 Direction, b32 CanSearchDown)
       Result.At = GetNext(Tokens, Direction);
 
       c_token_cursor *Down = HasValidDownPointer(Result.At);
+      if (Down) { Assert(Result.At->Down == Result.At->Macro.Expansion); } // @janky-macro-expansion-struct-ordering
+
       b32 SearchDown = CanSearchDown && Down; // && RemainingForDir(Down, Direction) > 0;
       if (SearchDown)
       {
-        Assert(Result.At->Down == Result.At->Macro.Expansion); // @janky-macro-expansion-struct-ordering
 
         c_token *PrevDownAt = Down->At;
         Down->At = Down->End;
@@ -4049,11 +4051,11 @@ TokenizeAnsiStream(ansi_stream Code, memory_arena* Memory, b32 IgnoreQuotes, par
 
         LastTokenPushed = Push(PushT, Tokens);
 
-        c_token InsertedCodePlaceholder {
-          .Type = CT_InsertedCode,
-          .Filename = Code.Filename,
-          .LineNumber = LineNumber,
-        };
+        c_token InsertedCodePlaceholder {};
+
+        InsertedCodePlaceholder.Type = CT_InsertedCode;
+        InsertedCodePlaceholder.Filename = Code.Filename;
+        InsertedCodePlaceholder.LineNumber = LineNumber;
 
         LastTokenPushed = Push(InsertedCodePlaceholder, Tokens);
       }

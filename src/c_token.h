@@ -292,6 +292,7 @@ struct c_token
     macro_expansion Macro;
 
     counted_string IncludePath; // TODO(Jesse): We probably care that this (and Macro) increase struct size by 8.  Heap allocate to fix?
+
   };
 
   // TODO(Jesse)(correctness): The preprocessor doesn't support this for some reason..
