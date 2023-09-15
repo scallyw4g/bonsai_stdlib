@@ -256,7 +256,12 @@ poof(generate_string_table(token_cursor_source));
 struct c_token
 {
   c_token_type Type;
-  counted_string Value;
+
+  union {
+    counted_string Value;
+    cs as_cs;
+    cs as_counted_string;
+  };
 
   counted_string Filename;
   u32 LineNumber;
@@ -268,7 +273,6 @@ struct c_token
   {
     // NOTE(Jesse): These are to support a pattern with usage from poof of generically 
     // accessing heterogenous types with only the type name through a macro
-    cs        as_cs;
     u32       as_u32;
     s32       as_s32;
     u64       as_u64;
@@ -293,7 +297,7 @@ struct c_token
   // TODO(Jesse)(correctness): The preprocessor doesn't support this for some reason..
   operator bool()
   {
-    b32 Result = (b32)((u64)Type | Value.Count);
+    b32 Result = ((u64)Type | Value.Count) != 0;
     return Result;
   }
 

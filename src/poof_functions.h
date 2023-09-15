@@ -1397,7 +1397,7 @@ poof(
         }
         // NOTE(Jesse): found no definition for this type.. probably an OS type
         {
-          DebugPrint("undefined((Member.type) (Member.name))\n", Depth+2);
+          DebugPrint("poof_undefined_type ((Member.type) (Member.name))\n", Depth+2);
         }
       }
 
