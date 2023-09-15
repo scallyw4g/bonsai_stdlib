@@ -1,4 +1,21 @@
 
+poof(buffer(c_token))
+#include <generated/buffer_c_token.h>
+
+poof(buffer(c_token_buffer))
+#include <generated/buffer_c_token_buffer.h>
+
+poof(generate_stream(c_token_buffer))
+#include <generated/generate_stream_c_token_buffer.h>
+
+
+link_internal b32
+IsValidForCursor(c_token_cursor *Tokens, c_token *T)
+{
+  b32 Result = T < Tokens->End && T >= Tokens->Start;
+  return Result;
+}
+
 /*****************************                ********************************/
 /*****************************  Error Output  ********************************/
 /*****************************                ********************************/

@@ -1,3 +1,5 @@
+poof(hashtable(parser))
+#include <generated/hashtable_parser.h>
 
 global_variable counted_string_stream Global_ErrorStream = {};
 
@@ -104,6 +106,20 @@ CToken(u32 UnsignedValue)
   return Result;
 }
 
+link_internal c_token_cursor
+CTokenCursor(c_token_buffer *Buf, counted_string Filename, token_cursor_source Source, c_token_cursor_up Up)
+{
+  c_token_cursor Result = CTokenCursor(Buf->Start, Buf->Start + Buf->Count, Filename, Source, Up);
+  return Result;
+}
+
+inline void
+CTokenCursor(c_token_cursor *Result, umm Count, memory_arena *Memory, counted_string Filename, token_cursor_source Source, c_token_cursor_up Up)
+{
+  c_token *Buffer = AllocateProtection(c_token, Memory, Count, False);
+  CTokenCursor(Result, Buffer, Count, Filename, Source, Up);
+}
+
 c_token_cursor *
 AllocateTokenCursor(memory_arena* Memory, counted_string Filename, umm Count, token_cursor_source Source, u32 LineNumber, c_token_cursor_up Up)
 {
@@ -111,6 +127,10 @@ AllocateTokenCursor(memory_arena* Memory, counted_string Filename, umm Count, to
   CTokenCursor(Result, Count, Memory, Filename, Source, Up);
   return Result;
 }
+
+
+
+
 
 link_internal parser
 AllocateParser(counted_string Filename, u32 LineNumber, u32 TokenCount, token_cursor_source Source, u32 OutputBufferTokenCount, c_token_cursor_up Up, memory_arena *Memory)

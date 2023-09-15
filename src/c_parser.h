@@ -92,9 +92,6 @@ Hash(parser *Parser)
   return Result;
 }
 
-poof(hashtable(parser))
-#include <generated/hashtable_parser.h>
-
 link_internal parser
 MakeParser(c_token_cursor *Tokens)
 {
@@ -256,24 +253,4 @@ CTokenCursor(c_token *Start, c_token *End, counted_string Filename, token_cursor
   };
   return Result;
 }
-
-link_internal c_token_cursor
-CTokenCursor(c_token_buffer *Buf, counted_string Filename, token_cursor_source Source, c_token_cursor_up Up)
-{
-  c_token_cursor Result = CTokenCursor(Buf->Start, Buf->Start + Buf->Count, Filename, Source, Up);
-  return Result;
-}
-
-
-inline void
-CTokenCursor(c_token_cursor *Result, umm Count, memory_arena *Memory, counted_string Filename, token_cursor_source Source, c_token_cursor_up Up)
-{
-  c_token *Buffer = AllocateProtection(c_token, Memory, Count, False);
-  CTokenCursor(Result, Buffer, Count, Filename, Source, Up);
-}
-
-
-
-
-
 
