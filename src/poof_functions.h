@@ -1335,6 +1335,26 @@ poof(
   }
 )
 
+poof(
+  func debug_print(T)
+  {
+    T.is_struct?
+    {
+      debug_print_struct(T)
+    }
+    {
+      T.is_enum?
+      {
+        debug_print_enum(T)
+      }
+      {
+        poof_error { Unable to generate debug_print for (T) }
+      }
+    }
+
+  }
+
+)
 
 poof(
   func debug_print_enum(TEnum)
@@ -1358,7 +1378,7 @@ poof(
 poof(
   func debug_print_struct(StructDef)
   {
-    link_internal void DebugPrint( StructDef.name RuntimeStruct, u32 Depth)
+    link_internal void DebugPrint( StructDef.name RuntimeStruct, u32 Depth = 0)
     {
       /* if (Depth == 0) */
       {
@@ -1407,7 +1427,7 @@ poof(
       }
     }
 
-    link_internal void DebugPrint( StructDef.name *RuntimePtr, u32 Depth)
+    link_internal void DebugPrint( StructDef.name *RuntimePtr, u32 Depth = 0)
     {
       if (RuntimePtr) { DebugPrint(*RuntimePtr, Depth); }
       else { DebugPrint("ptr(0)\n", Depth); }
