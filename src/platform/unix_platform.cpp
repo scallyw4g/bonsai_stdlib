@@ -289,6 +289,15 @@ BonsaiSwapBuffers(os *Os)
 }
 #endif
 
+// TODO(Jesse): This has different semantics than the Windows one .. do we care?
+// (This one you can change the values of the pointed-to memory, and the env var updates)
+link_internal const char *
+PlatformGetEnvironmentVar(const char *VarName, memory_arena *Memory)
+{
+  const char* Result = getenv(VarName);
+  return Result;
+}
+
 #if BONSAI_NETWORK_IMPLEMENTATION
 inline void
 ConnectToServer(network_connection *Connection)

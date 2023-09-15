@@ -68,8 +68,9 @@ void* PlatformGetGlFunction(const char* Name)
   return 0;
 }
 
-const char * PlatformGetEnvironmentVar(const char *VarName)
+const char * PlatformGetEnvironmentVar(const char *VarName, memory_arena *Memory)
 {
+  NotImplemented;
   return 0;
 }
 s32 _chdir(const char* DirName)
