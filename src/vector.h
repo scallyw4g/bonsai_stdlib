@@ -394,6 +394,18 @@ Volume(v2i Dim)
 }
 
 inline s32
+Volume(v4 Dim)
+{
+  Dim.x = Max(Dim.x, 0.f);
+  Dim.y = Max(Dim.y, 0.f);
+  Dim.z = Max(Dim.z, 0.f);
+  Dim.w = Max(Dim.w, 0.f);
+  s32 Result = (s32)(Dim.x*Dim.y*Dim.z*Dim.w);
+  Assert(Result > 0);
+  return Result;
+}
+
+inline s32
 Volume(v3 Dim)
 {
   Dim.x = Max(Dim.x, 0.f);
