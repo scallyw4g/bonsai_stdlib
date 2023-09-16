@@ -710,6 +710,38 @@ poof(
 )
 
 poof(
+  func hashtable_get(Type, type_poof_symbol key_type, type_poof_symbol key_name)
+  {
+    maybe_(Type.name)
+    GetBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
+    {
+      maybe_(Type.name) Result = {};
+
+      auto *Bucket = GetHashBucket(umm(Hash(&key_name)), Table);
+      while (Bucket)
+      {
+        auto E = &Bucket->Element;
+
+        if (AreEqual(E->key_name, key_name))
+        {
+          Result.Tag = Maybe_Yes;
+          Result.Value = *E;
+          break;
+        }
+        else
+        {
+          Bucket = Bucket->Next;
+        }
+      }
+
+      return Result;
+
+
+    }
+  }
+);
+
+poof(
   func dunion_debug_print_prototype(DUnion)
   {
     link_internal void DebugPrint( (DUnion.type) *Struct, u32 Depth = 0);
