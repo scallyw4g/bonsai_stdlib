@@ -8,6 +8,7 @@
 
 
 #define SHADER_PATH "shaders"
+#define STDLIB_SHADER_PATH "include/bonsai_stdlib/shaders"
 
 #include <bonsai_debug/debug.h>
 #include <bonsai_debug/src/api.h>
