@@ -187,8 +187,7 @@ poof(
 link_internal void
 ResetInputForFrameStart(input *Input, hotkeys *Hotkeys)
 {
-  Input->MouseWheelDelta = 0;
-  ClearClickedFlags(Input);
-  Clear(Hotkeys);
+  if (Input) { Input->MouseWheelDelta = 0; ClearClickedFlags(Input); }
+  if (Hotkeys) { Clear(Hotkeys); }
 }
 

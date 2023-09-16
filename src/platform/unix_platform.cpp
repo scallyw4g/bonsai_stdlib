@@ -208,6 +208,7 @@ ProcessOsMessages(os *Os, platform *Plat)
 
           BindKeyupToInput(XK_space, Space);
           BindKeyupToInput(XK_Return, Enter);
+          BindKeyupToInput(XK_Escape, Escape);
 
           default:
           {
@@ -262,11 +263,7 @@ ProcessOsMessages(os *Os, platform *Plat)
 
           BindKeydownToInput(XK_space, Space);
           BindKeydownToInput(XK_Return, Enter);
-
-          case XK_Escape:
-          {
-            Os->ContinueRunning = False;
-          } break;
+          BindKeydownToInput(XK_Escape, Escape);
 
           default:
           {

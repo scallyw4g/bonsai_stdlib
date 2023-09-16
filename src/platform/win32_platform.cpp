@@ -425,6 +425,7 @@ WindowMessageCallback(
         BindKeyupToInput(VK_CONTROL, Ctrl);
         BindKeyupToInput(VK_SPACE, Space);
         BindKeyupToInput(VK_RETURN, Enter);
+        BindKeyupToInput(VK_ESCAPE, Escape);
         default: { /* Ignore all other keypresses */ } break;
       }
     } break;
@@ -435,11 +436,6 @@ WindowMessageCallback(
     {
       switch ((int)wParam)
       {
-        case VK_ESCAPE:
-        {
-          DestroyWindow(hWnd);
-        } return 0;
-
         BindKeydownToInput(0x41, A);
         BindKeydownToInput(0x42, B);
         BindKeydownToInput(0x43, C);
@@ -485,6 +481,7 @@ WindowMessageCallback(
         BindKeydownToInput(VK_CONTROL, Ctrl);
         BindKeydownToInput(VK_SPACE, Space);
         BindKeydownToInput(VK_RETURN, Enter);
+        BindKeydownToInput(VK_ESCAPE, Escape);
         default: { /* Ignore all other keypresses */ } break;
 
       } break;
