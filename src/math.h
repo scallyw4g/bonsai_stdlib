@@ -341,6 +341,20 @@ Ceil(r32 F)
   return Result;
 }
 
+inline u32
+Square( u32 f )
+{
+  u32 Result = f*f;
+  return Result;
+}
+
+inline s32
+Square( s32 f )
+{
+  s32 Result = f*f;
+  return Result;
+}
+
 inline r32
 Square( r32 f )
 {

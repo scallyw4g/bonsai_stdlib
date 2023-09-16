@@ -843,6 +843,23 @@ TryGetIndex(chunk_dimension P, chunk_dimension Dim)
 }
 
 inline s32
+GetIndex(s32 X, s32 Y, v2i Dim)
+{
+  Assert(X >= 0);
+  Assert(Y >= 0);
+
+  Assert(X < Dim.x);
+  Assert(Y < Dim.y);
+
+  s32 Result = X + (Y*Dim.x);
+
+  Assert(Result >= 0);
+  Assert(Result < Volume(Dim));
+
+  return Result;
+}
+
+inline s32
 GetIndex(s32 X, s32 Y, s32 Z, chunk_dimension Dim)
 {
   Assert(X >= 0);
@@ -860,6 +877,13 @@ GetIndex(s32 X, s32 Y, s32 Z, chunk_dimension Dim)
   Assert(Result >= 0);
   Assert(Result < Volume(Dim));
 
+  return Result;
+}
+
+inline s32
+GetIndex(v2i P, v2i Dim)
+{
+  s32 Result = GetIndex(P.x, P.y, Dim);
   return Result;
 }
 
