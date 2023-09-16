@@ -93,10 +93,11 @@ Initialize_ThreadLocal_ThreadStates(s32 TotalThreadCount, engine_resources* Reso
   return Result;
 }
 
-link_internal void
+link_internal thread_local_state *
 AllocateAndInitThreadStates(memory_arena *Memory)
 {
   Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, 0, Memory);
   SetThreadLocal_ThreadIndex(0);
+  return Global_ThreadStates;
 }
 
