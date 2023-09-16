@@ -20,6 +20,10 @@
 
 #define StackIterator( ArgName, Stack ) CursorIterator(ArgName, Stack)
 
+#define v2iIterator( xArg, yArg, Dim)      \
+  for (s32 yArg = 0; yArg < Dim.y; ++yArg) \
+  for (s32 xArg = 0; xArg < Dim.x; ++xArg)
+
 #define DimIterator( xArg, yArg, zArg, Dim) \
   for (s32 zArg = 0; zArg < Dim.z; ++zArg)  \
   for (s32 yArg = 0; yArg < Dim.y; ++yArg)  \
