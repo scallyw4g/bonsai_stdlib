@@ -270,8 +270,6 @@ WindowMessageCallback(
 
     case WM_DESTROY:
     {
-      Os->ContinueRunning = false;
-
     } return 0;
 
     case WM_SIZE:

@@ -52,8 +52,6 @@ struct os
   HWND Window;
   HDC Display;
   HGLRC GlContext;
-
-  b32 ContinueRunning = True;
 };
 
 
