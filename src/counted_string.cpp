@@ -435,6 +435,8 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
   FormatCountedString_(Memory, Fmt, __VA_ARGS__)          \
   _Pragma("clang diagnostic pop")
 
+#define FCS(Fmt, ...) FormatCountedString(GetTranArena(), Fmt, __VA_ARGS__)
+
 link_internal counted_string
 FormatCountedString_(memory_arena* Memory, counted_string FS, ...)
 {
