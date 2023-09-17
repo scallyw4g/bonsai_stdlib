@@ -7,7 +7,67 @@ uniform highp sampler2DArray TextTextureSampler;
 
 void main()
 {
+  float Step = 1.f/float(DEBUG_TEXTURE_DIM);
+
   vec4 BitmapTexel = texture( TextTextureSampler, UV );
+
+#if 1
+  {
+    {
+      vec3 UVx = UV + vec3(Step, 0.f, 0.f);
+           BitmapTexel += texture(TextTextureSampler, UVx);
+           /* BitmapTexel = mix(BitmapTexel, texture(TextTextureSampler, UVx), 0.5f); */
+    }
+
+    {
+      vec3 UVy = UV + vec3(0.f, Step, 0.f);
+           BitmapTexel += texture(TextTextureSampler, UVy);
+           /* BitmapTexel = mix(BitmapTexel, texture(TextTextureSampler, UVy), 0.5f); */
+    }
+
+    {
+      vec3 UVx = UV + vec3(-Step, 0.f, 0.f);
+           BitmapTexel += texture(TextTextureSampler, UVx);
+           /* BitmapTexel = mix(BitmapTexel, texture(TextTextureSampler, UVx), 0.5f); */
+    }
+
+    {
+      vec3 UVy = UV + vec3(0.f, -Step, 0.f);
+           BitmapTexel += texture(TextTextureSampler, UVy);
+           /* BitmapTexel = mix(BitmapTexel, texture(TextTextureSampler, UVy), 0.5f); */
+    }
+    BitmapTexel /= 5.f;
+  }
+
+  /* Step *= 2.f; */
+  /* { */
+  /*   { */
+  /*     vec3 UVx = UV + vec3(Step, 0.f, 0.f); */
+  /*          BitmapTexel += texture(TextTextureSampler, UVx); */
+  /*          /1* BitmapTexel = mix(BitmapTexel, texture(TextTextureSampler, UVx), 0.5f); *1/ */
+  /*   } */
+
+  /*   { */
+  /*     vec3 UVy = UV + vec3(0.f, Step, 0.f); */
+  /*          BitmapTexel += texture(TextTextureSampler, UVy); */
+  /*          /1* BitmapTexel = mix(BitmapTexel, texture(TextTextureSampler, UVy), 0.5f); *1/ */
+  /*   } */
+
+  /*   { */
+  /*     vec3 UVx = UV + vec3(-Step, 0.f, 0.f); */
+  /*          BitmapTexel += texture(TextTextureSampler, UVx); */
+  /*          /1* BitmapTexel = mix(BitmapTexel, texture(TextTextureSampler, UVx), 0.5f); *1/ */
+  /*   } */
+
+  /*   { */
+  /*     vec3 UVy = UV + vec3(0.f, -Step, 0.f); */
+  /*          BitmapTexel += texture(TextTextureSampler, UVy); */
+  /*          /1* BitmapTexel = mix(BitmapTexel, texture(TextTextureSampler, UVy), 0.5f); *1/ */
+  /*   } */
+  /* } */
+
+  /* BitmapTexel /= 3.f; */
+#endif
 
   // NOTE(Jesse): This is (roughly) how I'd implemented the text texturing previously,
   // which is obviously really busted.  Proper sampling is dramatically better
@@ -15,5 +75,6 @@ void main()
   /* if (BitmapTexel.a < 0.85f) */
   /*   discard; */
 
-  color = vec4(VertColor * BitmapTexel.rgb * BitmapTexel.a, BitmapTexel.a);
+  color = vec4(VertColor * BitmapTexel.rgb, BitmapTexel.a);
+  /* color = vec4(VertColor * BitmapTexel.rgb*BitmapTexel.a, BitmapTexel.a); */
 }

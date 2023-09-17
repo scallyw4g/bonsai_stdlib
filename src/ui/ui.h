@@ -234,14 +234,20 @@ MakeFont(v2 Size)
   return Result;
 }
 
+/* debug_global f32 Global_FontScale = 1.0f; */
+/* debug_global f32 Global_FontScale = 0.75f; */
+/* debug_global f32 Global_FontScale = 0.6f; */
+debug_global f32 Global_FontScale = 0.5f;
+/* debug_global f32 Global_FontScale = 0.4f; */
+
 // TODO(Jesse, id: 77, tags: font, cleanup): Axe this!
 debug_global font Global_Font = {
-  .Size = V2(26, 34) * 0.6f,
+  .Size = V2(26, 34) * Global_FontScale,
 };
 
 // TODO(Jesse, tags: font, cleanup): Axe this!
 debug_global font Global_SmallFont =  {
-  .Size = V2(26, 34) * 0.4f,
+  .Size = V2(26, 34) * Global_FontScale*0.75f,
 };
 
 
