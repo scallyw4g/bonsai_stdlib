@@ -692,7 +692,7 @@ PushColumn(renderer_2d *Group, counted_string String, ui_style* Style = &Default
 }
 
 link_internal void
-PushTextAt(renderer_2d *Group, counted_string Text, v2 At, rect2 Clip, font Font = Global_Font)
+PushTextAt(renderer_2d *Group, counted_string Text, v2 At, rect2 Clip, font *Font = &Global_Font)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_text_at,
@@ -1197,9 +1197,9 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
 
 
 link_internal void
-PushBargraph(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor, r32 BarWidth, r32 BarHeight = Global_Font.Size.y)
+PushBargraph(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor, r32 BarWidth, r32 *BarHeight = &Global_Font.Size.y)
 {
-  v2 BackgroundQuadDim = V2(BarWidth, BarHeight);
+  v2 BackgroundQuadDim = V2(BarWidth, *BarHeight);
   v2 ShadedQuadDim = BackgroundQuadDim * V2(PercFilled, 1);
 
   v2 UnshadedQuadDim = V2(BackgroundQuadDim.x - ShadedQuadDim.x, BackgroundQuadDim.y);

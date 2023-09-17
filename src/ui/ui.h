@@ -234,22 +234,23 @@ MakeFont(v2 Size)
   return Result;
 }
 
-/* debug_global f32 Global_FontScale = 1.0f; */
-/* debug_global f32 Global_FontScale = 0.75f; */
-/* debug_global f32 Global_FontScale = 0.6f; */
-debug_global f32 Global_FontScale = 0.5f;
-/* debug_global f32 Global_FontScale = 0.4f; */
+/* debug_global f32 Global_DefaultFontScale = 1.0f; */
+/* debug_global f32 Global_DefaultFontScale = 0.75f; */
+/* debug_global f32 Global_DefaultFontScale = 0.6f; */
+debug_global f32 Global_DefaultFontScale = 0.5f;
+/* debug_global f32 Global_DefaultFontScale = 0.4f; */
+
+debug_global v2 Global_DefaultFontSize = V2(26, 34);
 
 // TODO(Jesse, id: 77, tags: font, cleanup): Axe this!
 debug_global font Global_Font = {
-  .Size = V2(26, 34) * Global_FontScale,
+  .Size = Global_DefaultFontSize * Global_DefaultFontScale,
 };
 
 // TODO(Jesse, tags: font, cleanup): Axe this!
 debug_global font Global_SmallFont =  {
-  .Size = V2(26, 34) * Global_FontScale*0.75f,
+  .Size = Global_DefaultFontSize * Global_DefaultFontScale*0.75f,
 };
-
 
 global_variable r32 Global_TitleBarPadding = Global_Font.Size.y*0.2f;
 global_variable r32 Global_TitleBarHeight = Global_Font.Size.y + (Global_TitleBarPadding*2.f);
@@ -274,8 +275,8 @@ struct ui_style
 };
 
 
-link_internal ui_style UiStyleFromLightestColor(v3 Color, font Font = Global_Font);
-link_internal ui_style FlatUiStyle(v3 Color, font Font = Global_Font);
+link_internal ui_style UiStyleFromLightestColor(v3 Color, font *Font = &Global_Font);
+link_internal ui_style FlatUiStyle(v3 Color, font *Font = &Global_Font);
 
 debug_global v4 DefaultColumnPadding = V4(0, 0, 30, 12);
 debug_global v4 DefaultButtonPadding = DefaultColumnPadding;
@@ -291,6 +292,26 @@ debug_global ui_style Global_DefaultSuccessStyle = UiStyleFromLightestColor(V3(0
 debug_global ui_style Global_DefaultWarnStyle    = UiStyleFromLightestColor(V3(1.f, .5f, .2f));
 debug_global ui_style Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1.f, 0.25f, 0.f));
 
+
+link_internal void
+SetGlobalFontScale(r32 Scale)
+{
+  Global_Font.Size = Global_DefaultFontSize * Scale;
+  Global_SmallFont.Size = Global_DefaultFontSize * Scale * 0.75f;
+
+  Global_TitleBarPadding = Global_Font.Size.y*0.2f;
+  Global_TitleBarHeight = Global_Font.Size.y + (Global_TitleBarPadding*2.f);
+
+  DefaultStyle         = UiStyleFromLightestColor(V3(1));
+  DefaultSelectedStyle = UiStyleFromLightestColor(V3(.6f, 1.f, .6f));
+  DefaultBlurredStyle  = UiStyleFromLightestColor(V3(.25f, .25f, .25f));
+
+  Global_DefaultSuccessStyle = UiStyleFromLightestColor(V3(0.f, 1.f, 0.f));;
+  Global_DefaultWarnStyle    = UiStyleFromLightestColor(V3(1.f, .5f, .2f));
+  Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1.f, 0.25f, 0.f));
+
+  Info("Font Scale (%f) Font Size (%f, %f)", double(Scale), (double)Global_Font.Size.x, (double)Global_Font.Size.y);
+}
 
 
 
@@ -602,7 +623,7 @@ FlatUiStyle(v3 Color, font Font)
 }
 
 link_internal ui_style
-UiStyleFromLightestColor(v3 Color, font Font)
+UiStyleFromLightestColor(v3 Color, font *Font)
 {
   ui_style Style  = {
     .Color        = Color,
@@ -611,7 +632,7 @@ UiStyleFromLightestColor(v3 Color, font Font)
     .ClickedColor = Color*1.2f,
     /* .ActiveColor  = V3(.85f, 1.f, .85f), */
 
-    .Font         = Font,
+    .Font         = *Font,
 
     /* .IsActive     = False, */
   };

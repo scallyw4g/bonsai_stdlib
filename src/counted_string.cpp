@@ -396,6 +396,23 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
             CopyToDest(DestCursor, 'F');
         } break;
 
+        case 'V':
+        {
+          char VectorWidth = Peek(FormatCursor);
+          s32 Width = s32(ToU32(VectorWidth));
+
+          RangeIterator(Index, Width)
+          {
+            r32 Value = r32(va_arg(Args, u32));
+            f64ToChar(DestCursor, r64(Value), FormatPrecision ? FormatPrecision : DEFAULT_FORMAT_PRECISION, FormatWidth );
+            if (Index < Width-1)
+            {
+              CopyToDest(DestCursor, CSz(", "));
+            }
+          }
+
+        } break;
+
         case 'S':
         {
           counted_string String = va_arg(Args, counted_string);
