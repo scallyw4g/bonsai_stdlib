@@ -30,7 +30,6 @@ OffsetForHeapAllocation(heap_allocator *Allocator, u8 *Alloc)
 link_internal u8*
 HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 {
-
   Assert(Allocator->FirstBlock && Allocator->Size);
 
 #if 0
@@ -46,6 +45,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
   heap_allocation_block* At = Allocator->FirstBlock;
   while ( (u8*)At < EndOfHeap )
   {
+    // TODO(Jesse): Should this not be >= .. ?
     if (At->Size > AllocationSize && At->Type == AllocationType_Free)
     {
       Result = (u8*)(At + 1);
@@ -70,7 +70,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 
       if (At->Size == 0)
       {
-        Error("Ran out of heap memory, panic!");
+        SoftError("Heap allocation failed.");
         break;
       }
     }
@@ -150,8 +150,12 @@ HeapDeallocate(void* Allocation)
   return;
 }
 
-
-
+link_internal u8*
+GetAllocationData(heap_allocation_block* Block)
+{
+  u8 *Result = (u8*)Block + sizeof(heap_allocation_block);
+  return Result;
+}
 
 
 
