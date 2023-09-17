@@ -2346,13 +2346,17 @@ global_variable interactable Global_ViewportInteraction = {
    // TODO(Jesse): Come up with a less nonsense way of doing this!  Cannot use
    // a string constant because with multiple DLLs there are multiple of them!
    // Could do a comptime string hash if poof supported that..
-  .ID = 4208142317, // 420 blazeit.  Couldn't spell faggot.. rip.
+
+  .ID = 4208142317, // 420blazeit  Couldn't spell faggot.. rip.
 };
 
 link_internal b32
 UiCapturedMouseInput(renderer_2d *Ui)
 {
-  b32 Result = (Ui->Pressed.ID != 0 && Ui->Pressed.ID != Global_ViewportInteraction.ID);
+  b32 MouseWasHoveringOverWindow = Ui->HighestWindow != 0;
+  b32 PressedIdWasNotViewportId = (Ui->Pressed.ID != 0 && Ui->Pressed.ID != Global_ViewportInteraction.ID);
+
+  b32 Result = MouseWasHoveringOverWindow || PressedIdWasNotViewportId;
   return Result;
 }
 
