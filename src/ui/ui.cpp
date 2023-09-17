@@ -879,6 +879,17 @@ PushResetDrawBounds(renderer_2d *Group)
 }
 
 link_internal void
+PushForceUpdateBasis(renderer_2d *Group, v2 Offset)
+{
+  ui_render_command Command = {
+    .Type = type_ui_render_command_force_update_basis,
+    .ui_render_command_force_update_basis.Offset = Offset
+  };
+  PushUiRenderCommand(Group, &Command);
+  return;
+}
+
+link_internal void
 PushForceAdvance(renderer_2d *Group, v2 Offset)
 {
   ui_render_command Command = {
@@ -985,7 +996,7 @@ PushWindowStartInternal( renderer_2d *Group,
   PushForceAdvance(Group, V2(0.f, Global_TitleBarPadding));
 
   PushNewRow(Group);
-  PushForceAdvance(Group, WindowScroll);
+  PushForceUpdateBasis(Group, WindowScroll);
   PushResetDrawBounds(Group);
 }
 
@@ -1008,7 +1019,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   TIMED_FUNCTION();
 
   v2 ResizeHandleDim = V2(20);
-  counted_string TitleText = FormatCountedString(GetTranArena(), CSz("%S (%u)"), Window->Title, Window->InteractionStackIndex);
+  counted_string TitleText = FCS(CSz("%S (%u) (%.1f, %.1f)"), Window->Title, Window->InteractionStackIndex, double(Window->Scroll.x), double(Window->Scroll.y) );
   counted_string MinimizedIcon = CSz("_");
   rect2 TitleRect = GetDrawBounds(TitleText, &DefaultStyle);
 
@@ -1935,6 +1946,8 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
   {
     switch(Command->Type)
     {
+      InvalidCase(type_ui_render_command_noop);
+
       case type_ui_render_command_window_start:
       {
         Assert(LengthSq(DefaultLayout->Padding.xy) == 0);
@@ -1947,6 +1960,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         Assert(!RenderState->Window);
         ui_render_command_window_start* TypedCommand = RenderCommandAs(window_start, Command);
         RenderState->WindowStartCommandIndex = NextCommandIndex-1;
+
         PushLayout(&RenderState->Layout, &TypedCommand->Layout);
         RenderState->Window = TypedCommand->Window;
         RenderState->ClipRect = TypedCommand->ClipRect;
@@ -2086,7 +2100,10 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       {
         u32 ButtonStartIndex = FindPreviousButtonStart(CommandBuffer, NextCommandIndex-1);
         rect2 AbsDrawBounds = FindAbsoluteDrawBoundsBetween(CommandBuffer, ButtonStartIndex, NextCommandIndex);
-        ui_render_command_button_start* ButtonStart = RenderCommandAs(button_start, CommandBuffer->Commands+ButtonStartIndex);
+
+        ui_render_command *ButtonCmd = CommandBuffer->Commands+ButtonStartIndex;
+        ui_render_command_button_start* ButtonStart = RenderCommandAs(button_start, ButtonCmd);
+
         ProcessButtonEnd(Group, ButtonStart->ID, RenderState, AbsDrawBounds, &ButtonStart->Style);
       } break;
 
@@ -2109,7 +2126,11 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         RenderState->Layout->DrawBounds = InvertedInfinityRectangle();
       } break;
 
-      InvalidDefaultCase;
+      case type_ui_render_command_force_update_basis:
+      {
+        ui_render_command_force_update_basis* TypedCommand = RenderCommandAs(force_update_basis, Command);
+        RenderState->Layout->Basis += TypedCommand->Offset;
+      } break;
     }
 
     Command = GetCommand(CommandBuffer, NextCommandIndex++);
@@ -2140,6 +2161,8 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
   {
     switch(Command->Type)
     {
+      InvalidCase(type_ui_render_command_noop);
+
       case type_ui_render_command_window_start:
       case type_ui_render_command_window_end:
       case type_ui_render_command_table_start:
@@ -2155,6 +2178,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_button_end:
       case type_ui_render_command_border:
       case type_ui_render_command_force_advance:
+      case type_ui_render_command_force_update_basis:
       case type_ui_render_command_reset_draw_bounds:
         { break; }
 
@@ -2218,14 +2242,10 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           /* GL.Enable(GL_DEPTH_TEST); */
         }
       } break;
-
-      InvalidDefaultCase;
     }
 
     Command = GetCommand(CommandBuffer, NextCommandIndex++);
   }
-
-  CommandBuffer->CommandCount = 0;
 }
 
 link_internal v2
@@ -2369,7 +2389,14 @@ UiFrameEnd(renderer_2d *Ui)
 
   if (Ui->HighestWindow)
   {
-    Ui->HighestWindow->Scroll.y += Input->MouseWheelDelta * 5;
+    if (Input->Ctrl.Pressed)
+    {
+      Ui->HighestWindow->Scroll.x += Input->MouseWheelDelta * 5;
+    }
+    else
+    {
+      Ui->HighestWindow->Scroll.y += Input->MouseWheelDelta * 5;
+    }
   }
 
   DrawUi(Ui, Ui->CommandBuffer);
@@ -2379,4 +2406,6 @@ UiFrameEnd(renderer_2d *Ui)
   {
     Ui->Pressed = Global_ViewportInteraction;
   }
+
+  Ui->CommandBuffer->CommandCount = 0;
 }

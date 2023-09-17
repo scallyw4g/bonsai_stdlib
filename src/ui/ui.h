@@ -422,6 +422,12 @@ struct ui_render_command_force_advance
   v2 Offset;
 };
 
+struct ui_render_command_force_update_basis
+{
+  v2 Offset;
+};
+
+
 poof(
   d_union ui_render_command
   {
@@ -446,6 +452,7 @@ poof(
     ui_render_command_border
 
     ui_render_command_force_advance
+    ui_render_command_force_update_basis
 
     ui_render_command_new_row           enum_only
     ui_render_command_table_end         enum_only
