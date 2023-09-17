@@ -34,16 +34,13 @@ CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
 }
 
 shader
-LoadShaders(counted_string VertShaderPath, counted_string FragFilePath)
+LoadShaders(counted_string VertShaderPath, counted_string FragShaderPath)
 {
-  Info("Creating shader : %S | %S", VertShaderPath, FragFilePath);
+  Info("Creating shader : %S | %S", VertShaderPath, FragShaderPath);
 
-  counted_string ComputedVertPath = FormatCountedString( GetTranArena(), CSz("%S/%S"), CSz(SHADER_PATH), VertShaderPath);
-  counted_string ComputedFragPath = FormatCountedString( GetTranArena(), CSz("%S/%S"), CSz(SHADER_PATH), FragFilePath);
-
-  ansi_stream HeaderCode       = ReadEntireFileIntoAnsiStream(CSz(SHADER_PATH "/header.glsl"), GetTranArena());
-  ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(ComputedVertPath, GetTranArena());
-  ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(ComputedFragPath, GetTranArena());
+  ansi_stream HeaderCode       = ReadEntireFileIntoAnsiStream(CSz(STDLIB_SHADER_PATH "/header.glsl"), GetTranArena());
+  ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
+  ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(FragShaderPath, GetTranArena());
 
   s32 Result = GL_FALSE;
   int InfoLogLength;

@@ -93,7 +93,7 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
 link_internal shader
 MakeRenderToTextureShader(memory_arena *Memory, m4 *ViewProjection)
 {
-  shader Shader = LoadShaders( CSz("RenderToTexture.vertexshader"), CSz("RenderToTexture.fragmentshader") );
+  shader Shader = LoadShaders( CSz(BONSAI_SHADER_PATH "RenderToTexture.vertexshader"), CSz(BONSAI_SHADER_PATH "RenderToTexture.fragmentshader") );
 
   shader_uniform **Current = &Shader.FirstUniform;
 
