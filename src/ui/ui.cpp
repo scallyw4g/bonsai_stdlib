@@ -56,6 +56,8 @@ link_internal void AdvanceLayoutStackBy(v2 Delta, layout* Layout);
 link_internal void
 NewRow(layout *Layout)
 {
+  while (Layout)
+  {
 #if 1
   // NOTE(Jesse): This is a special case for if we call NewRow() multiple
   // times in a row without drawing stuff.. ie:
@@ -71,7 +73,7 @@ NewRow(layout *Layout)
   r32 VerticalAdvance = 0.f;
   if (Layout->At.y == Layout->DrawBounds.Max.y) { VerticalAdvance = Global_Font.Size.y; }
 
-  Layout->At.x = 0.0f;
+  Layout->At.x = Layout->Padding.Left;
 
   // NOTE(Jesse): This adds DrawBounds.Max.y such that if we draw stuff other
   // than text on the line we get proper advancement.  Expanded callgraph nodes
@@ -105,7 +107,8 @@ NewRow(layout *Layout)
 
 #endif
 
-  return;
+    Layout = Layout->Prev;
+  }
 }
 
 link_internal v3
@@ -825,13 +828,20 @@ PushButtonStart(renderer_2d *Group, umm InteractionId, ui_style* Style = 0)
 }
 
 link_internal ui_element_reference
-PushTableStart(renderer_2d* Group, relative_position Position = Position_None,  ui_element_reference RelativeTo = {})
+PushTableStart(renderer_2d* Group, relative_position Position = Position_None,  ui_element_reference RelativeTo = {}, v2 Offset = {}, ui_style *Style = &DefaultStyle, v4 Padding = {})
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_table_start,
 
     .ui_render_command_table_start.RelativeTo = RelativeTo,
     .ui_render_command_table_start.Position = Position,
+    .ui_render_command_table_start.Style = *Style,
+    .ui_render_command_table_start.Layout =
+    {
+      .Basis   = Offset,
+      .Padding = Padding,
+      .DrawBounds = InvertedInfinityRectangle(),
+    }
   };
 
   u32 ElementIndex = PushUiRenderCommand(Group, &Command);
@@ -909,9 +919,9 @@ GetDrawBounds(counted_string String, ui_style *Style)
 }
 
 link_internal void
-PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowBasis, v2 WindowMaxClip = V2(f32_MAX))
+PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowMaxClip = V2(f32_MAX))
 {
-  rect2 AbsWindowBounds = RectMinDim(WindowBasis, WindowMaxClip);
+  rect2 AbsWindowBounds = RectMinDim(Window->Basis, WindowMaxClip);
   rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max);
 
   ui_render_command Command = {
@@ -921,7 +931,7 @@ PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowB
       .Window = Window,
       .ClipRect = ClipRect,
       .Layout = {
-        .Basis = WindowBasis,
+        .Basis = Window->Basis,
         .DrawBounds = InvertedInfinityRectangle(),
       }
     }
@@ -1988,20 +1998,34 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         if (OnePastTableEnd)
         {
           ui_render_command_table_start* TypedCommand = RenderCommandAs(table_start, Command);
-          r32 BasisX = RenderState->Layout->Basis.x;
-          r32 BasisY = GetAbsoluteAt(RenderState->Layout).y;
-          TypedCommand->Layout.Basis = V2(BasisX, BasisY);
 
-          // TODO(Jesse, bug): Seems to me like we should fully setup the basis
-          // point then call this very last, though the Position_RightOf path
-          // doesn't do that..
-          PushLayout(&RenderState->Layout, &TypedCommand->Layout);
-
-          if (TypedCommand->Position == Position_RightOf)
+          switch(TypedCommand->Position)
           {
-            ui_render_command_table_start* RelativeTable = GetCommandAs(table_start, CommandBuffer, TypedCommand->RelativeTo.Index);
-            TypedCommand->Layout.Basis = V2(GetAbsoluteDrawBoundsMax(&RelativeTable->Layout).x, RelativeTable->Layout.Basis.y );
+            case Position_None:
+            {
+              r32 BasisX = RenderState->Layout->Basis.x;
+              r32 BasisY = GetAbsoluteAt(RenderState->Layout).y;
+              TypedCommand->Layout.Basis = V2(BasisX, BasisY);
+            } break;
+
+            // NOTE(Jesse): Not Implemented
+            InvalidCase(Position_Above);
+            InvalidCase(Position_LeftOf);
+
+            case Position_RightOf:
+            {
+              ui_render_command_table_start* RelativeTable = GetCommandAs(table_start, CommandBuffer, TypedCommand->RelativeTo.Index);
+              TypedCommand->Layout.Basis += V2(GetAbsoluteDrawBoundsMax(&RelativeTable->Layout).x, RelativeTable->Layout.Basis.y );
+            } break;
+
+            case Position_Below:
+            {
+              ui_render_command_table_start* RelativeTable = GetCommandAs(table_start, CommandBuffer, TypedCommand->RelativeTo.Index);
+              TypedCommand->Layout.Basis += V2(RelativeTable->Layout.Basis.x, GetAbsoluteDrawBoundsMax(&RelativeTable->Layout).y);
+            } break;
           }
+
+          PushLayout(&RenderState->Layout, &TypedCommand->Layout);
         }
         else
         {
