@@ -293,6 +293,13 @@ debug_global ui_style Global_DefaultWarnStyle    = UiStyleFromLightestColor(V3(1
 debug_global ui_style Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1.f, 0.25f, 0.f));
 
 
+link_internal r32
+CharWidths(u32 Widths)
+{
+  r32 Result = Global_Font.Size.x * Widths;
+  return Result;
+}
+
 link_internal void
 SetGlobalFontScale(r32 Scale)
 {
