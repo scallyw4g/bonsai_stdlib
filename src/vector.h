@@ -64,6 +64,7 @@ union v4
 
   struct { r32 x; r32 y; r32 z; r32 w; };
   struct { r32 r; r32 g; r32 b; r32 a; };
+
   struct { r32 Left; r32 Top; r32 Right; r32 Bottom; };
 
   struct {
@@ -92,6 +93,47 @@ union v4
   operator[](s32 index)
   {
     r32& Result = this->E[index];
+    return Result;
+  }
+};
+
+union v4i
+{
+  s32 E[4];
+
+  struct { s32 x; s32 y; s32 z; s32 w; };
+  struct { s32 r; s32 g; s32 b; s32 a; };
+
+  struct { s32 n; s32 c; s32 h; s32 Ignored05_; };
+
+  struct { s32 Left; s32 Top; s32 Right; s32 Bottom; };
+
+  struct {
+    v2i xy;
+    s32 Ignored0_;
+    s32 Ignored01_;
+  };
+
+  struct {
+    v2i Ignored1_;
+    v2i zw;
+  };
+
+
+  struct {
+    v3i xyz;
+    s32 Ignored03_;
+  };
+
+  struct {
+    v3i rgb;
+    s32 Ignored04_;
+  };
+
+  s32&
+  operator[](s32 index)
+  {
+    s32& Result = this->E[index];
     return Result;
   }
 };
@@ -383,6 +425,8 @@ Truncate(r32 Input)
   return Result;
 }
 
+
+
 inline s32
 Volume(v2i Dim)
 {
@@ -400,6 +444,18 @@ Volume(v4 Dim)
   Dim.y = Max(Dim.y, 0.f);
   Dim.z = Max(Dim.z, 0.f);
   Dim.w = Max(Dim.w, 0.f);
+  s32 Result = (s32)(Dim.x*Dim.y*Dim.z*Dim.w);
+  Assert(Result > 0);
+  return Result;
+}
+
+inline s32
+Volume(v4i Dim)
+{
+  Dim.x = Max(Dim.x, 0);
+  Dim.y = Max(Dim.y, 0);
+  Dim.z = Max(Dim.z, 0);
+  Dim.w = Max(Dim.w, 0);
   s32 Result = (s32)(Dim.x*Dim.y*Dim.z*Dim.w);
   Assert(Result > 0);
   return Result;
