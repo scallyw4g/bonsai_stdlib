@@ -281,6 +281,7 @@ struct c_token
     /* s64    SignedValue; */ // TODO(Jesse id: 272): Fold `-` sign into this value at tokenization time?
     u64       UnsignedValue;
     r64       FloatValue;
+    r64       as_r64;
     c_token   *QualifierName;
 
     // NOTE(Jesse): I ordered the 'macro_expansion' struct such that the
