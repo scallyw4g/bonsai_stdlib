@@ -139,6 +139,18 @@ union v4i
 };
 
 
+link_internal v4i
+V4i(s32 x, s32 y, s32 z, s32 w)
+{
+  v4i Result = {
+    .x = x,
+    .y = y,
+    .z = z,
+    .w = w,
+  };
+  return Result;
+}
+
 link_internal v4
 V4(f32 x, v3 v)
 {

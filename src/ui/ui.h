@@ -237,8 +237,8 @@ MakeFont(v2 Size)
 /* debug_global f32 Global_DefaultFontScale = 1.0f; */
 /* debug_global f32 Global_DefaultFontScale = 0.75f; */
 /* debug_global f32 Global_DefaultFontScale = 0.6f; */
-debug_global f32 Global_DefaultFontScale = 0.5f;
-/* debug_global f32 Global_DefaultFontScale = 0.4f; */
+/* debug_global f32 Global_DefaultFontScale = 0.5f; */
+debug_global f32 Global_DefaultFontScale = 0.4f;
 
 debug_global v2 Global_DefaultFontSize = V2(26, 34);
 
