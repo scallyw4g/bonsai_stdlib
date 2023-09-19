@@ -157,26 +157,10 @@ GetAllocationData(heap_allocation_block* Block)
   return Result;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+link_internal umm
+GetDataSize(heap_allocation_block* Block)
+{
+  umm Result = Block->Size - sizeof(heap_allocation_block);
+  return Result;
+}
 
