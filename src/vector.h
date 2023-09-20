@@ -104,7 +104,9 @@ union v4i
   struct { s32 x; s32 y; s32 z; s32 w; };
   struct { s32 r; s32 g; s32 b; s32 a; };
 
-  struct { s32 n; s32 c; s32 h; s32 Ignored05_; };
+  // NOTE(Jesse): This is arranged so the tensor layout NCHW (batch, channel,
+  // height, width) accessors line up with their sensible counterparts in x, y, z, w
+  /* struct { s32 W; s32 H; s32 C; s32 N; }; */
 
   struct { s32 Left; s32 Top; s32 Right; s32 Bottom; };
 

@@ -151,7 +151,7 @@ HeapDeallocate(void* Allocation)
 }
 
 link_internal u8*
-GetAllocationData(heap_allocation_block* Block)
+GetDataPointer(heap_allocation_block* Block)
 {
   u8 *Result = (u8*)Block + sizeof(heap_allocation_block);
   return Result;
