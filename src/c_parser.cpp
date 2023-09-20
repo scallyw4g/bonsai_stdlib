@@ -4101,13 +4101,7 @@ TokenizeAnsiStream(ansi_stream Code, memory_arena* Memory, b32 IgnoreQuotes, par
     Warn("Input to TokenizeAnsiStreamInput was of length 0");
   }
 
-  umm CurrentSize = TotalSize(Tokens);
-  TruncateToCurrentElements(Tokens);
-  umm NewSize = TotalSize(Tokens);
-
-  /* Info("Attempting to reallocate CurrentSize(%u), NewSize(%u)", CurrentSize, NewSize); */
-  Ensure(Reallocate((u8*)Tokens->Start, Memory, CurrentSize, NewSize));
-
+  ResizeCursor(Tokens, AtElements(Tokens), Memory);
   Rewind(Tokens);
 
   return Tokens;

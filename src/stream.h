@@ -32,6 +32,13 @@ Count(stream_t* Stream)
 }
 
 template <typename stream_t> inline void
+TruncateToElementCount(stream_t* Stream, umm Count)
+{
+  Assert(Count <= TotalElements(Stream));
+  Stream->End = Stream->Start + Count;
+}
+
+template <typename stream_t> inline void
 TruncateToCurrentElements(stream_t* Stream)
 {
   Assert(Stream->At <= Stream->End);

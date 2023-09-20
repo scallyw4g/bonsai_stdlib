@@ -329,17 +329,8 @@ struct c_token_cursor
   counted_string Filename;
 };
 
-link_internal c_token_cursor
-CTokenCursor(umm ElementCount, memory_arena* Memory)
-{
-  c_token* Start = (c_token*)PushStruct(Memory, sizeof( c_token ), 1, 0);
-  c_token_cursor Result = {
-    .Start = Start,
-    .End = Start+ElementCount,
-    .At = Start,
-  };
-  return Result;
-}
+poof(generate_cursor_functions(c_token))
+#include <generated/generate_cursor_functions_c_token_cursor.h>
 
 link_internal b32
 TokenShouldModifyLineCount(c_token *T, token_cursor_source Source)

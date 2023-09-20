@@ -110,9 +110,12 @@ ProcessOsMessages(os *Os, platform *Plat)
 
   if (EventFound)
   {
-
     switch (Event.type)
     {
+      case DestroyNotify:
+      {
+        Os->ContinueRunning = False;
+      } break;
 
       case ConfigureNotify:
       {

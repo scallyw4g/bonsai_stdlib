@@ -1020,6 +1020,13 @@ poof(
 poof(
   func generate_cursor(Type)
   {
+    (generate_cursor_struct(Type))
+    (generate_cursor_functions(Type))
+  }
+)
+poof(
+  func generate_cursor_struct(Type)
+  {
     struct (Type.name)_cursor
     {
       Type.name *Start;
@@ -1028,6 +1035,12 @@ poof(
       Type.name *End;
     };
 
+  }
+)
+
+poof(
+  func generate_cursor_functions(Type)
+  {
     link_internal (Type.name)_cursor
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
@@ -1045,6 +1058,16 @@ poof(
     {
       Type.name *Result = {};
       if (ElementIndex < AtElements(Cursor)) {
+        Result = Cursor->Start+ElementIndex;
+      }
+      return Result;
+    }
+
+    link_internal (Type.name)*
+    GetPtrUnsafe((Type.name)_cursor *Cursor, umm ElementIndex)
+    {
+      Type.name *Result = {};
+      if (ElementIndex < TotalElements(Cursor)) {
         Result = Cursor->Start+ElementIndex;
       }
       return Result;
@@ -1069,6 +1092,14 @@ poof(
       {
         Cursor->At++;
       }
+    }
+
+    link_internal (Type.name)*
+    Advance((Type.name)_cursor *Cursor)
+    {
+      Type.name * Result = {};
+      if ( Cursor->At < Cursor->End ) { Result = Cursor->At++; }
+      return Result;
     }
 
     link_internal Type.name *
@@ -1114,6 +1145,22 @@ poof(
         }
       }
       return Result;
+    }
+
+
+    link_internal b32
+    ResizeCursor((Type.name)_cursor *Cursor, umm Count, memory_arena *Memory)
+    {
+      umm CurrentSize = TotalSize(Cursor);
+
+      TruncateToElementCount(Cursor, Count);
+      umm NewSize = TotalSize(Cursor);
+
+      Assert(NewSize/sizeof((Type.name)) == Count);
+
+      /* Info("Attempting to reallocate CurrentSize(%u), NewSize(%u)", CurrentSize, NewSize); */
+      Ensure(Reallocate((u8*)Cursor->Start, Memory, CurrentSize, NewSize));
+      return 0;
     }
 
   }
@@ -1337,7 +1384,8 @@ poof(
 poof(
   func stream_and_cursor(Def)
   {
-    (generate_cursor(Def))
+    (generate_cursor_struct(Def))
+    (generate_cursor_functions(Def))
     (generate_stream(Def))
   }
 )
