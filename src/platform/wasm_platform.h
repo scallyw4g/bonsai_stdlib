@@ -38,5 +38,7 @@ typedef EMSCRIPTEN_WEBGL_CONTEXT_HANDLE gl_context;
 struct os
 {
   gl_context GlContext;
+  b32 ContinueRunning = True;
+
   b32 Window = true; // NOTE(Jesse): Hack to play nice with other platforms
 };
