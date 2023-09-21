@@ -380,6 +380,5 @@ PrintToStdout(counted_string Output)
   /* OutputDebugString(GetNullTerminated(Output, GetTranArena())); */
   /* EndTemporaryMemory(&TMH, False); */
 #endif
-
 }
 

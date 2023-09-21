@@ -231,6 +231,9 @@ link_internal b32
 IsPathSeparator(char C)
 {
   b32 Result = C == '/';
+#if BONSAI_WIN32
+  Result |= C == '\\';
+#endif
   return Result;
 }
 
@@ -273,6 +276,7 @@ StripExtension(counted_string FilePath)
   return Result;
 }
 
+// Given "path/to/file.whatever", returns "path/to"
 link_internal counted_string
 Dirname(counted_string FilePath)
 {
@@ -302,6 +306,7 @@ Dirname(counted_string FilePath)
   return Result;
 }
 
+// Given "path/to/file.whatever", returns "file.whatever"
 link_internal counted_string
 Basename(counted_string FilePath)
 {
