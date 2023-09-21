@@ -496,7 +496,7 @@ Reallocate(u8* Allocation, memory_arena* Arena, umm CurrentSize, umm RequestedSi
         //
         // Alternatively, is there some way we can analyze the calling code to
         // ensure this case never happens?
-        Error("Unable to reallocate : Arena didn't have enough space left to accommodate %ld bytes.", Diff);
+        SoftError("Unable to reallocate : Arena didn't have enough space left to accommodate %ld bytes.", Diff);
       }
     }
     else if (Diff < 0)

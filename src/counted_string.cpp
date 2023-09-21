@@ -417,7 +417,7 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
         {
           counted_string String = va_arg(Args, counted_string);
 
-          if (FormatWidth)
+          if (FormatWidth > String.Count)
           {
             PadForFormatWidth(DestCursor, FormatWidth - (u32)String.Count);
           }
