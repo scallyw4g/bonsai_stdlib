@@ -40,3 +40,5 @@
 
 #include <bonsai_stdlib/src/c_token.cpp>
 #include <bonsai_stdlib/src/c_parser.cpp>
+
+#include <bonsai_stdlib/src/initialize.cpp>
