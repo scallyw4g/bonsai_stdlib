@@ -13,8 +13,8 @@ enum shader_uniform_type
 
   // NOTE(Jesse): These are the start of the engine uniforms.  Using these
   // outside of an engine context results in an assertion.
-  EngineShaderUniform_Light,
-  EngineShaderUniform_Camera,
+  ShaderUniform_Light,
+  ShaderUniform_Camera,
 };
 
 

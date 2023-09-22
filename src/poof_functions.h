@@ -43,6 +43,23 @@ poof(
             return Result;
           }
 
+        }
+      }
+    }
+  }
+)
+
+poof(
+  func d_union_all_constructors(type)
+  {
+    (d_union_constructors(type))
+
+    type.map_members(M)
+    {
+      M.is_union?
+      {
+        M.map_members (ConstructorArgT)
+        {
           gen_constructor(ConstructorArgT)
         }
       }
@@ -857,7 +874,7 @@ poof(
     /*   } */
     /* } */
     link_internal void
-    DeepCopy((Type.name)_cursor *Src, (Type.name)_cursor *Dest)
+    DeepCopy((Type.name) *Src, (Type.name) *Dest)
     {
       umm SrcAt = AtElements(Src);
       Assert(SrcAt <= TotalElements(Dest));
@@ -907,11 +924,19 @@ poof(
       return Result;
     }
 
+    // TODO(Jesse): Collapse these duplicates
     link_inline (Type.name) *
-    Get((Type.name)_buffer *Buf, u32 Index)
+    GetPtr((Type.name)_buffer *Buf, u32 Index)
     {
       Assert(Index < Buf->Count);
       Type.name *Result = Buf->Start + Index;
+      return Result;
+    }
+
+    link_inline (Type.name) *
+    Get((Type.name)_buffer *Buf, u32 Index)
+    {
+      Type.name *Result = GetPtr(Buf, Index);
       return Result;
     }
   }
