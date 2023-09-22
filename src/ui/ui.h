@@ -13,7 +13,7 @@ struct ui_debug
   b8 OutlineUiTables;
 };
 
-link_external ui_debug *GetUiDebug() __attribute__((weak));
+link_weak ui_debug *GetUiDebug();
 
 /******************************               ********************************/
 /******************************   Rendering   ********************************/

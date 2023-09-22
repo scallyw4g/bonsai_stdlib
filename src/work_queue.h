@@ -60,4 +60,51 @@ QueueIsFull(work_queue *Queue)
   return Result;
 }
 
-void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS) __attribute__((weak));
+struct game_state;
+struct engine_resources;
+struct thread_local_state;
+struct thread_startup_params;
+
+typedef void (*bonsai_main_thread_callback)        (BONSAI_API_MAIN_THREAD_CALLBACK_PARAMS);
+typedef void (*bonsai_worker_thread_init_callback) (BONSAI_API_WORKER_THREAD_INIT_CALLBACK_PARAMS);
+
+typedef bool        (*bonsai_worker_thread_callback)    (BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
+typedef game_state* (*bonsai_main_thread_init_callback) (BONSAI_API_MAIN_THREAD_INIT_CALLBACK_PARAMS);
+
+typedef b32 (*bonsai_engine_callback)(engine_resources*);
+typedef b32 (*bonsai_engine_init_callback)(engine_resources*, thread_startup_params*);
+
+struct application_api
+{
+  bonsai_main_thread_init_callback GameInit;
+  bonsai_main_thread_callback GameMain;
+
+  bonsai_worker_thread_init_callback WorkerInit;
+  bonsai_worker_thread_callback WorkerMain;
+};
+
+
+struct thread_startup_params
+{
+  /* engine_api *EngineApi; */
+  application_api *AppApi;
+
+  engine_resources *EngineResources;
+
+  volatile u32 *HighPriorityWorkerCount;
+
+  bonsai_futex *HighPriorityModeFutex;
+  bonsai_futex *WorkerThreadsSuspendFutex;
+  bonsai_futex *WorkerThreadsExitFutex;
+
+  work_queue *LowPriority;
+  work_queue *HighPriority;
+
+  volatile s32 ThreadIndex;
+};
+
+
+link_weak void PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry);
+link_weak void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
+link_weak void WorkerThread_BeforeJobStart(thread_startup_params *StartupParams);
+

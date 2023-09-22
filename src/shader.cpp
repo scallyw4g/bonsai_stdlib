@@ -200,7 +200,7 @@ CheckAndClearFramebuffer()
 // engine-specific structs as uniforms, instead of using a pile of values.
 // We're using `weak` magic here such that we can have this live in stdlib,
 // but also support thunking through to engine code, if it's present.
-void BindEngineUniform(shader_uniform*) __attribute__((weak));
+link_weak void BindEngineUniform(shader_uniform*);
 
 
 // TODO(Jesse): We should generate the set of these?

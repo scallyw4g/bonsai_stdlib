@@ -28,8 +28,6 @@
 #include <bonsai_stdlib/src/file.cpp>
 #include <bonsai_stdlib/src/filesystem.cpp>
 
-#include <bonsai_stdlib/src/work_queue.cpp>
-
 #include <bonsai_stdlib/src/gl.cpp>
 #include <bonsai_stdlib/src/texture.cpp>
 #include <bonsai_stdlib/src/shader.cpp>
@@ -42,4 +40,3 @@
 
 #include <bonsai_stdlib/src/c_token.cpp>
 #include <bonsai_stdlib/src/c_parser.cpp>
-

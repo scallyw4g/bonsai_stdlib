@@ -16,7 +16,7 @@ link_internal void ParseError(parser* Parser, counted_string ErrorMessage, c_tok
 
 // NOTE(Jesse): This transmute is special; applications can choose to override
 // this transmute function.  Additional transmute functions specified in poof.cpp
-b32 TryTransmuteKeywordToken(c_token *T, c_token *LastTokenPushed) __attribute__((weak));
+link_weak b32 TryTransmuteKeywordToken(c_token *T, c_token *LastTokenPushed);
 
 link_internal parser *         DuplicateParserTokens(parser *Parser, memory_arena *Memory);
 link_internal parser *         DuplicateParser(parser *Parser, memory_arena *Memory);
