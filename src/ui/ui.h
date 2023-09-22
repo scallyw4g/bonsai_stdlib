@@ -617,14 +617,14 @@ StandardStyling(v3 StartingColor, v3 HoverMultiplier = V3(1.3f), v3 ClickMultipl
 }
 
 link_internal ui_style
-FlatUiStyle(v3 Color, font Font)
+FlatUiStyle(v3 Color, font *Font)
 {
   ui_style Style  = {
     .Color        = Color,
     .HoverColor   = Color,
     .PressedColor = Color,
     .ClickedColor = Color,
-    .Font         = Font,
+    .Font         = *Font,
   };
   return Style;
 }

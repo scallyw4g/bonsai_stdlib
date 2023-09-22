@@ -2,8 +2,8 @@
 poof(buffer(u32))
 #include <generated/buffer_u32.h>
 
-poof(deep_copy(u32_buffer))
-#include <generated/deep_copy_u32_buffer.h>
+/* poof(deep_copy(u32_buffer)) */
+/* #include <generated/deep_copy_u32_buffer.h> */
 
 poof(stream_and_cursor(u32))
 #include <generated/stream_and_cursor_u32.h>
