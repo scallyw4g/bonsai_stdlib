@@ -9,6 +9,9 @@
 #define link_internal     static
 #define link_inline       inline
 
+// NOTE(Jesse): This is just a note as to why it's not any other explicit linkage
+#define link_weak
+
 // External linkage (pointer is from another lib)
 #define link_external     extern "C"
 
