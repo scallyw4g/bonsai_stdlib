@@ -767,7 +767,7 @@ poof(
 poof(
   func dunion_debug_print(DUnion)
   {
-    dunion_debug_print_prototype(DUnion)
+    /* dunion_debug_print_prototype(DUnion) */
 
     DUnion.map_members (M)
     {

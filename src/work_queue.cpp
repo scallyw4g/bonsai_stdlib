@@ -33,7 +33,6 @@ ThreadMain(void *Input)
 
   SetThreadLocal_ThreadIndex(ThreadParams->ThreadIndex);
   if (WorkerThread_BeforeJobStart) WorkerThread_BeforeJobStart(ThreadParams);
-  /* ThreadParams->EngineApi->WorkerInit(ThreadParams->EngineResources, ThreadParams); */
 
   thread_local_state *Thread = GetThreadLocalState(ThreadLocal_ThreadIndex);
   Thread->Index = ThreadParams->ThreadIndex;
@@ -72,7 +71,6 @@ ThreadMain(void *Input)
 
     // NOTE(Jesse): This is here to ensure the game lib (and, by extesion, the debug lib)
     // has ThreadLocal_ThreadIndex set.  This is super annoying and I want a better solution.
-    /* ThreadParams->EngineApi->WorkerInit(ThreadParams->EngineResources, ThreadParams); */
   if (WorkerThread_BeforeJobStart) WorkerThread_BeforeJobStart(ThreadParams);
 
     AtomicIncrement(ThreadParams->HighPriorityWorkerCount);
@@ -132,7 +130,7 @@ ThreadMain(void *Input)
 }
 
 link_internal void
-LaunchWorkerThreads(platform *Plat, engine_resources *EngineResources, engine_api *EngineApi, application_api *AppApi)
+LaunchWorkerThreads(platform *Plat, engine_resources *EngineResources, application_api *AppApi)
 {
   s32 TotalThreadCount  = (s32)GetTotalThreadCount();
 
@@ -158,7 +156,6 @@ LaunchWorkerThreads(platform *Plat, engine_resources *EngineResources, engine_ap
 
     Params->EngineResources = EngineResources;
     Params->AppApi = AppApi;
-    /* Params->EngineApi = EngineApi; */
 
     Params->HighPriorityWorkerCount = &Plat->HighPriorityWorkerCount;
 
