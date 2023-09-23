@@ -1457,10 +1457,10 @@ ProcessButtonEnd(renderer_2d *Group, umm InteractionId, render_state* RenderStat
 link_internal void
 ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Command, render_state* RenderState)
 {
+  rect2 Clip = RenderState->ClipRect;
   v2 MinP    = GetAbsoluteAt(RenderState->Layout);
   v2 Dim     = Command->QuadDim;
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
-  rect2 Clip = RenderState->ClipRect;
 
   switch (Command->Source)
   {
@@ -1506,7 +1506,7 @@ ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_qua
 link_internal void
 ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad *Command, render_state* RenderState, b32 DoBuffering = True)
 {
-  rect2 Clip = RenderState->ClipRect; //GetAbsoluteClip(RenderState->Window);
+  rect2 Clip = RenderState->ClipRect;
   v2 MinP    = GetAbsoluteAt(RenderState->Layout);
   v2 Dim     = Command->QuadDim;
   v3 Color   = SelectColorState(RenderState, &Command->Style);
@@ -2209,14 +2209,10 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_textured_quad:
       {
         ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
-        /* TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState.Layout); */
 
-        /* PushLayout(&RenderState.Layout, &TypedCommand->Layout); */
-        /* ProcessTexturedQuadPush(Group, TypedCommand, &RenderState); */
-        /* if (false) */
         if (TypedCommand->Source == TexturedQuadSource_Discrete)
         {
-          v2 MinP    = GetAbsoluteAt(&TypedCommand->Layout);
+          v2 MinP    = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
           v2 Dim     = TypedCommand->QuadDim;
           r32 Z      = TypedCommand->Z;
           rect2 Clip = TypedCommand->Clip;
@@ -2224,46 +2220,20 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           Assert(Group->TextGroup->Geo.At == 0);
           Assert(Group->TexturedQuadShader.FirstUniform->Next == 0);
 
-          /* Group->TexturedQuadShader.FirstUniform->Texture = Tex; */
-          /* UseShader(Group->TexturedQuadShader); */
-
-          /* GL.Disable(GL_DEPTH_TEST); */
-          /* GL.DepthFunc(GL_LEQUAL); */
-
-          texture *Texture = TypedCommand->Texture;
-          r32 Scale = 0.5f;
-          /* SetViewport( V2(QuadDim)*Scale ); */
-          /* SetViewport( V2(Texture->Dim.x, Texture->Dim.y)*Scale ); */
-          /* SetViewport(*Group->ScreenDim); */
-
-          /* SetupToDrawTexturedQuad( &Group->TexturedQuadShader, TypedCommand->Texture); */
           shader *Shader = &Group->TexturedQuadShader;
           GL.UseProgram(Shader->ID);
 
-          Shader->FirstUniform->Texture = Texture;
+          Shader->FirstUniform->Texture = TypedCommand->Texture;
           Assert(Shader->FirstUniform->Next == 0);
-
-          /* GL.ActiveTexture(GL_TEXTURE0); */
-          /* GL.BindTexture(GL_TEXTURE_2D, TypedCommand->Texture->ID); */
-          /* GL.Uniform1i(Group->TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform */
 
           BindShaderUniforms(Shader);
 
           // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
           BufferTexturedQuad(Group, debug_texture_array_slice(0), MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
 
-          /* PushLayout(&RenderState->Layout, &TypedCommand->Layout); */
-          /* ProcessTexturedQuadPush(Group, TypedCommand, RenderState); */
-          /* PopLayout(&RenderState->Layout); */
-
-          /* FlushCommandBuffer(Group, &RenderState, CommandBuffer, &DefaultLayout); */
-
           Group->SolidGeoCountLastFrame += Group->Geo.At;
           Group->TextGeoCountLastFrame += Group->TextGroup->Geo.At;
-          /* DrawUiBuffers(Group, Group->ScreenDim); */
           DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
-
-          /* GL.Enable(GL_DEPTH_TEST); */
         }
       } break;
     }

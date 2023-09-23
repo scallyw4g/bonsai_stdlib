@@ -103,6 +103,38 @@ operator*(m4 A, m4 B)
   return Result;
 }
 
+m4
+operator+(m4 A, m4 B)
+{
+  m4 Result;
+
+  for(s32 Row = 0; Row < 4; ++Row)
+  {
+    for(s32 Column = 0; Column < 4; ++Column)
+    {
+      /* for(s32 ResultIndex = 0; ResultIndex < 4; ++ResultIndex) */
+      {
+        Result[Row][Column] = A[Row][Column] + B[Row][Column];
+      }
+    }
+  }
+
+  return Result;
+}
+
+link_internal  m4
+Translate2( v3 v )
+{
+  m4 Result;
+
+  Result.E[0] = V4(0,0,0,v.x);
+  Result.E[1] = V4(0,0,0,v.y);
+  Result.E[2] = V4(0,0,0,v.z);
+  Result.E[3] = V4(0,0,0,0);
+
+  return Result;
+}
+
 link_internal  m4
 Translate( v3 v )
 {
