@@ -273,10 +273,11 @@ ClampMin(r32 Value, r32 Min)
   return Value;
 }
 
-inline void
-ClampMax(r32 *Value, r32 Max)
+inline r32
+ClampMax(r32 Value, r32 Max)
 {
-  if (*Value > Max) { *Value = Max; }
+  if (Value > Max) { Value = Max; }
+  return Value;
 }
 
 inline r32
