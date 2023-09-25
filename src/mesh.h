@@ -10,6 +10,10 @@ struct untextured_3d_geometry_buffer
   u32 At;
 
   u64 Timestamp;
+
+  // NOTE(Jesse): This keeps track of what buffer the current reservation buffer came from.
+  untextured_3d_geometry_buffer *Parent;
+  b32 BufferNeedsToGrow;
 };
 
 
@@ -18,6 +22,13 @@ ReserveBufferSpace(untextured_3d_geometry_buffer* Reservation, u32 ElementsToRes
 {
   /* TIMED_FUNCTION(); */
   Assert(ElementsToReserve);
+
+  // NOTE(Jesse): During testing I'm going to limit the chain to 1 link.
+  // @single_parent_chain_link_untextured_3d
+  Assert(Reservation->Parent == False);
+
+  /* auto Parent = Reservation; */
+  /* while (Reservation->Parent) Parent = Reservation->Parent; */
 
   untextured_3d_geometry_buffer Result = {};
 
@@ -34,12 +45,15 @@ ReserveBufferSpace(untextured_3d_geometry_buffer* Reservation, u32 ElementsToRes
         Result.Normals = Reservation->Normals + ReservationAt;
         Result.End = ElementsToReserve;
 
+        Result.Parent = Reservation;
+
         break;
       }
     }
     else
     {
       Warn("Failed to reserve buffer space");
+      Reservation->BufferNeedsToGrow = True;
       break;
     }
   }
