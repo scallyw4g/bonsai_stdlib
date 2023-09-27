@@ -72,6 +72,23 @@ SafeTruncateU8(s32 Size)
   return Result;
 }
 
+link_internal s8
+SafeTruncateS8(u32 Size)
+{
+  Assert(s32(Size) <= s32(s8_MAX));
+  s8 Result = (s8)Size;
+  return Result;
+}
+
+link_internal s8
+SafeTruncateS8(s32 Size)
+{
+  Assert(Size >= s32(s8_MIN));
+  Assert(Size <= s32(s8_MAX));
+  s8 Result = (s8)Size;
+  return Result;
+}
+
 
 inline umm
 Kilobytes(umm Bytes)

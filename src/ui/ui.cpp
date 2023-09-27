@@ -1197,6 +1197,10 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
   return Result;
 }
 
+/* link_internal b32 */
+/* ToggleButton(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding) */
+/* { */
+/* } */
 
 
 

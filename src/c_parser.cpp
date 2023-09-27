@@ -2905,8 +2905,9 @@ ParseIntegerSuffixes(ansi_stream *Code)
 }
 
 link_internal c_token
-ParseNumericToken(ansi_stream *Code)
+ParseNumericToken(ansi_stream *Code, b32 Negative = False)
 {
+  Assert(IsNumeric(*Code->At));
   const char *Start = Code->At;
 
   counted_string IntegralString = { .Start = Code->At };
@@ -2951,6 +2952,22 @@ ParseNumericToken(ansi_stream *Code)
     //
 
     ParseIntegerSuffixes(Code);
+  }
+
+  switch (Result.Type)
+  {
+    case CTokenType_IntLiteral:
+    {
+      Result.as_s32 *= -1;
+    } break;
+
+    case CTokenType_DoubleLiteral:
+    case CTokenType_FloatLiteral:
+    {
+      Result.as_r64 *= -1;
+    } break;
+
+    InvalidDefaultCase;
   }
 
   Result.Value.Start = Start;
@@ -3714,6 +3731,13 @@ TokenizeAnsiStream(ansi_stream Code, memory_arena* Memory, b32 IgnoreQuotes, par
             PushT.Value = CS(Code.At, 2);
             Advance(&Code);
           }
+          else if (Remaining(&Code) > 1 && IsNumeric(*(Code.At+1)))
+          {
+            Advance(&Code);
+            b32 Negative = True;
+            PushT = ParseNumericToken(&Code, Negative);
+          }
+
           Advance(&Code);
         }break;
 
