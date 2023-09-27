@@ -2954,20 +2954,23 @@ ParseNumericToken(ansi_stream *Code, b32 Negative = False)
     ParseIntegerSuffixes(Code);
   }
 
-  switch (Result.Type)
+  if (Negative)
   {
-    case CTokenType_IntLiteral:
+    switch (Result.Type)
     {
-      Result.as_s32 *= -1;
-    } break;
+      case CTokenType_IntLiteral:
+      {
+        Result.as_s32 *= -1;
+      } break;
 
-    case CTokenType_DoubleLiteral:
-    case CTokenType_FloatLiteral:
-    {
-      Result.as_r64 *= -1;
-    } break;
+      case CTokenType_DoubleLiteral:
+      case CTokenType_FloatLiteral:
+      {
+        Result.as_r64 *= -1;
+      } break;
 
-    InvalidDefaultCase;
+      InvalidDefaultCase;
+    }
   }
 
   Result.Value.Start = Start;
