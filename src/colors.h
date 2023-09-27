@@ -17,10 +17,12 @@
 
 #define SAND   2
 
-#define BLUE    211
-#define TEAL    181 // actually cyan
-#define YELLOW  12
-#define PINK    27
+#define BLUE     211
+#define ICE_BLUE 207
+
+#define TEAL     181 // actually cyan
+#define YELLOW   12
+#define PINK     27
 
 #define LIGHT_ORANGE 12
 #define ORANGE       18
