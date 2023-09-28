@@ -37,6 +37,11 @@ Pressed(renderer_2d* Group, interactable_handle *Interaction, v2 *Offset_out = 0
   return Result;
 }
 
+link_internal b32
+ToggledOn(renderer_2d* Group, interactable_handle *Interaction)
+{
+  return False;
+}
 
 
 

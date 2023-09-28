@@ -799,11 +799,10 @@ PushUntexturedQuad(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui
 }
 
 link_internal void
-PushButtonEnd(renderer_2d *Group, button_end_params Params = ButtonEndParam_NoOp)
+PushButtonEnd(renderer_2d *Group)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_button_end,
-    .ui_render_command_button_end.Params = Params,
   };
   PushUiRenderCommand(Group, &Command);
   return;
@@ -1197,10 +1196,33 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
   return Result;
 }
 
-/* link_internal b32 */
-/* ToggleButton(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding) */
-/* { */
-/* } */
+link_internal b32
+ToggleButton(renderer_2d* Group, counted_string ButtonName, umm InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding)
+{
+  ui_render_command StartCommand = {
+    .Type = type_ui_render_command_button_start,
+    .ui_render_command_button_start.ID = InteractionId,
+    .ui_render_command_button_start.Style = Style ? *Style : DefaultStyle,
+    .ui_render_command_button_start.Params = ButtonParam_ToggleButton,
+  };
+
+  PushUiRenderCommand(Group, &StartCommand);
+
+  interactable_handle Handle = {
+    .Id = InteractionId
+  };
+
+
+  PushColumn(Group, ButtonName, Style, Padding);
+
+  ui_render_command EndCommand = {
+    .Type = type_ui_render_command_button_end,
+  };
+  PushUiRenderCommand(Group, &EndCommand);
+
+  b32 Result = ToggledOn(Group, &Handle);
+  return Result;
+}
 
 
 
@@ -1425,7 +1447,7 @@ ProcessButtonStart(renderer_2d* Group, render_state* RenderState, umm ButtonId)
   return;
 }
 
-link_internal void
+link_internal button_interaction_result
 ProcessButtonEnd(renderer_2d *Group, umm InteractionId, render_state* RenderState, rect2 AbsButtonBounds, ui_style* Style)
 {
   Assert(InteractionId);
@@ -1455,7 +1477,7 @@ ProcessButtonEnd(renderer_2d *Group, umm InteractionId, render_state* RenderStat
   RenderState->Pressed = False;
   RenderState->Clicked = False;
 
-  return;
+  return Button;
 }
 
 link_internal void
@@ -2132,7 +2154,19 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         ui_render_command *ButtonCmd = CommandBuffer->Commands+ButtonStartIndex;
         ui_render_command_button_start* ButtonStart = RenderCommandAs(button_start, ButtonCmd);
 
-        ProcessButtonEnd(Group, ButtonStart->ID, RenderState, AbsDrawBounds, &ButtonStart->Style);
+        button_interaction_result ButtonResult = ProcessButtonEnd(Group, ButtonStart->ID, RenderState, AbsDrawBounds, &ButtonStart->Style);
+
+        if (ButtonStart->Params & ButtonParam_ToggleButton)
+        {
+          if (ButtonResult.Clicked)
+          {
+            maybe_ui_toggle Maybe = GetPtrById(&Group->ToggleTable, ButtonStart->ID);
+            if (Maybe.Tag)
+            {
+              Maybe.Value->ToggledOn = !Maybe.Value->ToggledOn;
+            }
+          }
+        }
       } break;
 
       case type_ui_render_command_border:

@@ -724,11 +724,12 @@ poof(
   }
 )
 
+// NOTE(Jesse): value_type can pe Ptr or Value
 poof(
-  func hashtable_get(Type, type_poof_symbol key_type, type_poof_symbol key_name)
+  func hashtable_get(Type, type_poof_symbol value_type, type_poof_symbol key_type, type_poof_symbol key_name)
   {
     maybe_(Type.name)
-    GetBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
+    GetBy(value_type)(key_name)( (Type.name)_hashtable *Table, key_type key_name )
     {
       maybe_(Type.name) Result = {};
 
@@ -740,7 +741,8 @@ poof(
         if (AreEqual(E->key_name, key_name))
         {
           Result.Tag = Maybe_Yes;
-          Result.Value = *E;
+          value_type.compare({Ptr}) { Result.Value = E; }
+                                    { Result.Value = *E; }
           break;
         }
         else

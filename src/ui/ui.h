@@ -58,6 +58,30 @@ struct window_layout
   window_layout* NextHotWindow;
 };
 
+struct ui_toggle
+{
+  umm Id;
+  b32 ToggledOn;
+};
+
+link_internal umm
+Hash(umm *Value) { return *Value; }
+
+link_internal umm
+Hash(ui_toggle *Toggle)
+{
+  return Toggle->Id;
+}
+
+poof(maybe(ui_toggle))
+#include <generated/maybe_ui_toggle.h>
+
+poof(hashtable(ui_toggle))
+#include <generated/hashtable_ui_toggle.h>
+
+poof(hashtable_get(ui_toggle, {umm}, {Id}))
+#include <generated/hashtable_get_ui_toggle_31501_688856534.h>
+
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
 struct input;
@@ -72,6 +96,8 @@ struct renderer_2d
   v2 *MouseDP;
   v2 *ScreenDim;
   input *Input;
+
+  ui_toggle_hashtable ToggleTable;
 
 #define MAX_MINIMIZED_WINDOWS 64
   window_layout *MinimizedWindowBuffer[MAX_MINIMIZED_WINDOWS];
@@ -192,10 +218,11 @@ enum text_render_params
 };
 
 
-enum button_end_params
+enum button_params
 {
-  ButtonEndParam_NoOp                    = 0,
-  ButtonEndParam_DiscardButtonDrawBounds = (1 << 0),
+  ButtonParam_Undefined    = 0,
+  /* ButtonParam_DiscardButtonDrawBounds = (1 << 0), */
+  ButtonParam_ToggleButton = (1 << 1),
 };
 
 enum relative_position
@@ -424,15 +451,16 @@ struct ui_render_command_textured_quad
   rect2 Clip;
 };
 
+
 struct ui_render_command_button_start
 {
   umm ID;
   ui_style Style;
+  button_params Params;
 };
 
 struct ui_render_command_button_end
 {
-  button_end_params Params;
 };
 
 struct ui_render_command_table_start
