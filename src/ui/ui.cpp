@@ -2160,10 +2160,11 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         {
           if (ButtonResult.Clicked)
           {
-            maybe_ui_toggle Maybe = GetPtrById(&Group->ToggleTable, ButtonStart->ID);
+            maybe_ui_toggle Maybe = GetById(&Group->ToggleTable, ButtonStart->ID);
             if (Maybe.Tag)
             {
-              Maybe.Value->ToggledOn = !Maybe.Value->ToggledOn;
+              NotImplemented;
+              /* Maybe.Value->ToggledOn = !Maybe.Value->ToggledOn; */
             }
           }
         }
