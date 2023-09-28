@@ -346,6 +346,14 @@ StartsWith(counted_string S1, counted_string S2)
   return Result;
 }
 
+link_internal b32
+EndsWith(counted_string S1, counted_string S2)
+{
+  b32 Result = False;
+  NotImplemented;
+  return Result;
+}
+
 inline b32
 Contains(counted_string S1, counted_string S2)
 {
