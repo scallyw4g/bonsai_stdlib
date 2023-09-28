@@ -64,6 +64,8 @@ struct ui_toggle
   b32 ToggledOn;
 };
 
+typedef ui_toggle* ui_toggle_ptr;
+
 link_internal umm
 Hash(umm *Value) { return *Value; }
 
@@ -76,11 +78,18 @@ Hash(ui_toggle *Toggle)
 poof(maybe(ui_toggle))
 #include <generated/maybe_ui_toggle.h>
 
+poof(maybe(ui_toggle_ptr))
+#include <generated/maybe_ui_toggle_ptr.h>
+
 poof(hashtable(ui_toggle))
 #include <generated/hashtable_ui_toggle.h>
 
 poof(hashtable_get(ui_toggle, {umm}, {Id}))
 #include <generated/hashtable_get_ui_toggle_31501_688856534.h>
+
+poof(hashtable_get_ptr(ui_toggle, {umm}, {Id}))
+#include <generated/hashtable_get_ptr_ui_toggle_31501_688856534.h>
+
 
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
@@ -116,6 +125,7 @@ struct renderer_2d
   ui_render_command_buffer *CommandBuffer;
 
   memory_arena RenderCommandArena;
+  memory_arena UiToggleArena;
 
 #define RANDOM_COLOR_COUNT 128
   v3 DebugColors[RANDOM_COLOR_COUNT];

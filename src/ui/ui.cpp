@@ -1197,7 +1197,7 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
 }
 
 link_internal b32
-ToggleButton(renderer_2d* Group, counted_string ButtonName, umm InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding)
+ToggleButton(renderer_2d* Group, counted_string ButtonName, umm InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
   ui_render_command StartCommand = {
     .Type = type_ui_render_command_button_start,
@@ -1213,7 +1213,7 @@ ToggleButton(renderer_2d* Group, counted_string ButtonName, umm InteractionId, u
   };
 
 
-  PushColumn(Group, ButtonName, Style, Padding);
+  PushColumn(Group, ButtonName, Style, Padding, ColumnParams);
 
   ui_render_command EndCommand = {
     .Type = type_ui_render_command_button_end,
@@ -2160,11 +2160,16 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         {
           if (ButtonResult.Clicked)
           {
-            maybe_ui_toggle Maybe = GetById(&Group->ToggleTable, ButtonStart->ID);
+            maybe_ui_toggle_ptr Maybe = GetPtrById(&Group->ToggleTable, ButtonStart->ID);
             if (Maybe.Tag)
             {
-              NotImplemented;
-              /* Maybe.Value->ToggledOn = !Maybe.Value->ToggledOn; */
+              ui_toggle* E = Maybe.Value;
+              E->ToggledOn = !E->ToggledOn;
+            }
+            else
+            {
+              ui_toggle E = {ButtonStart->ID, True};
+              Insert(E, &Group->ToggleTable, &Group->UiToggleArena);
             }
           }
         }
@@ -2333,6 +2338,8 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   u32 ElementCount = (u32)Megabytes(2);
   AllocateAndInitGeoBuffer(&Renderer->TextGroup->Geo, ElementCount, PermMemory);
   AllocateAndInitGeoBuffer(&Renderer->Geo, ElementCount, PermMemory);
+
+  Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
 
   if (Headless == False)
   {
