@@ -26,7 +26,7 @@ link_internal parser *         DuplicateCTokenCursor2(c_token_cursor *Tokens, me
 link_internal void DumpLocalTokens(parser *Parser);
 link_internal void PrintTray(char_cursor *Dest, c_token *T, u32 Columns, counted_string Color);
 
-link_internal b32       TokenIsOperator(c_token_type T);
+link_internal b32       TokenIsOperator(c_token *T);
 link_internal b32       NextTokenIsOperator(parser *Parser);
 link_internal c_token * RequireOperatorToken(parser *Parser);
 
@@ -1138,8 +1138,8 @@ OutputContextMessage(parser* Parser, parse_error_code ErrorCode, counted_string 
   }
   else
   {
-    LogDirect(CSz("%S"), CSz("Error determining where the error occurred \n"));
-    LogDirect(CSz("%S"),  CSz("Error messsage was : %S \n"), Message);
+    LogDirect(CSz("Error determining where the error occurred \n"));
+    LogDirect(CSz("Error message was : (%S) \n"), Message);
   }
 
   return;
@@ -2068,10 +2068,10 @@ RequireTokenRaw(parser *Parser, c_token_type Expected )
 }
 
 link_internal b32
-TokenIsOperator(c_token_type T)
+TokenIsOperator(c_token *T)
 {
   b32 Result = False;
-  switch (T)
+  switch (T->Type)
   {
     case CTokenType_Ampersand:
     case CTokenType_Tilde:
@@ -2111,6 +2111,11 @@ TokenIsOperator(c_token_type T)
       Result = True;
     } break;
 
+    case CTokenType_IntLiteral:
+    {
+      Result = (T->as_s32 < 0);
+    } break;
+
     default: {} break;
   }
 
@@ -2120,8 +2125,8 @@ TokenIsOperator(c_token_type T)
 link_internal b32
 NextTokenIsOperator(parser* Parser)
 {
-  c_token T = PeekToken(Parser);
-  b32 Result = TokenIsOperator(T.Type);
+  c_token *T = PeekTokenPointer(Parser);
+  b32 Result = TokenIsOperator(T);
   return Result;
 }
 
@@ -2905,10 +2910,25 @@ ParseIntegerSuffixes(ansi_stream *Code)
 }
 
 link_internal c_token
-ParseNumericToken(ansi_stream *Code, b32 Negative = False)
+ParseNumericToken(ansi_stream *Code)
 {
-  Assert(IsNumeric(*Code->At));
   const char *Start = Code->At;
+
+  b32 Negative = False;
+
+  if (*Code->At == '-')
+  {
+    Advance(Code);
+    Negative = True;
+  }
+  else if (*Code->At == '.')
+  {
+    // This effectively skips parsing the integral portion of the float (if we typed .3f)
+  }
+  else
+  {
+    Assert(IsNumeric(*Code->At));
+  }
 
   counted_string IntegralString = { .Start = Code->At };
   while (Remaining(Code) && IsNumeric(*Code->At)) { Advance(Code); }
@@ -3721,11 +3741,13 @@ TokenizeAnsiStream(ansi_stream Code, memory_arena* Memory, b32 IgnoreQuotes, par
             PushT.Type = CTokenType_Decrement;
             PushT.Value = CS(Code.At, 2);
             Advance(&Code);
+            Advance(&Code);
           }
           else if (SecondT.Type == CTokenType_Equals)
           {
             PushT.Type = CTokenType_MinusEquals;
             PushT.Value = CS(Code.At, 2);
+            Advance(&Code);
             Advance(&Code);
           }
           else if (SecondT.Type == CTokenType_GT)
@@ -3733,15 +3755,17 @@ TokenizeAnsiStream(ansi_stream Code, memory_arena* Memory, b32 IgnoreQuotes, par
             PushT.Type = CTokenType_Arrow;
             PushT.Value = CS(Code.At, 2);
             Advance(&Code);
+            Advance(&Code);
           }
           else if (Remaining(&Code) > 1 && IsNumeric(*(Code.At+1)))
           {
+            PushT = ParseNumericToken(&Code);
+          }
+          else
+          {
             Advance(&Code);
-            b32 Negative = True;
-            PushT = ParseNumericToken(&Code, Negative);
           }
 
-          Advance(&Code);
         }break;
 
         case CTokenType_Plus:
