@@ -1,3 +1,6 @@
+#define CLI_SUCCESS_EXIT_CODE 0
+#define CLI_FAILURE_EXIT_CODE 1
+
 #define RED_TERMINAL "\x1b[31m"
 #define BLUE_TERMINAL "\x1b[34m"
 #define PURPLE_TERMINAL "\x1b[35m"
