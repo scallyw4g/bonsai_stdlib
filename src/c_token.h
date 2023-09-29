@@ -226,7 +226,9 @@ poof(generate_string_table(c_token_type))
 enum c_token_flags
 {
   CTFlags_None = 0,
+
   CTFlags_RelativeInclude = 1 << 0,
+  CTFlags_Signed          = 1 << 1,
 };
 
 
@@ -253,9 +255,12 @@ poof(generate_string_table(token_cursor_source));
 #include <generated/generate_string_table_token_cursor_source.h>
 
 
+// NOTE(Jesse): This struct is getting hella gross .. we should really make it
+// a proper d_union
 struct c_token
 {
   c_token_type Type;
+  u8 Flags;
 
   union {
     counted_string Value;
@@ -264,24 +269,33 @@ struct c_token
   };
 
   counted_string Filename;
-  u32 LineNumber;
-  b32 Erased; // TODO(Jesse): Pack this into Flags
 
-  u8 Flags;
+  // TODO(Jesse): 24 bits should be enough for this .. we could pack flags at the top?
+  u32 LineNumber;
+
+  b32 Erased; // TODO(Jesse): Pack this into Flags
 
   union
   {
+
     // NOTE(Jesse): These are to support a pattern with usage from poof of generically 
     // accessing heterogenous types with only the type name through a macro
-    u32       as_u32;
-    s32       as_s32;
     u64       as_u64;
     s64       as_s64;
-
-    /* s64    SignedValue; */ // TODO(Jesse id: 272): Fold `-` sign into this value at tokenization time?
-    u64       UnsignedValue;
-    r64       FloatValue;
     r64       as_r64;
+
+    // NOTE(Jesse): Removing these because we'd need to differentiate what
+    // bit-width we parsed the number as, which is annoying.  The callers can
+    // live with casting the 64 bit values to 32 bits if they want.
+    /* u32       as_u32; */
+    /* s32       as_s32; */
+
+    // TODO(Jesse): Remove these
+      /* s64    SignedValue; */
+      u64       UnsignedValue;
+      r64       FloatValue;
+    //
+
     c_token   *QualifierName;
 
     // NOTE(Jesse): I ordered the 'macro_expansion' struct such that the
@@ -292,8 +306,7 @@ struct c_token
     c_token_cursor  *Down;
     macro_expansion Macro;
 
-    counted_string IncludePath; // TODO(Jesse): We probably care that this (and Macro) increase struct size by 8.  Heap allocate to fix?
-
+    counted_string IncludePath; // TODO(Jesse): We probably care that this (and Macro) increase struct size by 8.  Heap allocate to fix.
   };
 
   // TODO(Jesse)(correctness): The preprocessor doesn't support this for some reason..
@@ -302,7 +315,6 @@ struct c_token
     b32 Result = ((u64)Type | Value.Count) != 0;
     return Result;
   }
-
 };
 
 // TODO(Jesse)(metaprogramming)(easy): Reenable this.

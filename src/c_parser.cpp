@@ -96,12 +96,24 @@ CToken(r32 FloatValue)
 }
 
 inline c_token
-CToken(u32 UnsignedValue)
+CToken(s32 Value)
 {
   c_token Result = {
     .Type = CTokenType_IntLiteral,
-    .Value = FormatCountedString(GetTranArena(), CSz("%u"), UnsignedValue), // TODO(Jesse id: 351, tags: memory_leak)
-    .UnsignedValue = UnsignedValue,
+    .Value = FormatCountedString(GetTranArena(), CSz("%s"), Value), // TODO(Jesse id: 351, tags: memory_leak)
+    .as_s64 = s64(Value),
+    .Flags = CTFlags_Signed,
+  };
+  return Result;
+}
+
+inline c_token
+CToken(u32 Value)
+{
+  c_token Result = {
+    .Type = CTokenType_IntLiteral,
+    .Value = FormatCountedString(GetTranArena(), CSz("%u"), Value), // TODO(Jesse id: 351, tags: memory_leak)
+    .as_u64 = u64(Value),
   };
   return Result;
 }
@@ -2113,7 +2125,7 @@ TokenIsOperator(c_token *T)
 
     case CTokenType_IntLiteral:
     {
-      Result = (T->as_s32 < 0);
+      if (T->Flags & CTFlags_Signed) { Result = (T->as_s64 < 0); }
     } break;
 
     default: {} break;
@@ -2912,6 +2924,9 @@ ParseIntegerSuffixes(ansi_stream *Code)
 link_internal c_token
 ParseNumericToken(ansi_stream *Code)
 {
+  c_token Result = {};
+  Result.Type = CTokenType_IntLiteral;
+
   const char *Start = Code->At;
 
   b32 Negative = False;
@@ -2920,8 +2935,10 @@ ParseNumericToken(ansi_stream *Code)
   {
     Advance(Code);
     Negative = True;
+    Result.Flags |= CTFlags_Signed;
   }
-  else if (*Code->At == '.')
+
+  if (*Code->At == '.')
   {
     // This effectively skips parsing the integral portion of the float (if we typed .3f)
   }
@@ -2936,10 +2953,7 @@ ParseNumericToken(ansi_stream *Code)
 
   u64 IntegralPortion = ToU64(IntegralString);
 
-  c_token Result = {
-    .Type = CTokenType_IntLiteral,
-    .UnsignedValue = IntegralPortion,
-  };
+  Result.as_u64 = IntegralPortion;
 
   if ( IntegralPortion == 0 &&
        (*Code->At == 'x'|| *Code->At == 'X') )
@@ -2980,7 +2994,7 @@ ParseNumericToken(ansi_stream *Code)
     {
       case CTokenType_IntLiteral:
       {
-        Result.as_s32 *= -1;
+        Result.as_s64 *= -1;
       } break;
 
       case CTokenType_DoubleLiteral:
