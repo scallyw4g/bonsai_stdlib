@@ -371,7 +371,9 @@ WindowMessageCallback(
     {
       // NOTE(Jesse): The tick-rate for mouse wheels on windows is 120..
       // normalize to 1
-      Plat->Input.MouseWheelDelta = GET_WHEEL_DELTA_WPARAM(wParam) / 120;
+      s32 RawDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+      Plat->Input.MouseWheelDelta = RawDelta;
+      /* Info("RawDelta(%d)", RawDelta); */
     } return 0;
 
 

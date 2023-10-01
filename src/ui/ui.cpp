@@ -2431,11 +2431,11 @@ UiFrameEnd(renderer_2d *Ui)
   {
     if (Input->Ctrl.Pressed)
     {
-      Ui->HighestWindow->Scroll.x += Input->MouseWheelDelta * 5;
+      Ui->HighestWindow->Scroll.x += Input->MouseWheelDelta;
     }
     else
     {
-      Ui->HighestWindow->Scroll.y += Input->MouseWheelDelta * 5;
+      Ui->HighestWindow->Scroll.y += Input->MouseWheelDelta;
     }
   }
 

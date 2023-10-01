@@ -46,6 +46,8 @@
 #define GREY_9   255
 
 
+#define STANDING_SPOT_DEFAULT_COLOR 128
+
 #if 1
 //  RR GG BB AA
 static v4 DefaultPalette[] = {
