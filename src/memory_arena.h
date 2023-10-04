@@ -98,30 +98,6 @@ SafeTruncateS8(s32 Size)
 }
 
 
-/* poof( */
-/*   func gen_safe_numeric_cast(operand_type, result_type) */
-/*   { */
-/*     link_internal result_type.name */
-/*     SafeNumericCast_(result_type.name)((operand_type.name) Operand) */
-/*     { */
-/*       Assert(Operand >= operand_type.name((result_type.name)_MIN)); */
-/*       Assert(Operand <= operand_type.name((result_type.name)_MAX)); */
-
-/*       result_type.name Result = result_type.name(Operand); */
-/*       return Result; */
-/*     } */
-/*   } */
-/* ) */
-
-/* poof( gen_safe_numeric_cast(s64, s32) ) */
-/* #include <generated/gen_safe_numeric_cast_s64_s32.h> */
-
-/* poof( gen_safe_numeric_cast(u64, u32) ) */
-/* #include <generated/gen_safe_numeric_cast_u64_u32.h> */
-
-/* poof( gen_safe_numeric_cast(r64, r32) ) */
-/* #include <generated/gen_safe_numeric_cast_r64_r32.h> */
-
 inline umm
 Kilobytes(umm Bytes)
 {
