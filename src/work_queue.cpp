@@ -170,6 +170,14 @@ LaunchWorkerThreads(platform *Plat, engine_resources *EngineResources, applicati
 }
 
 link_internal void
+ShutdownWorkerThreads(platform *Plat)
+{
+  SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
+  Ensure( UnsignalFutex(&Plat->WorkerThreadsExitFutex) );
+  while (Plat->WorkerThreadsExitFutex.ThreadsWaiting > 0) { SleepMs(1); };
+}
+
+link_internal void
 InitQueue(work_queue* Queue, memory_arena* Memory) //, semaphore* Semaphore)
 {
   Queue->EnqueueIndex = 0;
