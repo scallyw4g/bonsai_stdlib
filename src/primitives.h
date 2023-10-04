@@ -51,6 +51,7 @@ typedef r32      degrees;
 typedef long long int           s64;
 typedef unsigned long long int  u64;
 typedef double                  r64;
+typedef double                  f64;
 #if BONSAI_EMCC
 typedef u32                     umm;
 #else
@@ -104,12 +105,23 @@ CAssert(sizeof(u8) == 1);
 #define u32_MAX (0xffffffffu)
 #define u64_MAX (0xffffffffffffffffllu)
 
+#define u8_MIN  (0x0)
+#define u16_MIN (0x0)
+#define u32_MIN (0x0)
+#define u64_MIN (0x0)
+
+
 #define f32_MAX (1E+37f)
 #define f32_MIN (1E-37f)
+#define r32_MAX (f32_MAX)
+#define r32_MIN (f32_MIN)
+
 
 // https://learn.microsoft.com/en-us/dotnet/visual-basic/language-reference/data-types/double-data-type
 #define f64_MAX ( 1.79769313486231570E+308)
 #define f64_MIN (-1.79769313486231570E+308)
+#define r64_MAX (f64_MAX)
+#define r64_MIN (f64_MIN)
 
 #if BONSAI_EMCC
 #define umm_MAX u32_MAX

@@ -283,6 +283,7 @@ struct c_token
     u64       as_u64;
     s64       as_s64;
     r64       as_r64;
+    f64       as_f64;
 
     // NOTE(Jesse): Removing these because we'd need to differentiate what
     // bit-width we parsed the number as, which is annoying.  The callers can
@@ -314,6 +315,46 @@ struct c_token
   {
     b32 Result = ((u64)Type | Value.Count) != 0;
     return Result;
+  }
+
+  u32 to_u32()
+  {
+    return SafeTruncateToU32(as_u64);
+  }
+
+  u64 to_u64()
+  {
+    return as_u64;
+  }
+
+  s32 to_s32()
+  {
+    return SafeTruncateToS32(as_u64);
+  }
+
+  s64 to_s64()
+  {
+    return s64(as_u64);
+  }
+
+  f32 to_f32()
+  {
+    return SafeTruncateTo_f32(as_f64);
+  }
+
+  f64 to_f64()
+  {
+    return as_f64;
+  }
+
+  r32 to_r32()
+  {
+    return SafeTruncateTo_f32(as_f64);
+  }
+
+  r64 to_r64()
+  {
+    return as_f64;
   }
 };
 
