@@ -23,30 +23,10 @@ link_internal void WaitForWorkerThreads(volatile u32 *);
 link_internal void SignalAndWaitForWorkers(bonsai_futex *);
 
 
+
 global_variable thread_local
 s32 ThreadLocal_ThreadIndex = INVALID_THREAD_LOCAL_THREAD_INDEX;
 
-
-
-/* struct game_state; */
-/* struct thread_startup_params */
-/* { */
-/*   engine_api *EngineApi; */
-/*   game_api   *GameApi; */
-
-/*   engine_resources *EngineResources; */
-
-/*   volatile u32 *HighPriorityWorkerCount; */
-
-/*   bonsai_futex *HighPriorityModeFutex; */
-/*   bonsai_futex *WorkerThreadsSuspendFutex; */
-/*   bonsai_futex *WorkerThreadsExitFutex; */
-
-/*   work_queue *LowPriority; */
-/*   work_queue *HighPriority; */
-
-/*   volatile s32 ThreadIndex; */
-/* }; */
 
 
 link_internal void
@@ -131,10 +111,9 @@ struct thread_local_state
   perlin_noise *PerlinNoise;
 
   s32 Index;
-  s32 Pad0[7];
+  s32 Pad0[5];
 
-  /* mesh_freelist *MeshFreelist; */
-  /* perlin_noise   Noise; */
+  void *UserData;
 };
 CAssert(sizeof(thread_local_state) == CACHE_LINE_SIZE);
 
