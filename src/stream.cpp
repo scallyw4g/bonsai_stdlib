@@ -23,6 +23,10 @@ poof(generate_stream_compact(u64))
 #include <generated/generate_stream_compact_u64.h>
 
 
+poof(stream_and_cursor(s32))
+#include <generated/stream_and_cursor_s32.h>
+
+
 poof(generate_cursor(v3))
 #include <generated/generate_cursor_v3.h>
 

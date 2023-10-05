@@ -1218,6 +1218,16 @@ poof(
       return 0;
     }
 
+    link_internal void
+    Unshift( (Type.name)_cursor *C )
+    {
+      umm Count = TotalElements(C);
+      for (umm Index = 1; Index < Count; ++Index)
+      {
+        C->Start[Index-1] = C->Start[Index];
+      }
+    }
+
   }
 )
 
