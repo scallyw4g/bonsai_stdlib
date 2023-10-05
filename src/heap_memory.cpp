@@ -1,7 +1,10 @@
 heap_allocator
-InitHeap(umm AllocationSize)
+InitHeap(umm AllocationSize, b32 Multithreaded = False)
 {
   heap_allocator Result = {};
+
+  if (Multithreaded) { InitializeFutex(&Result.Futex); }
+  else { Result.OwnedByThread = ThreadLocal_ThreadIndex; }
 
   Result.FirstBlock = (heap_allocation_block*)PlatformAllocateSize(AllocationSize);
   Result.FirstBlock->Size = AllocationSize - sizeof(heap_allocation_block);
@@ -30,6 +33,15 @@ OffsetForHeapAllocation(heap_allocator *Allocator, u8 *Alloc)
 link_internal u8*
 HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 {
+  if (Allocator->Futex.Initialized == True)
+  {
+    AcquireFutex(&Allocator->Futex);
+  }
+  else
+  {
+    Assert(Allocator->OwnedByThread == ThreadLocal_ThreadIndex);
+  }
+
   Assert(Allocator->FirstBlock && Allocator->Size);
 
 #if 0
@@ -76,6 +88,11 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
     }
   }
 #endif
+
+  if (Allocator->Futex.Initialized == True)
+  {
+    ReleaseFutex(&Allocator->Futex);
+  }
 
   return Result;
 }
@@ -125,8 +142,17 @@ CondenseAllocations(heap_allocation_block* B1, heap_allocation_block* B2)
 }
 
 void
-HeapDeallocate(void* Allocation)
+HeapDeallocate(heap_allocator *Allocator, void* Allocation)
 {
+  if (Allocator->Futex.Initialized == True)
+  {
+    AcquireFutex(&Allocator->Futex);
+  }
+  else
+  {
+    Assert(Allocator->OwnedByThread == ThreadLocal_ThreadIndex);
+  }
+
   Assert(Allocation);
 
   heap_allocation_block* AllocationBlock = (heap_allocation_block*)((u8*)Allocation - sizeof(heap_allocation_block));
@@ -135,18 +161,17 @@ HeapDeallocate(void* Allocation)
   if (Next && Next->Type == AllocationType_Free)
   {
     CondenseAllocations(AllocationBlock, Next);
-    return;
   }
 
   heap_allocation_block* Prev = GetPrevBlock(AllocationBlock);
   if (Prev && Prev->Type == AllocationType_Free)
   {
     CondenseAllocations(AllocationBlock, Prev);
-    return;
   }
 
   AllocationBlock->Type = AllocationType_Free;
 
+  if (Allocator->Futex.Initialized == True) { ReleaseFutex(&Allocator->Futex); }
   return;
 }
 

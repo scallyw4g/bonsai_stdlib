@@ -1483,7 +1483,7 @@ poof(
         debug_print_enum(T)
       }
       {
-        poof_error { Unable to generate debug_print for (T) }
+        poof_error { Unable to generate debug_print; (T) was not a struct or enum. }
       }
     }
 
