@@ -28,7 +28,7 @@ enum bonsai_init_flags
 
 
 link_internal b32
-InitializeBonsaiStdlib(bonsai_init_flags Flags, os *Os, platform *Plat, engine_resources *Engine, memory_arena *Memory)
+InitializeBonsaiStdlib(bonsai_init_flags Flags, application_api *AppApi, os *Os, platform *Plat, engine_resources *Engine, memory_arena *Memory)
 {
   Info("Initializing Bonsai");
 
@@ -39,7 +39,8 @@ InitializeBonsaiStdlib(bonsai_init_flags Flags, os *Os, platform *Plat, engine_r
 
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
-     Global_ThreadStates = Initialize_ThreadLocal_ThreadStates((s32)GetTotalThreadCount(), Engine, Memory);
+    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates((s32)GetTotalThreadCount(), Engine, Memory);
+    if (AppApi->WorkerInit) { AppApi->WorkerInit (Global_ThreadStates, 0); }
   }
 
   if (Flags & BonsaiInit_OpenWindow)
