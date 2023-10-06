@@ -1,6 +1,7 @@
 struct thread_startup_params;
 struct graphics;
 struct server_state;
+
 struct platform
 {
   work_queue LowPriority;

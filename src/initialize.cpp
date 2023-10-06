@@ -32,7 +32,6 @@ InitializeBonsaiStdlib(bonsai_init_flags Flags, application_api *AppApi, os *Os,
 {
   Info("Initializing Bonsai");
 
-  Assert(ThreadLocal_ThreadIndex == -1);
   SetThreadLocal_ThreadIndex(0);
 
   PlatformInit(Plat, Memory);
@@ -41,6 +40,7 @@ InitializeBonsaiStdlib(bonsai_init_flags Flags, application_api *AppApi, os *Os,
   {
     Global_ThreadStates = Initialize_ThreadLocal_ThreadStates((s32)GetTotalThreadCount(), Engine, Memory);
     if (AppApi->WorkerInit) { AppApi->WorkerInit (Global_ThreadStates, 0); }
+    LaunchWorkerThreads(Plat, Engine, AppApi);
   }
 
   if (Flags & BonsaiInit_OpenWindow)

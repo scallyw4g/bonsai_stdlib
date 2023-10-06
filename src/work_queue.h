@@ -60,6 +60,7 @@ QueueIsFull(work_queue *Queue)
   return Result;
 }
 
+struct platform;
 struct game_state;
 struct engine_resources;
 struct thread_local_state;
@@ -107,4 +108,6 @@ struct thread_startup_params
 link_weak void PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry);
 link_weak void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
 link_weak void WorkerThread_BeforeJobStart(thread_startup_params *StartupParams);
+
+link_internal void LaunchWorkerThreads(platform *Plat, engine_resources *EngineResources, application_api *AppApi);
 
