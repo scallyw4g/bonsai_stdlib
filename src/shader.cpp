@@ -234,7 +234,11 @@ BindShaderUniforms(shader *Shader)
       case ShaderUniform_Texture:
       {
         TIMED_BLOCK("ShaderUniform_Texture");
-        Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
+        if (TextureUnit > 8)
+        {
+          Warn("TODO(Jesse): TextureUnit > 8, query available texture units"); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
+        }
+        /* Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures? */
 
         GL.ActiveTexture(GL_TEXTURE0 + TextureUnit);
         GL.Uniform1i(Uniform->ID, (s32)TextureUnit);
