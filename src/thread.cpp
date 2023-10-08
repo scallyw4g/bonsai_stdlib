@@ -49,11 +49,11 @@ WaitOnFutex(bonsai_futex *Futex, b32 DoSleep)
 }
 
 link_internal thread_local_state
-DefaultThreadLocalState(engine_resources *EngineResources, s32 ThreadId)
+DefaultThreadLocalState(s32 ThreadId)
 {
   thread_local_state Thread = {};
 
-  Thread.EngineResources = EngineResources;
+  /* Thread.EngineResources = EngineResources; */
 
   Thread.TempMemory = AllocateArena();
   Thread.PermMemory = AllocateArena(Megabytes(8));
@@ -76,7 +76,7 @@ DefaultThreadLocalState(engine_resources *EngineResources, s32 ThreadId)
 }
 
 link_internal thread_local_state*
-Initialize_ThreadLocal_ThreadStates(s32 TotalThreadCount, engine_resources* Resources, memory_arena* Memory)
+Initialize_ThreadLocal_ThreadStates(s32 TotalThreadCount, memory_arena* Memory)
 {
   thread_local_state *Result = AllocateAligned(thread_local_state, Memory, TotalThreadCount, CACHE_LINE_SIZE);
 
@@ -84,7 +84,7 @@ Initialize_ThreadLocal_ThreadStates(s32 TotalThreadCount, engine_resources* Reso
             ThreadIndex < TotalThreadCount;
           ++ThreadIndex )
   {
-    Result[ThreadIndex] = DefaultThreadLocalState(Resources, ThreadIndex);
+    Result[ThreadIndex] = DefaultThreadLocalState(ThreadIndex);
   }
 
   return Result;
@@ -93,7 +93,7 @@ Initialize_ThreadLocal_ThreadStates(s32 TotalThreadCount, engine_resources* Reso
 link_internal thread_local_state *
 AllocateAndInitThreadStates(memory_arena *Memory)
 {
-  Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, 0, Memory);
+  Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, Memory);
   SetThreadLocal_ThreadIndex(0);
   return Global_ThreadStates;
 }

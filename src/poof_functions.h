@@ -976,13 +976,14 @@ poof(
 
 // TODO(Jesse)(immediate): Rewrite this in terms of a cursor.
 poof(
-  func generate_stack(Type)
+  func generate_stack(Type, type_poof_symbol ExtraMembers)
   {
     struct (Type.name)_stack
     {
       Type.name *Start;
       umm At;
       umm End;
+      (ExtraMembers)
     };
 
     link_internal (Type.name)_stack

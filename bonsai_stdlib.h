@@ -55,3 +55,22 @@ struct camera;
 
 #include <bonsai_stdlib/src/c_token.h>
 #include <bonsai_stdlib/src/c_parser.h>
+
+
+
+#include <bonsai_debug/debug.h>
+#include <bonsai_debug/src/api.h>
+
+#define UNPACK_STDLIB(Stdlib) \
+  os *Os         = &(Stdlib)->Os; \
+  platform *Plat = &(Stdlib)->Plat;
+
+struct bonsai_stdlib
+{
+  os Os;
+  platform Plat;
+  thread_local_state *ThreadStates;
+
+  bonsai_debug_system DebugSystem;
+};
+

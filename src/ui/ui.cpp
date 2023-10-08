@@ -3,6 +3,33 @@
 
 #define u32_COUNT_PER_QUAD (6)
 
+
+poof(hashtable_impl(ui_toggle))
+#include <generated/hashtable_impl_ui_toggle.h>
+
+poof(hashtable_get(ui_toggle, {umm}, {Id}))
+#include <generated/hashtable_get_ui_toggle_31501_688856534.h>
+
+poof(hashtable_get_ptr(ui_toggle, {umm}, {Id}))
+#include <generated/hashtable_get_ptr_ui_toggle_31501_688856534.h>
+
+
+link_internal b32
+ToggledOn(renderer_2d* Group, interactable_handle *Interaction)
+{
+  maybe_ui_toggle Maybe = GetById(&Group->ToggleTable, Interaction->Id);
+
+  b32 Result = False;
+  if (Maybe.Tag)
+  {
+    Result = Maybe.Value.ToggledOn;
+  }
+
+  return Result;
+}
+
+
+
 /*******************************              *********************************/
 /*******************************  DrawBounds  *********************************/
 /*******************************              *********************************/
@@ -2377,6 +2404,11 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   {
     Renderer->DebugColors[ColorIndex] = RandomV3(&Entropy);
   }
+
+  Assert(MouseP);
+  Assert(MouseDP);
+  Assert(ScreenDim);
+  Assert(Input);
 
   Renderer->MouseP    = MouseP;
   Renderer->MouseDP   = MouseDP;

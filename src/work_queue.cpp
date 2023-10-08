@@ -129,8 +129,8 @@ ThreadMain(void *Input)
   return 0;
 }
 
-link_internal void
-LaunchWorkerThreads(platform *Plat, engine_resources *EngineResources, application_api *AppApi)
+link_weak void
+LaunchWorkerThreads(platform *Plat, application_api *AppApi)
 {
   s32 TotalThreadCount  = (s32)GetTotalThreadCount();
 
@@ -154,7 +154,6 @@ LaunchWorkerThreads(platform *Plat, engine_resources *EngineResources, applicati
     Params->HighPriority = &Plat->HighPriority;
     Params->LowPriority = &Plat->LowPriority;
 
-    Params->EngineResources = EngineResources;
     Params->AppApi = AppApi;
 
     Params->HighPriorityWorkerCount = &Plat->HighPriorityWorkerCount;
@@ -178,7 +177,7 @@ ShutdownWorkerThreads(platform *Plat)
 }
 
 link_internal void
-InitQueue(work_queue* Queue, memory_arena* Memory) //, semaphore* Semaphore)
+InitQueue(work_queue* Queue, memory_arena* Memory)
 {
   Queue->EnqueueIndex = 0;
   Queue->DequeueIndex = 0;

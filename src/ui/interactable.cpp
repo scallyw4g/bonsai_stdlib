@@ -37,20 +37,6 @@ Pressed(renderer_2d* Group, interactable_handle *Interaction, v2 *Offset_out = 0
   return Result;
 }
 
-link_internal b32
-ToggledOn(renderer_2d* Group, interactable_handle *Interaction)
-{
-  maybe_ui_toggle Maybe = GetById(&Group->ToggleTable, Interaction->Id);
-
-  b32 Result = False;
-  if (Maybe.Tag)
-  {
-    Result = Maybe.Value.ToggledOn;
-  }
-
-  return Result;
-}
-
 
 
 

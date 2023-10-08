@@ -87,10 +87,7 @@ struct application_api
 
 struct thread_startup_params
 {
-  /* engine_api *EngineApi; */
   application_api *AppApi;
-
-  engine_resources *EngineResources;
 
   volatile u32 *HighPriorityWorkerCount;
 
@@ -108,6 +105,5 @@ struct thread_startup_params
 link_weak void PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry);
 link_weak void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
 link_weak void WorkerThread_BeforeJobStart(thread_startup_params *StartupParams);
-
-link_internal void LaunchWorkerThreads(platform *Plat, engine_resources *EngineResources, application_api *AppApi);
+link_weak void LaunchWorkerThreads(platform *Plat, application_api *AppApi);
 

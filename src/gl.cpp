@@ -1,8 +1,10 @@
-#define Draw(VertexCount) do {                      \
-  TIMED_BLOCK("Draw");                              \
-  DEBUG_TRACK_DRAW_CALL(__FUNCTION__, VertexCount); \
-  GL.DrawArrays(GL_TRIANGLES, 0, (s32)VertexCount);  \
-  END_BLOCK(); } while (0)
+
+link_internal void
+Draw(u32 VertexCount)
+{
+  TIMED_FUNCTION();
+  GL.DrawArrays(GL_TRIANGLES, 0, s32(VertexCount) );
+}
 
 inline void
 SetViewport(v2 Dim)

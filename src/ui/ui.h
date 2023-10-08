@@ -81,14 +81,9 @@ poof(maybe(ui_toggle))
 poof(maybe(ui_toggle_ptr))
 #include <generated/maybe_ui_toggle_ptr.h>
 
-poof(hashtable(ui_toggle))
-#include <generated/hashtable_ui_toggle.h>
+poof(hashtable_struct(ui_toggle))
+#include <generated/hashtable_struct_ui_toggle.h>
 
-poof(hashtable_get(ui_toggle, {umm}, {Id}))
-#include <generated/hashtable_get_ui_toggle_31501_688856534.h>
-
-poof(hashtable_get_ptr(ui_toggle, {umm}, {Id}))
-#include <generated/hashtable_get_ptr_ui_toggle_31501_688856534.h>
 
 
 /* poof(buffer(window_layout)) */
