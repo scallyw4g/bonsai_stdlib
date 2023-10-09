@@ -693,8 +693,8 @@ poof(
     Allocate_(Type.name)_hashtable(umm ElementCount, memory_arena *Memory)
     {
       (Type.name)_hashtable Result = {
-        .Elements = Allocate( (Type.name)_linked_list_node*, Memory, ElementCount);
-        .Size = ElementCount;
+        .Elements = Allocate( (Type.name)_linked_list_node*, Memory, ElementCount),
+        .Size = ElementCount,
         OWNED_BY_THREAD_MEMBER_INIT(),
       };
       return Result;
@@ -1116,7 +1116,6 @@ poof(
       Type.name *At;
       Type.name *End;
       OWNED_BY_THREAD_MEMBER();
-      s32 OwnedByThread; // TODO(Jesse): Make this switched on BONSAI_INTERNAL (needs poof support, or macro trickery)
     };
 
   }
