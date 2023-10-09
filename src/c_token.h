@@ -377,6 +377,8 @@ struct c_token_cursor
   c_token* End;
   c_token* At;
 
+  s32 OwnedByThread;
+
   c_token_cursor_up Up;
 
   counted_string Filename;

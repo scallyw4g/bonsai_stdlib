@@ -1,3 +1,13 @@
+#if BONSAI_INTERNAL
+#define ENSURE_OWNED_BY_THREAD(ThingPointer) Assert((ThingPointer)->OwnedByThread == ThreadLocal_ThreadIndex)
+#define OWNED_BY_THREAD_MEMBER(ThingPointer) s32 OwnedByThread = INVALID_THREAD_LOCAL_THREAD_INDEX
+#define OWNED_BY_THREAD_MEMBER_INIT() .OwnedByThread = ThreadLocal_ThreadIndex
+#else 
+#define ENSURE_OWNED_BY_THREAD(...)
+#define OWNED_BY_THREAD_MEMBER(...)
+#define OWNED_BY_THREAD_MEMBER_INIT(....)
+#endif
+
 // TODO(Jesse)(bug, poof): If I put this function in bonsai_stdlib/shader.cpp
 // poof fails to call it when it gets to engine/shader.cpp
 poof(
@@ -663,6 +673,7 @@ poof(
     {
       umm Size;
       (Type.name)_linked_list_node **Elements;
+      OWNED_BY_THREAD_MEMBER();
     };
   }
 );
@@ -670,6 +681,7 @@ poof(
 poof(
   func hashtable_impl(Type)
   {
+
     link_internal (Type.name)_linked_list_node *
     Allocate_(Type.name)_linked_list_node(memory_arena *Memory)
     {
@@ -680,15 +692,19 @@ poof(
     link_internal (Type.name)_hashtable
     Allocate_(Type.name)_hashtable(umm ElementCount, memory_arena *Memory)
     {
-      (Type.name)_hashtable Result = {};
-      Result.Elements = Allocate( (Type.name)_linked_list_node*, Memory, ElementCount);
-      Result.Size = ElementCount;
+      (Type.name)_hashtable Result = {
+        .Elements = Allocate( (Type.name)_linked_list_node*, Memory, ElementCount);
+        .Size = ElementCount;
+        OWNED_BY_THREAD_MEMBER_INIT(),
+      };
       return Result;
     }
 
     link_internal (Type.name)_linked_list_node *
     GetHashBucket(umm HashValue, (Type.name)_hashtable *Table)
     {
+      ENSURE_OWNED_BY_THREAD(Table);
+
       Assert(Table->Size);
       (Type.name)_linked_list_node *Result = Table->Elements[HashValue % Table->Size];
       return Result;
@@ -697,6 +713,8 @@ poof(
     link_internal Type.name *
     GetFirstAtBucket(umm HashValue, (Type.name)_hashtable *Table)
     {
+      ENSURE_OWNED_BY_THREAD(Table);
+
       (Type.name)_linked_list_node *Bucket = GetHashBucket(HashValue, Table);
       (Type.name) *Result = &Bucket->Element;
       return Result;
@@ -705,6 +723,8 @@ poof(
     link_internal Type.name *
     Insert((Type.name)_linked_list_node *Node, (Type.name)_hashtable *Table)
     {
+      ENSURE_OWNED_BY_THREAD(Table);
+
       Assert(Table->Size);
       umm HashValue = Hash(&Node->Element) % Table->Size;
       (Type.name)_linked_list_node **Bucket = Table->Elements + HashValue;
@@ -716,6 +736,8 @@ poof(
     link_internal (Type.name)*
     Insert((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
+      ENSURE_OWNED_BY_THREAD(Table);
+
       (Type.name)_linked_list_node *Bucket = Allocate_(Type.name)_linked_list_node(Memory);
       Bucket->Element = Element;
       Insert(Bucket, Table);
@@ -730,6 +752,8 @@ poof(
     maybe_(Type.name)
     GetBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
     {
+      ENSURE_OWNED_BY_THREAD(Table);
+
       maybe_(Type.name) Result = {};
 
       auto *Bucket = GetHashBucket(umm(Hash(&key_name)), Table);
@@ -762,6 +786,8 @@ poof(
     maybe_(Type.name)_ptr
     GetPtrBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
     {
+      ENSURE_OWNED_BY_THREAD(Table);
+
       maybe_(Type.name)_ptr Result = {};
 
       auto *Bucket = GetHashBucket(umm(Hash(&key_name)), Table);
@@ -1089,14 +1115,18 @@ poof(
       // TODO(Jesse)(immediate): For the love of fucksakes change these to indices
       Type.name *At;
       Type.name *End;
+      OWNED_BY_THREAD_MEMBER();
+      s32 OwnedByThread; // TODO(Jesse): Make this switched on BONSAI_INTERNAL (needs poof support, or macro trickery)
     };
 
   }
 )
 
+
 poof(
   func generate_cursor_functions(Type)
   {
+
     link_internal (Type.name)_cursor
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
@@ -1105,6 +1135,7 @@ poof(
         .Start = Start,
         .End = Start+ElementCount,
         .At = Start,
+        .OwnedByThread = ThreadLocal_ThreadIndex,
       };
       return Result;
     }
@@ -1112,6 +1143,8 @@ poof(
     link_internal (Type.name)*
     GetPtr((Type.name)_cursor *Cursor, umm ElementIndex)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       Type.name *Result = {};
       if (ElementIndex < AtElements(Cursor)) {
         Result = Cursor->Start+ElementIndex;
@@ -1122,6 +1155,8 @@ poof(
     link_internal (Type.name)*
     GetPtrUnsafe((Type.name)_cursor *Cursor, umm ElementIndex)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       Type.name *Result = {};
       if (ElementIndex < TotalElements(Cursor)) {
         Result = Cursor->Start+ElementIndex;
@@ -1132,6 +1167,8 @@ poof(
     link_internal (Type.name)
     Get((Type.name)_cursor *Cursor, umm ElementIndex)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       Assert(ElementIndex < CurrentCount(Cursor));
       Type.name Result = Cursor->Start[ElementIndex];
       return Result;
@@ -1140,6 +1177,8 @@ poof(
     link_internal void
     Set((Type.name)_cursor *Cursor, umm ElementIndex, (Type.name) Element)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       umm CurrentElementCount = CurrentCount(Cursor);
       Assert (ElementIndex <= CurrentElementCount);
 
@@ -1153,6 +1192,8 @@ poof(
     link_internal (Type.name)*
     Advance((Type.name)_cursor *Cursor)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       Type.name * Result = {};
       if ( Cursor->At < Cursor->End ) { Result = Cursor->At++; }
       return Result;
@@ -1161,6 +1202,8 @@ poof(
     link_internal Type.name *
     Push((Type.name)_cursor *Cursor, (Type.name) Element)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       Assert( Cursor->At < Cursor->End );
       Type.name *Result = Cursor->At;
       *Cursor->At++ = Element;
@@ -1170,6 +1213,8 @@ poof(
     link_internal Type.name
     Pop((Type.name)_cursor *Cursor)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       Assert( Cursor->At > Cursor->Start );
       Type.name Result = Cursor->At[-1];
       Cursor->At--;
@@ -1179,6 +1224,8 @@ poof(
     link_internal s32
     LastIndex((Type.name)_cursor *Cursor)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       s32 Result = s32(CurrentCount(Cursor))-1;
       return Result;
     }
@@ -1186,6 +1233,8 @@ poof(
     link_internal b32
     Remove((Type.name)_cursor *Cursor, (Type.name) Query)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       b32 Result = False;
       CursorIterator(ElementIndex, Cursor)
       {
@@ -1207,6 +1256,8 @@ poof(
     link_internal b32
     ResizeCursor((Type.name)_cursor *Cursor, umm Count, memory_arena *Memory)
     {
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
       umm CurrentSize = TotalSize(Cursor);
 
       TruncateToElementCount(Cursor, Count);
@@ -1220,12 +1271,14 @@ poof(
     }
 
     link_internal void
-    Unshift( (Type.name)_cursor *C )
+    Unshift( (Type.name)_cursor *Cursor )
     {
-      umm Count = TotalElements(C);
+      ENSURE_OWNED_BY_THREAD(Cursor);
+
+      umm Count = TotalElements(Cursor);
       for (umm Index = 1; Index < Count; ++Index)
       {
-        C->Start[Index-1] = C->Start[Index];
+        Cursor->Start[Index-1] = Cursor->Start[Index];
       }
     }
 

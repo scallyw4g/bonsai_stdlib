@@ -39,7 +39,8 @@ U32Cursor(u32* Start, u32* End)
   u32_cursor Result = {
     Start,
     Start,
-    End
+    End,
+    ThreadLocal_ThreadIndex,
   };
   return Result;
 }
