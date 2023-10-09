@@ -746,7 +746,7 @@ PushTooltip(renderer_2d *Group, counted_string Text)
 }
 
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth)
+PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
@@ -755,6 +755,7 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth)
     .ui_render_command_textured_quad.Texture = Texture,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
+    .ui_render_command_textured_quad.IsDepthTexture = IsDepthTexture
   };
 
   PushUiRenderCommand(Group, &Command);
@@ -2289,13 +2290,16 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           rect2 Clip = TypedCommand->Clip;
 
           Assert(Group->TextGroup->Geo.At == 0);
-          Assert(Group->TexturedQuadShader.FirstUniform->Next == 0);
+          /* Assert(Group->TexturedQuadShader.FirstUniform->Next == 0); */
 
           shader *Shader = &Group->TexturedQuadShader;
           GL.UseProgram(Shader->ID);
 
           Shader->FirstUniform->Texture = TypedCommand->Texture;
-          Assert(Shader->FirstUniform->Next == 0);
+          /* Assert(Shader->FirstUniform->Next == 0); */
+
+          Shader->FirstUniform->Next->U32 = &TypedCommand->IsDepthTexture;
+          Assert(Shader->FirstUniform->Next->Next == 0);
 
           BindShaderUniforms(Shader);
 

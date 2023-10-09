@@ -123,25 +123,34 @@ poof(gen_shader_uniform_push(r32));
 shader
 MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
-  shader SimpleTextureShader = LoadShaders( CSz(STDLIB_SHADER_PATH "Passthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
+  shader Shader = LoadShaders( CSz(STDLIB_SHADER_PATH "Passthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
 
-  SimpleTextureShader.FirstUniform = GetUniform(GraphicsMemory, &SimpleTextureShader, Texture, "Texture");
+  shader_uniform **Current = &Shader.FirstUniform;
+
+  *Current = GetUniform(GraphicsMemory, &Shader, Texture, "Texture");
+  Current = &(*Current)->Next;
 
   AssertNoGlErrors;
 
-  return SimpleTextureShader;
+  return Shader;
 }
 
 shader
 MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
-  shader SimpleTextureShader = LoadShaders( CSz(STDLIB_SHADER_PATH "FullPassthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
+  shader Shader = LoadShaders( CSz(STDLIB_SHADER_PATH "FullPassthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
 
-  SimpleTextureShader.FirstUniform = GetUniform(GraphicsMemory, &SimpleTextureShader, Texture, "Texture");
+  shader_uniform **Current = &Shader.FirstUniform;
+
+  *Current = GetUniform(GraphicsMemory, &Shader, Texture, "Texture");
+  Current = &(*Current)->Next;
+
+  *Current = GetUniform(GraphicsMemory, &Shader, (b32*)0, "IsDepthTexture");
+  Current = &(*Current)->Next;
 
   AssertNoGlErrors;
 
-  return SimpleTextureShader;
+  return Shader;
 }
 
 b32

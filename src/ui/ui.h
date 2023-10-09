@@ -444,6 +444,8 @@ struct ui_render_command_textured_quad
     texture *Texture;
   };
 
+  b32 IsDepthTexture;
+
   layout Layout;
   // TODO(Jesse): Add this
   /* ui_style Style; */

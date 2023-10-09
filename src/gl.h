@@ -96,6 +96,7 @@
 #define GL_EQUAL                          0x0202
 #define GL_LEQUAL                         0x0203
 #define GL_GREATER                        0x0204
+#define GL_ALWAYS                         0x0207
 #define GL_NONE                           0
 
 #define GL_TEXTURE_COMPARE_FUNC           0x884D
