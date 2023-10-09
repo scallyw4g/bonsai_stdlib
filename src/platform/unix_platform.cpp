@@ -93,8 +93,11 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 inline void
 Terminate(os *Os, platform *Plat)
 {
-  XDestroyWindow(Os->Display, Os->Window);
-  XCloseDisplay(Os->Display);
+  if (Os->Display && Os->Window)
+  {
+    XDestroyWindow(Os->Display, Os->Window);
+    XCloseDisplay(Os->Display);
+  }
 }
 
 // TODO(Jesse id: 268): Unnecessary .. I just added these as a hack get parsing to work
