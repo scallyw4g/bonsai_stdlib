@@ -59,7 +59,7 @@ InitializeBonsaiStdlib( bonsai_init_flags Flags,
       if (!InitializeBootstrapDebugApi(DebugSystem->Lib, &DebugSystem->Api)) { Error("Initializing Debug Bootstrap Api :( "); return 1; }
     }
 
-    DebugSystem->Api.BonsaiDebug_OnLoad(GetDebugState(), Global_ThreadStates);
+    DebugSystem->Api.BonsaiDebug_OnLoad(GetDebugState(), Global_ThreadStates, BONSAI_INTERNAL);
     Ensure( DebugSystem->Api.InitDebugState(Global_DebugStatePointer) );
 #else
     Error("Asked to init debug system when DEBUG_SYSTEM_API was not compiled in!");
