@@ -98,3 +98,15 @@ AllocateAndInitThreadStates(memory_arena *Memory)
   return Global_ThreadStates;
 }
 
+
+link_weak void
+WorkerThread_BeforeJobStart(thread_startup_params *StartupParams)
+{
+  if (ThreadLocal_ThreadIndex == -1) { SetThreadLocal_ThreadIndex(StartupParams->ThreadIndex); }
+
+#if DEBUG_SYSTEM_API 
+  Assert(GetDebugState());
+#endif
+
+  DEBUG_REGISTER_THREAD(StartupParams);
+}
