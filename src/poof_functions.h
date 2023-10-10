@@ -1,11 +1,11 @@
 #if BONSAI_INTERNAL
 #define ENSURE_OWNED_BY_THREAD(ThingPointer) Assert((ThingPointer)->OwnedByThread == ThreadLocal_ThreadIndex)
-#define OWNED_BY_THREAD_MEMBER(ThingPointer) s32 OwnedByThread = INVALID_THREAD_LOCAL_THREAD_INDEX
-#define OWNED_BY_THREAD_MEMBER_INIT() .OwnedByThread = ThreadLocal_ThreadIndex
+#define OWNED_BY_THREAD_MEMBER(ThingPointer) s32 OwnedByThread = INVALID_THREAD_LOCAL_THREAD_INDEX;
+#define OWNED_BY_THREAD_MEMBER_INIT() .OwnedByThread = ThreadLocal_ThreadIndex,
 #else 
 #define ENSURE_OWNED_BY_THREAD(...)
 #define OWNED_BY_THREAD_MEMBER(...)
-#define OWNED_BY_THREAD_MEMBER_INIT(....)
+#define OWNED_BY_THREAD_MEMBER_INIT(...)
 #endif
 
 // TODO(Jesse)(bug, poof): If I put this function in bonsai_stdlib/shader.cpp
@@ -673,7 +673,7 @@ poof(
     {
       umm Size;
       (Type.name)_linked_list_node **Elements;
-      OWNED_BY_THREAD_MEMBER();
+      OWNED_BY_THREAD_MEMBER()
     };
   }
 );
@@ -695,7 +695,7 @@ poof(
       (Type.name)_hashtable Result = {
         .Elements = Allocate( (Type.name)_linked_list_node*, Memory, ElementCount),
         .Size = ElementCount,
-        OWNED_BY_THREAD_MEMBER_INIT(),
+        OWNED_BY_THREAD_MEMBER_INIT()
       };
       return Result;
     }
@@ -1115,7 +1115,7 @@ poof(
       // TODO(Jesse)(immediate): For the love of fucksakes change these to indices
       Type.name *At;
       Type.name *End;
-      OWNED_BY_THREAD_MEMBER();
+      OWNED_BY_THREAD_MEMBER()
     };
 
   }
@@ -1134,7 +1134,7 @@ poof(
         .Start = Start,
         .End = Start+ElementCount,
         .At = Start,
-        .OwnedByThread = ThreadLocal_ThreadIndex,
+        OWNED_BY_THREAD_MEMBER_INIT()
       };
       return Result;
     }
