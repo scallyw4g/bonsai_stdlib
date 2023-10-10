@@ -80,9 +80,7 @@ Initialize_ThreadLocal_ThreadStates(s32 TotalThreadCount, memory_arena* Memory)
 {
   thread_local_state *Result = AllocateAligned(thread_local_state, Memory, TotalThreadCount, CACHE_LINE_SIZE);
 
-  for ( s32 ThreadIndex = 0;
-            ThreadIndex < TotalThreadCount;
-          ++ThreadIndex )
+  for ( s32 ThreadIndex = 0; ThreadIndex < TotalThreadCount; ++ThreadIndex )
   {
     Result[ThreadIndex] = DefaultThreadLocalState(ThreadIndex);
   }
@@ -99,7 +97,7 @@ AllocateAndInitThreadStates(memory_arena *Memory)
 }
 
 
-link_weak void
+link_internal void
 WorkerThread_BeforeJobStart(thread_startup_params *StartupParams)
 {
   if (ThreadLocal_ThreadIndex == -1) { SetThreadLocal_ThreadIndex(StartupParams->ThreadIndex); }

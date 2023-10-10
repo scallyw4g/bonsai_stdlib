@@ -31,8 +31,7 @@ ThreadMain(void *Input)
 {
   thread_startup_params *ThreadParams = (thread_startup_params *)Input;
 
-  SetThreadLocal_ThreadIndex(ThreadParams->ThreadIndex);
-  if (WorkerThread_BeforeJobStart) WorkerThread_BeforeJobStart(ThreadParams);
+  WorkerThread_BeforeJobStart(ThreadParams);
 
   thread_local_state *Thread = GetThreadLocalState(ThreadLocal_ThreadIndex);
   Thread->Index = ThreadParams->ThreadIndex;
@@ -71,7 +70,7 @@ ThreadMain(void *Input)
 
     // NOTE(Jesse): This is here to ensure the game lib (and, by extesion, the debug lib)
     // has ThreadLocal_ThreadIndex set.  This is super annoying and I want a better solution.
-  if (WorkerThread_BeforeJobStart) WorkerThread_BeforeJobStart(ThreadParams);
+    WorkerThread_BeforeJobStart(ThreadParams);
 
     AtomicIncrement(ThreadParams->HighPriorityWorkerCount);
     DrainQueue( ThreadParams->HighPriority, Thread, ThreadParams->AppApi );
