@@ -494,6 +494,7 @@ WindowMessageCallback(
    return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
+#if PLATFORM_WINDOW_IMPLEMENTATIONS
 b32
 OpenAndInitializeWindow( os *Os, platform *Plat, s32 VSyncFrames)
 {
@@ -559,6 +560,7 @@ int attribs[] =
 
   return True;
 }
+#endif
 
 link_internal const char *
 PlatformGetEnvironmentVar(const char *VarName, memory_arena *Memory)
