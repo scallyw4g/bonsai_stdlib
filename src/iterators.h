@@ -10,6 +10,9 @@
 /*   auto *ElementPtrName = GetPtr(Container, 0); \ */
 /*   for (umm IndexVariableName = 0; IndexVariableName < TotalElements(Container); ++IndexVariableName, ElementPtrName = GetPtr((Container), (umm)IndexVariableName)) */
 
+#define LinkedListIter( List, Element ) \
+  for (auto Element = (List); Element; Element = Element->Next)
+
 #define RangeIterator( ArgName, RangeMax ) \
   for (s32 ArgName = 0; ArgName < RangeMax; ++ArgName)
 

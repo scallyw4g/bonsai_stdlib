@@ -1644,3 +1644,160 @@ poof(
     };
   }
 )
+
+
+poof(
+  func block_array(type, type_poof_symbol n_elements)
+  {
+    struct (type.name)_block_index
+    {
+      u32 BlockIndex;
+      u32 ElementIndex;
+    };
+
+    struct (type.name)_block
+    {
+      u32 At;
+      (type.name) *Elements;
+      (type.name)_block *Next;
+    };
+
+    link_internal (type.name)_block*
+    Allocate_(type.name)_block(memory_arena *Memory)
+    {
+      (type.name)_block *Result = Allocate((type.name)_block, Memory, 1);
+      Result->Elements = Allocate((type.name), Memory, n_elements);
+      return Result;
+    }
+
+    struct (type.name)_block_array
+    {
+      (type.name)_block First;
+      (type.name)_block *Current;
+
+      memory_arena *Memory;
+    };
+
+    link_internal void
+    Push((type.name)_block_array *Array, type.name *Element)
+    {
+      if (Array->Memory == 0) { Array->Memory = AllocateArena(); }
+
+      if (Array->Current == 0) { Array->First = *Allocate_(type.name)_block(Array->Memory); Array->Current = &Array->First; }
+
+      if (Array->Current->At == n_elements)
+      {
+        (type.name)_block *Next = Allocate_(type.name)_block(Array->Memory);
+        Array->Current->Next = Next;
+        Array->Current = Next;
+        /* Array->At = 0; */
+      }
+
+      Array->Current->Elements[Array->Current->At++] = *Element;
+    }
+
+    link_internal type.name *
+    GetPtr((type.name)_block *Block, umm Index)
+    {
+      type.name *Result = 0;
+      if (Index < Block->At) { Result = Block->Elements + Index; }
+      return Result;
+    }
+
+    link_internal u32
+    AtElements((type.name)_block *Block)
+    {
+      return Block->At;
+    }
+    
+  }
+)
+poof(
+  func draw_element_union(union_type)
+  {
+    link_internal void
+    Draw(renderer_2d *Ui, union_type.name *Union, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+    {
+      cs AsString = union_type.member(E, (element_member) {
+        FSz("element_member.map_array(index).sep() {(?) }", element_member.map_array(index).sep(,) { Union->E[index] });
+      })
+      PushColumn(Ui, AsString, Style, Padding, Params);
+    }
+
+    link_internal void
+    Draw(renderer_2d *Ui, union_type.name Union, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+    { Draw(Ui, &Union); }
+  }
+)
+
+poof(
+  func draw_tagged_union(d_union_type)
+  {
+    d_union_type.map_members (union_member)
+    {
+      union_member.is_union?
+      {
+        union_member.map_members(sub_type)
+        {
+          (draw_datastructure(sub_type))
+        }
+      }
+    }
+
+    link_internal void
+    Draw(renderer_2d *Ui, d_union_type.name *DUnion, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+    {
+      switch (DUnion->Type)
+      {
+
+        d_union_type.map_members(anon_union) {
+          anon_union.is_union? {
+
+            InvalidCase(type_(d_union_type.name)_noop);
+
+            anon_union.map_members (union_member)
+            {
+              case type_(union_member.name):
+              {
+                PushColumn(Ui, CSz("union_member.name"), Style, Padding, ColumnRenderParam_LeftAlign);
+                PushNewRow(Ui);
+                Draw(Ui, DUnion->(union_member.name), Style, Padding, ColumnRenderParam_LeftAlign);
+              } break;
+            }
+          }
+        }
+      }
+    }
+
+    link_internal void
+    Draw(renderer_2d *Ui, d_union_type.name DUnion, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+    { Draw(Ui, &DUnion); }
+  }
+)
+
+poof(
+  func draw_datastructure(type)
+  {
+    link_internal void
+    Draw(renderer_2d *Ui, type.name *Element, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+    {
+      type.map_members (member)
+      {
+        PushColumn(Ui, CSz("member.name : "));
+        member.is_enum?
+        {
+          Draw(Ui, ToString(Element->(member.name)), Style, Padding, Params);
+        }
+        {
+          Draw(Ui, Element->(member.name), Style, Padding, Params);
+        }
+        PushNewRow(Ui);
+      }
+    }
+
+    link_internal void
+    Draw(renderer_2d *Ui, type.name Element, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+    { Draw(Ui, &Element, Style, Padding, Params); }
+
+  }
+)
