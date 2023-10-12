@@ -1,10 +1,10 @@
 #define IterateOver(Container, ElementPtrName, IndexVariableName) \
-  auto *ElementPtrName = GetPtr(Container, 0); \
-  for (umm IndexVariableName = 0; IndexVariableName < AtElements(Container); ++IndexVariableName, ElementPtrName = GetPtr((Container), (umm)IndexVariableName))
+  umm IndexVariableName = 0; \
+  for (auto *ElementPtrName = GetPtr(Container, IndexVariableName); IndexVariableName < AtElements(Container);  ++IndexVariableName)
 
 #define IterateOverBackwards(Container, ElementPtrName, IndexVariableName) \
   auto *ElementPtrName = GetPtr(Container, 0); \
-  for (s32 IndexVariableName = (s32)AtElements(Container)-1; IndexVariableName >= 0; --IndexVariableName, ElementPtrName = GetPtr((Container), (umm)IndexVariableName))
+  for (s32 IndexVariableName = (s32)AtElements(Container)-1; IndexVariableName >= 0; --IndexVariableName, ElementPtrName = GetPtr((Container), umm(IndexVariableName)))
 
 /* #define IterateOverTotal(Container, ElementPtrName, IndexVariableName) \ */
 /*   auto *ElementPtrName = GetPtr(Container, 0); \ */
