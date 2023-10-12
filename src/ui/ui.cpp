@@ -1056,9 +1056,11 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   TIMED_FUNCTION();
 
   v2 ResizeHandleDim = V2(20);
-  counted_string TitleText = FCS(CSz("%S (%u) (%.1f, %.1f)"), Window->Title, Window->InteractionStackIndex, double(Window->Scroll.x), double(Window->Scroll.y) );
-  counted_string MinimizedIcon = CSz("_");
+  /* counted_string TitleText = FCS(CSz("%S (%u) (%.1f, %.1f)"), Window->Title, Window->InteractionStackIndex, double(Window->Scroll.x), double(Window->Scroll.y) ); */
+  counted_string TitleText = Window->Title;
+  counted_string MinimizedIcon = CSz(" _ ");
   rect2 TitleRect = GetDrawBounds(TitleText, &DefaultStyle);
+  rect2 MinimizeRect = GetDrawBounds(MinimizedIcon, &DefaultStyle);
 
   umm TitleBarInteractionId = (umm)"WindowTitleBar"^(umm)Window;
   interactable_handle TitleBarHandle = { .Id = TitleBarInteractionId };
@@ -1134,6 +1136,8 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
       Window->MaxClip.y = TitleBounds.y;
     }
   }
+
+  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 50);
 
   f32 KeepOnTheScreenThreshold = 30.f;
   Window->Basis = Max(V2(-(Window->MaxClip.x-KeepOnTheScreenThreshold), 0.f), Window->Basis);
