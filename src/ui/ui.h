@@ -310,6 +310,9 @@ struct ui_style
 link_internal ui_style UiStyleFromLightestColor(v3 Color, font *Font = &Global_Font);
 link_internal ui_style FlatUiStyle(v3 Color, font *Font = &Global_Font);
 
+debug_global v4 DatastructureIndent = V4(Global_Font.Size.x*2, 0, 0, 0);
+debug_global v4 DefaultDatastructurePadding = V4(5, 5, 0, 0);
+
 debug_global v4 DefaultColumnPadding = V4(0, 0, 30, 12);
 debug_global v4 DefaultButtonPadding = DefaultColumnPadding;
 /* debug_global v4 DefaultColumnPadding = V4(0); */
@@ -337,6 +340,8 @@ SetGlobalFontScale(r32 Scale)
 {
   Global_Font.Size = Global_DefaultFontSize * Scale;
   Global_SmallFont.Size = Global_DefaultFontSize * Scale * 0.75f;
+
+  DatastructureIndent = V4(Global_Font.Size.x*2, 0, 0, 0);
 
   Global_TitleBarPadding = Global_Font.Size.y*0.2f;
   Global_TitleBarHeight = Global_Font.Size.y + (Global_TitleBarPadding*2.f);

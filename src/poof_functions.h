@@ -1709,24 +1709,21 @@ poof(
     {
       return Block->At;
     }
-    
+
   }
 )
 poof(
   func draw_element_union(union_type)
   {
     link_internal void
-    Draw(renderer_2d *Ui, union_type.name *Union, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+    Draw(renderer_2d *Ui, union_type.name *Union, ui_style* Style = &DefaultStyle, v4 Padding = DefaultDatastructurePadding, column_render_params Params = ColumnRenderParam_LeftAlign)
     {
       cs AsString = union_type.member(E, (element_member) {
         FSz("element_member.map_array(index).sep() {(?) }", element_member.map_array(index).sep(,) { Union->E[index] });
       })
       PushColumn(Ui, AsString, Style, Padding, Params);
+      PushNewRow(Ui);
     }
-
-    link_internal void
-    Draw(renderer_2d *Ui, union_type.name Union, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
-    { Draw(Ui, &Union); }
   }
 )
 
@@ -1745,11 +1742,10 @@ poof(
     }
 
     link_internal void
-    Draw(renderer_2d *Ui, d_union_type.name *DUnion, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+    Draw(renderer_2d *Ui, d_union_type.name *DUnion, ui_style* Style = &DefaultStyle, v4 Padding = DefaultDatastructurePadding, column_render_params Params = ColumnRenderParam_LeftAlign)
     {
       switch (DUnion->Type)
       {
-
         d_union_type.map_members(anon_union) {
           anon_union.is_union? {
 
@@ -1759,19 +1755,19 @@ poof(
             {
               case type_(union_member.name):
               {
-                PushColumn(Ui, CSz("union_member.name"), Style, Padding, ColumnRenderParam_LeftAlign);
+                PushColumn(Ui, CSz("union_member.name {"), Style, Padding, Params);
                 PushNewRow(Ui);
-                Draw(Ui, DUnion->(union_member.name), Style, Padding, ColumnRenderParam_LeftAlign);
+
+                Draw(Ui, &DUnion->(union_member.name), Style, Padding + DatastructureIndent, Params);
+
+                PushColumn(Ui, CSz("}"), Style, Padding, Params);
+                PushNewRow(Ui);
               } break;
             }
           }
         }
       }
     }
-
-    link_internal void
-    Draw(renderer_2d *Ui, d_union_type.name DUnion, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
-    { Draw(Ui, &DUnion); }
   }
 )
 
@@ -1779,25 +1775,38 @@ poof(
   func draw_datastructure(type)
   {
     link_internal void
-    Draw(renderer_2d *Ui, type.name *Element, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+    Draw(renderer_2d *Ui, type.name *Element, ui_style* Style = &DefaultStyle, v4 Padding = DefaultDatastructurePadding, column_render_params Params = ColumnRenderParam_LeftAlign)
     {
       type.map_members (member)
       {
-        PushColumn(Ui, CSz("member.name : "));
         member.is_enum?
         {
-          Draw(Ui, ToString(Element->(member.name)), Style, Padding, Params);
+          PushColumn(Ui, CSz("member.name : "), Style, Padding, Params);
+          PushColumn(Ui, ToString(Element->(member.name)), Style, DefaultDatastructurePadding, Params);
         }
         {
-          Draw(Ui, Element->(member.name), Style, Padding, Params);
+          member.is_primitive?
+          {
+            PushColumn(Ui, CSz("member.name : "), Style, Padding, Params);
+            PushColumn(Ui, CS(Element->(member.name)), Style, DefaultDatastructurePadding, Params);
+          }
+          {
+            {
+              cs ButtonNameOn = CSz(" - member.name : {");
+              cs ButtonNameOff = CSz(" + member.name");
+              if (ToggleButton(Ui, ButtonNameOn, ButtonNameOff, umm(ButtonNameOn.Start) ^ umm(Element), Style, Padding, Params ))
+              {
+                PushNewRow(Ui);
+
+                Draw(Ui, &Element->(member.name), Style, Padding + DatastructureIndent, Params);
+
+                PushColumn(Ui, CSz("}"), Style, Padding, Params);
+              }
+            }
+          }
         }
         PushNewRow(Ui);
       }
     }
-
-    link_internal void
-    Draw(renderer_2d *Ui, type.name Element, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
-    { Draw(Ui, &Element, Style, Padding, Params); }
-
   }
 )

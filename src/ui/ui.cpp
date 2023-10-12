@@ -1225,7 +1225,7 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
 }
 
 link_internal b32
-ToggleButton(renderer_2d* Group, counted_string ButtonName, umm InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
+ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff,  umm InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
   ui_render_command StartCommand = {
     .Type = type_ui_render_command_button_start,
@@ -1240,15 +1240,16 @@ ToggleButton(renderer_2d* Group, counted_string ButtonName, umm InteractionId, u
     .Id = InteractionId
   };
 
+  b32 Result = ToggledOn(Group, &Handle);
 
-  PushColumn(Group, ButtonName, Style, Padding, ColumnParams);
+  cs NameToUse = Result ? ButtonNameOn : ButtonNameOff;
+  PushColumn(Group, NameToUse, Style, Padding, ColumnParams);
 
   ui_render_command EndCommand = {
     .Type = type_ui_render_command_button_end,
   };
   PushUiRenderCommand(Group, &EndCommand);
 
-  b32 Result = ToggledOn(Group, &Handle);
   return Result;
 }
 

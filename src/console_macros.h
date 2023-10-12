@@ -13,6 +13,9 @@ FormatCountedString_(char* Dest, umm DestSize, const char *FS, ...);
 #define CSz(NullTerminatedCString) \
   CS(NullTerminatedCString, sizeof(NullTerminatedCString)-1)
 
+inline counted_string CS(cs *Cs) { return *Cs; }
+inline counted_string CS(cs Cs) { return Cs; }
+
 inline counted_string
 CS(const char *S, umm Count)
 {
