@@ -992,8 +992,8 @@ poof(
     link_inline (Type.name) *
     GetPtr((Type.name)_buffer *Buf, umm Index)
     {
-      Assert(Index < Buf->Count);
-      Type.name *Result = Buf->Start + Index;
+      Type.name *Result = 0;
+      if (Index < Buf->Count) { Result = Buf->Start + Index; }
       return Result;
     }
 
@@ -1151,9 +1151,7 @@ poof(
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
       Type.name *Result = {};
-      if (ElementIndex < AtElements(Cursor)) {
-        Result = Cursor->Start+ElementIndex;
-      }
+      if (ElementIndex < AtElements(Cursor)) { Result = Cursor->Start+ElementIndex; }
       return Result;
     }
 
@@ -1162,10 +1160,8 @@ poof(
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
-      Type.name *Result = {};
-      if (ElementIndex < TotalElements(Cursor)) {
-        Result = Cursor->Start+ElementIndex;
-      }
+      Assert(ElementIndex < TotalElements(Cursor));
+      Type.name *Result = Cursor->Start+ElementIndex;
       return Result;
     }
 
