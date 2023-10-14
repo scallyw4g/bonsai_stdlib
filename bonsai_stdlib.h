@@ -56,7 +56,7 @@ struct camera;
 #include <bonsai_stdlib/src/c_token.h>
 #include <bonsai_stdlib/src/c_parser.h>
 
-
+#include <bonsai_stdlib/src/debug_ui.h>
 
 #include <bonsai_debug/debug.h>
 #include <bonsai_debug/src/api.h>

@@ -35,20 +35,25 @@ poof(
 // TODO(Jesse): This would be better if we could specifically target the anonymous union
 // instead of just doing it for every union we find in the type. Probably it'll never
 // be a problem, but probably it will be eventually ..
+//
+// TODO(Jesse): This is insanely ugly.. can we make these  better?
 poof(
   func d_union_constructors(DUnionType)
   {
     DUnionType.map_members(M) {
       M.is_union? {
 
-        M.map_members (ConstructorArgT)
+        M.map_members (UnionMemberT)
         {
           link_internal DUnionType.name
-          DUnionType.name.to_capital_case((ConstructorArgT.name) A)
+          DUnionType.name.to_capital_case( (UnionMemberT.name) A DUnionType.map_members(m_inner) { m_inner.is_named(Type)?  { } { m_inner.is_union?  { } {, (m_inner.type) (m_inner.name)} } } )
           {
             DUnionType.name Result = {
-              .Type = type_(ConstructorArgT.name),
-              .(ConstructorArgT.name) = A
+              .Type = type_(UnionMemberT.name),
+              .(UnionMemberT.name) = A,
+
+              DUnionType.map_members(m_inner).sep(,) { m_inner.is_named(Type)?  { } { m_inner.is_union?  { } { .(m_inner.name) = (m_inner.name) } } }
+
             };
             return Result;
           }
@@ -62,7 +67,7 @@ poof(
 poof(
   func d_union_all_constructors(type)
   {
-    (d_union_constructors(type))
+    d_union_constructors(type)
 
     type.map_members(M)
     {

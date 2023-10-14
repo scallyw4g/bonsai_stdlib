@@ -606,5 +606,3 @@ FillColorArray(u32 ColorIndex, v4 *Dest, v4 *Src, s32 Count, r32 Emission = 0.0f
 {
   FillColorArray(GetColorData(Src, ColorIndex, Emission), Dest, Count);
 }
-
-

@@ -56,13 +56,6 @@ UpdateDrawBounds(layout *Layout)
   UpdateDrawBounds(Layout, Layout->At);
 }
 
-r32
-GetXOffsetForHorizontalBar(u64 StartCycleOffset, u64 FrameTotalCycles, r32 TotalGraphWidth)
-{
-  r32 XOffset = ((r32)StartCycleOffset/(r32)FrameTotalCycles)*TotalGraphWidth;
-  return XOffset;
-}
-
 
 
 /*****************************                ********************************/
