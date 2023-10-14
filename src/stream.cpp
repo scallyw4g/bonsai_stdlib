@@ -40,7 +40,7 @@ U32Cursor(u32* Start, u32* End)
     Start,
     Start,
     End,
-    OWNED_BY_THREAD_MEMBER_INIT()
+    /* OWNED_BY_THREAD_MEMBER_INIT() */
   };
   return Result;
 }

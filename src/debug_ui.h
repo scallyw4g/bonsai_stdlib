@@ -1,5 +1,12 @@
 
 
+struct cycle_range
+{
+  u64 StartCycle;
+  u64 TotalCycles;
+};
+
+
 link_internal u8
 GetByte(u32 ByteIndex, u64 Source)
 {

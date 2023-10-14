@@ -75,11 +75,15 @@ InitializeBonsaiStdlib( bonsai_init_flags Flags,
 
   if (Flags & BonsaiInit_OpenWindow)
   {
+#if PLATFORM_WINDOW_IMPLEMENTATIONS
     s32 VSyncFrames = 0;
     if (!OpenAndInitializeWindow(Os, Plat, VSyncFrames)) { Error("Initializing Window :( "); return False; }
     Assert(Os->GlContext);
 
     Ensure( InitializeOpenglFunctions() );
+#else
+    Error("Asked to open a window when window implementations were not compiled in!");
+#endif
   }
 
   return True;
