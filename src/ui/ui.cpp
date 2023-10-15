@@ -1528,6 +1528,8 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
       // There's a second pass that draws all discrete textures
       Command->Clip = Clip;
       Command->Z = Z;
+
+      if (Command->Texture == 0) { BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, TextRenderParam_NoAdvanceLayout); }
     } break;
   }
 
@@ -2287,26 +2289,35 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           r32 Z      = TypedCommand->Z;
           rect2 Clip = TypedCommand->Clip;
 
-          Assert(Group->TextGroup->Geo.At == 0);
-          /* Assert(Group->TexturedQuadShader.FirstUniform->Next == 0); */
+          if (TypedCommand->Texture)
+          {
+            Assert(Group->TextGroup->Geo.At == 0);
+            /* Assert(Group->TexturedQuadShader.FirstUniform->Next == 0); */
 
-          shader *Shader = &Group->TexturedQuadShader;
-          GL.UseProgram(Shader->ID);
+            shader *Shader = &Group->TexturedQuadShader;
+            GL.UseProgram(Shader->ID);
 
-          Shader->FirstUniform->Texture = TypedCommand->Texture;
-          /* Assert(Shader->FirstUniform->Next == 0); */
+            Shader->FirstUniform->Texture = TypedCommand->Texture;
+            /* Assert(Shader->FirstUniform->Next == 0); */
 
-          Shader->FirstUniform->Next->U32 = &TypedCommand->IsDepthTexture;
-          Assert(Shader->FirstUniform->Next->Next == 0);
+            Shader->FirstUniform->Next->U32 = &TypedCommand->IsDepthTexture;
+            Assert(Shader->FirstUniform->Next->Next == 0);
 
-          BindShaderUniforms(Shader);
 
-          // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
-          BufferTexturedQuad(Group, debug_texture_array_slice(0), MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
+            BindShaderUniforms(Shader);
 
-          Group->SolidGeoCountLastFrame += Group->Geo.At;
-          Group->TextGeoCountLastFrame += Group->TextGroup->Geo.At;
-          DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
+            // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
+            BufferTexturedQuad(Group, debug_texture_array_slice(0), MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
+
+            Group->SolidGeoCountLastFrame += Group->Geo.At;
+            Group->TextGeoCountLastFrame += Group->TextGroup->Geo.At;
+            DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
+          }
+          else
+          {
+            // we already drew "(null texture)" text in the previous pass
+          }
+
         }
       } break;
     }

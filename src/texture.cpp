@@ -242,8 +242,8 @@ MakeDepthTexture(v2i Dim, memory_arena *Mem)
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-  r32 BorderColors[4] = {1};
-  GL.TexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &BorderColors[0]);
+  r32 BorderColors[4] = {1, 1, 1, 1};
+  GL.TexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BorderColors);
 
   GL.BindTexture(GL_TEXTURE_2D, 0);
 
