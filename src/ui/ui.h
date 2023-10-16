@@ -329,9 +329,16 @@ debug_global ui_style Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1
 
 
 link_internal r32
-CharWidths(u32 Widths)
+CharHeights(u32 N)
 {
-  r32 Result = Global_Font.Size.x * Widths;
+  r32 Result = Global_Font.Size.y * N;
+  return Result;
+}
+
+link_internal r32
+CharWidths(u32 N)
+{
+  r32 Result = Global_Font.Size.x * N;
   return Result;
 }
 
@@ -486,7 +493,6 @@ struct ui_render_command_table_start
 
 struct ui_render_command_force_advance
 {
-  layout Layout;
   v2 Offset;
 };
 

@@ -73,9 +73,18 @@ AdvanceSpaces(u32 N, layout *Layout, v2 FontSize)
 
 link_internal void AdvanceLayoutStackBy(v2 Delta, layout* Layout);
 
+
+link_internal b32
+CloseEnough(f32 Epsilon, f32 A, f32 B)
+{
+  b32 Result = (A+Epsilon < B && A-Epsilon > B);
+  return Result;
+}
+
 link_internal void
 NewRow(layout *Layout)
 {
+  r32 Epsilon = 0.0001f;
   while (Layout)
   {
 #if 1
@@ -91,7 +100,7 @@ NewRow(layout *Layout)
   // layout, and do advance the DrawBounds
   //
   r32 VerticalAdvance = 0.f;
-  if (Layout->At.y == Layout->DrawBounds.Max.y) { VerticalAdvance = Global_Font.Size.y; }
+  if (CloseEnough(Epsilon, Layout->At.y, Layout->DrawBounds.Max.y)) { VerticalAdvance = Global_Font.Size.y; }
 
   Layout->At.x = Layout->Padding.Left;
 
@@ -102,6 +111,8 @@ NewRow(layout *Layout)
   // NOTE(Jesse): If we push a new line as the first thing we'd set the At to
   // inverted infinity max, so we have to check for that.  We also wanted to
   // advance a line, so we set the VerticalAdvance.
+  //
+  // NOTE(Jesse): This comparison should be exact.
   if (Layout->DrawBounds.Max.y == InvertedInfinityRectangle().Max.y)
   {
     VerticalAdvance = Global_Font.Size.y;
@@ -924,7 +935,7 @@ PushForceAdvance(renderer_2d *Group, v2 Offset)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_force_advance,
-    .ui_render_command_force_advance.Offset = Offset
+    .ui_render_command_force_advance.Offset = Offset,
   };
   PushUiRenderCommand(Group, &Command);
   return;
@@ -2097,9 +2108,12 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           BufferBorder(Group, GetAbsoluteDrawBounds(RenderState->Layout), V3(0,0,1), 0.9f, DISABLE_CLIPPING);
         }
 
+        // TODO(Jesse): It seems to me the NewRow should be before the
+        // PopLayout here, but I don't super want to change it without a test..
         PopLayout(&RenderState->Layout);
-        NewRow(RenderState->Layout);
 
+        // NOTE(Jesse): This is here so we vertical-advance if we were drawing a row of stuff
+        NewRow(RenderState->Layout);
       } break;
 
       case type_ui_render_command_column_start:
@@ -2212,9 +2226,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_force_advance:
       {
         ui_render_command_force_advance* TypedCommand = RenderCommandAs(force_advance, Command);
-        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
         AdvanceLayoutStackBy(TypedCommand->Offset, RenderState->Layout);
-        PopLayout(&RenderState->Layout);
       } break;
 
       case type_ui_render_command_reset_draw_bounds:
