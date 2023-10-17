@@ -896,19 +896,23 @@ GetIndexUnsafe(voxel_position P, chunk_dimension Dim)
 }
 
 inline s32
-TryGetIndex(chunk_dimension P, chunk_dimension Dim)
+TryGetIndex(s32 xIndex, s32 yIndex, v2i Dim)
 {
   s32 Result = -1;
-  if (P.x >= 0 && P.y >= 0 && P.z >= 0 &&
-      P.x < Dim.x && P.y < Dim.y && P.z < Dim.z)
+  if (xIndex >= 0 && yIndex >= 0 &&
+      xIndex < Dim.x && yIndex < Dim.y)
   {
-    Result = P.x +
-            (P.y*Dim.x) +
-            (P.z*Dim.x*Dim.y);
-    Assert(Result >= 0);
+    Result = xIndex + (yIndex*Dim.x);
   }
 
   Assert(Result < Volume(Dim));
+  return Result;
+}
+
+inline s32
+TryGetIndex(v2i P, v2i Dim)
+{
+  s32 Result = TryGetIndex(P.x, P.y, Dim);
   return Result;
 }
 
