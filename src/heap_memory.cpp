@@ -30,73 +30,6 @@ OffsetForHeapAllocation(heap_allocator *Allocator, u8 *Alloc)
   return Result;
 }
 
-link_internal u8*
-HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
-{
-  if (Allocator->Futex.Initialized == True)
-  {
-    AcquireFutex(&Allocator->Futex);
-  }
-  else
-  {
-    Assert(Allocator->OwnedByThread == ThreadLocal_ThreadIndex);
-  }
-
-  Assert(Allocator->FirstBlock && Allocator->Size);
-
-#if 0
-  u8 *Result = (u8*)calloc(umm(RequestedSize), u64(1));
-#else
-  /* NotImplemented; */
-  u8* Result = 0;
-  u8* EndOfHeap = (u8*)Allocator->FirstBlock + Allocator->Size;
-
-  umm AllocationSize = RequestedSize + sizeof(heap_allocation_block);
-  umm PrevAllocationSize = 0;
-
-  heap_allocation_block* At = Allocator->FirstBlock;
-  while ( (u8*)At < EndOfHeap )
-  {
-    // TODO(Jesse): Should this not be >= .. ?
-    if (At->Size > AllocationSize && At->Type == AllocationType_Free)
-    {
-      Result = (u8*)(At + 1);
-
-      umm InitialBlockSize = At->Size;
-
-      At->Size = AllocationSize;
-      At->Type = AllocationType_Reserved;
-      At->PrevAllocationSize = PrevAllocationSize;
-
-      heap_allocation_block *NextAt = (heap_allocation_block*)((u8*)At + At->Size);
-      NextAt->Size = InitialBlockSize - AllocationSize;
-      NextAt->Type = AllocationType_Free;
-      NextAt->PrevAllocationSize = AllocationSize;
-
-      break;
-    }
-    else
-    {
-      PrevAllocationSize = At->Size;
-      At = (heap_allocation_block*)((u8*)At + At->Size);
-
-      if (At->Size == 0)
-      {
-        SoftError("Heap allocation failed.");
-        break;
-      }
-    }
-  }
-#endif
-
-  if (Allocator->Futex.Initialized == True)
-  {
-    ReleaseFutex(&Allocator->Futex);
-  }
-
-  return Result;
-}
-
 heap_allocation_block*
 GetPrevBlock(heap_allocation_block* Current)
 {
@@ -114,7 +47,10 @@ GetNextBlock(heap_allocation_block* Current)
   heap_allocation_block* Result = 0;
 
   if (Current->Size)
-      Result = (heap_allocation_block*)((u8*)Current + Current->Size);
+  {
+    Result = (heap_allocation_block*)( umm(Current) + Current->Size );
+    Assert(Result->Type < AllocationType_Error);
+  }
 
   return Result;
 }
@@ -139,6 +75,93 @@ CondenseAllocations(heap_allocation_block* B1, heap_allocation_block* B2)
   }
 
   return;
+}
+
+link_internal u8*
+GetDataPointer(heap_allocation_block* Block)
+{
+  u8 *Result = (u8*)Block + sizeof(heap_allocation_block);
+  return Result;
+}
+
+link_internal umm
+GetDataSize(heap_allocation_block* Block)
+{
+  umm Result = Block->Size - sizeof(heap_allocation_block);
+  return Result;
+}
+
+
+
+
+
+link_internal u8*
+HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
+{
+  if (Allocator->Futex.Initialized == True)
+  {
+    AcquireFutex(&Allocator->Futex);
+  }
+  else
+  {
+    Assert(Allocator->OwnedByThread == ThreadLocal_ThreadIndex);
+  }
+
+  Assert(Allocator->FirstBlock && Allocator->Size);
+
+#if 0
+  u8 *Result = (u8*)calloc(umm(RequestedSize), u64(1));
+#else
+  /* NotImplemented; */
+  u8 *Result = 0;
+  umm EndOfHeap = umm(Allocator->FirstBlock) + Allocator->Size;
+
+  umm AllocationSize = RequestedSize + sizeof(heap_allocation_block);
+  umm PrevAllocationSize = 0;
+
+  heap_allocation_block *AtBlock = Allocator->FirstBlock;
+  while ( umm(AtBlock) < EndOfHeap )
+  {
+    // TODO(Jesse): Should this not be >= .. ?
+    if (AtBlock->Size > AllocationSize && AtBlock->Type == AllocationType_Free)
+    {
+      Result = (u8*)( umm(AtBlock) + sizeof(heap_allocation_block) );
+
+      umm InitialBlockSize = AtBlock->Size;
+
+      AtBlock->Size = AllocationSize;
+      AtBlock->Type = AllocationType_Reserved;
+      AtBlock->PrevAllocationSize = PrevAllocationSize;
+
+      heap_allocation_block *NextAt = (heap_allocation_block*)( umm(AtBlock) + AtBlock->Size );
+      NextAt->Size = InitialBlockSize - AllocationSize;
+      NextAt->Type = AllocationType_Free;
+      NextAt->PrevAllocationSize = AllocationSize;
+
+      Assert(GetNextBlock(AtBlock) == NextAt);
+
+      break;
+    }
+    else
+    {
+      PrevAllocationSize = AtBlock->Size;
+      AtBlock = GetNextBlock(AtBlock);
+
+      if (AtBlock->Size == 0)
+      {
+        SoftError("Heap allocation failed.");
+        break;
+      }
+    }
+  }
+#endif
+
+  if (Allocator->Futex.Initialized == True)
+  {
+    ReleaseFutex(&Allocator->Futex);
+  }
+
+  return Result;
 }
 
 void
@@ -173,19 +196,5 @@ HeapDeallocate(heap_allocator *Allocator, void* Allocation)
 
   if (Allocator->Futex.Initialized == True) { ReleaseFutex(&Allocator->Futex); }
   return;
-}
-
-link_internal u8*
-GetDataPointer(heap_allocation_block* Block)
-{
-  u8 *Result = (u8*)Block + sizeof(heap_allocation_block);
-  return Result;
-}
-
-link_internal umm
-GetDataSize(heap_allocation_block* Block)
-{
-  umm Result = Block->Size - sizeof(heap_allocation_block);
-  return Result;
 }
 

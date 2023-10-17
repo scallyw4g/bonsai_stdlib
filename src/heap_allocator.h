@@ -2,6 +2,8 @@ enum heap_allocation_type
 {
   AllocationType_Free,
   AllocationType_Reserved,
+
+  AllocationType_Error,
 };
 
 #pragma pack(push, 1)
