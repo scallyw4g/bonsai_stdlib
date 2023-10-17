@@ -8,6 +8,9 @@ poof(buffer(u32))
 poof(stream_and_cursor(u32))
 #include <generated/stream_and_cursor_u32.h>
 
+poof(generate_cursor(u8))
+#include <generated/generate_cursor_u8.h>
+
 poof(deep_copy(u32_cursor))
 #include <generated/deep_copy_u32_stream.h>
 
