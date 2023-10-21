@@ -1806,16 +1806,23 @@ poof(
             PushColumn(Ui, CS(Element->(member.name)), Style, DefaultDatastructurePadding, Params);
           }
           {
+            member.is_union?
             {
-              cs ButtonNameOn = CSz(" - member.name : {");
-              cs ButtonNameOff = CSz(" + member.name");
-              if (ToggleButton(Ui, ButtonNameOn, ButtonNameOff, umm(ButtonNameOn.Start) ^ umm(Element), Style, Padding, Params ))
+              PushColumn(Ui, CSz(" -- skipping union_member -- "));
+              /* cs ButtonNameOff = CSz(" + member.name"); */
+            }
+            {
               {
-                PushNewRow(Ui);
+                cs ButtonNameOn = CSz(" - member.name : {");
+                cs ButtonNameOff = CSz(" + member.name");
+                if (ToggleButton(Ui, ButtonNameOn, ButtonNameOff, umm(ButtonNameOn.Start) ^ umm(Element), Style, Padding, Params ))
+                {
+                  PushNewRow(Ui);
 
-                Draw(Ui, &Element->(member.name), Style, Padding + DatastructureIndent, Params);
+                  Draw(Ui, &Element->(member.name), Style, Padding + DatastructureIndent, Params);
 
-                PushColumn(Ui, CSz("}"), Style, Padding, Params);
+                  PushColumn(Ui, CSz("}"), Style, Padding, Params);
+                }
               }
             }
           }

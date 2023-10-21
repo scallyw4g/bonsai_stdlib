@@ -9,6 +9,8 @@ InitHeap(umm AllocationSize, b32 Multithreaded = False)
   Result.FirstBlock = (heap_allocation_block*)PlatformAllocateSize(AllocationSize);
   Result.FirstBlock->Size = AllocationSize - sizeof(heap_allocation_block);
   Result.FirstBlock->Type = AllocationType_Free;
+  Result.FirstBlock->Magic0 = HEAP_MAGIC_NUMBER;
+  Result.FirstBlock->Magic1 = HEAP_MAGIC_NUMBER;
 
   Result.Size = AllocationSize;
 
@@ -16,6 +18,8 @@ InitHeap(umm AllocationSize, b32 Multithreaded = False)
   EndBlock->Type = AllocationType_Reserved;
   EndBlock->Size = 0;
   EndBlock->PrevAllocationSize = AllocationSize - sizeof(heap_allocation_block);
+  EndBlock->Magic0 = HEAP_MAGIC_NUMBER;
+  EndBlock->Magic1 = HEAP_MAGIC_NUMBER;
 
   return Result;
 }
@@ -44,12 +48,18 @@ GetPrevBlock(heap_allocation_block* Current)
 heap_allocation_block*
 GetNextBlock(heap_allocation_block* Current)
 {
+  Assert(Current->Magic0 == HEAP_MAGIC_NUMBER);
+  Assert(Current->Magic1 == HEAP_MAGIC_NUMBER);
+
   heap_allocation_block* Result = 0;
 
   if (Current->Size)
   {
     Result = (heap_allocation_block*)( umm(Current) + Current->Size );
     Assert(Result->Type < AllocationType_Error);
+
+    Assert(Result->Magic0 == HEAP_MAGIC_NUMBER);
+    Assert(Result->Magic1 == HEAP_MAGIC_NUMBER);
   }
 
   return Result;
@@ -137,6 +147,8 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
       NextAt->Size = InitialBlockSize - AllocationSize;
       NextAt->Type = AllocationType_Free;
       NextAt->PrevAllocationSize = AllocationSize;
+      NextAt->Magic0 = HEAP_MAGIC_NUMBER;
+      NextAt->Magic1 = HEAP_MAGIC_NUMBER;
 
       Assert(GetNextBlock(AtBlock) == NextAt);
 

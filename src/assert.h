@@ -1,4 +1,5 @@
 #define CAssert(condition) static_assert((condition), #condition )
+#define OffsetOf(member_name, type_name) offsetof(type_name, member_name)
 
 #if BONSAI_INTERNAL
 
