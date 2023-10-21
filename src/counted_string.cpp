@@ -599,6 +599,13 @@ CS(r32 Number)
 }
 
 link_internal counted_string
+CS(v2i V)
+{
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("(%d,%d)"), V.x, V.y);
+  return Result;
+}
+
+link_internal counted_string
 CS(v2 V)
 {
   counted_string Result = FormatCountedString(GetTranArena(), CSz("(%.2f,%.2f)"), (r64)V.x, (r64)V.y);
