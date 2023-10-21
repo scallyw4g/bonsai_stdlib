@@ -691,12 +691,12 @@ StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_column_start,
-    .ui_render_command_column_start.Style           = Style? *Style : DefaultStyle,
-    .ui_render_command_column_start.Params          = Params,
-    .ui_render_command_column_start.Layout = {
-      .Padding = Padding,
-    }
+    .ui_render_command_column_start.Style  = Style? *Style : DefaultStyle,
+    .ui_render_command_column_start.Params = Params,
   };
+
+  Command.ui_render_command_column_start.Layout = {};
+  Command.ui_render_command_column_start.Layout.Padding = Padding;
 
   PushUiRenderCommand(Group, &Command);
 
@@ -1893,6 +1893,8 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
     b32 FoundEnd = False;
     ui_render_command* Command = GetCommand(CommandBuffer, NextCommandIndex++);
 
+    u32 SubTableCount = 0;
+
     r32 *CurrentWidth = 0;
     while (Command && !FoundEnd)
     {
@@ -1900,32 +1902,53 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
       {
           case type_ui_render_command_column_start:
           {
-            ++NextColumnIndex;
-            ColumnCount = (u16)Max(ColumnCount, NextColumnIndex);
-            Assert(NextColumnIndex <= u16_MAX);
+            if (SubTableCount == 0)
+            {
+              ++NextColumnIndex;
+              ColumnCount = (u16)Max(ColumnCount, NextColumnIndex);
+              Assert(NextColumnIndex <= u16_MAX);
 
-            ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
-            CurrentWidth = &TypedCommand->Width;
-            *CurrentWidth += TypedCommand->Layout.Padding.Left + TypedCommand->Layout.Padding.Right;
+              ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
+              CurrentWidth = &TypedCommand->Width;
+              *CurrentWidth += TypedCommand->Layout.Padding.Left + TypedCommand->Layout.Padding.Right;
+            }
           } break;
 
           case type_ui_render_command_text:
           {
-            ui_render_command_text* TypedCommand = RenderCommandAs(text, Command);
-            Assert(CurrentWidth);
-            *CurrentWidth += GetDrawBounds(TypedCommand->String, &TypedCommand->Style).Max.x;
+            if (SubTableCount == 0)
+            {
+              ui_render_command_text* TypedCommand = RenderCommandAs(text, Command);
+              Assert(CurrentWidth);
+              *CurrentWidth += GetDrawBounds(TypedCommand->String, &TypedCommand->Style).Max.x;
+            }
           } break;
 
           case type_ui_render_command_new_row:
           {
-            CurrentWidth = 0;
-            NextColumnIndex = 0;
+            if (SubTableCount == 0)
+            {
+              CurrentWidth = 0;
+              NextColumnIndex = 0;
+            }
+          } break;
+
+          case type_ui_render_command_table_start:
+          {
+            ++SubTableCount;
           } break;
 
           case type_ui_render_command_table_end:
           {
-            FoundEnd = True;
-            OnePastTableEnd = NextCommandIndex;
+            if (SubTableCount)
+            {
+              --SubTableCount;
+            }
+            else
+            {
+              FoundEnd = True;
+              OnePastTableEnd = NextCommandIndex;
+            }
           } break;
 
           default: {} break;
@@ -1938,6 +1961,8 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
   r32* MaxColumnWidths = Allocate(r32, GetTranArena(), ColumnCount);
 
   {
+    u32 SubTableCount = 0;
+
     u32 NextColumnIndex = 0;
     for (u32 CommandIndex = StartingIndex;
         CommandIndex < OnePastTableEnd;
@@ -1948,20 +1973,38 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
       {
           case type_ui_render_command_column_start:
           {
-            Assert(NextColumnIndex < ColumnCount);
-            ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
-            MaxColumnWidths[NextColumnIndex] = Max(MaxColumnWidths[NextColumnIndex], TypedCommand->Width);
-            ++NextColumnIndex;
+            if (SubTableCount == 0)
+            {
+              Assert(NextColumnIndex < ColumnCount);
+              ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
+              MaxColumnWidths[NextColumnIndex] = Max(MaxColumnWidths[NextColumnIndex], TypedCommand->Width);
+              ++NextColumnIndex;
+            }
           } break;
 
           case type_ui_render_command_new_row:
           {
-            NextColumnIndex = 0;
+            if (SubTableCount == 0)
+            {
+              NextColumnIndex = 0;
+            }
+          } break;
+
+          case type_ui_render_command_table_start:
+          {
+            ++SubTableCount;
           } break;
 
           case type_ui_render_command_table_end:
           {
-            Assert(CommandIndex == OnePastTableEnd-1);
+            if (SubTableCount)
+            {
+              --SubTableCount;
+            }
+            else
+            {
+              Assert(CommandIndex == OnePastTableEnd-1);
+            }
           } break;
 
           default: {} break;
@@ -1972,6 +2015,7 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
   }
 
   {
+    u32 SubTableCount = 0;
     u32 NextColumnIndex = 0;
 
     for (u32 CommandIndex = StartingIndex;
@@ -1983,21 +2027,39 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
       {
           case type_ui_render_command_column_start:
           {
-            Assert(NextColumnIndex < ColumnCount);
+            if (SubTableCount == 0)
+            {
+              Assert(NextColumnIndex < ColumnCount);
 
-            ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
-            TypedCommand->MaxWidth = MaxColumnWidths[NextColumnIndex];
-            ++NextColumnIndex;
+              ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
+              TypedCommand->MaxWidth = MaxColumnWidths[NextColumnIndex];
+              ++NextColumnIndex;
+            }
           } break;
 
           case type_ui_render_command_new_row:
           {
-            NextColumnIndex = 0;
+            if (SubTableCount == 0)
+            {
+              NextColumnIndex = 0;
+            }
+          } break;
+
+          case type_ui_render_command_table_start:
+          {
+            ++SubTableCount;
           } break;
 
           case type_ui_render_command_table_end:
           {
-            Assert(CommandIndex == OnePastTableEnd-1);
+            if (SubTableCount)
+            {
+              --SubTableCount;
+            }
+            else
+            {
+              Assert(CommandIndex == OnePastTableEnd-1);
+            }
           } break;
 
           default: {} break;
@@ -2059,7 +2121,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
       case type_ui_render_command_table_start:
       {
-        u32 OnePastTableEnd = PreprocessTable(CommandBuffer, NextCommandIndex-1);
+        u32 OnePastTableEnd = PreprocessTable(CommandBuffer, NextCommandIndex);
         if (OnePastTableEnd)
         {
           ui_render_command_table_start* TypedCommand = RenderCommandAs(table_start, Command);

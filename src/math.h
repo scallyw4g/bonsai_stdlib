@@ -55,6 +55,17 @@ myFmodf( r32 F, r32 mod )
 }
 #endif
 
+inline umm
+RoundUp(umm N, umm Thresh)
+{
+  umm Result = N;
+
+  umm Mod = N % Thresh;
+  if (Mod) { Result += (Thresh-Mod); }
+
+  return Result;
+}
+
 inline r32
 Round(r32 N)
 {
