@@ -47,6 +47,7 @@
 
 
 
+#define ReinterpretCast(T, Ptr) (T)(void*)(Ptr)
 
 #define Cast(T, Ptr) ((T)(Ptr))
 #define TryCast(T, Ptr) ((Ptr)->Type == type_##T ? (&(Ptr)->T) : 0)
