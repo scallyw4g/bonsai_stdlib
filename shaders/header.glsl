@@ -75,16 +75,16 @@ vec4 MapValueToRange(vec4 value, vec4 inMin, vec4 inMax, vec4 outMin, vec4 outMa
   return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
 }
 
-v4 BravoilMyersWeightedAverage(v4 Accum, float Count)
+v3 BravoilMyersWeightedAverage(v4 Accum, float Count)
 {
   v3 ColorResult = Accum.rgb/max(Accum.a, 0.00001f);
   float AlphaResult = pow(max(0.0, 1.0-(Accum.a/Count)), Count);
-  return v4(ColorResult, AlphaResult);
+  return ColorResult * AlphaResult;
 }
 
-v4 BravoilMcGuireDepthWeights(v4 Accum, float Count)
+v3 BravoilMcGuireDepthWeights(v4 Accum, float Count)
 {
   v3 ColorResult = (Accum.rgb / clamp(Accum.a, 1e-4, 5e4));
-  return v4(ColorResult, Count);
+  return ColorResult * Count;
 }
 

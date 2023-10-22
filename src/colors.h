@@ -6,32 +6,35 @@
 #define BLACK    0
 #define WHITE    1
 
-#define RED            36
-#define LIGHT_RED     104
-#define DARK_RED      144
+#define     LIGHT_RED 104
+#define           RED 36
+#define      DARK_RED 144
 #define DARK_DARK_RED 180
 
-#define GREEN       186
-#define LIGHT_GREEN  75
+#define LIGHT_GREEN 75
+#define       GREEN 186
+
+#define ICE_BLUE    207
 #define GRASS_GREEN 160
+#define SAND        2
 
-#define SAND   2
+#define BLUE 211
+#define PINK 27
+#define TEAL 181 // actually cyan
 
-#define BLUE     211
-#define ICE_BLUE 207
+#define LIGHT_LIGHT_YELLOW 4
+#define       LIGHT_YELLOW 5
+#define             YELLOW 6
 
-#define TEAL     181 // actually cyan
-#define YELLOW   12
-#define PINK     27
 
 #define LIGHT_LIGHT_ORANGE 6
-#define LIGHT_ORANGE 12
-#define ORANGE       18
-#define DARK_ORANGE  24
+#define       LIGHT_ORANGE 12
+#define             ORANGE 18
+#define        DARK_ORANGE 24
 
 
 
-#define DARK_GREY      254
+#define      DARK_GREY 254
 #define DARK_DARK_GREY 255
 
 #define GREY_0   246

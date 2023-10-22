@@ -37,9 +37,9 @@ ToggledOn(renderer_2d* Group, interactable_handle *Interaction)
 
 
 inline void
-UpdateDrawBounds(layout *Layout, v2 TestP)
+UpdateDrawBounds(layout *Layout, v2 LayoutRelativeTestP)
 {
-  v2 AbsP = Layout->Basis + TestP;
+  v2 AbsP = Layout->Basis + LayoutRelativeTestP;
   while (Layout)
   {
     v2 LayoutRelP = AbsP - Layout->Basis;
@@ -759,7 +759,11 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b
     .ui_render_command_textured_quad.Texture = Texture,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
-    .ui_render_command_textured_quad.IsDepthTexture = IsDepthTexture
+    .ui_render_command_textured_quad.IsDepthTexture = IsDepthTexture,
+    .ui_render_command_textured_quad.Layout =
+    {
+      .DrawBounds = InvertedInfinityRectangle(),
+    }
   };
 
   PushUiRenderCommand(Group, &Command);
@@ -775,6 +779,10 @@ PushTexturedQuad(renderer_2d *Group, debug_texture_array_slice TextureSlice, v2 
     .ui_render_command_textured_quad.TextureSlice = TextureSlice,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
+    .ui_render_command_textured_quad.Layout =
+    {
+      .DrawBounds = InvertedInfinityRectangle(),
+    }
   };
 
   PushUiRenderCommand(Group, &Command);
@@ -1545,7 +1553,7 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
   }
 
   AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
-  UpdateDrawBounds(RenderState->Layout, MinP+Dim);
+  UpdateDrawBounds(RenderState->Layout, Dim);
 }
 
 link_internal void
@@ -1569,7 +1577,7 @@ ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_qua
 }
 
 link_internal void
-ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad *Command, render_state* RenderState, b32 DoBuffering = True)
+ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad *Command, render_state* RenderState)
 {
   rect2 Clip = RenderState->ClipRect;
   v2 MinP    = GetAbsoluteAt(RenderState->Layout);
@@ -1577,10 +1585,7 @@ ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad 
   v3 Color   = SelectColorState(RenderState, &Command->Style);
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
 
-  if (DoBuffering)
-  {
-    BufferUntexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
-  }
+  BufferUntexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
 
   if (Command->Params & QuadRenderParam_AdvanceClip)
   {
@@ -1880,6 +1885,15 @@ FindRelativeDrawBoundsBetween(ui_render_command_buffer* CommandBuffer, v2 Relati
 }
 
 
+// This is a three-part function
+//
+// 1. Count max number of columns while tallying up the width of each column
+//
+// 2. Tally up the max width for each column
+//
+// 3. Write the max width to each column command in the table
+//
+
 link_internal u32
 PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
 {
@@ -1911,6 +1925,16 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
               ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
               CurrentWidth = &TypedCommand->Width;
               *CurrentWidth += TypedCommand->Layout.Padding.Left + TypedCommand->Layout.Padding.Right;
+            }
+          } break;
+
+          case type_ui_render_command_textured_quad:
+          {
+            if (SubTableCount == 0)
+            {
+              ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
+              Assert(CurrentWidth);
+              *CurrentWidth += TypedCommand->QuadDim.x;
             }
           } break;
 
@@ -1965,8 +1989,8 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
 
     u32 NextColumnIndex = 0;
     for (u32 CommandIndex = StartingIndex;
-        CommandIndex < OnePastTableEnd;
-        ++CommandIndex)
+             CommandIndex < OnePastTableEnd;
+           ++CommandIndex)
     {
       ui_render_command* Command = GetCommand(CommandBuffer, CommandIndex);
       switch(Command->Type)
