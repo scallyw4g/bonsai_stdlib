@@ -30,7 +30,9 @@ OffsetForHeapAllocation(heap_allocator *Allocator, u8 *Alloc)
   Assert(Alloc > (u8*)Allocator->FirstBlock);
   Assert(Alloc < (u8*)Allocator->FirstBlock+Allocator->Size);
 
-  umm Result = umm(Alloc - (u8*)Allocator->FirstBlock);
+  umm Result = umm(Alloc - Cast(u8*, Allocator->FirstBlock));
+  Assert(Result >= sizeof(heap_allocation_block));
+
   return Result;
 }
 
@@ -105,6 +107,7 @@ GetDataSize(heap_allocation_block* Block)
 
 
 
+// Returns pointer to valid bytes to write to.
 link_internal u8*
 HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 {
@@ -119,10 +122,6 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 
   Assert(Allocator->FirstBlock && Allocator->Size);
 
-#if 0
-  u8 *Result = (u8*)calloc(umm(RequestedSize), u64(1));
-#else
-  /* NotImplemented; */
   u8 *Result = 0;
   umm EndOfHeap = umm(Allocator->FirstBlock) + Allocator->Size;
 
@@ -166,7 +165,6 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
       }
     }
   }
-#endif
 
   if (Allocator->Futex.Initialized == True)
   {
