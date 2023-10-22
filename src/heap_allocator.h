@@ -6,7 +6,11 @@ enum heap_allocation_type
   AllocationType_Error,
 };
 
-#define HEAP_MAGIC_NUMBER (0x0123456789abcdef)
+#define HEAP_MAGIC_NUMBER (0xfecba0123456789)
+/* #define HEAP_MAGIC_NUMBER (0xf0f0f0f0f0f0f0f0) */
+/* #define HEAP_MAGIC_NUMBER (0xcccccccccccccccc) */
+/* #define HEAP_MAGIC_NUMBER (0xFFFFFFFFFFFFFFFF) */
+/* #define HEAP_MAGIC_NUMBER (0x0) */
 
 #pragma pack(push, 1)
 struct heap_allocation_block
