@@ -24,11 +24,11 @@
 #define YELLOW   12
 #define PINK     27
 
+#define LIGHT_LIGHT_ORANGE 6
 #define LIGHT_ORANGE 12
 #define ORANGE       18
 #define DARK_ORANGE  24
 
-/* #define GREY   6 */
 
 
 #define DARK_GREY      254
