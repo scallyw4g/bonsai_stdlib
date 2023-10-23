@@ -7,6 +7,8 @@ InitHeap(umm AllocationSize, b32 Multithreaded = False)
   else { Result.OwnedByThread = ThreadLocal_ThreadIndex; }
 
   Result.FirstBlock = (heap_allocation_block*)PlatformAllocateSize(AllocationSize);
+  Assert(Result.FirstBlock);
+
   Result.FirstBlock->Size = AllocationSize - sizeof(heap_allocation_block);
   Result.FirstBlock->Type = AllocationType_Free;
   Result.FirstBlock->Magic0 = HEAP_MAGIC_NUMBER;
