@@ -13,7 +13,7 @@ struct untextured_3d_geometry_buffer
 
   // NOTE(Jesse): This keeps track of what buffer the current reservation buffer came from.
   untextured_3d_geometry_buffer *Parent;
-  b32 BufferNeedsToGrow;
+  umm BufferNeedsToGrow;
 };
 
 
@@ -53,7 +53,7 @@ ReserveBufferSpace(untextured_3d_geometry_buffer* Reservation, u32 ElementsToRes
     else
     {
       Warn("Failed to reserve buffer space");
-      Reservation->BufferNeedsToGrow = True;
+      Reservation->BufferNeedsToGrow += ElementsToReserve;
       break;
     }
   }
