@@ -1,7 +1,6 @@
 #version 310 es
 #extension GL_NV_shader_buffer_load : enable
 
-
 precision highp float;
 precision highp sampler2DShadow;
 precision highp sampler2D;
@@ -21,9 +20,6 @@ precision highp sampler3D;
 #define r32 float
 #define u32 unsigned int
 #define s32 int
-
-#define USE_SSAO_SHADER 1
-#define USE_SHADOW_MAPPING 1
 
 // Note(Jesse): Must match corresponding C++ define
 #define SHADOW_MAP_RESOLUTION_X (16*1024)
@@ -75,16 +71,20 @@ vec4 MapValueToRange(vec4 value, vec4 inMin, vec4 inMax, vec4 outMin, vec4 outMa
   return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
 }
 
-v3 BravoilMyersWeightedAverage(v4 Accum, float Count)
+v4 BravoilMyersWeightedAverage(v4 Accum, float Count)
 {
   v3 ColorResult = Accum.rgb/max(Accum.a, 0.00001f);
-  float AlphaResult = pow(max(0.0, 1.0-(Accum.a/Count)), Count);
-  return ColorResult * AlphaResult;
+
+  // Have to clamp because this is > 1.f for emissive surfaces, which breaks the following equation
+  float Alpha = clamp(0.f, 1.f, Accum.a);
+
+  float AlphaResult = pow(max(0.0, 1.0-Alpha/Count), Count);
+  return v4(ColorResult * AlphaResult, AlphaResult);
 }
 
-v3 BravoilMcGuireDepthWeights(v4 Accum, float Count)
+v4 BravoilMcGuireDepthWeights(v4 Accum, float Coverage)
 {
   v3 ColorResult = (Accum.rgb / clamp(Accum.a, 1e-4, 5e4));
-  return ColorResult * Count;
+  return V4(ColorResult*Coverage, Accum.a);
 }
 
