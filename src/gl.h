@@ -299,6 +299,7 @@ typedef void            (*OpenglCullFace)                  (GLenum mode);
 typedef void            (*OpenglViewport)                  (GLint x, GLint y, GLsizei width, GLsizei height);
 typedef void            (*OpenglDepthFunc)                 (GLenum func);
 typedef void            (*OpenglBlendFunc)                 (GLenum sfactor, GLenum dfactor);
+typedef void            (*OpenglBlendFunci)                (GLuint buf, GLenum sfactor, GLenum dfactor);
 typedef void            (*OpenglDrawArrays)                (GLenum mode, GLint first, GLsizei count);
 typedef void            (*OpenglClear)                     (GLbitfield mask);
 typedef void            (*OpenglClearColor)                (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
@@ -405,6 +406,7 @@ struct opengl
   OpenglViewport Viewport;
   OpenglDepthFunc DepthFunc;
   OpenglBlendFunc BlendFunc;
+  OpenglBlendFunci BlendFunci;
   OpenglDrawArrays DrawArrays;
   OpenglClear Clear;
   OpenglClearColor ClearColor;
@@ -503,16 +505,17 @@ global_variable opengl GL = {};
 
 link_internal b32 InitializeOpenglFunctions();
 
-link_internal b32
-CheckOpenglVersion()
+link_internal void
+QueryOpenglVersion(s32 *Major, s32 *Minor)
 {
-  s32 Version[2];
-  GL.GetIntegerv(GL_MAJOR_VERSION, &Version[0]);
-  GL.GetIntegerv(GL_MINOR_VERSION, &Version[1]);
+  GL.GetIntegerv(GL_MAJOR_VERSION, Major);
+  GL.GetIntegerv(GL_MINOR_VERSION, Minor);
+}
 
-  Info("OpenGl Version (%u.%u)", Version[0], Version[1] );
-
-  b32 Result = Version[0] >= 3 && Version[1] >= 3;
+link_internal b32
+CheckOpenglVersion(s32 Major, s32 Minor)
+{
+  b32 Result = (Major >= 3 && Minor >= 3);
   return Result;
 }
 

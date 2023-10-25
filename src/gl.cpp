@@ -29,16 +29,17 @@ InitializeOpenglFunctions()
   GL.GetString                = (OpenglGetString)PlatformGetGlFunction("glGetString");
   GL.Initialized              &= GL.GetString != 0;
 
+  s32 GLMajor = -1;
+  s32 GLMinor = -1;
+
   if (GL.GetString)
   {
-    char* Vendor = (char*)GL.GetString(GL_VENDOR);
+    char* Vendor   = (char*)GL.GetString(GL_VENDOR);
     char* Renderer = (char*)GL.GetString(GL_RENDERER);
-    char* Version = (char*)GL.GetString(GL_VERSION);
+    char* Version  = (char*)GL.GetString(GL_VERSION);
     if (Vendor && Renderer && Version)
     {
-      Info(CS(Vendor));
-      Info(CS(Renderer));
-      Info(CS(Version));
+      Info(FSz("Opengl Driver Info : (%s) (%s) (%s)", Vendor, Renderer, Version));
 
       GL.GetError                 = (OpenglGetError)PlatformGetGlFunction("glGetError");
       GL.Initialized              &= GL.GetError != 0;
@@ -333,6 +334,16 @@ InitializeOpenglFunctions()
 
       GL.DebugMessageCallback     = (OpenglDebugMessageCallback)PlatformGetGlFunction("glDebugMessageCallback");
       GL.Initialized              &= GL.DebugMessageCallback != 0;
+
+      // NOTE(Jesse): Depends GetIntegerv
+      QueryOpenglVersion(&GLMajor, &GLMinor);
+
+      if (GLMajor >= 4)
+      {
+        GL.BlendFunci                = (OpenglBlendFunci)PlatformGetGlFunction("glBlendFunci");
+        GL.Initialized              &= GL.BlendFunci != 0;
+      }
+
     }
     else
     {
@@ -353,9 +364,9 @@ InitializeOpenglFunctions()
     AssertNoGlErrors;
   }
 
-  if (GL.Initialized && CheckOpenglVersion() == False)
+  if (GL.Initialized && CheckOpenglVersion(GLMajor, GLMinor))
   {
-    Warn("Unsupported Version of Opengl ::  Minimum 3.3 required.");
+    Warn("Unsupported Version of Opengl (%d.%d) ::  Minimum 3.3 required.", GLMajor, GLMinor);
     Warn("The driver successfully supplied all required function pointers, however your program may not run correctly.");
     Warn("If you experience issues, please upgrade to an OpenGL 3.3 compliant driver.");
   }
