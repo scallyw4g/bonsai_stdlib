@@ -71,20 +71,30 @@ vec4 MapValueToRange(vec4 value, vec4 inMin, vec4 inMax, vec4 outMin, vec4 outMa
   return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
 }
 
+#if 0
 v4 BravoilMyersWeightedAverage(v4 Accum, float Count)
 {
-  v3 ColorResult = Accum.rgb/max(Accum.a, 0.00001f);
+  Count = max(1.f, Count);
 
   // Have to clamp because this is > 1.f for emissive surfaces, which breaks the following equation
-  float Alpha = clamp(0.f, 1.f, Accum.a);
+  float Alpha = clamp(Accum.a, 0.f, 1.f);
+
+  v3 ColorResult = Accum.rgb/max(Accum.a, 0.00001f);
 
   float AlphaResult = pow(max(0.0, 1.0-Alpha/Count), Count);
   return v4(ColorResult * AlphaResult, AlphaResult);
 }
 
-v4 BravoilMcGuireDepthWeights(v4 Accum, float Coverage)
+v4 BravoilMcGuireDepthWeights(v4 Accum, float Revealage)
 {
   v3 ColorResult = (Accum.rgb / clamp(Accum.a, 1e-4, 5e4));
-  return V4(ColorResult*Coverage, Accum.a);
+  return V4(ColorResult, Revealage);
 }
+#endif
 
+
+float Linearize(float zDepth, float Far, float Near)
+{
+  float Result = ((2.0 * Near) / (Far + Near - zDepth * (Far - Near)));
+  return Result;
+}

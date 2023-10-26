@@ -5,6 +5,8 @@ struct untextured_3d_geometry_buffer
   v4 *Colors;
   v3 *Normals;
 
+  /* v2 *TransparencyEmission; */
+
   // TODO(Jesse): The fuck are these doing as 32bit?!
   u32 End;
   u32 At;
