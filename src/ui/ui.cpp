@@ -499,7 +499,7 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, v3 Color, r32 Z, r
 link_internal void
 BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, u32 Color, r32 Z, rect2 ClipWindow, rect2 *ClipOptional)
 {
-  v3 ColorVector = GetColorData(DefaultPalette, Color).xyz;
+  v3 ColorVector = GetColorData(DefaultPalette, Color);
   BufferChar(Group, Char, MinP, FontSize, ColorVector, Z, ClipWindow, ClipOptional);
 }
 

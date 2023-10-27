@@ -2,10 +2,10 @@
 struct untextured_3d_geometry_buffer
 {
   v3 *Verts;
-  v4 *Colors;
+  v3 *Colors;
   v3 *Normals;
 
-  /* v2 *TransparencyEmission; */
+  v2 *TransEmiss;
 
   // TODO(Jesse): The fuck are these doing as 32bit?!
   u32 End;
@@ -20,42 +20,48 @@ struct untextured_3d_geometry_buffer
 
 
 untextured_3d_geometry_buffer
-ReserveBufferSpace(untextured_3d_geometry_buffer* Reservation, u32 ElementsToReserve)
+ReserveBufferSpace(untextured_3d_geometry_buffer *Src, u32 ElementsToReserve)
 {
   /* TIMED_FUNCTION(); */
   Assert(ElementsToReserve);
 
   // NOTE(Jesse): During testing I'm going to limit the chain to 1 link.
   // @single_parent_chain_link_untextured_3d
-  Assert(Reservation->Parent == False);
+  Assert(Src->Parent == False);
 
-  /* auto Parent = Reservation; */
-  /* while (Reservation->Parent) Parent = Reservation->Parent; */
+  /* auto Parent = Src; */
+  /* while (Src->Parent) Parent = Src->Parent; */
 
   untextured_3d_geometry_buffer Result = {};
 
   for (;;)
   {
-    umm ReservationAt = Reservation->At;
+    umm ReservationAt = Src->At;
     umm ReservationRequest = ReservationAt + ElementsToReserve;
-    if (ReservationRequest < Reservation->End)
+    if (ReservationRequest < Src->End)
     {
-      if ( AtomicCompareExchange(&Reservation->At, (u32)ReservationRequest, (u32)ReservationAt) )
+      if ( AtomicCompareExchange(&Src->At, (u32)ReservationRequest, (u32)ReservationAt) )
       {
-        Result.Verts = Reservation->Verts + ReservationAt;
-        Result.Colors = Reservation->Colors + ReservationAt;
-        Result.Normals = Reservation->Normals + ReservationAt;
+        Result.Verts      = Src->Verts + ReservationAt;
+        Result.Colors     = Src->Colors + ReservationAt;
+        Result.Normals    = Src->Normals + ReservationAt;
+        Result.TransEmiss = Src->TransEmiss + ReservationAt;
+
         Result.End = ElementsToReserve;
 
-        Result.Parent = Reservation;
+        Result.Parent = Src;
 
         break;
+      }
+      else
+      {
+        continue;
       }
     }
     else
     {
       Warn("Failed to reserve buffer space");
-      Reservation->BufferNeedsToGrow += ElementsToReserve;
+      Src->BufferNeedsToGrow += ElementsToReserve;
       break;
     }
   }
@@ -70,8 +76,9 @@ DeepCopy(untextured_3d_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest
   Assert(Dest->End >= Count);
 
   CopyMemory((u8*)Src->Verts,   (u8*)Dest->Verts,   Count*sizeof(v3));
-  CopyMemory((u8*)Src->Colors,  (u8*)Dest->Colors,  Count*sizeof(v4));
+  CopyMemory((u8*)Src->Colors,  (u8*)Dest->Colors,  Count*sizeof(v3));
   CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3));
+  CopyMemory((u8*)Src->TransEmiss, (u8*)Dest->TransEmiss, Count*sizeof(v2));
 
   Dest->At = u32(Count);
   Dest->Timestamp = Src->Timestamp;

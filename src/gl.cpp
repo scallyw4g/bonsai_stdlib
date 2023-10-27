@@ -364,7 +364,7 @@ InitializeOpenglFunctions()
     AssertNoGlErrors;
   }
 
-  if (GL.Initialized && CheckOpenglVersion(GLMajor, GLMinor))
+  if (GL.Initialized && CheckOpenglVersion(GLMajor, GLMinor) == False)
   {
     Warn("Unsupported Version of Opengl (%d.%d) ::  Minimum 3.3 required.", GLMajor, GLMinor);
     Warn("The driver successfully supplied all required function pointers, however your program may not run correctly.");
