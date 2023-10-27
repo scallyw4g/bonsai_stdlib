@@ -5,11 +5,11 @@ layout(location = 3) in vec2 in_TransEmiss;
 
 out vec2 UV;
 out vec3 Color;
-out vec2 out_TransEmiss;
+out vec2 TransEmiss;
 
 void main(){
   UV = VertUV;
   Color = VertColor;
-  out_TransEmiss = in_TransEmiss;
+  TransEmiss = in_TransEmiss;
   gl_Position = vec4(VertPos, 1);
 }
