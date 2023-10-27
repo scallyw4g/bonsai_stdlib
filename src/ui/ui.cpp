@@ -2479,6 +2479,8 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
 
   Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
 
+  AssertNoGlErrors;
+
   if (Headless == False)
   {
     auto TextGroup = Renderer->TextGroup;
@@ -2486,25 +2488,32 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
     GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
     GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
+    AssertNoGlErrors;
 
     TextGroup->Text2DShader = LoadShaders( CSz(STDLIB_SHADER_PATH "TextVertexShader.vertexshader"), CSz(STDLIB_SHADER_PATH "TextVertexShader.fragmentshader") );
+    AssertNoGlErrors;
+
     TextGroup->TextTextureUniform = GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
+    AssertNoGlErrors;
 
     Renderer->TextGroup->SolidUIShader = LoadShaders( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") );
+    AssertNoGlErrors;
 
     // Generic shader that gets reused to draw simple textured quads
     Renderer->TexturedQuadShader = MakeFullTextureShader(0, PermMemory);
+    AssertNoGlErrors;
 
     v2i TextureDim = V2i(DEBUG_TEXTURE_DIM, DEBUG_TEXTURE_DIM);
     texture *DepthTexture = MakeDepthTexture( TextureDim, PermMemory );
     FramebufferDepthTexture(DepthTexture);
+    AssertNoGlErrors;
+
 
     Result = CheckAndClearFramebuffer();
     Assert(Result);
 
     GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
     GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
     AssertNoGlErrors;
   }

@@ -586,10 +586,10 @@ static v4 DefaultPalette[] = {
 CAssert( ArrayCount( DefaultPalette ) <= (0xff+1) );
 
 inline v3
-GetColorData(v3 *Src, u32 ColorIndex)
+GetColorData(v3 *Pallette, u32 ColorIndex)
 {
   Assert(ColorIndex <= 0xff);
-  v3 Result = Src[ColorIndex] / 255.f;
+  v3 Result = Pallette[ColorIndex] / 255.f;
   return Result;
 }
 

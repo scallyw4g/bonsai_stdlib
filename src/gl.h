@@ -114,20 +114,21 @@
 #define GL_TEXTURE_BINDING_2D_ARRAY       0x8C1D
 
 
+#define GL_RED                            0x1903
 #define GL_R16F                           0x822D
 #define GL_R32F                           0x822E
+
+#define GL_RG                             0x8227
 #define GL_RG16F                          0x822F
 #define GL_RG32F                          0x8230
 
-#define GL_RG                             0x8227
 #define GL_RGB                            0x1907
+#define GL_RGB32F                         0x8815
+
 #define GL_RGBA                           0x1908
 #define GL_RGBA8                          0x8058
-#define GL_RGB32F                         0x8815
 #define GL_RGBA32F                        0x8814
 
-#define GL_R32F                           0x822E
-#define GL_RED                            0x1903
 #define GL_VERTEX_ARRAY                   0x8074
 
 #define GL_TEXTURE0                       0x84C0
@@ -195,8 +196,8 @@ struct gpu_mapped_element_buffer
 {
   u32 VertexHandle;
   u32 NormalHandle;
-  u32 ColorHandle;
-  u32 TransEmissHandle;
+  u32 MatHandle;
+  /* u32 TransEmissHandle; */
 
   untextured_3d_geometry_buffer Buffer;
 };
