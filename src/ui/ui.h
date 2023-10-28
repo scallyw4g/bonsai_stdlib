@@ -53,18 +53,20 @@ struct window_layout
 {
   counted_string Title;
 
-  // TODO(Jesse): Pack Minimized into here
-  s32 Flags;
+  // TODO(Jesse): Pack Minimized into flags somehow?
   b32 Minimized;
   u32 MinimizeIndex;
 
+  s32 Flags;
   v2 Basis;
   v2 MaxClip;
   v2 Scroll;
 
+  s32 CachedFlags;
   v2 CachedBasis;
   v2 CachedMaxClip;
   v2 CachedScroll;
+
 
   u64 InteractionStackIndex;
 

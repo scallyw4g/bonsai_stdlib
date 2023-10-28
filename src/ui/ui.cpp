@@ -1057,6 +1057,7 @@ UnminimizeWindow(renderer_2d *Group, window_layout *Window)
   Group->MinimizedWindowBuffer[Window->MinimizeIndex] = 0;
   Window->MinimizeIndex = 0;
 
+  Window->Flags = Window->CachedFlags;
   Window->Basis = Window->CachedBasis;
   Window->MaxClip = Window->CachedMaxClip;
   Window->Scroll = Window->CachedScroll;
@@ -1105,6 +1106,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
       }
     }
 
+    Window->CachedFlags = Window->Flags;
     Window->CachedBasis = Window->Basis;
     Window->CachedMaxClip = Window->MaxClip;
     Window->CachedScroll = Window->Scroll;
@@ -1115,6 +1117,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     v2 WindowDim  = MinimizedTitleBarBounds.Max + V2(ResizeHandleDim.x, 0) + V2(20, 0);
     v2 WindowBasis = V2(Group->ScreenDim->x - WindowDim.x - WindowOffsetFromCornerOfScreen.x, (Window->MinimizeIndex * Global_TitleBarHeight) + WindowOffsetFromCornerOfScreen.y );
 
+    Window->Flags = WindowLayoutFlag_StartupAlign_Right;
     Window->Basis = WindowBasis;
     Window->MaxClip = WindowDim;
   }
