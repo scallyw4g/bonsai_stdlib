@@ -1127,38 +1127,35 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   interactable_handle ResizeHandle = { .Id = ResizeHandleInteractionId };
 
   v2 TitleBounds = V2(Window->Title.Count*Global_Font.Size.x, Global_Font.Size.y);
-  /* if (Window->MaxClip != V2(-1, -1)) */
+  Window->MaxClip = Max(TitleBounds, Window->MaxClip);
+
+  if (Pressed(Group, &ResizeHandle))
   {
-    Window->MaxClip = Max(TitleBounds, Window->MaxClip);
+    Window->Flags &= ~(WindowLayoutFlag_DynamicSize|WindowLayoutFlag_StartupAlign_Right|WindowLayoutFlag_StartupAlign_Bottom);
 
-    if (Pressed(Group, &ResizeHandle))
+    v2 AbsoluteTitleBounds = Window->Basis + TitleBounds;
+    v2 TestMaxClip = *Group->MouseP - Window->Basis;
+
+    if (Group->MouseP->x > AbsoluteTitleBounds.x )
     {
-      Window->Flags &= ~(WindowLayoutFlag_DynamicSize|WindowLayoutFlag_StartupAlign_Right|WindowLayoutFlag_StartupAlign_Bottom);
-
-      v2 AbsoluteTitleBounds = Window->Basis + TitleBounds;
-      v2 TestMaxClip = *Group->MouseP - Window->Basis;
-
-      if (Group->MouseP->x > AbsoluteTitleBounds.x )
-      {
-        Window->MaxClip.x = Max(TitleBounds.x, TestMaxClip.x);
-      }
-      else
-      {
-        Window->MaxClip.x = TitleBounds.x;
-      }
-
-      if (Group->MouseP->y > AbsoluteTitleBounds.y )
-      {
-        Window->MaxClip.y = Max(TitleBounds.y, TestMaxClip.y);
-      }
-      else
-      {
-        Window->MaxClip.y = TitleBounds.y;
-      }
+      Window->MaxClip.x = Max(TitleBounds.x, TestMaxClip.x);
+    }
+    else
+    {
+      Window->MaxClip.x = TitleBounds.x;
     }
 
-    Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 50);
+    if (Group->MouseP->y > AbsoluteTitleBounds.y )
+    {
+      Window->MaxClip.y = Max(TitleBounds.y, TestMaxClip.y);
+    }
+    else
+    {
+      Window->MaxClip.y = TitleBounds.y;
+    }
   }
+
+  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 50);
 
   f32 KeepOnTheScreenThreshold = 30.f;
   Window->Basis = Max(V2(-(Window->MaxClip.x-KeepOnTheScreenThreshold), 0.f), Window->Basis);
@@ -2168,7 +2165,6 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         {
           TypedCommand->Window->Basis.y = Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset;
         }
-
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_DynamicSize)
         {
