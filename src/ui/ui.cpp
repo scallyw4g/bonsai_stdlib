@@ -1088,6 +1088,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   else if (Pressed(Group, &TitleBarHandle))
   {
     Window->Basis -= *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
+    Window->Flags &= ~(WindowLayoutFlag_StartupAlign_Right|WindowLayoutFlag_StartupAlign_Bottom);
   }
   else if (!Window->Minimized && Clicked(Group, &MinimizeButtonHandle))
   {
@@ -1123,33 +1124,38 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   interactable_handle ResizeHandle = { .Id = ResizeHandleInteractionId };
 
   v2 TitleBounds = V2(Window->Title.Count*Global_Font.Size.x, Global_Font.Size.y);
-  Window->MaxClip = Max(TitleBounds, Window->MaxClip);
-
-  if (Pressed(Group, &ResizeHandle))
+  /* if (Window->MaxClip != V2(-1, -1)) */
   {
-    v2 AbsoluteTitleBounds = Window->Basis + TitleBounds;
-    v2 TestMaxClip = *Group->MouseP - Window->Basis;
+    Window->MaxClip = Max(TitleBounds, Window->MaxClip);
 
-    if (Group->MouseP->x > AbsoluteTitleBounds.x )
+    if (Pressed(Group, &ResizeHandle))
     {
-      Window->MaxClip.x = Max(TitleBounds.x, TestMaxClip.x);
-    }
-    else
-    {
-      Window->MaxClip.x = TitleBounds.x;
+      Window->Flags &= ~(WindowLayoutFlag_DynamicSize|WindowLayoutFlag_StartupAlign_Right|WindowLayoutFlag_StartupAlign_Bottom);
+
+      v2 AbsoluteTitleBounds = Window->Basis + TitleBounds;
+      v2 TestMaxClip = *Group->MouseP - Window->Basis;
+
+      if (Group->MouseP->x > AbsoluteTitleBounds.x )
+      {
+        Window->MaxClip.x = Max(TitleBounds.x, TestMaxClip.x);
+      }
+      else
+      {
+        Window->MaxClip.x = TitleBounds.x;
+      }
+
+      if (Group->MouseP->y > AbsoluteTitleBounds.y )
+      {
+        Window->MaxClip.y = Max(TitleBounds.y, TestMaxClip.y);
+      }
+      else
+      {
+        Window->MaxClip.y = TitleBounds.y;
+      }
     }
 
-    if (Group->MouseP->y > AbsoluteTitleBounds.y )
-    {
-      Window->MaxClip.y = Max(TitleBounds.y, TestMaxClip.y);
-    }
-    else
-    {
-      Window->MaxClip.y = TitleBounds.y;
-    }
+    Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 50);
   }
-
-  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 50);
 
   f32 KeepOnTheScreenThreshold = 30.f;
   Window->Basis = Max(V2(-(Window->MaxClip.x-KeepOnTheScreenThreshold), 0.f), Window->Basis);
@@ -1243,6 +1249,17 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
 link_internal b32
 ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff,  umm InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
+  interactable_handle Handle = {
+    .Id = InteractionId
+  };
+
+  b32 Result = ToggledOn(Group, &Handle);
+
+  if (Result && Style == &DefaultStyle)
+  {
+    Style = &DefaultSelectedStyle;
+  }
+
   ui_render_command StartCommand = {
     .Type = type_ui_render_command_button_start,
     .ui_render_command_button_start.ID = InteractionId,
@@ -1251,12 +1268,6 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff,  umm Interac
   };
 
   PushUiRenderCommand(Group, &StartCommand);
-
-  interactable_handle Handle = {
-    .Id = InteractionId
-  };
-
-  b32 Result = ToggledOn(Group, &Handle);
 
   cs NameToUse = Result ? ButtonNameOn : ButtonNameOff;
   PushColumn(Group, NameToUse, Style, Padding, ColumnParams);
@@ -2130,6 +2141,38 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_window_end:
       {
         ui_render_command_window_end* TypedCommand = RenderCommandAs(window_end, Command);
+
+        if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupSize_InferHeight)
+        {
+          TypedCommand->Window->Flags = (TypedCommand->Window->Flags&(~WindowLayoutFlag_StartupSize_InferHeight));
+          TypedCommand->Window->MaxClip.y = RenderState->Layout->DrawBounds.Max.y;
+          TypedCommand->Window->Basis.y = DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset;
+        }
+
+        if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupSize_InferWidth)
+        {
+          TypedCommand->Window->Flags = (TypedCommand->Window->Flags&(~WindowLayoutFlag_StartupSize_InferWidth));
+          TypedCommand->Window->MaxClip.x = RenderState->Layout->DrawBounds.Max.x;
+          TypedCommand->Window->Basis.x = DefaultWindowSideOffset;
+        }
+
+        if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupAlign_Right)
+        {
+          TypedCommand->Window->Basis.x = Group->ScreenDim->x - TypedCommand->Window->MaxClip.x - DefaultWindowSideOffset;
+        }
+
+        if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupAlign_Bottom)
+        {
+          TypedCommand->Window->Basis.y = Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset;
+        }
+
+
+        if (TypedCommand->Window->Flags & WindowLayoutFlag_DynamicSize)
+        {
+          TypedCommand->Window->MaxClip = RenderState->Layout->DrawBounds.Max;
+        }
+
+
         Assert(TypedCommand->Window == RenderState->Window);
         RenderState->Window = 0;
         PopLayout(&RenderState->Layout);

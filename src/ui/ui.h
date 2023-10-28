@@ -33,10 +33,28 @@ struct render_buffers_2d
   shader SolidUIShader;
 };
 
+enum window_layout_flags
+{
+  WindowLayoutFlag_None = 0,
+
+  WindowLayoutFlag_DynamicSize         = (1 << 0),
+
+  WindowLayoutFlag_StartupSize_InferHeight = (1 << 1),
+  WindowLayoutFlag_StartupSize_InferWidth  = (1 << 2),
+  WindowLayoutFlag_StartupSize_Infer       = (WindowLayoutFlag_StartupSize_InferHeight|WindowLayoutFlag_StartupSize_InferWidth),
+
+  WindowLayoutFlag_StartupAlign_Right      = (1 << 3),
+  WindowLayoutFlag_StartupAlign_Bottom     = (1 << 4),
+
+  WindowLayoutFlag_Default = (WindowLayoutFlag_DynamicSize|WindowLayoutFlag_StartupSize_Infer),
+};
+
 struct window_layout
 {
   counted_string Title;
 
+  // TODO(Jesse): Pack Minimized into here
+  s32 Flags;
   b32 Minimized;
   u32 MinimizeIndex;
 
@@ -132,7 +150,11 @@ typedef renderer_2d debug_ui_render_group;
 struct layout
 {
   v2 Basis;
+
+  // Relative to Basis
   v2 At;
+
+  // Relative to Basis
   rect2 DrawBounds = InvertedInfinityRectangle();
 
   v4 Padding;
@@ -313,7 +335,7 @@ link_internal ui_style FlatUiStyle(v3 Color, font *Font = &Global_Font);
 debug_global v4 DatastructureIndent = V4(Global_Font.Size.x*2, 0, 0, 0);
 debug_global v4 DefaultDatastructurePadding = V4(5, 5, 0, 0);
 
-debug_global v4 DefaultColumnPadding = V4(0, 0, 30, 12);
+debug_global v4 DefaultColumnPadding = V4(0, 0, 30, 8);
 debug_global v4 DefaultButtonPadding = DefaultColumnPadding;
 /* debug_global v4 DefaultColumnPadding = V4(0); */
 /* debug_global v4 DefaultButtonPadding = V4(15); */
@@ -712,19 +734,24 @@ AlignRightWindowBasis(v2 ScreenDim, v2 WindowDim = DefaultWindowSize)
 }
 
 link_internal window_layout
-WindowLayout(const char* Title, v2 Basis, v2 MaxClip = DefaultWindowSize)
+WindowLayout(const char* Title, v2 Basis, v2 MaxClip = DefaultWindowSize, window_layout_flags Flags = WindowLayoutFlag_Default)
 {
-  /* TIMED_FUNCTION(); */
-
   local_persist u32 NextWindowStackIndex = 0;
 
   window_layout Window = {};
+  Window.Flags = Flags;
   Window.Basis = Basis;
   Window.MaxClip = MaxClip;
   Window.Title = CS(Title);
   Window.InteractionStackIndex = NextWindowStackIndex++;
 
   return Window;
+}
+
+link_internal window_layout
+WindowLayout(const char* Title, window_layout_flags Flags = WindowLayoutFlag_None)
+{
+  return WindowLayout(Title, {}, {}, window_layout_flags(Flags|WindowLayoutFlag_Default));
 }
 
 v2
