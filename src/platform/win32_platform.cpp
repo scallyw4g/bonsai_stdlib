@@ -1,4 +1,5 @@
 /* #include <bonsai_stdlib/platform/win32_etw.cpp> */
+#include "win32_stacktrace.cpp"
 
 #define BONSAI_MAIN() int CALLBACK WinMain( HINSTANCE AppHandle, HINSTANCE Ignored, LPSTR CmdLine, int CmdShow )
 
@@ -726,6 +727,7 @@ PlatformGetLogicalCoreCount()
   return Result;
 }
 
+#if 0
 link_internal void
 PlatformDebugStacktrace()
 {
@@ -742,6 +744,7 @@ PlatformDebugStacktrace()
 
   Warn("Stack traces unavailable on windows.");
 }
+#endif
 
 
 enum file_traversal_type
@@ -814,4 +817,3 @@ PlatformTraverseDirectoryTree(cs Dirname, file_callback Callback)
 
   return true;
 }
-

@@ -204,3 +204,5 @@ poof(
 poof( gen_primitive_deep_copy({s64 u64 r64 s32 u32 r32 s16 u16 s8 u8 }) )
 #include <generated/gen_primitive_deep_copy_715421923.h>
 
+link_internal void PlatformDebugStacktrace();
+

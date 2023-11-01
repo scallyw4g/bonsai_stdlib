@@ -28,6 +28,7 @@
     LogDirect("%S", TerminalColors.Red);              \
     LogDirect(" # Runtime Break # " Newline Newline); \
     LogDirect("%S", TerminalColors.White);            \
+    PlatformDebugStacktrace(); \
     PLATFORM_RUNTIME_BREAK();                         \
   } else {                                            \
     DebugLine("   Break   - Skipped");                \
