@@ -35,16 +35,18 @@
   for (s32 yArg = 0; yArg < Dim.y; ++yArg)  \
   for (s32 xArg = 0; xArg < Dim.x; ++xArg)
 
-#define MinDimIterator( xArg, yArg, zArg, Min, Dim)  \
+#define MinDimIterator( xArg, yArg, zArg, Min, Dim)        \
   for (s32 zArg = (Min).z; zArg < (Min).z+(Dim).z; ++zArg) \
   for (s32 yArg = (Min).y; yArg < (Min).y+(Dim).y; ++yArg) \
   for (s32 xArg = (Min).x; xArg < (Min).x+(Dim).x; ++xArg)
 
 #define MinMaxIterator( xArg, yArg, zArg, Min, Max)  \
-  for (s32 zArg = (Min).z; zArg < (Max).z; ++zArg)       \
-  for (s32 yArg = (Min).y; yArg < (Max).y; ++yArg)       \
+  for (s32 zArg = (Min).z; zArg < (Max).z; ++zArg)   \
+  for (s32 yArg = (Min).y; yArg < (Max).y; ++yArg)   \
   for (s32 xArg = (Min).x; xArg < (Max).x; ++xArg)
 
+#define Rect3Iterator(xArg, yArg, zArg, Rect) \
+  MinMaxIterator(xArg, yArg, zArg, (Rect).Min, (Rect).Max)
 
 
 #define ReinterpretCast(T, Ptr) (T)(void*)(Ptr)
