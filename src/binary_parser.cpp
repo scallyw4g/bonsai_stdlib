@@ -401,3 +401,205 @@ Dump(xml_token_stream *Stream, umm TokenCount)
   }
 }
 #endif
+
+//
+// Little endian
+//
+
+poof(
+  func gen_read_primitive_funcs_little_endian(type_poof_symbol PrimitiveTypes)
+  {
+    PrimitiveTypes.map(prim)
+    {
+      inline prim.name
+      Read_(prim.name)(u8 *Source)
+      {
+        prim.name Result = *((prim.name)*)Source;
+        return Result;
+      }
+
+      inline prim.name
+      Read_(prim.name)((prim.name) *Source)
+      {
+        prim.name Result = *Source;
+        return Result;
+      }
+
+      inline prim.name
+      Read_(prim.name)(u8_stream *Source)
+      {
+        prim.name Result = Read_(prim.name)(Source->At);
+        Source->At += sizeof((prim.name));
+        Assert(Source->At <= Source->End);
+        return Result;
+      }
+
+      inline prim.name*
+      ReadArray_(prim.name)(u8_stream *Source, u32 Count)
+      {
+        prim.name *Result = ((prim.name)*)Source->At;
+        Source->At += (Count * sizeof((prim.name)));
+        Assert(Source->At <= Source->End);
+        return Result;
+      }
+
+
+    }
+  }
+)
+
+inline u8
+Read_u8(u8 *Source)
+{
+  u8 Result = *Source;
+  return Result;
+}
+
+inline u8
+Read_u8(u8_stream *Source)
+{
+  u8 Result = Read_u8(Source->At);
+  Source->At += sizeof(u8);
+  Assert(Source->At <= Source->End);
+  return Result;
+}
+
+inline u8*
+ReadArray_u8(u8_stream *Source, u32 Count)
+{
+  u8 *Result = (u8*)Source->At;
+  Source->At += (Count * sizeof(u8));
+  Assert(Source->At <= Source->End);
+  return Result;
+}
+
+poof(gen_read_primitive_funcs_little_endian({s8 s16 u16 s32 u32 s64 u64}))
+#include <generated/gen_read_primitive_funcs_624166848.h>
+
+
+//
+// Big endian
+//
+
+
+
+inline u8
+Read_u8_be(u8* Source)
+{
+  u8 Result = Read_u8(Source);
+  return Result;
+}
+
+inline s16
+Read_s16_be(s16* Source)
+{
+  s16 Result = (((u8*)Source)[0]*256) + ((u8*)Source)[1];
+  return Result;
+}
+
+inline s16
+Read_s16_be(u8* Source)
+{
+  s16 Result = (Source[0]*256) + Source[1];
+  return Result;
+}
+
+inline u16
+Read_u16_be(u16* Source)
+{
+  u16 Result = (((u8*)Source)[0]*256) + ((u8*)Source)[1];
+  return Result;
+}
+
+inline u16
+Read_u16_be(u8* Source)
+{
+  u16 Result = (Source[0]*256) + Source[1];
+  return Result;
+}
+
+inline s64
+Read_s64_be(u8* Source)
+{
+  s64 Result = (s64)( ((u64)Source[0]<<56) + ((u64)Source[1]<<48) + ((u64)Source[2]<<40) + ((u64)Source[3]<<32) + ((u64)Source[4]<<24) + ((u64)Source[5]<<16) + ((u64)Source[6]<<8) + ((u64)Source[7]) );
+  return Result;
+}
+
+inline u32
+Read_u32_be(u8* Source)
+{
+  u32 Result = (u32)( (Source[0]<<24) + (Source[1]<<16) + (Source[2]<<8) + Source[3] );
+  return Result;
+}
+
+inline u8*
+ReadArray_u8_be(u8_stream *Source, u32 Count)
+{
+  u8 *Result = Source->At;
+  Source->At += Count;
+  Assert(Source->At <= Source->End);
+  return Result;
+}
+
+inline u16*
+ReadArray_u16_be(u8_stream *Source, u32 Count)
+{
+  u16 *Result = (u16*)Source->At;
+  Source->At += sizeof(u16)*Count;
+  Assert(Source->At <= Source->End);
+  return Result;
+}
+
+inline s16*
+ReadArray_s16_be(u8_stream *Source, u32 Count)
+{
+  s16 *Result = (s16*)Source->At;
+  Source->At += sizeof(s16)*Count;
+  Assert(Source->At <= Source->End);
+  return Result;
+}
+
+inline u8
+Read_u8_be(u8_stream *Source)
+{
+  u8 Result = Read_u8_be(Source->At);
+  Source->At += sizeof(u8);
+  Assert(Source->At <= Source->End);
+  return Result;
+}
+
+inline s16
+Read_s16_be(u8_stream *Source)
+{
+  s16 Result = Read_s16_be(Source->At);
+  Source->At += sizeof(s16);
+  Assert(Source->At <= Source->End);
+  return Result;
+}
+
+inline u16
+Read_u16_be(u8_stream *Source)
+{
+  u16 Result = Read_u16_be(Source->At);
+  Source->At += sizeof(u16);
+  Assert(Source->At <= Source->End);
+  return Result;
+}
+
+inline s64
+Read_s64_be(u8_stream *Source)
+{
+  s64 Result = Read_s64_be(Source->At);
+  Source->At += sizeof(s64);
+  Assert(Source->At <= Source->End);
+  return Result;
+}
+
+inline u32
+Read_u32_be(u8_stream *Source)
+{
+  u32 Result = Read_u32_be(Source->At);
+  Source->At += sizeof(u32);
+  Assert(Source->At <= Source->End);
+  return Result;
+}

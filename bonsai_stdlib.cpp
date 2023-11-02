@@ -17,7 +17,7 @@
 #include <bonsai_stdlib/src/platform.cpp>
 #include <bonsai_stdlib/src/thread.cpp>
 #include <bonsai_stdlib/src/string_builder.cpp>
-#include <bonsai_stdlib/src/stream.cpp>
+#include <bonsai_stdlib/src/binary_parser.cpp>
 #include <bonsai_stdlib/src/bitmap.cpp>
 #include <bonsai_stdlib/src/matrix.cpp>
 #include <bonsai_stdlib/src/heap_memory.cpp>
