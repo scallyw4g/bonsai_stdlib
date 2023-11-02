@@ -764,56 +764,70 @@ struct file_traversal_node
 poof(are_equal(file_traversal_node))
 #include <generated/are_equal_file_traversal_node.h>
 
-typedef void (*file_callback)(file_traversal_node*);
+poof(maybe(file_traversal_node))
+#include <generated/maybe_file_traversal_node.h>
 
-link_internal b32
-PlatformTraverseDirectoryTree(cs Dirname, file_callback Callback)
+typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node);
+
+link_internal maybe_file_traversal_node
+PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback)
 {
   TIMED_FUNCTION();
+
+  maybe_file_traversal_node Result = {};
 
   WIN32_FIND_DATA FindFileDescriptor;
   HANDLE FindHandle = 0;
 
   cs SearchTokens = CSz("/*.*");
 
-  cs Thing = Concat(Dirname, SearchTokens, GetTranArena());
-  if( (FindHandle = FindFirstFile(Thing.Start, &FindFileDescriptor)) == INVALID_HANDLE_VALUE)
+  cs FindFilePattern = Concat(Dirname, SearchTokens, GetTranArena());
+  if( (FindHandle = FindFirstFile(FindFilePattern.Start, &FindFileDescriptor)) == INVALID_HANDLE_VALUE)
   {
     SoftError("Path not found (%S)", Dirname);
-    return false;
   }
-
-  do
+  else
   {
-    cs Filename = CopyString(FindFileDescriptor.cFileName, GetTranArena());
-    if(StringsMatch(Filename, CSz(".")) || StringsMatch(Filename, CSz("..")))
+    do
     {
-      // Skip . and ..
-    }
-    else
-    {
-      file_traversal_type Type = FileTraversalType_File;
-      if(FindFileDescriptor.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      cs Filename = CopyString(FindFileDescriptor.cFileName, GetTranArena());
+      if(StringsMatch(Filename, CSz(".")) || StringsMatch(Filename, CSz("..")))
       {
-        Type = FileTraversalType_Dir;
-        // TODO(Jesse): This should use a string builder
-        cs SubDir = Concat(Dirname, CSz("/"), GetTranArena());
-        SubDir    = Concat(SubDir, Filename, GetTranArena());
-        PlatformTraverseDirectoryTree(SubDir, Callback);
+        // Skip . and ..
       }
+      else
+      {
+        file_traversal_type Type = FileTraversalType_File;
+        if(FindFileDescriptor.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+          Type = FileTraversalType_Dir;
+          // TODO(Jesse): This should use a string builder
+          cs SubDir = Concat(Dirname, CSz("/"), GetTranArena());
+          SubDir    = Concat(SubDir, Filename, GetTranArena());
+          maybe_file_traversal_node MaybeNode = PlatformTraverseDirectoryTree(SubDir, Callback);
+          if (MaybeNode.Tag)
+          {
+            Result = MaybeNode;
+          }
+        }
 
-      file_traversal_node CBArg = {
-        .Type = Type,
-        .Name = Filename,
-        .Dir = Dirname,
-      };
+        file_traversal_node CBArg = {
+          .Type = Type,
+          .Name = Filename,
+          .Dir = Dirname,
+        };
 
-      Callback(&CBArg);
+        // NOTE(Jesse): It might be better perf-wise to pass a pointer here, but
+        // I'm scared of forgetting you're not allowed to save it and read some
+        // random stack garbage afterwards
+        maybe_file_traversal_node MaybeNode = Callback(CBArg);
+        if (MaybeNode.Tag) { Result = MaybeNode; }
+      }
     }
+    while (FindNextFile(FindHandle, &FindFileDescriptor));
+
+    FindClose(FindHandle);
   }
-  while(FindNextFile(FindHandle, &FindFileDescriptor));
 
-  FindClose(FindHandle);
-
-  return true;
+  return Result;
 }
