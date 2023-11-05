@@ -84,6 +84,19 @@ struct ui_toggle
   b32 ToggledOn;
 };
 
+struct ui_toggle_button_handle
+{
+  cs Text;
+  umm Id;
+};
+
+link_internal ui_toggle_button_handle
+UiToggle(cs Text, umm IdModifier)
+{
+  ui_toggle_button_handle Result = { Text, umm(Text.Start)^IdModifier };
+  return Result;
+}
+
 typedef ui_toggle* ui_toggle_ptr;
 
 link_internal umm
@@ -181,28 +194,6 @@ struct render_state
 
 
 
-
-
-struct ui_element_toggle_button
-{
-  counted_string Text;
-  b32 On;
-  b32 Clicked;
-};
-
-enum ui_element_toggle_button_group_flags
-{
-  ToggleButtonGroupFlags_None = 0,
-  ToggleButtonGroupFlags_RadioButtons = (1 << 0),
-  ToggleButtonGroupFlags_DrawVertical = (1 << 1),
-};
-
-struct ui_element_toggle_button_group
-{
-  ui_element_toggle_button *Buttons;
-  s32 Count;
-  ui_element_toggle_button_group_flags Flags;
-};
 
 global_variable v4 DefaultToggleButtonPadding = V4(15,0,15,0);
 

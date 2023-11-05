@@ -4,6 +4,9 @@
 #define u32_COUNT_PER_QUAD (6)
 
 
+poof(buffer(ui_toggle_button_handle))
+#include <generated/buffer_ui_toggle_button_handle.h>
+
 poof(hashtable_impl(ui_toggle))
 #include <generated/hashtable_impl_ui_toggle.h>
 
@@ -14,19 +17,87 @@ poof(hashtable_get_ptr(ui_toggle, {umm}, {Id}))
 #include <generated/hashtable_get_ptr_ui_toggle_31501_688856534.h>
 
 
-link_internal b32
-ToggledOn(renderer_2d* Group, interactable_handle *Interaction)
+enum ui_toggle_button_group_flags
 {
-  maybe_ui_toggle Maybe = GetById(&Group->ToggleTable, Interaction->Id);
+  ToggleButtonGroupFlags_None = 0,
+  ToggleButtonGroupFlags_RadioButtons = (1 << 0),
+  ToggleButtonGroupFlags_DrawVertical = (1 << 1),
+};
 
-  b32 Result = False;
-  if (Maybe.Tag)
-  {
-    Result = Maybe.Value.ToggledOn;
-  }
+struct ui_toggle_button_group
+{
+  renderer_2d *Ui;
+  ui_toggle_button_handle_buffer Buttons;
+  ui_toggle_button_group_flags Flags;
+};
+
+#define UI_PARAM_NAMES relative_position Position,      \
+                       ui_element_reference RelativeTo, \
+                       v2 Offset,                       \
+                       ui_style *Style,                 \
+                       v4 Padding
+
+
+#define UI_PARAM_DEFAULTS relative_position Position = Position_None, \
+                          ui_element_reference RelativeTo = {},       \
+                          v2 Offset = {},                             \
+                          ui_style *Style = &DefaultStyle,            \
+                          v4 Padding = {}
+
+#define UI_PARAM_INSTANCES Position, RelativeTo, Offset, Style, Padding
+
+link_internal void
+DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_PARAM_DEFAULTS);
+
+link_internal ui_toggle_button_group
+UiToggleButtonGroup(renderer_2d *Ui, ui_toggle_button_handle *Buttons, umm Count, ui_toggle_button_group_flags Flags = ToggleButtonGroupFlags_None, UI_PARAM_DEFAULTS)
+{
+  ui_toggle_button_group Result = {};
+
+  Result.Ui = Ui;
+  Result.Buttons.Start = Buttons;
+  Result.Buttons.Count = Count;
+  Result.Flags = Flags;
+
+  DrawToggleButtonGroup(&Result, UI_PARAM_INSTANCES);
 
   return Result;
 }
+
+link_internal b32
+ToggledOn(renderer_2d* Group, interactable_handle *Interaction)
+{
+  b32 Result = False;
+
+  maybe_ui_toggle Maybe = GetById(&Group->ToggleTable, Interaction->Id);
+  if (Maybe.Tag) { Result = Maybe.Value.ToggledOn; }
+
+  return Result;
+}
+
+link_internal b32
+ToggledOn(renderer_2d *Ui, ui_toggle_button_handle *Button)
+{
+  interactable_handle Handle = { Button->Id };
+  b32 Result = ToggledOn(Ui, &Handle);
+  return Result;
+}
+
+link_internal b32
+ToggledOn(renderer_2d *Ui, ui_toggle_button_group *Group, cs ButtonName)
+{
+  b32 Result = False;
+  IterateOver(&Group->Buttons, Button, ButtonIndex)
+  {
+    if (StringsMatch(Button->Text, ButtonName))
+    {
+      Result = ToggledOn(Ui, Button);
+      break;
+    }
+  }
+  return Result;
+}
+
 
 
 
@@ -1247,7 +1318,7 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
 }
 
 link_internal b32
-ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff,  umm InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
+ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, umm InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
   interactable_handle Handle = {
     .Id = InteractionId
@@ -1310,67 +1381,59 @@ PushBargraph(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor,
   return;
 }
 
+link_internal b32
+Clicked(ui_toggle_button_group *Group, cs ButtonName)
+{
+  renderer_2d *Ui = Group->Ui;
+
+  b32 Result = False;
+  IterateOver(&Group->Buttons, Button, ButtonIndex)
+  {
+    if (StringsMatch(Button->Text, ButtonName))
+    {
+      interactable_handle Handle = {Button->Id};
+      Result = Clicked(Group->Ui, &Handle);
+      break;
+    }
+  }
+  return Result;
+}
+
 link_internal void
-DrawToggleButtonGroup(renderer_2d *Ui, ui_element_toggle_button_group *Group, relative_position Position = Position_None,  ui_element_reference RelativeTo = {})
+DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_PARAM_NAMES)
 {
+  renderer_2d *Ui = Group->Ui;
+
   PushTableStart(Ui, Position, RelativeTo);
-  RangeIterator(ButtonIndex, Group->Count)
-  {
-    ui_element_toggle_button *UiButton = Group->Buttons + ButtonIndex;
-
-    ui_style *Style = (UiButton->On) ? &DefaultSelectedStyle : &DefaultStyle;
-    if (Button(Ui, UiButton->Text, (umm)UiButton->Text.Start, Style, DefaultToggleButtonPadding))
+    IterateOver(&Group->Buttons, UiButton, ButtonIndex)
     {
-      if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
+      ui_style *ThisStyle = ToggledOn(Ui, UiButton) ? &DefaultSelectedStyle : Style;
+      if (ToggleButton(Ui, UiButton->Text, UiButton->Text, UiButton->Id, ThisStyle, DefaultToggleButtonPadding))
       {
-        RangeIterator(InnerButtonIndex, Group->Count) { Group->Buttons[InnerButtonIndex].On = False; }
+        // TODO(Jesse): return a result such that we don't have to re-query the
+        // hashtable from the user code to see which ones are toggled on?
       }
-      UiButton->On = !UiButton->On;
-      UiButton->Clicked = True;
-    }
-    else
-    {
-      UiButton->Clicked = False;
-    }
 
-    if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
-    {
-      PushNewRow(Ui);
+      interactable_handle Handle = {UiButton->Id};
+      if (Clicked(Ui, &Handle) && Group->Flags & ToggleButtonGroupFlags_RadioButtons)
+      {
+        IterateOver(&Group->Buttons, InnerButton, InnerButtonIndex)
+        {
+          if (InnerButton != UiButton)
+          {
+            maybe_ui_toggle_ptr Maybe = GetPtrById(&Ui->ToggleTable, InnerButton->Id);
+            if (Maybe.Tag) { Maybe.Value->ToggledOn = False; }
+          }
+
+        }
+      }
+
+      if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
+      {
+        PushNewRow(Ui);
+      }
     }
-  }
   PushTableEnd(Ui);
-}
-
-link_internal b32
-Clicked(ui_element_toggle_button_group *Group, cs ButtonName)
-{
-  b32 Result = False;
-  RangeIterator(ButtonIndex, Group->Count)
-  {
-    auto Button = Group->Buttons + ButtonIndex;
-    if (StringsMatch(Button->Text, ButtonName))
-    {
-      Result = Button->Clicked;
-      break;
-    }
-  }
-  return Result;
-}
-
-link_internal b32
-ToggledOn(ui_element_toggle_button_group *Group, cs ButtonName)
-{
-  b32 Result = False;
-  RangeIterator(ButtonIndex, Group->Count)
-  {
-    auto Button = Group->Buttons + ButtonIndex;
-    if (StringsMatch(Button->Text, ButtonName))
-    {
-      Result = Button->On;
-      break;
-    }
-  }
-  return Result;
 }
 
 
