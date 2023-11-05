@@ -328,6 +328,18 @@ ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest)
 }
 
 link_internal b32
+ReadBytesIntoBuffer(u8_cursor *Src, umm BytesToRead, u8* Dest)
+{
+  b32 Result = Src->At+BytesToRead <= Src->End;
+  if (Result)
+  {
+    CopyMemory(Src->At, Dest, BytesToRead);
+    Src->At += BytesToRead;
+  }
+  return Result;
+}
+
+link_internal b32
 ReadBytesIntoBuffer(native_file *Src, umm BytesToRead, u8* Dest)
 {
   b32 Result = ReadBytesIntoBuffer(Src->Handle, BytesToRead, Dest);

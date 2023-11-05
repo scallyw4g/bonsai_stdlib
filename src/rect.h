@@ -5,6 +5,13 @@ struct rect2
   v2 Max;
 };
 
+struct rect3i
+{
+  v3i Min;
+  v3i Max;
+};
+
+
 link_internal rect2
 InvertedInfinityRectangle()
 {
@@ -14,21 +21,6 @@ InvertedInfinityRectangle()
   };
   return Result;
 }
-
-link_internal rect2
-RectMinMax(v2 Min, v2 Max)
-{
-  rect2 Result = { .Min = Min, .Max = Max };
-  return Result;
-}
-
-link_internal rect2
-RectMinDim(v2 Min, v2 Dim)
-{
-  rect2 Result = {Min, Min+Dim};
-  return Result;
-}
-
 
 link_internal v2
 BottomLeft(rect2 Rect)
@@ -44,11 +36,42 @@ TopRight(rect2 Rect)
   return Result;
 }
 
-struct rect3i
-{
-  v3i Min;
-  v3i Max;
-};
+
+poof(
+  func gen_rect_helpers(rect, vector)
+  {
+    link_internal rect.name
+    RectMinMax((vector.name) Min, vector.name Max)
+    {
+      rect.name Result = { .Min = Min, .Max = Max };
+      return Result;
+    }
+
+    link_internal rect.name
+    RectMinDim((vector.name) Min, vector.name Dim)
+    {
+      rect.name Result = { Min, Min + Dim };
+      return Result;
+    }
+
+    link_internal b32
+    IsInside((vector.name) P, rect.name Rect)
+    {
+      b32 Result = (P >= Rect.Min && P < Rect.Max);
+      return Result;
+    }
+  }
+)
+
+
+poof(gen_rect_helpers(rect2, v2))
+#include <generated/gen_rect_helpers_rect2_v2.h>
+/* poof(gen_rect_helpers(rect2i, v2i)) */
+
+/* poof(gen_rect_helpers(rect3, v3)) */
+poof(gen_rect_helpers(rect3i, v3i))
+#include <generated/gen_rect_helpers_rect3i_v3i.h>
+
 
 /* link_internal rect3i */
 /* Rect3i(v3i Min, v3i Max) */

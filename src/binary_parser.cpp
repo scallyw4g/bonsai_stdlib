@@ -1,3 +1,4 @@
+// TODO(Jesse): Seems like this and ansi_stream.h have a lot of overlap..
 
 poof(buffer(u32))
 #include <generated/buffer_u32.h>
@@ -8,8 +9,8 @@ poof(buffer(u32))
 poof(stream_and_cursor(u32))
 #include <generated/stream_and_cursor_u32.h>
 
-poof(generate_cursor(u8))
-#include <generated/generate_cursor_u8.h>
+/* poof(generate_cursor(u8)) */
+/* #include <generated/generate_cursor_u8.h> */
 
 poof(deep_copy(u32_cursor))
 #include <generated/deep_copy_u32_stream.h>
@@ -121,7 +122,7 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
     {
       rewind(File.Handle);
       FileContents = (u8*)AllocateProtection(u8, Memory, FileSize, False);
-      ReadBytesIntoBuffer(File.Handle, FileSize, FileContents);
+      ReadBytesIntoBuffer(&File, FileSize, FileContents);
     }
     else
     {
@@ -132,7 +133,7 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
   }
   else
   {
-    Error("Opening %s", SourceFile);
+    SoftError("Opening %s", SourceFile);
   }
 
   u8_stream Result = {
@@ -402,12 +403,31 @@ Dump(xml_token_stream *Stream, umm TokenCount)
 }
 #endif
 
+poof(
+  func gen_read_primitive_from_native_file(type_poof_symbol PrimitiveTypes)
+  {
+    PrimitiveTypes.map(prim)
+    {
+      link_internal prim.name
+      Read_(prim.name)(native_file *File)
+      {
+        prim.name Result;
+        Ensure(ReadBytesIntoBuffer(File, sizeof((prim.name)), (u8*)&Result));
+        return Result;
+      }
+    }
+  }
+)
+
+poof(gen_read_primitive_from_native_file({s8 u8 s16 u16 s32 u32 s64 u64}))
+#include <generated/gen_read_primitive_from_native_file_803324607.h>
+
 //
 // Little endian
 //
 
 poof(
-  func gen_read_primitive_funcs_little_endian(type_poof_symbol PrimitiveTypes)
+  func gen_read_primitive_from_u8_cursor_little_endian(type_poof_symbol PrimitiveTypes)
   {
     PrimitiveTypes.map(prim)
     {
@@ -442,8 +462,6 @@ poof(
         Assert(Source->At <= Source->End);
         return Result;
       }
-
-
     }
   }
 )
@@ -473,8 +491,8 @@ ReadArray_u8(u8_stream *Source, u32 Count)
   return Result;
 }
 
-poof(gen_read_primitive_funcs_little_endian({s8 s16 u16 s32 u32 s64 u64}))
-#include <generated/gen_read_primitive_funcs_624166848.h>
+poof(gen_read_primitive_from_u8_cursor_little_endian({s8 s16 u16 s32 u32 s64 u64}))
+#include <generated/gen_read_primitive_from_u8_cursor_little_endian_851742148.h>
 
 
 //

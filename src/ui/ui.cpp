@@ -953,7 +953,7 @@ link_internal rect2
 GetDrawBounds(counted_string String, ui_style *Style)
 {
   r32 xMax = (String.Count * Style->Font.Size.x);
-  rect2 Result =  RectMinMax({}, {{xMax, Style->Font.Size.y}});
+  rect2 Result =  RectMinMax(V2(0.f, 0.f), V2(xMax, Style->Font.Size.y));
   return Result;
 }
 

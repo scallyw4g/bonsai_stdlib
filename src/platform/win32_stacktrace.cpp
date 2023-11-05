@@ -42,10 +42,13 @@ struct module_data {
 };
 
 
-DWORD DumpStackTrace( EXCEPTION_POINTERS *ep );
+/* s32 DumpStackTrace( EXCEPTION_POINTERS *ep ); */
+
+typedef IMAGEHLP_SYMBOL64 sym_type;
 
 class symbol { 
-    typedef IMAGEHLP_SYMBOL64 sym_type;
+    // TODO(Jesse): poof doesn't parse this
+    // typedef IMAGEHLP_SYMBOL64 sym_type;
     sym_type *sym;
     static const int max_name_len = 1024;
 
@@ -60,9 +63,10 @@ public:
     }
 
     std::string name() { return std::string(sym->Name); }
-    std::string undecorated_name() { 
-        if (*sym->Name == '\0')
-            return "<couldn't map PC to fn name>";
+    std::string undecorated_name()
+    { 
+        if (*sym->Name == '\0') return "<couldn't map PC to fn name>";
+
         std::vector<char> und_name(max_name_len);
         UnDecorateSymbolName(sym->Name, &und_name[0], max_name_len, UNDNAME_COMPLETE);
         return std::string(&und_name[0], strlen(&und_name[0]));
@@ -76,6 +80,8 @@ class get_mod_info {
 public:
     get_mod_info(HANDLE h) : process(h) {}
 
+    // TODO(Jesse): poof fails to parse the call operator
+#if !POOF_PREPROCESSOR
     module_data operator()(HMODULE module) { 
         module_data ret;
         char temp[buffer_length];
@@ -94,6 +100,7 @@ public:
         SymLoadModule64(process, 0, &img[0], &mod[0], (DWORD64)ret.base_address, ret.load_size);
         return ret;
     }
+#endif
 };
 
 
@@ -103,7 +110,7 @@ public:
 // record as a local copy. Note that you must do the stack dump at the
 // earliest opportunity, to avoid the interesting stack-frames being gone
 // by the time you do the dump.
-DWORD DumpStackTrace(EXCEPTION_POINTERS *ep) 
+long DumpStackTrace(EXCEPTION_POINTERS *ep) 
 {
     HANDLE process = GetCurrentProcess();
     HANDLE hThread = GetCurrentThread();
@@ -113,6 +120,8 @@ DWORD DumpStackTrace(EXCEPTION_POINTERS *ep)
     std::vector<module_data> modules;
     DWORD cbNeeded;
     std::vector<HMODULE> module_handles(1);
+
+/*     printf("Exception Code (0x%x)", Code); */
 
     // Load the symbols:
     // WARNING: You'll need to replace <pdb-search-path> with either NULL
@@ -177,14 +186,22 @@ DWORD DumpStackTrace(EXCEPTION_POINTERS *ep)
         if (++n > 10)
             break;
     } while (frame.AddrReturn.Offset != 0);
-    //return EXCEPTION_EXECUTE_HANDLER;
+
     SymCleanup(process);
 
     return EXCEPTION_EXECUTE_HANDLER;
+    /* return EXCEPTION_CONTINUE_EXECUTION; */
 }
+
+struct exception_struct { int foo; };
 
 link_internal void
 PlatformDebugStacktrace()
 {
-  try { throw 0; } __except (DumpStackTrace(GetExceptionInformation())) { }
+  /* SetUnhandledExceptionFilter(DumpStackTrace); */
+
+  try { throw 0; } __except (DumpStackTrace(GetExceptionInformation())) { return; }
+  /* __try { throw 0; } __except (DumpStackTrace(GetExceptionInformation())) { return; } */
+  /* __try { u32 *p = 0; *p = 69; } __except (DumpStackTrace(GetExceptionInformation())) { return; } */
+  /* u32 *p = 0; *p = 69; */
 }

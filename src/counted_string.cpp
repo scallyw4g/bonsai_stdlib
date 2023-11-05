@@ -113,6 +113,22 @@ Concat(counted_string S1, counted_string S2, memory_arena* Memory)
   return Result;
 }
 
+link_internal counted_string
+Concat(cs S1, cs S2, cs S3, memory_arena* Memory)
+{
+  umm TotalLength = S1.Count + S2.Count + S3.Count;
+  counted_string Result = {
+    .Count = TotalLength,
+    .Start = AllocateProtection(char, Memory, TotalLength, False),
+  };
+
+  MemCopy((u8*)S1.Start, (u8*)Result.Start                  , S1.Count);
+  MemCopy((u8*)S2.Start, (u8*)Result.Start+S1.Count         , S2.Count);
+  MemCopy((u8*)S3.Start, (u8*)Result.Start+S1.Count+S2.Count, S3.Count);
+
+  return Result;
+}
+
 link_internal const char*
 GetNullTerminated(counted_string Str, memory_arena* Memory = 0)
 {

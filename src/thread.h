@@ -125,6 +125,8 @@ SetThreadLocal_ThreadIndex(s32 Index)
 {
   Assert(ThreadLocal_ThreadIndex == -1);
   ThreadLocal_ThreadIndex = Index;
+
+  /* printf("Setting ThreadLocal_ThreadIndex (%d)\n", Index); */
 }
 
 link_internal thread_local_state *

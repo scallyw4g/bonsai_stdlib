@@ -1,9 +1,10 @@
-struct u8_stream
-{
-  u8* Start;
-  u8* At;
-  u8* End;
-};
+// TODO(Jesse): Seems like this and binary_parser.h have a lot of overlap..
+
+poof(generate_cursor(u8))
+#include <generated/generate_cursor_u8.h>
+
+// TODO(Jesse): Get rid of this
+typedef u8_cursor u8_stream;
 
 enum text_encoding
 {

@@ -100,7 +100,7 @@ AllocateAndInitThreadStates(memory_arena *Memory)
 link_internal void
 WorkerThread_BeforeJobStart(thread_startup_params *StartupParams)
 {
-  if (ThreadLocal_ThreadIndex == -1) { SetThreadLocal_ThreadIndex(StartupParams->ThreadIndex); }
+  if (ThreadLocal_ThreadIndex == INVALID_THREAD_LOCAL_THREAD_INDEX) { SetThreadLocal_ThreadIndex(StartupParams->ThreadIndex); }
 
 #if DEBUG_SYSTEM_API 
   Assert(GetDebugState());
