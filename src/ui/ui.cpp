@@ -28,7 +28,9 @@ struct ui_toggle_button_group
 {
   renderer_2d *Ui;
   ui_toggle_button_handle_buffer Buttons;
+
   ui_toggle_button_group_flags Flags;
+  u64 ToggleBits;
 };
 
 #define UI_PARAM_NAMES relative_position Position,      \
@@ -58,6 +60,8 @@ UiToggleButtonGroup(renderer_2d *Ui, ui_toggle_button_handle *Buttons, umm Count
   Result.Buttons.Start = Buttons;
   Result.Buttons.Count = Count;
   Result.Flags = Flags;
+
+  Assert(Count < bitsof(Result.ToggleBits));
 
   DrawToggleButtonGroup(&Result, UI_PARAM_INSTANCES);
 
@@ -1404,19 +1408,17 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_PARAM_NAMES)
 {
   renderer_2d *Ui = Group->Ui;
 
+  // Reset this every frame; it's ephermeral
+  Group->ToggleBits = 0;
+
   PushTableStart(Ui, Position, RelativeTo);
     IterateOver(&Group->Buttons, UiButton, ButtonIndex)
     {
-      ui_style *ThisStyle = ToggledOn(Ui, UiButton) ? &DefaultSelectedStyle : Style;
-      if (ToggleButton(Ui, UiButton->Text, UiButton->Text, UiButton->Id, ThisStyle, DefaultToggleButtonPadding))
-      {
-        // TODO(Jesse): return a result such that we don't have to re-query the
-        // hashtable from the user code to see which ones are toggled on?
-      }
-
       interactable_handle Handle = {UiButton->Id};
       if (Clicked(Ui, &Handle) && Group->Flags & ToggleButtonGroupFlags_RadioButtons)
       {
+        // We have to forcibly set this in case we've already seen an set a bit
+        Group->ToggleBits = (1 << ButtonIndex);
         IterateOver(&Group->Buttons, InnerButton, InnerButtonIndex)
         {
           if (InnerButton != UiButton)
@@ -1427,6 +1429,13 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_PARAM_NAMES)
 
         }
       }
+
+      ui_style *ThisStyle = ToggledOn(Ui, UiButton) ? &DefaultSelectedStyle : Style;
+      if (ToggleButton(Ui, UiButton->Text, UiButton->Text, UiButton->Id, ThisStyle, DefaultToggleButtonPadding))
+      {
+        Group->ToggleBits |= (1 << ButtonIndex);
+      }
+
 
       if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
       {

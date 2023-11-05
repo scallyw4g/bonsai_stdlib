@@ -90,6 +90,27 @@ CAssert(sizeof(u16) == 2);
 CAssert(sizeof(s8) == 1);
 CAssert(sizeof(u8) == 1);
 
+
+
+#define bitsof(thing) (sizeof(thing)*8)
+
+CAssert(bitsof(s64) == 64);
+CAssert(bitsof(u64) == 64);
+CAssert(bitsof(r64) == 64);
+CAssert(bitsof(umm) == bitsof(void*));
+
+CAssert(bitsof(s32) == 32);
+CAssert(bitsof(u32) == 32);
+CAssert(bitsof(r32) == 32);
+
+CAssert(bitsof(s16) == 16);
+CAssert(bitsof(u16) == 16);
+
+CAssert(bitsof(s8) == 8);
+CAssert(bitsof(u8) == 8);
+
+
+
 #define s8_MAX  ((s8) 0x7f)
 #define s16_MAX ((s16)0x7fff)
 #define s32_MAX ((s32)0x7fffffff)
