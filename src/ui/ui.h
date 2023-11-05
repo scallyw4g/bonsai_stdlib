@@ -1,4 +1,20 @@
 
+#define UI_FUNCTION_PROTO_NAMES relative_position Position,      \
+                                ui_element_reference RelativeTo, \
+                                v2 Offset,                       \
+                                ui_style *Style,                 \
+                                v4 Padding
+
+
+#define UI_FUNCTION_PROTO_DEFAULTS relative_position Position = Position_None, \
+                                   ui_element_reference RelativeTo = {},       \
+                                   v2 Offset = {},                             \
+                                   ui_style *Style = &DefaultStyle,            \
+                                   v4 Padding = {}
+
+#define UI_FUNCTION_INSTANCE_NAMES Position, RelativeTo, Offset, Style, Padding
+
+
 
 #define DEBUG_MAX_UI_WINDOW_SLICES 1024.0f
 #define DISABLE_CLIPPING RectMinMax(V2(f32_MIN), V2(f32_MAX) )
