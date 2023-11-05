@@ -58,6 +58,14 @@
 #define SafeAccess(T, Ptr) SafeCast(T, (Ptr))
 #define SafeAccessPtr(T, Ptr) ((Ptr)->T); Assert((Ptr)->Type == type_##T)
 
+#define tswitch(Ptr)  auto tswitch_implicit_instance = Ptr; switch ((tswitch_implicit_instance)->Type)
+
+#define tmatch(type_name, var_name) \
+  case type_##type_name: type_name var_name = SafeAccessPtr(type_name, tswitch_implicit_instance);
+                          
+
+
+
 #define ITERATE_OVER_AS(prefix, value_ptr)        \
   for (auto prefix##Iter = Iterator((value_ptr)); \
       IsValid(&prefix##Iter);                     \
