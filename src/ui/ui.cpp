@@ -39,16 +39,14 @@ link_internal ui_element_reference
 DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_FUNCTION_PROTO_DEFAULTS);
 
 link_internal ui_toggle_button_group
-UiToggleButtonGroup(renderer_2d *Ui, ui_toggle_button_handle *Buttons, umm Count, ui_toggle_button_group_flags Flags = ToggleButtonGroupFlags_None, UI_FUNCTION_PROTO_DEFAULTS)
+UiToggleButtonGroup(renderer_2d *Ui, ui_toggle_button_handle_buffer *Buttons, ui_toggle_button_group_flags Flags = ToggleButtonGroupFlags_None, UI_FUNCTION_PROTO_DEFAULTS)
 {
   ui_toggle_button_group Result = {};
-
   Result.Ui = Ui;
-  Result.Buttons.Start = Buttons;
-  Result.Buttons.Count = Count;
   Result.Flags = Flags;
+  Result.Buttons = *Buttons;
 
-  Assert(Count < bitsof(Result.ToggleBits));
+  Assert(Buttons->Count < bitsof(Result.ToggleBits));
 
   Result.UiRef = DrawToggleButtonGroup(&Result, UI_FUNCTION_INSTANCE_NAMES);
 
@@ -74,6 +72,7 @@ ToggledOn(renderer_2d *Ui, ui_toggle_button_handle *Button)
   return Result;
 }
 
+#if 0
 link_internal b32
 ToggledOn(renderer_2d *Ui, ui_toggle_button_group *Group, cs ButtonName)
 {
@@ -88,6 +87,7 @@ ToggledOn(renderer_2d *Ui, ui_toggle_button_group *Group, cs ButtonName)
   }
   return Result;
 }
+#endif
 
 
 
@@ -1391,22 +1391,23 @@ Clicked(ui_toggle_button_group *Group, cs ButtonName)
 }
 
 link_internal ui_element_reference
-DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_FUNCTION_PROTO_NAMES)
+DrawToggleButtonGroup(ui_toggle_button_group *Group,  UI_FUNCTION_PROTO_NAMES)
 {
   renderer_2d *Ui = Group->Ui;
+  ui_toggle_button_handle_buffer *ButtonBuffer = &Group->Buttons;
 
   // Reset this every frame; it's ephermeral
   Group->ToggleBits = 0;
 
   ui_element_reference Result = PushTableStart(Ui, UI_FUNCTION_INSTANCE_NAMES);
-    IterateOver(&Group->Buttons, UiButton, ButtonIndex)
+    IterateOver(ButtonBuffer, UiButton, ButtonIndex)
     {
       interactable_handle Handle = {UiButton->Id};
       if (Clicked(Ui, &Handle) && Group->Flags & ToggleButtonGroupFlags_RadioButtons)
       {
         // We have to forcibly set this in case we've already seen an set a bit
         Group->ToggleBits = (1 << ButtonIndex);
-        IterateOver(&Group->Buttons, InnerButton, InnerButtonIndex)
+        IterateOver(ButtonBuffer, InnerButton, InnerButtonIndex)
         {
           if (InnerButton != UiButton)
           {
