@@ -412,39 +412,38 @@ BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
 {
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
 
-  // NOTE(Jesse): If we minimize the window these fire
-  /* Assert(ScreenDim.x > 0); */
-  /* Assert(ScreenDim.y > 0); */
+  if (ScreenDim->x > 0 && ScreenDim->y > 0) 
+  {
+    r32 Left   = MinP.x;
+    r32 Right  = Left+Dim.x;
+    r32 Top    = MinP.y;
+    r32 Bottom = Top+Dim.y;
 
-  r32 Left   = MinP.x;
-  r32 Right  = Left+Dim.x;
-  r32 Top    = MinP.y;
-  r32 Bottom = Top+Dim.y;
-
-  v3 LeftTop    = V3(Left, Top, Z);
-  v3 RightTop   = V3(Right, Top, Z);
-  v3 RightBottom = V3(Right, Bottom, Z);
-  v3 LeftBottom  = V3(Left, Bottom, Z);
+    v3 LeftTop    = V3(Left, Top, Z);
+    v3 RightTop   = V3(Right, Top, Z);
+    v3 RightBottom = V3(Right, Bottom, Z);
+    v3 LeftBottom  = V3(Left, Bottom, Z);
 
 
-  #define TO_NDC(P) ((P * ToNDC) - 1.0f)
-  v3 ToNDC = 2.0f/V3(ScreenDim->x, ScreenDim->y, 1.0f);
+    #define TO_NDC(P) ((P * ToNDC) - 1.0f)
+    v3 ToNDC = 2.0f/V3(ScreenDim->x, ScreenDim->y, 1.0f);
 
-  // Native OpenGL screen coordinates are {0,0} at the bottom-left corner. This
-  // maps the origin to the top-left of the screen.
-  // @inverted_screen_y_coordinate
-  v3 InvertYZ = V3(1.0f, -1.0f, -1.0f);
+    // Native OpenGL screen coordinates are {0,0} at the bottom-left corner. This
+    // maps the origin to the top-left of the screen.
+    // @inverted_screen_y_coordinate
+    v3 InvertYZ = V3(1.0f, -1.0f, -1.0f);
 
-  v3 *Dest = Geo->Verts;
-  u32 StartingIndex = Geo->At;
-  Dest[StartingIndex++] = InvertYZ * TO_NDC(LeftTop);
-  Dest[StartingIndex++] = InvertYZ * TO_NDC(LeftBottom);
-  Dest[StartingIndex++] = InvertYZ * TO_NDC(RightTop);
+    v3 *Dest = Geo->Verts;
+    u32 StartingIndex = Geo->At;
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(LeftTop);
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(LeftBottom);
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(RightTop);
 
-  Dest[StartingIndex++] = InvertYZ * TO_NDC(RightBottom);
-  Dest[StartingIndex++] = InvertYZ * TO_NDC(RightTop);
-  Dest[StartingIndex++] = InvertYZ * TO_NDC(LeftBottom);
-  #undef TO_NDC
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(RightBottom);
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(RightTop);
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(LeftBottom);
+    #undef TO_NDC
+  }
 }
 
 link_internal clip_result

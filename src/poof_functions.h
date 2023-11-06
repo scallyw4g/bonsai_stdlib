@@ -1165,8 +1165,8 @@ poof(
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
-      Assert(ElementIndex < TotalElements(Cursor));
-      Type.name *Result = Cursor->Start+ElementIndex;
+      Type.name *Result = {};
+      if (ElementIndex < TotalElements(Cursor)) { Result = Cursor->Start+ElementIndex; }
       return Result;
     }
 
