@@ -1296,11 +1296,11 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, umm InteractionId, window_la
 }
 
 link_internal b32
-Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding)
+Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
   // TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
   interactable_handle Button = PushButtonStart(Group, ButtonId, Style);
-    PushColumn(Group, ButtonName, Style, Padding);
+    PushColumn(Group, ButtonName, Style, Padding, ColumnParams);
   PushButtonEnd(Group);
 
   b32 Result = Clicked(Group, &Button);
