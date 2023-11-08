@@ -1433,6 +1433,37 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group,  UI_FUNCTION_PROTO_NAMES)
   return Result;
 }
 
+link_internal maybe_file_traversal_node
+DrawFileNodes(renderer_2d *Ui, file_traversal_node Node)
+{
+  maybe_file_traversal_node Result = {};
+
+  v4 Pad = V4(10, 0, 10, 0);
+  switch (Node.Type)
+  {
+    InvalidCase(FileTraversalType_None);
+
+    case FileTraversalType_File:
+    {
+      interactable_handle FileButton = PushButtonStart(Ui, umm("DrawFileNodes") ^ umm(Node.Name.Start) );
+        PushColumn(Ui, CSz(" "), &DefaultStyle, Pad);
+        PushColumn(Ui, Node.Name);
+        PushNewRow(Ui);
+      PushButtonEnd(Ui);
+
+      if (Clicked(Ui, &FileButton)) { Result.Tag = Maybe_Yes; Result.Value = Node; }
+    } break;
+
+    case FileTraversalType_Dir:
+    {
+      PushColumn(Ui, CSz("+"), &DefaultStyle, Pad);
+      PushColumn(Ui, Node.Name);
+      PushNewRow(Ui);
+    } break;
+  }
+
+  return Result;
+}
 
 
 /**************************                      *****************************/
