@@ -13,6 +13,9 @@
 #define LinkedListIter( List, Element ) \
   for (auto Element = (List); Element; Element = Element->Next)
 
+#define RangeIterator_t(type, ArgName, RangeMax ) \
+  for (type ArgName = 0; ArgName < RangeMax; ++ArgName)
+
 #define RangeIterator( ArgName, RangeMax ) \
   for (s32 ArgName = 0; ArgName < RangeMax; ++ArgName)
 

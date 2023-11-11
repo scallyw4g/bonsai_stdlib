@@ -22,7 +22,9 @@ struct untextured_3d_geometry_buffer
   v3 *Normals;
   vertex_material *Mat;
 
-  // TODO(Jesse): The fuck are these doing as 32bit?!
+  // NOTE(Jesse): We're never going to have more than 4bln vertices, so these
+  // can be 32 bits.  They can realistaiclly probably be 24 bits, but that's
+  // definitely a waste of time right now.
   u32 End;
   u32 At;
 
