@@ -429,7 +429,7 @@ GetDim(aabb Rect)
 inline s32
 Volume(rect3i Rect)
 {
-  v3i Dim = GetDim(Rect);
+  v3i Dim = Max(V3i(0), GetDim(Rect));
   s32 Result = Volume(Dim);
   return Result;
 }

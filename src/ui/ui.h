@@ -106,6 +106,7 @@ struct ui_toggle_button_handle
   umm Id;
 };
 
+
 link_internal ui_toggle_button_handle
 UiToggle(cs Text, umm IdModifier)
 {

@@ -444,8 +444,12 @@ Truncate(r32 Input)
 inline s32
 Volume(v2i Dim)
 {
+  Assert(Dim.x >= 0);
+  Assert(Dim.y >= 0);
+
   Dim.x = Max(Dim.x, 0);
   Dim.y = Max(Dim.y, 0);
+
   s32 Result = (s32)(Dim.x*Dim.y);
   Assert(Result > 0);
   return Result;
@@ -454,10 +458,16 @@ Volume(v2i Dim)
 inline s32
 Volume(v4 Dim)
 {
-  Dim.x = Max(Dim.x, 0.f);
-  Dim.y = Max(Dim.y, 0.f);
-  Dim.z = Max(Dim.z, 0.f);
-  Dim.w = Max(Dim.w, 0.f);
+  Assert(Dim.x >= 0.f);
+  Assert(Dim.y >= 0.f);
+  Assert(Dim.z >= 0.f);
+  Assert(Dim.w >= 0.f);
+
+  /* Dim.x = Max(Dim.x, 0.f); */
+  /* Dim.y = Max(Dim.y, 0.f); */
+  /* Dim.z = Max(Dim.z, 0.f); */
+  /* Dim.w = Max(Dim.w, 0.f); */
+
   s32 Result = (s32)(Dim.x*Dim.y*Dim.z*Dim.w);
   Assert(Result > 0);
   return Result;
@@ -466,10 +476,15 @@ Volume(v4 Dim)
 inline s32
 Volume(v4i Dim)
 {
-  Dim.x = Max(Dim.x, 0);
-  Dim.y = Max(Dim.y, 0);
-  Dim.z = Max(Dim.z, 0);
-  Dim.w = Max(Dim.w, 0);
+  Assert(Dim.x >= 0);
+  Assert(Dim.y >= 0);
+  Assert(Dim.z >= 0);
+  Assert(Dim.w >= 0);
+
+  /* Dim.x = Max(Dim.x, 0); */
+  /* Dim.y = Max(Dim.y, 0); */
+  /* Dim.z = Max(Dim.z, 0); */
+  /* Dim.w = Max(Dim.w, 0); */
   s32 Result = (s32)(Dim.x*Dim.y*Dim.z*Dim.w);
   Assert(Result > 0);
   return Result;
@@ -478,20 +493,33 @@ Volume(v4i Dim)
 inline s32
 Volume(v3 Dim)
 {
-  Dim.x = Max(Dim.x, 0.f);
-  Dim.y = Max(Dim.y, 0.f);
-  Dim.z = Max(Dim.z, 0.f);
+  Assert(Dim.x >= 0);
+  Assert(Dim.y >= 0);
+  Assert(Dim.z >= 0);
+
+  /* Dim.x = Max(Dim.x, 0.f); */
+  /* Dim.y = Max(Dim.y, 0.f); */
+  /* Dim.z = Max(Dim.z, 0.f); */
+
   s32 Result = (s32)(Dim.x*Dim.y*Dim.z);
   Assert(Result > 0);
   return Result;
 }
 
 inline s32
-Volume(chunk_dimension Dim)
+Volume(v3i Dim)
 {
-  Dim.x = Max(Dim.x, 0);
-  Dim.y = Max(Dim.y, 0);
-  Dim.z = Max(Dim.z, 0);
+  Assert(Dim.x >= 0);
+  Assert(Dim.y >= 0);
+  Assert(Dim.z >= 0);
+
+  /* Dim.x = Max(Dim.x, 0); */
+  /* Dim.y = Max(Dim.y, 0); */
+  /* Dim.z = Max(Dim.z, 0); */
+
+  /* Dim.x = Max(Dim.x, 0); */
+  /* Dim.y = Max(Dim.y, 0); */
+  /* Dim.z = Max(Dim.z, 0); */
   return (Dim.x*Dim.y*Dim.z);
 }
 
