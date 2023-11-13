@@ -94,6 +94,13 @@ AtomicIncrement( u64 volatile *Dest)
   return Result;
 }
 
+inline u32
+AtomicWrite( volatile u32 *Source, u32 Value)
+{
+  u32 Result = InterlockedExchange( Source, Value );
+  return Result;
+}
+
 inline u64
 AtomicWrite( volatile u64 *Source, u64 Value)
 {

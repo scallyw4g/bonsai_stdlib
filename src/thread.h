@@ -38,13 +38,22 @@ InitializeFutex(bonsai_futex *Futex)
 
 
 link_internal b32
+UnsignalFutex(bonsai_futex *Futex, s32 SignallingThread)
+{
+  ENSURE_FUTEX_INITIALIZED(Futex);
+  Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX);
+  Assert(Futex->SignalValue == u32(SignallingThread));
+  b32 Result = AtomicCompareExchange(&Futex->SignalValue, FUTEX_UNSIGNALLED_VALUE, u32(SignallingThread));
+  return Result;
+}
+
+link_internal b32
 UnsignalFutex(bonsai_futex *Futex)
 {
   ENSURE_FUTEX_INITIALIZED(Futex);
   Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX);
   Assert(Futex->SignalValue == (u32)ThreadLocal_ThreadIndex);
-
-  b32 Result = AtomicCompareExchange(&Futex->SignalValue, FUTEX_UNSIGNALLED_VALUE, (u32)ThreadLocal_ThreadIndex);
+  b32 Result = UnsignalFutex(Futex, ThreadLocal_ThreadIndex);
   return Result;
 }
 

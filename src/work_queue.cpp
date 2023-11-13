@@ -62,6 +62,8 @@ ThreadMain(void *Input)
 
       if ( FutexIsSignaled(ThreadParams->WorkerThreadsExitFutex) ) break;
 
+      if (WorkerThread_BeforeSleep) WorkerThread_BeforeSleep();
+
       SleepMs(1);
     }
 #endif
