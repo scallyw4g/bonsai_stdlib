@@ -317,7 +317,7 @@ FinalizeStringFromParser(string_from_parser* Builder)
     }
     else
     {
-      Warn(CSz("Unable to call FinalizeStringFromParser due to having spanned a parser chain link."));
+      Warn("Unable to call FinalizeStringFromParser due to having spanned a parser chain link.");
     }
   }
 
@@ -1125,7 +1125,7 @@ OutputContextMessage(parser* Parser, parse_error_code ErrorCode, counted_string 
 
     if (Global_LogLevel <= LogLevel_Error)
     {
-      LogDirect("%S", FullErrorText);
+      LogDirect(CSz("%S"), FullErrorText);
     }
 
 

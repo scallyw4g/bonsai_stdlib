@@ -30,20 +30,20 @@ PrintTraySimple(c_token *T, b32 Force = False, u32 Depth = 0)
     if (Force || T->Type == CTokenType_Newline || T->Type == CTokenType_EscapedNewline)
     {
       DebugChars("%*s", Depth*4, "");
-      DebugChars(CSz("%*u |"), 6, T->LineNumber);
+      DebugChars("%*u |", 6, T->LineNumber);
     }
   }
   else
   {
     DebugChars("%*s", Depth*4, "");
-    DebugChars(CSz("%*c |"), 6, ' ');
+    DebugChars("%*c |", 6, ' ');
   }
 }
 
 inline void
 WriteTo(char_cursor *Dest, counted_string S)
 {
-  if (Dest) { CopyToDest(Dest, S); } else { DebugChars(CSz("%S"), S); }
+  if (Dest) { CopyToDest(Dest, S); } else { DebugChars("%S", S); }
 }
 
 

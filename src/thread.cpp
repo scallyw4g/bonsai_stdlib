@@ -40,11 +40,11 @@ SignalAndWaitForWorkers(bonsai_futex *Futex)
 link_internal void
 WaitOnFutex(bonsai_futex *Futex, b32 DoSleep)
 {
-  TIMED_FUNCTION();
+  /* TIMED_FUNCTION(); */
 
   AtomicIncrement(&Futex->ThreadsWaiting);
   while (Futex->SignalValue != FUTEX_UNSIGNALLED_VALUE) { if (DoSleep) { SleepMs(1); } }
-  Assert(Futex->ThreadsWaiting > 0);
+  /* Assert(Futex->ThreadsWaiting > 0); */
   AtomicDecrement(&Futex->ThreadsWaiting);
 }
 
@@ -57,6 +57,7 @@ DefaultThreadLocalState(s32 ThreadId)
 
   Thread.TempMemory = AllocateArena();
   Thread.PermMemory = AllocateArena(Megabytes(8));
+  Thread.TempStdoutFormatStringBuffer = Allocate(char, Thread.PermMemory, TempStdoutFormatStringBufferSize);
 
   // TODO(Jesse)(safety): Given the below, how exactly is it safe to register
   // the PermMemory?  Seems to me like that's still just as liable to cause bad
@@ -108,3 +109,5 @@ WorkerThread_BeforeJobStart(thread_startup_params *StartupParams)
 
   DEBUG_REGISTER_THREAD(StartupParams);
 }
+
+

@@ -1303,7 +1303,7 @@ poof(
   func generate_string_table(EnumType)
   {
     link_internal counted_string
-    ToString( (EnumType.name) Type)
+    ToString((EnumType.name) Type)
     {
       counted_string Result = {};
       switch (Type)

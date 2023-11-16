@@ -2,11 +2,14 @@
 link_internal void
 PlatformInit(platform *Plat, memory_arena *Memory)
 {
+  // NOTE(Jesse): Deprecated.
+  NotImplemented;
+
   Plat->Memory = Memory;
 
-  u32 LogicalCoreCount = PlatformGetLogicalCoreCount();
+  u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
   u32 WorkerThreadCount = GetWorkerThreadCount();
-  s32 TotalThreadCount  = (s32)GetTotalThreadCount();
+  u32 TotalThreadCount  = GetTotalThreadCount();
   Info("Detected %u Logical cores, creating %u threads", LogicalCoreCount, WorkerThreadCount);
 
   Plat->Threads = Allocate(thread_startup_params, Plat->Memory, TotalThreadCount);
@@ -38,14 +41,22 @@ InitializeBonsaiStdlib( bonsai_init_flags Flags,
 
   UNPACK_STDLIB(Stdlib);
 
-  SetThreadLocal_ThreadIndex(0);
-
-  PlatformInit(&Stdlib->Plat, Memory);
+  Stdlib->Plat.Memory = Memory;
 
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
+    u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
+    u32 WorkerThreadCount = GetWorkerThreadCount();
+    u32 TotalThreadCount  = GetTotalThreadCount();
+    Info("Detected %u Logical cores, creating %u threads", LogicalCoreCount, WorkerThreadCount);
+
+    Plat->Threads = Allocate(thread_startup_params, Plat->Memory, TotalThreadCount);
     Global_ThreadStates = Initialize_ThreadLocal_ThreadStates((s32)GetTotalThreadCount(), Memory);
     Stdlib->ThreadStates = Global_ThreadStates;
+
+    // NOTE(Jesse): This has to be set after Global_ThreadStates is set so we
+    // can do GetTranArena during printing
+    SetThreadLocal_ThreadIndex(0);
   }
 
   if (Flags & BonsaiInit_InitDebugSystem)

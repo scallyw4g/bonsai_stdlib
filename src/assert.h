@@ -8,7 +8,7 @@
 #  define Assert(condition)                                                    \
     do {                                                                       \
       if (!(condition)) {                                                      \
-        LogDirect("%S ! FAILED%S  - `Assert(%s)` during %s() %s:%u:0" Newline, \
+        LogDirect(CSz("%S ! FAILED%S  - `Assert(%s)` during %s() %s:%u:0" Newline), \
                   TerminalColors.Red,                                          \
                   TerminalColors.White,                                        \
                   #condition,                                                  \
@@ -22,16 +22,13 @@
 
 #  define InvalidCodePath() Error("Invalid Code Path - Panic! " __FILE__ ":" STRINGIZE(__LINE__)); Assert(False)
 
-#  define RuntimeBreak() do {                         \
-  if (Global_DoRuntimeBreak) {                        \
-    LogDirect(Newline);                               \
-    LogDirect("%S", TerminalColors.Red);              \
-    LogDirect(" # Runtime Break # " Newline Newline); \
-    LogDirect("%S", TerminalColors.White);            \
-    PLATFORM_RUNTIME_BREAK();                         \
-  } else {                                            \
-    DebugLine("   Break   - Skipped");                \
-  }                                                   \
+#  define RuntimeBreak() do {                                                             \
+  if (Global_DoRuntimeBreak) {                                                            \
+    LogDirect(CSz("\n%S  # Runtime Break #%S\n\n"), TerminalColors.Red, TerminalColors.White); \
+    PLATFORM_RUNTIME_BREAK();                                                             \
+  } else {                                                                                \
+    DebugLine("   Break   - Skipped");                                                    \
+  }                                                                                       \
 } while (false)
 
     //PlatformDebugStacktrace();

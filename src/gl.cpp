@@ -39,7 +39,7 @@ InitializeOpenglFunctions()
     char* Version  = (char*)GL.GetString(GL_VERSION);
     if (Vendor && Renderer && Version)
     {
-      Info(FSz("Opengl Driver Info : (%s) (%s) (%s)", Vendor, Renderer, Version));
+      Info("Opengl Driver Info : (%s) (%s) (%s)", Vendor, Renderer, Version);
 
       GL.GetError                 = (OpenglGetError)PlatformGetGlFunction("glGetError");
       GL.Initialized              &= GL.GetError != 0;

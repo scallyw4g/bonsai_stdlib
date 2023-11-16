@@ -28,7 +28,6 @@ global_variable thread_local
 s32 ThreadLocal_ThreadIndex = INVALID_THREAD_LOCAL_THREAD_INDEX;
 
 
-
 link_internal void
 InitializeFutex(bonsai_futex *Futex)
 {
@@ -90,13 +89,15 @@ AcquireFutex(bonsai_futex *Futex)
   {
     WaitOnFutex(Futex, False);
   }
+  /* printf("(%d) acquired %p\n", ThreadLocal_ThreadIndex, Futex); */
 }
 
 link_internal void
 ReleaseFutex(bonsai_futex *Futex)
 {
   ENSURE_FUTEX_INITIALIZED(Futex);
-  UnsignalFutex(Futex);
+  Ensure( UnsignalFutex(Futex) );
+  /* printf("(%d) released %p\n", ThreadLocal_ThreadIndex, Futex); */
 }
 
 
@@ -115,12 +116,14 @@ struct thread_local_state
   memory_arena *PermMemory;
   memory_arena *TempMemory;
 
+  char *TempStdoutFormatStringBuffer;
+
   // TODO(Jesse): ?
   /* engine_resources *EngineResources; */
   perlin_noise *PerlinNoise;
 
   s32 Index;
-  s32 Pad0[7];
+  s32 Pad0[5];
 
   void *UserData;
 };

@@ -1,4 +1,18 @@
 
+link_internal char *
+GetTempFmtBuffer()
+{
+  if (ThreadLocal_ThreadIndex == -1)
+  {
+    return TempStdoutFormatStringBuffer;
+  }
+  else
+  {
+    thread_local_state *Thread = GetThreadLocalState(ThreadLocal_ThreadIndex);
+    return Thread->TempStdoutFormatStringBuffer;
+  }
+}
+
 poof(buffer(counted_string))
 #include <generated/buffer_counted_string.h>
 

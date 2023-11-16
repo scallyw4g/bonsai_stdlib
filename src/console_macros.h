@@ -1,5 +1,5 @@
-global_variable const umm TempDebugOutputBufferSize = 64*1024;
-global_variable char TempDebugOutputBuffer[TempDebugOutputBufferSize];
+global_variable const umm TempStdoutFormatStringBufferSize = 64*1024;
+global_variable char TempStdoutFormatStringBuffer[TempStdoutFormatStringBufferSize];
 
 link_internal void
 PrintToStdout(counted_string S);
@@ -7,8 +7,8 @@ PrintToStdout(counted_string S);
 link_internal void
 SetupStdout(u32 ArgCount, const char** ArgStrings);
 
-link_internal counted_string
-FormatCountedString_(char* Dest, umm DestSize, const char *FS, ...);
+/* link_internal counted_string */
+/* FormatCountedString_(char* Dest, umm DestSize, const char *FS, ...); */
 
 #define CSz(NullTerminatedCString) \
   CS(NullTerminatedCString, sizeof(NullTerminatedCString)-1)
@@ -100,134 +100,113 @@ SetTerminalColorsOff()
 #endif
 }
 
-#define LogDirect(...) PrintToStdout(FormatCountedString_(TempDebugOutputBuffer, TempDebugOutputBufferSize, __VA_ARGS__))
+struct memory_arena;
+link_internal memory_arena* GetTranArena();
+
+link_internal counted_string
+FormatCountedString_(char *Dest, umm DestSize, cs Fmt, ...);
+
+link_internal char * GetTempFmtBuffer();
 
 #define InvalidCase(C) case C: {Error("Invalid case value (" #C ") " __FILE__ ":" STRINGIZE(__LINE__));} break
 #define InvalidDefaultCase default: {Error("Invalid case value (default) " __FILE__ ":" STRINGIZE(__LINE__));} break
 
 #define DEFAULT_FILE_IDENTIFIER  __FILE__ ":" STRINGIZE(__LINE__)
 
-#define DebugChars(...) do {                  \
+#define LogDirect(...) \
+  PrintToStdout(FormatCountedString_(GetTempFmtBuffer(), TempStdoutFormatStringBufferSize, __VA_ARGS__))
+
+#define DebugChars(fmt, ...) do {              \
+                                               \
+  if (Global_LogLevel <= LogLevel_Debug) {     \
+    LogDirect(CSz(fmt), __VA_ARGS__);          \
+  }                                            \
+                                               \
+} while (false)
+
+
+#define DebugLine(fmt, ...) do {              \
                                               \
   if (Global_LogLevel <= LogLevel_Debug) {    \
-    LogDirect(__VA_ARGS__);                   \
+    LogDirect(CSz(fmt Newline), __VA_ARGS__); \
   }                                           \
                                               \
 } while (false)
 
 
-#define DebugLine(...) do {                                                    \
-                                                                               \
-  if (Global_LogLevel <= LogLevel_Debug) {                                     \
-    LogDirect(__VA_ARGS__);                                                    \
-    LogDirect(Newline);                                                        \
-  }                                                                            \
-                                                                               \
-} while (false)
-
-
-#define DebugMessage(...) do {                                                 \
-                                                                               \
-  if (Global_LogLevel <= LogLevel_Debug) {                                     \
-    LogDirect("%S   Debug   %S- ", TerminalColors.Blue, TerminalColors.White); \
-    LogDirect(__VA_ARGS__);                                                    \
-    LogDirect(Newline);                                                        \
-  }                                                                            \
-                                                                               \
+#define DebugMessage(fmt, ...) do {                                                                          \
+                                                                                                             \
+  if (Global_LogLevel <= LogLevel_Debug) {                                                                   \
+    LogDirect(CSz("%S   Debug   %S- " fmt Newline), TerminalColors.Blue, TerminalColors.White, __VA_ARGS__); \
+  }                                                                                                          \
+                                                                                                             \
 } while (false)
 
 
 
-#define Info(...) do {                                                           \
-                                                                                 \
-  if (Global_LogLevel <= LogLevel_Info) {                                        \
-    LogDirect("%S   Info    %S- ", TerminalColors.Blue, TerminalColors.White);   \
-    LogDirect(__VA_ARGS__);                                                      \
-    LogDirect(Newline);                                                          \
-  }                                                                              \
-                                                                                 \
+#define Info(fmt, ...) do {                                                                                  \
+  if (Global_LogLevel <= LogLevel_Info) {                                                                    \
+    LogDirect(CSz("%S   Info    %S- " fmt Newline), TerminalColors.Blue, TerminalColors.White, __VA_ARGS__); \
+  }                                                                                                          \
 } while (false)
 
 
 
-#define SoftError(...) do {                                                     \
-                                                                                \
-  if (Global_LogLevel <= LogLevel_Error) {                                      \
-    LogDirect("%S ! Error   %S- ", TerminalColors.Red, TerminalColors.White);   \
-    LogDirect(__VA_ARGS__);                                                     \
-    LogDirect(Newline);                                                         \
-  }                                                                             \
-                                                                                \
+#define SoftError(fmt, ...) do {                                                                            \
+                                                                                                            \
+  if (Global_LogLevel <= LogLevel_Error) {                                                                  \
+    LogDirect(CSz("%S ! Error   %S- " fmt Newline), TerminalColors.Red, TerminalColors.White, __VA_ARGS__); \
+  }                                                                                                         \
+                                                                                                            \
 } while (false)
 
-#define Error(...) do {                                                         \
-                                                                                \
-  if (Global_LogLevel <= LogLevel_Error) {                                      \
-    SoftError(__VA_ARGS__);                                                     \
-    RuntimeBreak();                                                             \
-  }                                                                             \
-                                                                                \
+#define Error(fmt, ...) do {                     \
+                                                 \
+  if (Global_LogLevel <= LogLevel_Error) {       \
+    SoftError(fmt, __VA_ARGS__); RuntimeBreak(); \
+  }                                              \
+                                                 \
 } while (false)
 
 
-#define Leak(...) do {                                                             \
-                                                                                   \
-  if (Global_LogLevel <= LogLevel_Error) {                                         \
-    LogDirect("%S * Leaking %S- ", TerminalColors.Yellow, TerminalColors.White);   \
-    LogDirect(__VA_ARGS__);                                                        \
-    LogDirect(Newline);                                                            \
-  }                                                                                \
-                                                                                   \
+#define Leak(fmt, ...) do {                                                                                    \
+                                                                                                               \
+  if (Global_LogLevel <= LogLevel_Error) {                                                                     \
+    LogDirect(CSz("%S * Leaking %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, __VA_ARGS__); \
+  }                                                                                                            \
+                                                                                                               \
 } while (false)
 
 
-#define BUG(...) do {                                                              \
-                                                                                   \
-  if (Global_LogLevel <= LogLevel_Error) {                                         \
-    LogDirect("%S * BUG     %S- ", TerminalColors.Red, TerminalColors.White);      \
-    LogDirect(__VA_ARGS__);                                                        \
-    LogDirect(Newline);                                                            \
-  }                                                                                \
-                                                                                   \
+#define BUG(fmt, ...) do {                                                                                  \
+                                                                                                            \
+  if (Global_LogLevel <= LogLevel_Error) {                                                                  \
+    LogDirect(CSz("%S * BUG     %S- " fmt Newline), TerminalColors.Red, TerminalColors.White, __VA_ARGS__); \
+  }                                                                                                         \
+                                                                                                            \
 } while (false)
 
 
-#define Perf(...) do {                                                           \
-                                                                                 \
-  if (Global_LogLevel <= LogLevel_Info) {                                        \
-    LogDirect("%S   Perf    %S- ", TerminalColors.Yellow, TerminalColors.White); \
-    LogDirect(__VA_ARGS__);                                                      \
-    LogDirect(Newline);                                                          \
-  }                                                                              \
-                                                                                 \
+#define Perf(fmt, ...) do {                                                                                         \
+                                                                                                               \
+  if (Global_LogLevel <= LogLevel_Info) {                                                                      \
+    LogDirect(CSz("%S   Perf    %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, __VA_ARGS__); \
+  }                                                                                                            \
+                                                                                                               \
 } while (false)
 
-#define Warn(...) do {                                                             \
+#define Warn(fmt, ...) do {                                                             \
                                                                                    \
   if (Global_LogLevel <= LogLevel_Info) {                                          \
-    LogDirect("%S * Warning %S- ", TerminalColors.Yellow, TerminalColors.White);   \
-    LogDirect(__VA_ARGS__);                                                        \
-    LogDirect(Newline);                                                            \
+    LogDirect(CSz("%S * Warning %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, __VA_ARGS__);   \
   }                                                                                \
                                                                                    \
 } while (false)
 
-#define LogSuccess(...) do {                                                      \
-                                                                                  \
-  if (Global_LogLevel <= LogLevel_Info) {                                       \
-    LogDirect("%S   Success %S- ", TerminalColors.Green, TerminalColors.White);   \
-    LogDirect(__VA_ARGS__);                                                       \
-    LogDirect(Newline);                                                           \
-  }                                                                               \
-                                                                                  \
-} while (false)
-
-#define OpenGlDebugMessage(...) do {                                                            \
-                                                                                                \
-  if (Global_LogLevel <= LogLevel_Debug) {                                                      \
-    LogDirect("%S * OpenGl Debug Message %S- ", TerminalColors.Yellow, TerminalColors.White);   \
-    LogDirect(__VA_ARGS__);                                                                     \
-    LogDirect(Newline);                                                                         \
-  }                                                                                             \
-                                                                                                \
+#define OpenGlDebugMessage(fmt, ...) do {                                                                      \
+                                                                                                               \
+  if (Global_LogLevel <= LogLevel_Debug) {                                                                     \
+    LogDirect(CSz("%S * OpenGl Debug Message %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, __VA_ARGS__); \
+  }                                                                                                            \
+                                                                                                               \
 } while (false)
