@@ -175,9 +175,12 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi)
 link_internal void
 ShutdownWorkerThreads(platform *Plat)
 {
-  SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
-  Ensure( UnsignalFutex(&Plat->WorkerThreadsExitFutex) );
-  while (Plat->WorkerThreadsExitFutex.ThreadsWaiting > 0) { SleepMs(1); };
+  if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX)
+  {
+    SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
+    Ensure( UnsignalFutex(&Plat->WorkerThreadsExitFutex) );
+    while (Plat->WorkerThreadsExitFutex.ThreadsWaiting > 0) { SleepMs(1); };
+  }
 }
 
 link_internal void
