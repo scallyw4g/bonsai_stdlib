@@ -412,7 +412,7 @@ BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
 {
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
 
-  if (ScreenDim->x > 0 && ScreenDim->y > 0) 
+  if (ScreenDim->x > 0 && ScreenDim->y > 0)
   {
     r32 Left   = MinP.x;
     r32 Right  = Left+Dim.x;
@@ -747,7 +747,7 @@ Text(renderer_2d* Group, counted_string String, ui_style *Style = &DefaultStyle,
   return;
 }
 
-link_internal void
+link_internal u32
 StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_render_params Params = ColumnRenderParam_RightAlign)
 {
   ui_render_command Command = {
@@ -759,16 +759,16 @@ StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_
   Command.ui_render_command_column_start.Layout = {};
   Command.ui_render_command_column_start.Layout.Padding = Padding;
 
-  PushUiRenderCommand(Group, &Command);
-
-  return;
+  u32 Result = PushUiRenderCommand(Group, &Command);
+  return Result;
 }
 
 link_internal void
-EndColumn(renderer_2d* Group)
+EndColumn(renderer_2d* Group, u32 StartCommandIndex)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_column_end,
+    .ui_render_command_column_end.StartCommandIndex = StartCommandIndex,
   };
 
   PushUiRenderCommand(Group, &Command);
@@ -779,9 +779,9 @@ EndColumn(renderer_2d* Group)
 link_internal void
 PushColumn(renderer_2d *Group, counted_string String, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
 {
-  StartColumn(Group, Style, Padding, Params);
+  u32 StartIndex = StartColumn(Group, Style, Padding, Params);
     Text(Group, String, Style);
-  EndColumn(Group);
+  EndColumn(Group, StartIndex);
 
   return;
 }
@@ -1490,7 +1490,7 @@ PushLayout(layout** Dest, layout* Layout)
   Layout->Prev = *Dest;
   *Dest = Layout;
 
-  // NOTE(Jesse): We have to do this such that the padding we're about to advance 
+  // NOTE(Jesse): We have to do this such that the padding we're about to advance
   // by gets accounted for (or, rather, the basis we're starting at is accurate).
   // If we do not, the padding space does not get included in the final draw bounds
   UpdateDrawBounds(Layout);
@@ -2351,6 +2351,17 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
       case type_ui_render_command_column_end:
       {
+        ui_render_command_column_end *TypedCommand = RenderCommandAs(column_end, Command);
+
+        ui_render_command *StartCommandBase = CommandBuffer->Commands + TypedCommand->StartCommandIndex;
+        ui_render_command_column_start *StartCommand = RenderCommandAs(column_start, StartCommandBase);
+
+        if (StartCommand->Params == ColumnRenderParam_LeftAlign)
+        {
+          v2 Advance = V2(StartCommand->MaxWidth - StartCommand->Width, 0);
+          AdvanceLayoutStackBy(Advance, RenderState->Layout);
+        }
+
         PopLayout(&RenderState->Layout);
       } break;
 
@@ -2700,8 +2711,9 @@ UiCapturedMouseInput(renderer_2d *Ui)
 {
   b32 MouseWasHoveringOverWindow = Ui->HighestWindow != 0;
   b32 PressedIdWasNotViewportId = (Ui->Pressed.ID != 0 && Ui->Pressed.ID != Global_ViewportInteraction.ID);
+  b32 ForceCapture = Ui->RequestedForceCapture;
 
-  b32 Result = MouseWasHoveringOverWindow || PressedIdWasNotViewportId;
+  b32 Result = ForceCapture || MouseWasHoveringOverWindow || PressedIdWasNotViewportId;
   return Result;
 }
 
@@ -2733,4 +2745,5 @@ UiFrameEnd(renderer_2d *Ui)
   }
 
   Ui->CommandBuffer->CommandCount = 0;
+  Ui->RequestedForceCapture = False;
 }

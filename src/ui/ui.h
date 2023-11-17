@@ -160,6 +160,7 @@ struct renderer_2d
   interactable Hover;
   interactable Clicked;
   interactable Pressed;
+  b32 RequestedForceCapture;
 
   u32 SolidGeoCountLastFrame;
   u32 TextGeoCountLastFrame;
@@ -435,6 +436,11 @@ struct ui_render_command_column_start
   column_render_params Params;
 };
 
+struct ui_render_command_column_end
+{
+  u32 StartCommandIndex;
+};
+
 struct ui_render_command_text
 {
   layout Layout;
@@ -546,7 +552,7 @@ poof(
     ui_render_command_table_start
 
     ui_render_command_column_start
-    ui_render_command_column_end enum_only
+    ui_render_command_column_end
 
     ui_render_command_text
     ui_render_command_text_at
