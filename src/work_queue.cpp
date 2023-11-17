@@ -34,7 +34,7 @@ ThreadMain(void *Input)
 
   Assert(ThreadLocal_ThreadIndex > 0);
   // NOTE(Jesse): Has to come after ThreadLocal_ThreadIndex gets set in WorkerThread_BeforeJobStart
-  /* Info("Starting Thread (%d)", ThreadParams->ThreadIndex); */
+  Info("Starting Thread (%d)", ThreadParams->ThreadIndex);
 
   thread_local_state *Thread = GetThreadLocalState(ThreadLocal_ThreadIndex);
   Thread->Index = ThreadParams->ThreadIndex;
@@ -128,6 +128,7 @@ ThreadMain(void *Input)
     }
   }
 
+  Info("Exiting Thread (%d)", ThreadParams->ThreadIndex);
   WaitOnFutex(ThreadParams->WorkerThreadsExitFutex);
 
   return 0;
