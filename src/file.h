@@ -30,3 +30,26 @@ link_internal b32 FileExists(const char* Path);
 link_internal b32 FileExists(counted_string Path);
 
 link_internal b32 ReadBytesIntoBuffer(native_file *Src, umm BytesToRead, u8* Dest);
+
+
+enum file_traversal_type
+{
+  FileTraversalType_None,
+
+  FileTraversalType_Dir,
+  FileTraversalType_File,
+};
+
+struct file_traversal_node
+{
+  file_traversal_type Type;
+  cs Name;
+  cs Dir;
+};
+poof(are_equal(file_traversal_node))
+#include <generated/are_equal_file_traversal_node.h>
+
+poof(maybe(file_traversal_node))
+#include <generated/maybe_file_traversal_node.h>
+
+typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node);

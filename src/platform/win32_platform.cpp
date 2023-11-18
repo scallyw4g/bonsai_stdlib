@@ -746,29 +746,6 @@ PlatformDebugStacktrace()
 }
 #endif
 
-
-enum file_traversal_type
-{
-  FileTraversalType_None,
-
-  FileTraversalType_Dir,
-  FileTraversalType_File,
-};
-
-struct file_traversal_node
-{
-  file_traversal_type Type;
-  cs Name;
-  cs Dir;
-};
-poof(are_equal(file_traversal_node))
-#include <generated/are_equal_file_traversal_node.h>
-
-poof(maybe(file_traversal_node))
-#include <generated/maybe_file_traversal_node.h>
-
-typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node);
-
 link_internal maybe_file_traversal_node
 PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback)
 {

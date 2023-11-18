@@ -17,6 +17,7 @@
 #include <bonsai_stdlib/src/atomic.h>
 #include <bonsai_stdlib/src/thread.h>
 #include <bonsai_stdlib/src/math.h>
+#include <bonsai_stdlib/src/memory_arena.h>
 #include <bonsai_stdlib/src/file.h>
 #include <bonsai_stdlib/src/filesystem.h>
 #include <bonsai_stdlib/src/vector.h>
@@ -30,7 +31,6 @@
 #include <bonsai_stdlib/src/input.h>
 #include <bonsai_stdlib/src/mutex.h>
 #include <bonsai_stdlib/src/work_queue.h>
-#include <bonsai_stdlib/src/memory_arena.h>
 #include <bonsai_stdlib/src/mesh.h>
 
 #include <bonsai_stdlib/src/gl.h>
