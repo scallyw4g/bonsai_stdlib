@@ -113,6 +113,7 @@ struct aabb
 };
 
 
+
 struct sphere
 {
   v3 P;
@@ -135,6 +136,16 @@ v3 GetMax(aabb *Box)
 v3 GetMin(aabb *Box)
 {
   v3 Result = Box->Center - Box->Radius;
+  return Result;
+}
+
+link_internal rect3i
+Rect3i(aabb AABB)
+{
+  v3 Min = GetMin(&AABB);
+  v3 Max = GetMax(&AABB);
+
+  rect3i Result = RectMinMax(V3i(Min), V3i(Max));
   return Result;
 }
 
