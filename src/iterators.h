@@ -78,6 +78,9 @@
 
 #define GET_ELEMENT(I) (&(I).At->Element)
 
+// TODO(Jesse): Do we care about this being T/F, or just truthy/falsy
+#define BitfieldIsSet(Src, Value) ((Src)&(Value))
+
 #define SetBitfield(type, Dest, Value) do { \
   Assert( ((Dest)&(Value)) == 0 );          \
   (Dest) = (type)((Dest) | (Value));        \

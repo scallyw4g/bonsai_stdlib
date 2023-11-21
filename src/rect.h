@@ -245,8 +245,11 @@ Rect3(rect3i *Rect)
 link_internal aabb
 RectMinRad(v3 Min, v3 Rad)
 {
-  rect3 Result = {};
-  NotImplemented;
+  rect3 Result =
+  {
+    Min,
+    Min + (Rad*2.f)
+  };
   return Result;
 }
 

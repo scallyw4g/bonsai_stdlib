@@ -1394,32 +1394,53 @@ Clicked(ui_toggle_button_group *Group, cs ButtonName)
   return Result;
 }
 
+link_internal void
+UnsetAllTogglesExcluding(ui_toggle_button_group *Group, umm ExcludeIndex)
+{
+  Group->ToggleBits = 0;
+  IterateOver(&Group->Buttons, InnerButton, InnerButtonIndex)
+  {
+    if (InnerButtonIndex == ExcludeIndex) continue;
+    maybe_ui_toggle_ptr Maybe = GetPtrById(&Group->Ui->ToggleTable, InnerButton->Id);
+    if (Maybe.Tag) { Maybe.Value->ToggledOn = False; }
+  }
+}
+
+link_internal b32
+ToggleRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *ToggleHandle)
+{
+  Assert(Group->Flags & ToggleButtonGroupFlags_RadioButtons);
+  maybe_ui_toggle_ptr MaybeInputToggle = GetPtrById(&Group->Ui->ToggleTable, ToggleHandle->Id);
+  if (MaybeInputToggle.Tag)
+  {
+    u32 PrevValue = MaybeInputToggle.Value->ToggledOn;
+    UnsetAllTogglesExcluding(Group, umm_MAX);
+    MaybeInputToggle.Value->ToggledOn = !PrevValue;
+  }
+  return MaybeInputToggle.Tag;
+}
+
 link_internal ui_element_reference
 DrawToggleButtonGroup(ui_toggle_button_group *Group,  UI_FUNCTION_PROTO_NAMES)
 {
   renderer_2d *Ui = Group->Ui;
   ui_toggle_button_handle_buffer *ButtonBuffer = &Group->Buttons;
 
-  // Reset this every frame; it's ephermeral
+  // Reset this every frame; it's ephermeral.
+  //
+  // TODO(Jesse): THese aren't stored .. we should asesert this ..???
   Group->ToggleBits = 0;
 
   ui_element_reference Result = PushTableStart(Ui, UI_FUNCTION_INSTANCE_NAMES);
     IterateOver(ButtonBuffer, UiButton, ButtonIndex)
     {
-      interactable_handle Handle = {UiButton->Id};
-      if (Clicked(Ui, &Handle) && Group->Flags & ToggleButtonGroupFlags_RadioButtons)
-      {
-        // We have to forcibly set this in case we've already seen an set a bit
-        Group->ToggleBits = (1 << ButtonIndex);
-        IterateOver(ButtonBuffer, InnerButton, InnerButtonIndex)
-        {
-          if (InnerButton != UiButton)
-          {
-            maybe_ui_toggle_ptr Maybe = GetPtrById(&Ui->ToggleTable, InnerButton->Id);
-            if (Maybe.Tag) { Maybe.Value->ToggledOn = False; }
-          }
+      interactable_handle ButtonHandle = {UiButton->Id};
 
-        }
+      // Unset toggle bits and unset all the currently set toggle fields in the toggle table
+      if ( BitfieldIsSet(Group->Flags, ToggleButtonGroupFlags_RadioButtons)
+           && Clicked(Ui, &ButtonHandle) )
+      {
+        UnsetAllTogglesExcluding(Group, ButtonIndex);
       }
 
       ui_style *ThisStyle = ToggledOn(Ui, UiButton) ? &DefaultSelectedStyle : Style;
