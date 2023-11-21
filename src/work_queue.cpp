@@ -31,10 +31,9 @@ ThreadMain(void *Input)
 {
   thread_startup_params *ThreadParams = (thread_startup_params *)Input;
   WorkerThread_BeforeJobStart(ThreadParams);
-
   Assert(ThreadLocal_ThreadIndex > 0);
-  // NOTE(Jesse): Has to come after ThreadLocal_ThreadIndex gets set in WorkerThread_BeforeJobStart
-  Info("Starting Thread (%d)", ThreadParams->ThreadIndex);
+
+  /* Info("Starting Thread (%d)", ThreadLocal_ThreadIndex); */
 
   thread_local_state *Thread = GetThreadLocalState(ThreadLocal_ThreadIndex);
   Thread->Index = ThreadParams->ThreadIndex;

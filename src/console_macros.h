@@ -114,12 +114,12 @@ link_internal char * GetTempFmtBuffer();
 #define DEFAULT_FILE_IDENTIFIER  __FILE__ ":" STRINGIZE(__LINE__)
 
 #define LogDirect(...) \
-  PrintToStdout(FormatCountedString_(GetTempFmtBuffer(), TempStdoutFormatStringBufferSize, __VA_ARGS__))
+  PrintToStdout(FormatCountedString_(GetTempFmtBuffer(), TempStdoutFormatStringBufferSize, ##__VA_ARGS__))
 
 #define DebugChars(fmt, ...) do {              \
                                                \
   if (Global_LogLevel <= LogLevel_Debug) {     \
-    LogDirect(CSz(fmt), __VA_ARGS__);          \
+    LogDirect(CSz(fmt), ##__VA_ARGS__);          \
   }                                            \
                                                \
 } while (false)
@@ -128,7 +128,7 @@ link_internal char * GetTempFmtBuffer();
 #define DebugLine(fmt, ...) do {              \
                                               \
   if (Global_LogLevel <= LogLevel_Debug) {    \
-    LogDirect(CSz(fmt Newline), __VA_ARGS__); \
+    LogDirect(CSz(fmt Newline), ##__VA_ARGS__); \
   }                                           \
                                               \
 } while (false)
@@ -137,7 +137,7 @@ link_internal char * GetTempFmtBuffer();
 #define DebugMessage(fmt, ...) do {                                                                          \
                                                                                                              \
   if (Global_LogLevel <= LogLevel_Debug) {                                                                   \
-    LogDirect(CSz("%S   Debug   %S- " fmt Newline), TerminalColors.Blue, TerminalColors.White, __VA_ARGS__); \
+    LogDirect(CSz("%S   Debug   %S- " fmt Newline), TerminalColors.Blue, TerminalColors.White, ##__VA_ARGS__); \
   }                                                                                                          \
                                                                                                              \
 } while (false)
@@ -146,7 +146,7 @@ link_internal char * GetTempFmtBuffer();
 
 #define Info(fmt, ...) do {                                                                                  \
   if (Global_LogLevel <= LogLevel_Info) {                                                                    \
-    LogDirect(CSz("%S   Info    %S- " fmt Newline), TerminalColors.Blue, TerminalColors.White, __VA_ARGS__); \
+    LogDirect(CSz("%S   Info    %S- " fmt Newline), TerminalColors.Blue, TerminalColors.White, ##__VA_ARGS__); \
   }                                                                                                          \
 } while (false)
 
@@ -155,7 +155,7 @@ link_internal char * GetTempFmtBuffer();
 #define SoftError(fmt, ...) do {                                                                            \
                                                                                                             \
   if (Global_LogLevel <= LogLevel_Error) {                                                                  \
-    LogDirect(CSz("%S ! Error   %S- " fmt Newline), TerminalColors.Red, TerminalColors.White, __VA_ARGS__); \
+    LogDirect(CSz("%S ! Error   %S- " fmt Newline), TerminalColors.Red, TerminalColors.White, ##__VA_ARGS__); \
   }                                                                                                         \
                                                                                                             \
 } while (false)
@@ -163,7 +163,7 @@ link_internal char * GetTempFmtBuffer();
 #define Error(fmt, ...) do {                     \
                                                  \
   if (Global_LogLevel <= LogLevel_Error) {       \
-    SoftError(fmt, __VA_ARGS__); RuntimeBreak(); \
+    SoftError(fmt, ##__VA_ARGS__); RuntimeBreak(); \
   }                                              \
                                                  \
 } while (false)
@@ -172,7 +172,7 @@ link_internal char * GetTempFmtBuffer();
 #define Leak(fmt, ...) do {                                                                                    \
                                                                                                                \
   if (Global_LogLevel <= LogLevel_Error) {                                                                     \
-    LogDirect(CSz("%S * Leaking %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, __VA_ARGS__); \
+    LogDirect(CSz("%S * Leaking %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, ##__VA_ARGS__); \
   }                                                                                                            \
                                                                                                                \
 } while (false)
@@ -181,7 +181,7 @@ link_internal char * GetTempFmtBuffer();
 #define BUG(fmt, ...) do {                                                                                  \
                                                                                                             \
   if (Global_LogLevel <= LogLevel_Error) {                                                                  \
-    LogDirect(CSz("%S * BUG     %S- " fmt Newline), TerminalColors.Red, TerminalColors.White, __VA_ARGS__); \
+    LogDirect(CSz("%S * BUG     %S- " fmt Newline), TerminalColors.Red, TerminalColors.White, ##__VA_ARGS__); \
   }                                                                                                         \
                                                                                                             \
 } while (false)
@@ -190,7 +190,7 @@ link_internal char * GetTempFmtBuffer();
 #define Perf(fmt, ...) do {                                                                                         \
                                                                                                                \
   if (Global_LogLevel <= LogLevel_Info) {                                                                      \
-    LogDirect(CSz("%S   Perf    %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, __VA_ARGS__); \
+    LogDirect(CSz("%S   Perf    %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, ##__VA_ARGS__); \
   }                                                                                                            \
                                                                                                                \
 } while (false)
@@ -198,7 +198,7 @@ link_internal char * GetTempFmtBuffer();
 #define Warn(fmt, ...) do {                                                             \
                                                                                    \
   if (Global_LogLevel <= LogLevel_Info) {                                          \
-    LogDirect(CSz("%S * Warning %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, __VA_ARGS__);   \
+    LogDirect(CSz("%S * Warning %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, ##__VA_ARGS__);   \
   }                                                                                \
                                                                                    \
 } while (false)
@@ -206,7 +206,7 @@ link_internal char * GetTempFmtBuffer();
 #define OpenGlDebugMessage(fmt, ...) do {                                                                      \
                                                                                                                \
   if (Global_LogLevel <= LogLevel_Debug) {                                                                     \
-    LogDirect(CSz("%S * OpenGl Debug Message %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, __VA_ARGS__); \
+    LogDirect(CSz("%S * OpenGl Debug Message %S- " fmt Newline), TerminalColors.Yellow, TerminalColors.White, ##__VA_ARGS__); \
   }                                                                                                            \
                                                                                                                \
 } while (false)
