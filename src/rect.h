@@ -144,7 +144,8 @@ GetMax(aabb *Box)
   return Result;
 }
 
-v3 GetMin(aabb *Box)
+link_internal v3
+GetMin(aabb *Box)
 {
   v3 Result = Box->Min;
   return Result;
