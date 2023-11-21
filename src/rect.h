@@ -11,6 +11,13 @@ struct rect3i
   v3i Max;
 };
 
+struct rect3
+{
+  v3 Min;
+  v3 Max;
+};
+
+
 
 link_internal rect2
 InvertedInfinityRectangle()
@@ -47,6 +54,22 @@ poof(
       return Result;
     }
 
+    link_internal vector.name
+    GetRadius((rect.name) *Rect)
+    {
+      vector.name Dim = Rect->Max - Rect->Min;
+      vector.name Result = Dim/2;
+      return Result;
+    }
+
+    link_internal vector.name
+    GetCenter((rect.name) *Rect)
+    {
+      vector.name Rad = GetRadius(Rect);
+      vector.name Result = Rect->Min + Rad;
+      return Result;
+    }
+
     link_internal rect.name
     RectMinDim((vector.name) Min, vector.name Dim)
     {
@@ -68,15 +91,11 @@ poof(gen_rect_helpers(rect2, v2))
 #include <generated/gen_rect_helpers_rect2_v2.h>
 /* poof(gen_rect_helpers(rect2i, v2i)) */
 
-/* poof(gen_rect_helpers(rect3, v3)) */
+poof(gen_rect_helpers(rect3, v3))
+#include <generated/gen_rect_helpers_rect3_v3.h>
+
 poof(gen_rect_helpers(rect3i, v3i))
 #include <generated/gen_rect_helpers_rect3i_v3i.h>
-
-
-/* link_internal rect3i */
-/* Rect3i(v3i Min, v3i Max) */
-/* { */
-/* } */
 
 link_internal rect3i
 Rect3iMinDim(v3i Min, v3i Dim)
@@ -92,27 +111,18 @@ Rect3iMinMax(v3i Min, v3i Max)
   return Result;
 }
 
-struct aabb
+
+typedef rect3 aabb;
+
+link_internal rect3i
+Rect3i(rect3 *Rect)
 {
-  v3 Center;
-  v3 Radius;
-
-  aabb(v3 Center_in, v3 Radius_in)
-  {
-    this->Center = Center_in;
-    this->Radius = Radius_in;
-  }
-
-  aabb(world_position Center_in, world_position Radius_in)
-  {
-    this->Center = V3(Center_in);
-    this->Radius = V3(Radius_in);
-  }
-
-  aabb() { Clear(this); }
-};
-
-
+  rect3i Result = {
+    .Min = V3i(Rect->Min),
+    .Max = V3i(Rect->Max),
+  };
+  return Result;
+}
 
 struct sphere
 {
@@ -127,38 +137,26 @@ Sphere(v3 P, r32 Radius)
   return Result;
 }
 
-v3 GetMax(aabb *Box)
+link_internal v3
+GetMax(aabb *Box)
 {
-  v3 Result = Box->Center + Box->Radius;
+  v3 Result = Box->Max;
   return Result;
 }
 
 v3 GetMin(aabb *Box)
 {
-  v3 Result = Box->Center - Box->Radius;
-  return Result;
-}
-
-link_internal rect3i
-Rect3i(aabb AABB)
-{
-  v3 Min = GetMin(&AABB);
-  v3 Max = GetMax(&AABB);
-
-  rect3i Result = RectMinMax(V3i(Min), V3i(Max));
+  v3 Result = Box->Min;
   return Result;
 }
 
 link_internal v3
 ClipPToAABB(aabb *AABB, v3 P)
 {
-  v3 AABBMin = GetMin(AABB);
-  v3 AABBMax = GetMax(AABB);
-
   v3 Result = {};
-  Result.x = Max(AABBMin.x, Min(P.x, AABBMax.x));
-  Result.y = Max(AABBMin.y, Min(P.y, AABBMax.y));
-  Result.z = Max(AABBMin.z, Min(P.z, AABBMax.z));
+  Result.x = Max(AABB->Min.x, Min(P.x, AABB->Max.x));
+  Result.y = Max(AABB->Min.y, Min(P.y, AABB->Max.y));
+  Result.z = Max(AABB->Min.z, Min(P.z, AABB->Max.z));
   return Result;
 }
 
@@ -179,29 +177,54 @@ Intersect(aabb *First, aabb *Second)
 {
   b32 Result = True;
 
-  Result &= (Abs(First->Center.x - Second->Center.x) < (First->Radius.x + Second->Radius.x));
-  Result &= (Abs(First->Center.y - Second->Center.y) < (First->Radius.y + Second->Radius.y));
-  Result &= (Abs(First->Center.z - Second->Center.z) < (First->Radius.z + Second->Radius.z));
+  auto FirstCenter = GetCenter(First);
+  auto SecondCenter = GetCenter(First);
+
+  auto FirstRadius = GetRadius(First);
+  auto SecondRadius = GetRadius(First);
+
+  Result &= (Abs(FirstCenter.x - SecondCenter.x) < (FirstRadius.x + SecondRadius.x));
+  Result &= (Abs(FirstCenter.y - SecondCenter.y) < (FirstRadius.y + SecondRadius.y));
+  Result &= (Abs(FirstCenter.z - SecondCenter.z) < (FirstRadius.z + SecondRadius.z));
 
   return Result;
 }
 
+/* link_internal aabb */
+/* RectMinMax(v3i Min, v3i Max) */
+/* { */
+/*   rect3 Result = RectMinMax(Min, Max); */
+/*   return Result; */
+/* } */
+
+link_internal rect3
+RectCenterRad(v3 Center, v3 Rad)
+{
+  auto Min = Center-Rad;
+  auto Max = Center+Rad;
+  rect3 Result = RectMinMax(Min, Max);
+  return Result;
+}
+
+link_internal rect3i
+Rect3i(aabb AABB)
+{
+  rect3i Result = RectMinMax(V3i(AABB.Min), V3i(AABB.Max));
+  return Result;
+}
+
+
 link_internal aabb
 AABBMinMax(v3i Min, v3i Max)
 {
-  v3 Radius = V3(Max - Min)/2.0f;
-  v3 Center = V3(Min + Radius);
-  aabb Result(Center, Radius);
+  aabb Result = RectMinMax(V3(Min), V3(Max));
   return Result;
 }
 
 link_internal aabb
 AABBMinMax(v3 Min, v3 Max)
 {
-  v3 Radius = (Max - Min)/2.0f;
-  v3 Center = Min + Radius;
-  aabb Result(Center, Radius);
-  return Result;
+  return RectMinMax(Min, Max);
 }
 
 // TODO(Jesse): Delete this
@@ -211,47 +234,57 @@ MinMaxAABB(v3 Min, v3 Max)
   return AABBMinMax(Min, Max);
 }
 
+link_internal rect3
+Rect3(rect3i *Rect)
+{
+  rect3 Result = AABBMinMax(V3(Rect->Min), V3(Rect->Max));
+  return Result;
+}
+
+link_internal aabb
+RectMinRad(v3 Min, v3 Rad)
+{
+  rect3 Result = {};
+  NotImplemented;
+  return Result;
+}
+
+link_internal aabb
+RectCenterDim(v3 Center, v3 Dim)
+{
+  rect3 Result = {};
+  NotImplemented;
+  return Result;
+}
+
 link_internal aabb
 AABBCenterDim(v3 Center, v3 Dim)
 {
-  v3 Radius = Dim/2.f;
-  aabb Result(Center, Radius);
-  return Result;
+  return RectCenterDim(Center, Dim);
 }
 
 link_internal aabb
 AABBMinRad(v3 Min, v3 Radius)
 {
-  v3 Center = Min + Radius;
-  aabb Result(Center, Radius);
-  return Result;
+  return RectMinRad(Min, Radius);
 }
 
 link_internal aabb
 AABBMinDim(v3 Min, v3i Dim)
 {
-  v3 Radius = V3(Dim)/2.f;
-  v3 Center = Min + Radius;
-  aabb Result(Center, Radius);
-  return Result;
+  return RectMinDim(Min, V3(Dim));
 }
 
 link_internal aabb
 AABBMinDim(v3i Min, v3i Dim)
 {
-  v3 Radius = V3(Dim)/2.f;
-  v3 Center = V3(Min + Radius);
-  aabb Result(Center, Radius);
-  return Result;
+  return RectMinDim(V3(Min), V3(Dim));
 }
 
 link_internal aabb
 AABBMinDim(v3 Min, v3 Dim)
 {
-  v3 Radius = Dim/2.f;
-  v3 Center = Min + Radius;
-  aabb Result(Center, Radius);
-  return Result;
+  return RectMinDim(Min, Dim);
 }
 
 inline rect3i
@@ -290,9 +323,10 @@ Contains(rect3i Rect, v3i P)
 link_internal b32
 Contains(aabb AABB, v3 P)
 {
-  v3 Min = AABB.Center-AABB.Radius;
-  v3 Max = AABB.Center+AABB.Radius;
-
+  v3 AABBCenter = GetCenter(&AABB);
+  v3 AABBRadius = GetRadius(&AABB);
+  v3 Min = AABBCenter-AABBRadius;
+  v3 Max = AABBCenter+AABBRadius;
   b32 Result = (P >= Min && P < Max);
   return Result;
 }
@@ -371,7 +405,8 @@ link_internal aabb
 operator+(aabb AABB, v3 V)
 {
   aabb Result = AABB;
-  Result.Radius = AABB.Radius + V;
+  Result.Min -= V;
+  Result.Max += V;
   return Result;
 }
 
@@ -392,14 +427,14 @@ IsInsideRect(rect2 Rect, v2 P)
 link_internal v3
 GetMin(aabb Rect)
 {
-  v3 Result = Rect.Center - Rect.Radius;
+  v3 Result = Rect.Min;
   return Result;
 }
 
 link_internal v3
 GetMax(aabb Rect)
 {
-  v3 Result = Rect.Center + Rect.Radius;
+  v3 Result = Rect.Max;
   return Result;
 }
 
@@ -433,7 +468,7 @@ GetDim(rect2 Rect)
 link_internal v3
 GetDim(aabb Rect)
 {
-  v3 Dim = Rect.Radius * 2.f;
+  v3 Dim = Rect.Max - Rect.Min;
   return Dim;
 }
 
@@ -448,7 +483,7 @@ Volume(rect3i Rect)
 inline s32
 Volume(aabb Rect)
 {
-  v3 Dim = Rect.Radius*2.f;
+  v3 Dim     = GetDim(Rect);
   s32 Result = Volume(Dim);
   return Result;
 }
