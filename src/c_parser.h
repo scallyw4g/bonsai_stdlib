@@ -245,12 +245,13 @@ link_internal c_token_cursor
 CTokenCursor(c_token *Start, c_token *End, counted_string Filename, token_cursor_source Source, c_token_cursor_up Up)
 {
   c_token_cursor Result = {
-    .Start = Start,
-    .End = End,
-    .At = Start,
-    .Filename = Filename,
     .Source = Source,
+    .Start = Start,
+    .At = Start,
+    .End = End,
+    .OwnedByThread = INVALID_THREAD_LOCAL_THREAD_INDEX,
     .Up = Up,
+    .Filename = Filename,
   };
   return Result;
 }

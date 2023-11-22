@@ -1194,7 +1194,7 @@ ParseError(parser* Parser, counted_string ErrorMessage, c_token* ErrorToken)
 link_internal counted_string
 ParseError_StreamEndedUnexpectedly(parser *Parser)
 {
-  counted_string Result = FormatCountedString(GetTranArena(), CSz("Stream ended unexpectedly in file : %S"), ???->Filename);
+  counted_string Result = FormatCountedString(GetTranArena(), CSz("Stream ended unexpectedly in file : %S"), ?->Filename);
   ParseError(Parser, ParseErrorCode_StreamEndedUnexpectedly, Result);
   return Result;
 }

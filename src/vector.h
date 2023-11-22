@@ -144,60 +144,35 @@ union v4i
 link_internal v4i
 V4i(s32 x, s32 y, s32 z, s32 w)
 {
-  v4i Result = {
-    .x = x,
-    .y = y,
-    .z = z,
-    .w = w,
-  };
+  v4i Result = {{ x, y, z, w, }};
   return Result;
 }
 
 link_internal v4
 V4(f32 x, v3 v)
 {
-  v4 Result = {
-    .x = x,
-    .y = v.x,
-    .z = v.y,
-    .w = v.z,
-  };
+  v4 Result = {{ x, v.x, v.y, v.z }};
   return Result;
 }
 
 link_internal v4
 V4(v3 v, f32 w)
 {
-  v4 Result = {
-    .x = v.x,
-    .y = v.y,
-    .z = v.z,
-    .w = w,
-  };
+  v4 Result = { v.x, v.y, v.z, w };
   return Result;
 }
 
 link_internal v4
 V4(r32 Fill)
 {
-  v4 Result = {
-    .x = Fill,
-    .y = Fill,
-    .z = Fill,
-    .w = Fill,
-  };
+  v4 Result = { Fill, Fill, Fill, Fill, };
   return Result;
 }
 
 link_internal v4
 V4( f32 x, f32 y, f32 z, f32 w)
 {
-  v4 Result = {
-    .x = x,
-    .y = y,
-    .z = z,
-    .w = w,
-  };
+  v4 Result = {{ x, y, z, w, }};
   return Result;
 }
 
@@ -254,11 +229,7 @@ poof(gen_hetero_vector_operators(v3i, v3))
 inline v3i
 operator~(v3i P)
 {
-  v3i Result = {
-    .x = ~P.x,
-    .y = ~P.y,
-    .z = ~P.z
-  };
+  v3i Result = {{ ~P.x, ~P.y, ~P.z }};
   return Result;
 }
 
@@ -667,11 +638,7 @@ operator*(v3 A, v3 B)
 
 v3 operator+(v3 A, v2 B)
 {
-  v3 Result = {
-    .x = A.x + B.x,
-    .y = A.y + B.y,
-    .z = A.z,
-  };
+  v3 Result = { A.x+B.x, A.y+B.y, A.z };
   return Result;
 }
 

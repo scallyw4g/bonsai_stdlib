@@ -138,8 +138,8 @@ counted_string
 CS(char_cursor* Cursor)
 {
   counted_string Result = {
-    .Start = Cursor->Start,
     .Count = (umm)(Cursor->At - Cursor->Start),
+    .Start = Cursor->Start,
   };
 
   return Result;
@@ -294,8 +294,8 @@ Dirname(counted_string FilePath)
   Assert(OneAfterLastPathSep <= FilePath.Count);
 
   counted_string Result = {
-    .Start = FilePath.Start,
     .Count = FilePath.Count - (FilePath.Count-OneAfterLastPathSep),
+    .Start = FilePath.Start,
   };
 
   if (Result.Count)

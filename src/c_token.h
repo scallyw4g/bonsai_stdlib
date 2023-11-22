@@ -374,8 +374,8 @@ struct c_token_cursor
   token_cursor_source Source;
 
   c_token* Start;
-  c_token* End;
   c_token* At;
+  c_token* End;
 
   s32 OwnedByThread;
 

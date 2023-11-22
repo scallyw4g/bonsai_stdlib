@@ -734,8 +734,9 @@ Text(renderer_2d* Group, counted_string String, ui_style *Style = &DefaultStyle,
   ui_render_command Command = {
     .Type = type_ui_render_command_text,
     .ui_render_command_text = {
-      .String = String,
+      .Layout = {},
       .Style = *Style,
+      .String = String,
       .Offset = Offset,
       .Clip = Clip,
       .Params = RenderParams,
@@ -752,11 +753,15 @@ StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_column_start,
-    .ui_render_command_column_start.Style  = Style? *Style : DefaultStyle,
-    .ui_render_command_column_start.Params = Params,
+    .ui_render_command_column_start = {
+      .Layout = {},
+      .Style  = Style? *Style : DefaultStyle,
+      .Width = 0.f,
+      .MaxWidth = 0.f,
+      .Params = Params,
+    }
   };
 
-  Command.ui_render_command_column_start.Layout = {};
   Command.ui_render_command_column_start.Layout.Padding = Padding;
 
   u32 Result = PushUiRenderCommand(Group, &Command);
