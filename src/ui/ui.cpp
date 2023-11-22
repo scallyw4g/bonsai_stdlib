@@ -1406,18 +1406,39 @@ UnsetAllTogglesExcluding(ui_toggle_button_group *Group, umm ExcludeIndex)
   }
 }
 
-link_internal b32
+link_internal void
+SetRadioButton(ui_toggle_button_group *Group, maybe_ui_toggle_ptr MaybeToggle, ui_toggle_button_handle *ToggleHandle, b32 Value)
+{
+  UnsetAllTogglesExcluding(Group, umm_MAX);
+
+  /* maybe_ui_toggle_ptr MaybeToggle = GetPtrById(&Group->Ui->ToggleTable, ToggleHandle->Id); */
+  if (MaybeToggle.Tag)
+  {
+    MaybeToggle.Value->ToggledOn = Value;
+  }
+  else
+  {
+    ui_toggle E = {ToggleHandle->Id, True};
+    Insert(E, &Group->Ui->ToggleTable, &Group->Ui->UiToggleArena);
+  }
+}
+
+link_internal void
+SetRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *ToggleHandle, b32 Value)
+{
+  Assert(Group->Flags & ToggleButtonGroupFlags_RadioButtons);
+  maybe_ui_toggle_ptr MaybeInputToggle = GetPtrById(&Group->Ui->ToggleTable, ToggleHandle->Id);
+  SetRadioButton(Group, MaybeInputToggle, ToggleHandle, Value);
+}
+
+link_internal void
 ToggleRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *ToggleHandle)
 {
   Assert(Group->Flags & ToggleButtonGroupFlags_RadioButtons);
   maybe_ui_toggle_ptr MaybeInputToggle = GetPtrById(&Group->Ui->ToggleTable, ToggleHandle->Id);
-  if (MaybeInputToggle.Tag)
-  {
-    u32 PrevValue = MaybeInputToggle.Value->ToggledOn;
-    UnsetAllTogglesExcluding(Group, umm_MAX);
-    MaybeInputToggle.Value->ToggledOn = !PrevValue;
-  }
-  return MaybeInputToggle.Tag;
+  u32 ToggleState = True;
+  if (MaybeInputToggle.Tag) { ToggleState = !MaybeInputToggle.Value->ToggledOn; }
+  SetRadioButton(Group, MaybeInputToggle, ToggleHandle, ToggleState);
 }
 
 link_internal ui_element_reference
@@ -2458,6 +2479,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         {
           if (ButtonResult.Clicked)
           {
+            /* SetRadioButton(); */
             maybe_ui_toggle_ptr Maybe = GetPtrById(&Group->ToggleTable, ButtonStart->ID);
             if (Maybe.Tag)
             {
