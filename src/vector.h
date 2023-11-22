@@ -158,14 +158,14 @@ V4(f32 x, v3 v)
 link_internal v4
 V4(v3 v, f32 w)
 {
-  v4 Result = { v.x, v.y, v.z, w };
+  v4 Result = {{ v.x, v.y, v.z, w }};
   return Result;
 }
 
 link_internal v4
 V4(r32 Fill)
 {
-  v4 Result = { Fill, Fill, Fill, Fill, };
+  v4 Result = {{ Fill, Fill, Fill, Fill }};
   return Result;
 }
 
@@ -638,7 +638,7 @@ operator*(v3 A, v3 B)
 
 v3 operator+(v3 A, v2 B)
 {
-  v3 Result = { A.x+B.x, A.y+B.y, A.z };
+  v3 Result = {{ A.x+B.x, A.y+B.y, A.z }};
   return Result;
 }
 
