@@ -179,10 +179,10 @@ Intersect(aabb *First, aabb *Second)
   b32 Result = True;
 
   auto FirstCenter = GetCenter(First);
-  auto SecondCenter = GetCenter(First);
+  auto SecondCenter = GetCenter(Second);
 
   auto FirstRadius = GetRadius(First);
-  auto SecondRadius = GetRadius(First);
+  auto SecondRadius = GetRadius(Second);
 
   Result &= (Abs(FirstCenter.x - SecondCenter.x) < (FirstRadius.x + SecondRadius.x));
   Result &= (Abs(FirstCenter.y - SecondCenter.y) < (FirstRadius.y + SecondRadius.y));
