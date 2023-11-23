@@ -1664,14 +1664,9 @@ poof(
 poof(
   func block_array(type, type_poof_symbol n_elements)
   {
-    struct (type.name)_block_index
-    {
-      u32 BlockIndex;
-      u32 ElementIndex;
-    };
-
     struct (type.name)_block
     {
+      u32 Index;
       u32 At;
       (type.name) *Elements;
       (type.name)_block *Next;
@@ -1703,6 +1698,8 @@ poof(
       if (Array->Current->At == n_elements)
       {
         (type.name)_block *Next = Allocate_(type.name)_block(Array->Memory);
+        Next->Index = Array->Current->Index + 1;
+
         Array->Current->Next = Next;
         Array->Current = Next;
         /* Array->At = 0; */
@@ -1710,6 +1707,81 @@ poof(
 
       Array->Current->Elements[Array->Current->At++] = *Element;
     }
+
+    link_internal block_array_index
+    operator++(block_array_index &I0)
+    {
+      if (I0.Block)
+      {
+        if (I0.ElementIndex == n_elements-1)
+        {
+          I0.ElementIndex = 0;
+          I0.BlockIndex++;
+          I0.Block = Cast((type.name)_block*, I0.Block)->Next;
+        }
+        else
+        {
+          I0.ElementIndex++;
+        }
+      }
+      else
+      {
+        I0.ElementIndex++;
+      }
+      return I0;
+    }
+
+    link_internal b32
+    operator<(block_array_index I0, block_array_index I1)
+    {
+      b32 Result = I0.BlockIndex < I1.BlockIndex || (I0.BlockIndex == I1.BlockIndex & I0.ElementIndex < I1.ElementIndex);
+      return Result;
+    }
+
+
+    link_internal block_array_index
+    ZerothIndex((type.name)_block_array *Arr)
+    {
+      block_array_index Result = {};
+      Result.Block = &Arr->First;
+      Assert(Cast((type.name)_block*, Result.Block)->Index == 0);
+      return Result;
+    }
+
+    link_internal umm
+    TotalElements((type.name)_block_array *Arr)
+    {
+      umm Result = 0;
+      if (Arr->Current)
+      {
+        Result = (Arr->Current->Index * n_elements) + Arr->Current->At;
+      }
+      return Result;
+    }
+
+    link_internal block_array_index
+    AtElements((type.name)_block_array *Arr)
+    {
+      block_array_index Result = {};
+      if (Arr->Current)
+      {
+        Result.Block = Arr->Current;
+        Result.BlockIndex = Cast((type.name)_block*, Arr->Current)->Index;
+        Result.ElementIndex = Cast((type.name)_block*, Arr->Current)->At;
+      }
+      return Result;
+    }
+
+    link_internal type.name *
+    GetPtr((type.name)_block_array *Arr, block_array_index Index)
+    {
+      type.name *Result = {};
+      if (Index.Block) { Result = Cast((type.name)_block *, Index.Block)->Elements + Index.ElementIndex; }
+      return Result;
+    }
+
+
+
 
     link_internal type.name *
     GetPtr((type.name)_block *Block, umm Index)

@@ -200,11 +200,11 @@ PlatformDebugStacktrace()
 {
   /* SetUnhandledExceptionFilter(DumpStackTrace); */
 
-#ifdef __clang_minor__
+/* #ifdef __clang_minor__ */
   try { throw 0; } __except (DumpStackTrace(GetExceptionInformation())) { return; }
-#else
-  NotImplemented;
-#endif
+/* #else */
+  /* NotImplemented; */
+/* #endif */
   /* __try { throw 0; } __except (DumpStackTrace(GetExceptionInformation())) { return; } */
   /* __try { u32 *p = 0; *p = 69; } __except (DumpStackTrace(GetExceptionInformation())) { return; } */
   /* u32 *p = 0; *p = 69; */

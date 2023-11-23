@@ -1,5 +1,5 @@
 #define IterateOver(Container, ElementPtrName, IndexVariableName) \
-  umm IndexVariableName = 0; \
+  auto IndexVariableName = ZerothIndex(Container); \
   for (auto *ElementPtrName = GetPtr(Container, IndexVariableName); IndexVariableName < AtElements(Container);  ElementPtrName = GetPtr(Container, ++IndexVariableName))
 
 #define IterateOverBackwards(Container, ElementPtrName, IndexVariableName) \

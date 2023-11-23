@@ -320,6 +320,14 @@ TotalElements(T *Sizable)
   return Result;
 }
 
+// NOTE(Jesse): Kind of a dirty hack to thunk through for types that don't have
+// a special indexing struct
+template <typename T> umm
+ZerothIndex(T *Sizable)
+{
+  return 0;
+}
+
 template <typename T> umm
 AtElements(T *Sizable)
 {
