@@ -988,6 +988,13 @@ poof(
     }
 
     link_inline umm
+    TotalElements((Type.name)_buffer *Buf)
+    {
+      umm Result = Buf->Count;
+      return Result;
+    }
+
+    link_inline umm
     CurrentCount((Type.name)_buffer *Buf)
     {
       umm Result = Buf->Count;
