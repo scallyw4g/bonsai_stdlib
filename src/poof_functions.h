@@ -1679,6 +1679,14 @@ poof(
       (type.name)_block *Next;
     };
 
+    struct (type.name)_block_array_index
+    {
+      void *Block;
+      u32 BlockIndex;
+      u32 ElementIndex;
+    };
+
+
     link_internal (type.name)_block*
     Allocate_(type.name)_block(memory_arena *Memory)
     {
@@ -1715,8 +1723,8 @@ poof(
       Array->Current->Elements[Array->Current->At++] = *Element;
     }
 
-    link_internal block_array_index
-    operator++(block_array_index &I0)
+    link_internal (type.name)_block_array_index
+    operator++((type.name)_block_array_index &I0)
     {
       if (I0.Block)
       {
@@ -1739,17 +1747,17 @@ poof(
     }
 
     link_internal b32
-    operator<(block_array_index I0, block_array_index I1)
+    operator<((type.name)_block_array_index I0, (type.name)_block_array_index I1)
     {
       b32 Result = I0.BlockIndex < I1.BlockIndex || (I0.BlockIndex == I1.BlockIndex & I0.ElementIndex < I1.ElementIndex);
       return Result;
     }
 
 
-    link_internal block_array_index
+    link_internal (type.name)_block_array_index
     ZerothIndex((type.name)_block_array *Arr)
     {
-      block_array_index Result = {};
+      (type.name)_block_array_index Result = {};
       Result.Block = &Arr->First;
       Assert(Cast((type.name)_block*, Result.Block)->Index == 0);
       return Result;
@@ -1766,10 +1774,10 @@ poof(
       return Result;
     }
 
-    link_internal block_array_index
+    link_internal (type.name)_block_array_index
     AtElements((type.name)_block_array *Arr)
     {
-      block_array_index Result = {};
+      (type.name)_block_array_index Result = {};
       if (Arr->Current)
       {
         Result.Block = Arr->Current;
@@ -1780,7 +1788,7 @@ poof(
     }
 
     link_internal type.name *
-    GetPtr((type.name)_block_array *Arr, block_array_index Index)
+    GetPtr((type.name)_block_array *Arr, (type.name)_block_array_index Index)
     {
       type.name *Result = {};
       if (Index.Block) { Result = Cast((type.name)_block *, Index.Block)->Elements + Index.ElementIndex; }

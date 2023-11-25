@@ -1,5 +1,6 @@
+#if POOF_PREPROCESSOR || BONSAI_PREPROCESSOR
 
-#if BONSAI_PREPROCESSOR
+
 
 #define __has_cpp_attribute(...) 0
 
