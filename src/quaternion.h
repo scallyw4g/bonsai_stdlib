@@ -66,6 +66,28 @@ GetTheta(v3 P1, v3 P2)
   return Theta;
 }
 
+// NOTE(Jesse): Euler angles in radians
+// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+link_internal Quaternion
+FromEuler(v3 Euler)
+{
+  Quaternion Result;
+
+  f32 cr = Cos(Euler.x * 0.5f);
+  f32 sr = Sin(Euler.x * 0.5f);
+  f32 cp = Cos(Euler.y * 0.5f);
+  f32 sp = Sin(Euler.y * 0.5f);
+  f32 cy = Cos(Euler.z * 0.5f);
+  f32 sy = Sin(Euler.z * 0.5f);
+
+  Result.w = cr * cp * cy + sr * sp * sy;
+  Result.x = sr * cp * cy - cr * sp * sy;
+  Result.y = cr * sp * cy + sr * cp * sy;
+  Result.z = cr * cp * sy - sr * sp * cy;
+
+  return Result;
+}
+
 inline Quaternion
 RotatePoint(v3 P1, v3 P2)
 {
@@ -109,8 +131,15 @@ Rotate(line Line, Quaternion Rotation)
   return Result;
 }
 
-inline Quaternion
+inline v3
 RandomRotation(random_series *Entropy)
+{
+  v3 Result = RandomV3(Entropy);
+  return Result;
+}
+
+inline Quaternion
+RandomQuaternion(random_series *Entropy)
 {
   v3 RotP = {};
   RotP.x = Sin(RandomUnilateral(Entropy));
