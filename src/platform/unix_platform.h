@@ -34,6 +34,7 @@
 
 // getenv
 #include <stdlib.h>
+#include <stdio.h> // FILE
 
 // TODO(Jesse): Get rid of this
 // memset

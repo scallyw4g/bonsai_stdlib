@@ -1,11 +1,26 @@
 
 #if BONSAI_PREPROCESSOR
 
+#define __has_cpp_attribute(...) 0
+
 #define WINAPI
 #define APIENTRY
+#define WINAPI_FAMILY 100
+#define DECLSPEC_IMPORT
+
+#define _MSC_VER 2000
 
 #define DWORD int
 #define BOOL int
+
+#define _INC_WINAPIFAMILY
+#define __INTRIN_H
+#define _CHRONO_
+#define _RANDOM_
+#define _ALGORITHM_
+#define _NUMERIC_
+/* #define _STL_COMPILER_PREPROCESSOR 0 */
+
 
 /* #include <massive_include_list.h> */
 
@@ -17,6 +32,7 @@
 
 // TODO(Jesse): Do we actually want to make keywords for these for some reason?
 // Doubtful, but maybe?
+#define __clrcall
 #define __cdecl
 #define __stdcall
 #define __fastcall
