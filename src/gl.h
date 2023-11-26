@@ -186,7 +186,7 @@ typedef short GLshort;
 typedef signed char GLbyte;
 typedef unsigned short GLushort;
 
-typedef void (*GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam);
 
 struct light;
 struct camera;
