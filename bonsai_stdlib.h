@@ -7,6 +7,7 @@
 #include <bonsai_stdlib/src/poof_crutches.h>
 
 #include <bonsai_stdlib/src/poof_functions.h>
+
 #include <bonsai_stdlib/src/iterators.h>
 #include <bonsai_stdlib/src/assert.h>
 #include <bonsai_stdlib/src/primitives.h>
@@ -58,8 +59,34 @@ struct camera;
 
 #include <bonsai_stdlib/src/debug_ui.h>
 
-#include <bonsai_debug/debug.h>
-#include <bonsai_debug/src/api.h>
+#if DEBUG_SYSTEM_API
+  #include <bonsai_debug/debug.h>
+  #include <bonsai_debug/src/api.h>
+#else
+  struct bonsai_debug_system {};
+  #define TIMED_FUNCTION(...)
+  #define TIMED_NAMED_BLOCK(...)
+
+  #define TIMED_BLOCK(...)
+  #define END_BLOCK(...)
+
+  #define DEBUG_VALUE(...)
+
+  #define TIMED_MUTEX_WAITING(...)
+  #define TIMED_MUTEX_AQUIRED(...)
+  #define TIMED_MUTEX_RELEASED(...)
+
+  #define DEBUG_FRAME_RECORD(...)
+  #define DEBUG_FRAME_END(...)
+  #define DEBUG_FRAME_BEGIN(...)
+
+  #define WORKER_THREAD_WAIT_FOR_DEBUG_SYSTEM(...)
+  #define MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(...)
+  #define WORKER_THREAD_ADVANCE_DEBUG_SYSTEM()
+
+  #define DEBUG_CLEAR_META_RECORDS_FOR(...)
+  #define DEBUG_TRACK_DRAW_CALL(...)
+#endif
 
 #define UNPACK_STDLIB(Stdlib) \
   os *Os         = &(Stdlib)->Os; \
