@@ -981,6 +981,13 @@ poof(
     }
 
     link_inline umm
+    ZerothIndex((Type.name)_buffer *Buf)
+    {
+      umm Result = 0;
+      return Result;
+    }
+
+    link_inline umm
     AtElements((Type.name)_buffer *Buf)
     {
       umm Result = Buf->Count;
@@ -1685,6 +1692,13 @@ poof(
       u32 BlockIndex;
       u32 ElementIndex;
     };
+
+    link_inline umm
+    GetIndex((type.name)_block_array_index *Index)
+    {
+      umm Result = Index->ElementIndex + (Index->BlockIndex*n_elements);
+      return Result;
+    }
 
 
     link_internal (type.name)_block*

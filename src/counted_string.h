@@ -911,8 +911,8 @@ f64ToChar(char_cursor* Dest, r64 Value, u32 Precision = DEFAULT_FORMAT_PRECISION
 {
   if(Value < 0)
   {
-      CopyToDest(Dest, '-');
-      Value = -Value;
+    CopyToDest(Dest, '-');
+    Value = -Value;
   }
 
   u64 IntegerPart = (u64)Value;
