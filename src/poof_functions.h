@@ -1676,7 +1676,7 @@ poof(
 
 
 poof(
-  func block_array(type, type_poof_symbol n_elements)
+  func block_array_h(type, type_poof_symbol n_elements)
   {
     struct (type.name)_block
     {
@@ -1693,49 +1693,12 @@ poof(
       u32 ElementIndex;
     };
 
-    link_inline umm
-    GetIndex((type.name)_block_array_index *Index)
-    {
-      umm Result = Index->ElementIndex + (Index->BlockIndex*n_elements);
-      return Result;
-    }
-
-
-    link_internal (type.name)_block*
-    Allocate_(type.name)_block(memory_arena *Memory)
-    {
-      (type.name)_block *Result = Allocate((type.name)_block, Memory, 1);
-      Result->Elements = Allocate((type.name), Memory, n_elements);
-      return Result;
-    }
-
     struct (type.name)_block_array
     {
       (type.name)_block First;
       (type.name)_block *Current;
-
       memory_arena *Memory;
     };
-
-    link_internal void
-    Push((type.name)_block_array *Array, type.name *Element)
-    {
-      if (Array->Memory == 0) { Array->Memory = AllocateArena(); }
-
-      if (Array->Current == 0) { Array->First = *Allocate_(type.name)_block(Array->Memory); Array->Current = &Array->First; }
-
-      if (Array->Current->At == n_elements)
-      {
-        (type.name)_block *Next = Allocate_(type.name)_block(Array->Memory);
-        Next->Index = Array->Current->Index + 1;
-
-        Array->Current->Next = Next;
-        Array->Current = Next;
-        /* Array->At = 0; */
-      }
-
-      Array->Current->Elements[Array->Current->At++] = *Element;
-    }
 
     link_internal (type.name)_block_array_index
     operator++((type.name)_block_array_index &I0)
@@ -1767,6 +1730,12 @@ poof(
       return Result;
     }
 
+    link_inline umm
+    GetIndex((type.name)_block_array_index *Index)
+    {
+      umm Result = Index->ElementIndex + (Index->BlockIndex*n_elements);
+      return Result;
+    }
 
     link_internal (type.name)_block_array_index
     ZerothIndex((type.name)_block_array *Arr)
@@ -1809,9 +1778,6 @@ poof(
       return Result;
     }
 
-
-
-
     link_internal type.name *
     GetPtr((type.name)_block *Block, umm Index)
     {
@@ -1820,14 +1786,75 @@ poof(
       return Result;
     }
 
+    link_internal type.name *
+    GetPtr((type.name)_block_array *Arr, umm Index)
+    {
+      umm BlockIndex = Index / n_elements;
+      umm ElementIndex = Index % n_elements;
+
+      umm AtBlock = 0;
+      (type.name)_block *Block = &Arr->First;
+      while (AtBlock++ < BlockIndex)
+      {
+        Block = Block->Next;
+      }
+
+      type.name *Result = Block->Elements+ElementIndex;
+      return Result;
+    }
+
+
     link_internal u32
     AtElements((type.name)_block *Block)
     {
       return Block->At;
     }
-
   }
 )
+
+poof(
+  func block_array_c(type, type_poof_symbol n_elements)
+  {
+
+    link_internal (type.name)_block*
+    Allocate_(type.name)_block(memory_arena *Memory)
+    {
+      (type.name)_block *Result = Allocate((type.name)_block, Memory, 1);
+      Result->Elements = Allocate((type.name), Memory, n_elements);
+      return Result;
+    }
+
+    link_internal void
+    Push((type.name)_block_array *Array, type.name *Element)
+    {
+      if (Array->Memory == 0) { Array->Memory = AllocateArena(); }
+
+      if (Array->Current == 0) { Array->First = *Allocate_(type.name)_block(Array->Memory); Array->Current = &Array->First; }
+
+      if (Array->Current->At == n_elements)
+      {
+        (type.name)_block *Next = Allocate_(type.name)_block(Array->Memory);
+        Next->Index = Array->Current->Index + 1;
+
+        Array->Current->Next = Next;
+        Array->Current = Next;
+        /* Array->At = 0; */
+      }
+
+      Array->Current->Elements[Array->Current->At++] = *Element;
+    }
+  }
+)
+
+// nocheckin -- fix poof here.
+poof(
+  func block_array(type, type_poof_symbol n_elements)
+  {
+    (block_array_h( type, {8} ))
+    (block_array_c( type, {8} ))
+  }
+)
+
 poof(
   func draw_element_union(union_type)
   {

@@ -214,16 +214,33 @@ link_weak void BindEngineUniform(shader_uniform*);
 
 // TODO(Jesse): We should generate the set of these?
 link_internal void
-BindUniform(shader *Shader, counted_string Name, s32 Value)
+BindUniform(shader *Shader, const char *Name, s32 Value)
 {
-  GL.Uniform1i(GL.GetUniformLocation(Shader->ID, Name.Start), Value);
+  s32 Uniform = GL.GetUniformLocation(Shader->ID, Name); 
+  if (Uniform != INVALID_SHADER_UNIFORM)
+  {
+    GL.Uniform1i(Uniform, Value);
+  }
+  else
+  {
+    Warn("Couldn't retieve uniform %S", Name);
+  }
 }
 
 link_internal void
-BindUniform(shader *Shader, counted_string Name, texture *Texture, u32 TextureUnit)
+BindUniform(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
 {
   GL.ActiveTexture(GL_TEXTURE0 + TextureUnit);
-  GL.Uniform1i(GL.GetUniformLocation(Shader->ID, Name.Start), (s32)TextureUnit);
+  s32 Uniform = GL.GetUniformLocation(Shader->ID, Name);
+  if (Uniform != INVALID_SHADER_UNIFORM)
+  {
+    GL.Uniform1i(Uniform, (s32)TextureUnit);
+  }
+  else
+  {
+    Warn("Couldn't retieve uniform %s", Name);
+  }
+
   GL.BindTexture(GL_TEXTURE_2D, Texture->ID);
 }
 

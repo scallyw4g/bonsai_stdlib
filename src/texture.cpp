@@ -1,3 +1,10 @@
+
+poof(block_array_c(texture, {8}))
+#include <generated/block_array_c_texture_688856411.h>
+
+poof(block_array(texture_ptr, {8}))
+#include <generated/block_array_texture_ptr_688856411.h>
+
 #define FOURCC_DXT1 0x31545844 // Equivalent to "DXT1" in ASCII
 #define FOURCC_DXT3 0x33545844 // Equivalent to "DXT3" in ASCII
 #define FOURCC_DXT5 0x35545844 // Equivalent to "DXT5" in ASCII
