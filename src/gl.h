@@ -212,16 +212,9 @@ struct texture_block_array;
 
 struct render_entity_to_texture_group
 {
-  // TODO(Jesse): This gpu_mapped_element_buffer _should_ really be able to be
-  // taken out of here and used for all instances of render_to_texture_group
-  // that we create.. I think..
-  gpu_mapped_element_buffer  GeoBuffer;
-  texture_block_array        Textures;
   framebuffer                FBO;
   shader                     Shader;
-
-  camera                    *Camera;
-  m4                         ViewProjection;
+  gpu_mapped_element_buffer  GeoBuffer;
 };
 
 
