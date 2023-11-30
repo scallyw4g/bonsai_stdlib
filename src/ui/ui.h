@@ -1,4 +1,8 @@
 
+#define UI_WINDOW_BEZEL_DEFAULT_COLOR (V3(0.22f, 0.f, 0.20f)*1.2f)
+#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR (V3(0.07f, 0.01f, 0.08f))
+#define UI_WINDOW_BORDER_DEFAULT_WIDTH (V4(2.f))
+
 #define UI_FUNCTION_PROTO_NAMES relative_position Position,      \
                                 ui_element_reference RelativeTo, \
                                 v2 Offset,                       \
@@ -407,7 +411,15 @@ SetGlobalFontScale(r32 Scale)
 
 
 
-struct ui_render_command_border
+struct ui_render_command_rel_border
+{
+  window_layout* Window;
+  v2 Dim;
+  v3 Color;
+  v4 Thickness;
+};
+
+struct ui_render_command_abs_border
 {
   window_layout* Window;
   rect2 Bounds;
@@ -561,7 +573,8 @@ poof(
     ui_render_command_untextured_quad
     ui_render_command_untextured_quad_at
 
-    ui_render_command_border
+    ui_render_command_rel_border
+    ui_render_command_abs_border
 
     ui_render_command_force_advance
     ui_render_command_force_update_basis
@@ -572,6 +585,7 @@ poof(
   }
 )
 #include <generated/d_union_ui_render_command.h>
+
 
 
 

@@ -245,6 +245,33 @@ BindUniform(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
 }
 
 link_internal void
+BindUniform(shader *Shader, const char *Name, r32 Value)
+{
+  s32 Uniform = GL.GetUniformLocation(Shader->ID, Name);
+  if (Uniform != INVALID_SHADER_UNIFORM)
+  {
+    GL.Uniform1f(Uniform, Value);
+  }
+  else
+  {
+    Warn("Couldn't retieve uniform %s", Name);
+  }
+}
+link_internal void
+BindUniform(shader *Shader, const char *Name, m4 *Matrix)
+{
+  s32 Uniform = GL.GetUniformLocation(Shader->ID, Name);
+  if (Uniform != INVALID_SHADER_UNIFORM)
+  {
+    GL.UniformMatrix4fv(Uniform, 1, GL_FALSE, (r32*)Matrix);
+  }
+  else
+  {
+    Warn("Couldn't retieve uniform %s", Name);
+  }
+}
+
+link_internal void
 BindShaderUniforms(shader *Shader)
 {
   TIMED_FUNCTION();

@@ -105,6 +105,13 @@ Rect3iMinDim(v3i Min, v3i Dim)
 }
 
 link_internal rect3i
+Rect3iMinMax(v3 Min, v3 Max)
+{
+  rect3i Result = {V3i(Min), V3i(Max)};
+  return Result;
+}
+
+link_internal rect3i
 Rect3iMinMax(v3i Min, v3i Max)
 {
   rect3i Result = {Min, Max};

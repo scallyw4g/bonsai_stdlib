@@ -565,7 +565,7 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, u32 Color, r32 Z, 
 }
 
 link_internal void
-BufferBorder(renderer_2d *Group, rect2 Rect,  v3 Color, r32 Z, rect2 Clip, v4 Thickness = V4(1))
+BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip, v4 Thickness = V4(1))
 {
   v2 TopLeft     = Rect.Min;
   v2 BottomRight = Rect.Max;
@@ -581,8 +581,6 @@ BufferBorder(renderer_2d *Group, rect2 Rect,  v3 Color, r32 Z, rect2 Clip, v4 Th
   BufferUntexturedQuad(Group, &Group->Geo, LeftRect,   Color, Z, Clip);
   BufferUntexturedQuad(Group, &Group->Geo, RightRect,  Color, Z, Clip);
   BufferUntexturedQuad(Group, &Group->Geo, BottomRect, Color, Z, Clip);
-
-  return;
 }
 
 link_internal void
@@ -971,13 +969,25 @@ PushTableEnd(renderer_2d *Group)
 }
 
 link_internal void
+PushRelativeBorder(renderer_2d *Group, v2 Dim, v3 Color, v4 Thickness = V4(1))
+{
+  ui_render_command Command = {
+    .Type = type_ui_render_command_rel_border,
+    .ui_render_command_rel_border.Dim = Dim,
+    .ui_render_command_rel_border.Color = Color,
+    .ui_render_command_rel_border.Thickness = Thickness,
+  };
+
+  PushUiRenderCommand(Group, &Command);
+}
+link_internal void
 PushBorder(renderer_2d *Group, rect2 AbsoluteBounds, v3 Color, v4 Thickness = V4(1))
 {
   ui_render_command Command = {
-    .Type = type_ui_render_command_border,
-    .ui_render_command_border.Bounds = AbsoluteBounds,
-    .ui_render_command_border.Color = Color,
-    .ui_render_command_border.Thickness = Thickness,
+    .Type = type_ui_render_command_abs_border,
+    .ui_render_command_abs_border.Bounds = AbsoluteBounds,
+    .ui_render_command_abs_border.Color = Color,
+    .ui_render_command_abs_border.Thickness = Thickness,
   };
 
   PushUiRenderCommand(Group, &Command);
@@ -1078,7 +1088,7 @@ PushWindowStartInternal( renderer_2d *Group,
 
   PushUiRenderCommand(Group, &Command);
 
-  ui_style TitleBarStyle = UiStyleFromLightestColor(V3(0.22f, 0.f, 0.20f));
+  ui_style TitleBarStyle = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR);
 
   // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
   PushButtonStart(Group, ResizeHandleInteractionId);
@@ -1101,16 +1111,17 @@ PushWindowStartInternal( renderer_2d *Group,
     PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &TitleBarStyle);
   PushButtonEnd(Group);
 
-  PushBorder(Group, AbsWindowBounds, TitleBarStyle.HoverColor, V4(2.f));
+  PushBorder(Group, AbsWindowBounds, TitleBarStyle.HoverColor, UI_WINDOW_BORDER_DEFAULT_WIDTH);
   /* PushBorder(Group, AbsWindowBounds, V3(0.5f), V4(2.f)); */
 
-  ui_style BackgroundStyle = UiStyleFromLightestColor(V3(0.07f, 0.01f, 0.08f));
+  ui_style BackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
   PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &BackgroundStyle);
 
   PushForceAdvance(Group, V2(0.f, Global_TitleBarHeight));
   PushForceAdvance(Group, V2(0.f, Global_TitleBarPadding));
 
   PushNewRow(Group);
+  PushForceUpdateBasis(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f);
   PushForceUpdateBasis(Group, WindowScroll);
   PushResetDrawBounds(Group);
 }
@@ -2495,9 +2506,14 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         }
       } break;
 
-      case type_ui_render_command_border:
+      case type_ui_render_command_rel_border:
       {
-        ui_render_command_border* Border = RenderCommandAs(border, Command);
+        ui_render_command_rel_border* Border = RenderCommandAs(rel_border, Command);
+        BufferBorder(Group, RectMinDim(GetAbsoluteAt(RenderState->Layout), Border->Dim), Border->Color, GetZ(zDepth_Border, RenderState->Window), DISABLE_CLIPPING, Border->Thickness);
+      } break;
+      case type_ui_render_command_abs_border:
+      {
+        ui_render_command_abs_border* Border = RenderCommandAs(abs_border, Command);
         BufferBorder(Group, Border->Bounds, Border->Color, GetZ(zDepth_Border, RenderState->Window), DISABLE_CLIPPING, Border->Thickness);
       } break;
 
@@ -2562,7 +2578,8 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_new_row:
       case type_ui_render_command_button_start:
       case type_ui_render_command_button_end:
-      case type_ui_render_command_border:
+      case type_ui_render_command_rel_border:
+      case type_ui_render_command_abs_border:
       case type_ui_render_command_force_advance:
       case type_ui_render_command_force_update_basis:
       case type_ui_render_command_reset_draw_bounds:
