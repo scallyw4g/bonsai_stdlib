@@ -557,12 +557,14 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, v3 Color, r32 Z, r
                       MinP, FontSize, UV, Color, Z, ClipWindow, ClipOptional);
 }
 
+#if 0
 link_internal void
 BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, u32 Color, r32 Z, rect2 ClipWindow, rect2 *ClipOptional)
 {
   v3 ColorVector = GetColorData(Color);
   BufferChar(Group, Char, MinP, FontSize, ColorVector, Z, ClipWindow, ClipOptional);
 }
+#endif
 
 link_internal void
 BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip, v4 Thickness = V4(1))

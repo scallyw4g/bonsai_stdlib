@@ -179,6 +179,9 @@ struct renderer_2d
 
 #define RANDOM_COLOR_COUNT 128
   v3 DebugColors[RANDOM_COLOR_COUNT];
+
+  // NOTE(Jesse): This is either allocated,t
+  v3_cursor *ColorPalette;
 };
 
 typedef render_buffers_2d debug_text_render_group;
