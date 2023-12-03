@@ -2759,10 +2759,7 @@ UiFrameBegin(renderer_2d *Ui)
   Assert(Ui->ScreenDim->y > 0.f);
 
   input *Input = Ui->Input;
-  if ( ! (Input->LMB.Pressed || Input->RMB.Pressed) )
-  {
-    Ui->Pressed = {};
-  }
+  if ( ! (Input->LMB.Pressed || Input->RMB.Pressed) ) { Ui->Pressed = {}; }
 }
 
 global_variable interactable Global_ViewportInteraction = {

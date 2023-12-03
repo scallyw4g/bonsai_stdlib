@@ -17,6 +17,7 @@ struct input
   input_event Shift;
   input_event Ctrl;
   input_event Alt;
+  input_event Delete;
 
   input_event F12;
   input_event F11;
