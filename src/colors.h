@@ -15,8 +15,10 @@
 #define       GREEN 186
 
 #define ICE_BLUE    207
-#define GRASS_GREEN 160
-#define SAND        2
+#define GRASS_GREEN 232
+#define GRAVEL      3
+#define SAND        4
+#define DIRT        138
 
 #define BLUE 211
 #define PINK 27

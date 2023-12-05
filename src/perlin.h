@@ -60,7 +60,7 @@ grad(int hash, f32 x, f32 y, f32 z) {
   return res;
 }
 
-f32
+link_internal f32
 PerlinNoise(f32 x, f32 y, f32 z) {
   // Find the unit cube that contains the point
   u32 X = (u32) Floorf(x) & 255;
