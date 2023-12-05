@@ -1824,7 +1824,7 @@ poof(
       return Result;
     }
 
-    link_internal void
+    link_internal type.name *
     Push((type.name)_block_array *Array, type.name *Element)
     {
       if (Array->Memory == 0) { Array->Memory = AllocateArena(); }
@@ -1841,7 +1841,11 @@ poof(
         /* Array->At = 0; */
       }
 
+      type.name *Result = Array->Current->Elements + Array->Current->At;
+
       Array->Current->Elements[Array->Current->At++] = *Element;
+
+      return Result;
     }
   }
 )
