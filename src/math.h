@@ -299,6 +299,14 @@ ClampBetween(r32 Min, r32 Value, r32 Max)
   return Value;
 }
 
+inline u32
+Clamp(u32 Min, u32 Value, u32 Max)
+{
+  if (Value > Max) { Value = Max; }
+  if (Value < Min) { Value = Min; }
+  return Value;
+}
+
 inline r32
 ClampBilateral(r32 F)
 {

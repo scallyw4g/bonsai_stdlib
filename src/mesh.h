@@ -41,46 +41,47 @@ struct untextured_3d_geometry_buffer
 untextured_3d_geometry_buffer
 ReserveBufferSpace(untextured_3d_geometry_buffer *Src, u32 ElementsToReserve)
 {
-  /* TIMED_FUNCTION(); */
-  Assert(ElementsToReserve);
-
-  // NOTE(Jesse): During testing I'm going to limit the chain to 1 link.
-  // @single_parent_chain_link_untextured_3d
-  Assert(Src->Parent == False);
-
-  /* auto Parent = Src; */
-  /* while (Src->Parent) Parent = Src->Parent; */
-
   untextured_3d_geometry_buffer Result = {};
-
-  for (;;)
+  /* TIMED_FUNCTION(); */
+  if (ElementsToReserve)
   {
-    umm ReservationAt = Src->At;
-    umm ReservationRequest = ReservationAt + ElementsToReserve;
-    if (ReservationRequest < Src->End)
+    // NOTE(Jesse): During testing I'm going to limit the chain to 1 link.
+    // @single_parent_chain_link_untextured_3d
+    Assert(Src->Parent == False);
+
+    /* auto Parent = Src; */
+    /* while (Src->Parent) Parent = Src->Parent; */
+
+
+    for (;;)
     {
-      if ( AtomicCompareExchange(&Src->At, (u32)ReservationRequest, (u32)ReservationAt) )
+      umm ReservationAt = Src->At;
+      umm ReservationRequest = ReservationAt + ElementsToReserve;
+      if (ReservationRequest < Src->End)
       {
-        Result.Verts   = Src->Verts + ReservationAt;
-        Result.Normals = Src->Normals + ReservationAt;
-        Result.Mat     = Src->Mat + ReservationAt;
+        if ( AtomicCompareExchange(&Src->At, (u32)ReservationRequest, (u32)ReservationAt) )
+        {
+          Result.Verts   = Src->Verts + ReservationAt;
+          Result.Normals = Src->Normals + ReservationAt;
+          Result.Mat     = Src->Mat + ReservationAt;
 
-        Result.End = ElementsToReserve;
+          Result.End = ElementsToReserve;
 
-        Result.Parent = Src;
+          Result.Parent = Src;
 
-        break;
+          break;
+        }
+        else
+        {
+          continue;
+        }
       }
       else
       {
-        continue;
+        Warn("Failed to reserve buffer space");
+        Src->BufferNeedsToGrow += ElementsToReserve;
+        break;
       }
-    }
-    else
-    {
-      Warn("Failed to reserve buffer space");
-      Src->BufferNeedsToGrow += ElementsToReserve;
-      break;
     }
   }
 

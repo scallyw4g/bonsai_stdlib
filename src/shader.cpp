@@ -257,6 +257,7 @@ BindUniform(shader *Shader, const char *Name, r32 Value)
     Warn("Couldn't retieve uniform %s", Name);
   }
 }
+
 link_internal void
 BindUniform(shader *Shader, const char *Name, m4 *Matrix)
 {

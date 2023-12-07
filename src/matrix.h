@@ -39,7 +39,7 @@ struct m4
 global_variable m4 IdentityMatrix = {V4(1, 0, 0 ,0),
                                      V4(0, 1, 0 ,0),
                                      V4(0, 0, 1 ,0),
-                                     V4(0, 0, 0 ,0)};
+                                     V4(0, 0, 0 ,1)};
 
 
 struct m_nxn
@@ -122,28 +122,16 @@ operator+(m4 A, m4 B)
   return Result;
 }
 
-link_internal  m4
-Translate2( v3 v )
-{
-  m4 Result;
-
-  Result.E[0] = V4(0,0,0,v.x);
-  Result.E[1] = V4(0,0,0,v.y);
-  Result.E[2] = V4(0,0,0,v.z);
-  Result.E[3] = V4(0,0,0,0);
-
-  return Result;
-}
-
+// NOTE(Jesse): Column-major
 link_internal  m4
 Translate( v3 v )
 {
   m4 Result;
 
-  Result.E[0] = V4(1,0,0,v.x);
-  Result.E[1] = V4(0,1,0,v.y);
-  Result.E[2] = V4(0,0,1,v.z);
-  Result.E[3] = V4(0,0,0,1);
+  Result.E[0] = V4(1,0,0,0);
+  Result.E[1] = V4(0,1,0,0);
+  Result.E[2] = V4(0,0,1,0);
+  Result.E[3] = V4(v.x, v.y, v.z, 1.f);
 
   return Result;
 }
