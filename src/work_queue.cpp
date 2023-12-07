@@ -203,11 +203,20 @@ PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry)
 
   while (QueueIsFull(Queue))
   {
+    platform *Plat = &GetEngineResources()->Stdlib.Plat;
+
+    b32 HighPriorityMode = False;
+    if (Plat->HighPriorityModeFutex.SignalValue != FUTEX_UNSIGNALLED_VALUE)
+    {
+      UnsignalFutex(&Plat->HighPriorityModeFutex);
+      HighPriorityMode = True;
+    }
+
     Perf("Queue full!");
     SleepMs(1);
+
+    if (HighPriorityMode) { SignalFutex(&Plat->HighPriorityModeFutex); }
   }
-
-
 
   volatile work_queue_entry* Dest = Queue->Entries + Queue->EnqueueIndex;
   Clear(Dest);
@@ -221,6 +230,9 @@ PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry)
   FullBarrier;
 
   u32 NewIndex = GetNextQueueIndex(Queue->EnqueueIndex);
+  Assert(NewIndex != Queue->DequeueIndex);
+  DebugLine("%S", CS(NewIndex));
+
   AtomicExchange(&Queue->EnqueueIndex, NewIndex);
 
   FullBarrier;
