@@ -1,26 +1,4 @@
 
-link_internal void
-PlatformInit(platform *Plat, memory_arena *Memory)
-{
-  // NOTE(Jesse): Deprecated.
-  NotImplemented;
-
-  Plat->Memory = Memory;
-
-  u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
-  u32 WorkerThreadCount = GetWorkerThreadCount();
-  u32 TotalThreadCount  = GetTotalThreadCount();
-  Info("Detected %u Logical cores, creating %u threads", LogicalCoreCount, WorkerThreadCount);
-
-  Plat->Threads = Allocate(thread_startup_params, Plat->Memory, TotalThreadCount);
-
-#if BONSAI_NETWORK_IMPLEMENTATION
-  Plat->ServerState = ServerInit(GameMemory);
-#endif
-
-  return;
-}
-
 enum bonsai_init_flags
 {
   BonsaiInit_Default = 0,

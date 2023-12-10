@@ -46,7 +46,10 @@ DrawUiBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer
     BufferVertsToCard(TextGroup->SolidUIVertexBuffer, Buffer, &AttributeIndex);
     BufferColorsToCard(TextGroup->SolidUIColorBuffer, Buffer, &AttributeIndex);
 
-    Draw(Buffer->At);
+    // TODO(Jesse): Hoist this if out of here so we can elide all of the drawing
+    // stuff.  Have to call the functions that unmap the buffers, which is why
+    // I didn't do it in the first place.
+    if (Buffer->At) { Draw(Buffer->At); }
     Buffer->At = 0;
 
     GL.DisableVertexAttribArray(0);
@@ -66,10 +69,9 @@ link_internal void
 DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
 {
   Assert(UiGroup->TextGroup);
+  auto TextGroup = UiGroup->TextGroup;
 
   GL.Disable(GL_CULL_FACE);
-
-  auto TextGroup = UiGroup->TextGroup;
 
   SetViewport(*ScreenDim);
 

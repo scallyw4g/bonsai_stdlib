@@ -37,6 +37,8 @@ struct untextured_3d_geometry_buffer
 #endif
 };
 
+typedef untextured_3d_geometry_buffer geo_u3d;
+
 
 untextured_3d_geometry_buffer
 ReserveBufferSpace(untextured_3d_geometry_buffer *Src, u32 ElementsToReserve)

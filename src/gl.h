@@ -192,14 +192,31 @@ struct light;
 struct camera;
 struct m4;
 
-struct gpu_mapped_element_buffer
+
+
+
+struct gpu_element_buffer_handles
 {
+  // NOTE(Jesse): VertexHandle has to come first because it's the one that gets passed to GL.DeleteBuffers
   u32 VertexHandle;
   u32 NormalHandle;
-  u32 MatHandle;
-  /* u32 TransEmissHandle; */
+  u32    MatHandle;
 
+  u32 ElementCount;
+};
+
+// This is a buffer we ask for and directly copy into
+struct gpu_mapped_element_buffer
+{
+  gpu_element_buffer_handles    Handles;
   untextured_3d_geometry_buffer Buffer;
+};
+
+// This is an element buffer we compute that can get flushed on command to the GPU
+struct gpu_copied_element_buffer
+{
+  untextured_3d_geometry_buffer Src;
+  gpu_mapped_element_buffer     Dest;
 };
 
 struct framebuffer

@@ -263,8 +263,7 @@ RectMinRad(v3 Min, v3 Rad)
 link_internal aabb
 RectCenterDim(v3 Center, v3 Dim)
 {
-  rect3 Result = {};
-  NotImplemented;
+  rect3 Result = {Center-Dim, Center+Dim};
   return Result;
 }
 
