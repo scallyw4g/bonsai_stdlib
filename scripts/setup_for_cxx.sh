@@ -107,6 +107,8 @@ CXX_OPTIONS="
 
   -Wno-padded
   -Wno-gnu-zero-variadic-macro-arguments
+
+  -Wno-atomic-implicit-seq-cst
 "
 
 function SetOutputBinaryPathBasename()
