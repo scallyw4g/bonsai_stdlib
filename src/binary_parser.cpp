@@ -37,6 +37,8 @@ poof(stream_and_cursor(s32))
 poof(generate_cursor(v3))
 #include <generated/generate_cursor_v3.h>
 
+
+
 u32_cursor
 U32Cursor(u32* Start, u32* End)
 {
@@ -495,6 +497,101 @@ poof(gen_read_primitive_from_u8_cursor_little_endian({s8 s16 u16 s32 u32 s64 u64
 #include <generated/gen_read_primitive_from_u8_cursor_little_endian_851742148.h>
 
 
+// TODO(Jesse): Make the rest of the reading routines match this prototype (return b32, read into pointer)
+link_internal b32
+Read_bytes(u8_cursor *Cursor, u8 **Dest, umm Count)
+{
+  b32 Result = False;
+
+  if (Cursor->At + Count < Cursor->End)
+  {
+    Result = True;
+    *Dest = Cursor->At;
+    Cursor->At += Count;
+  }
+
+  return Result;
+}
+
+
+poof(
+  func gen_read_primitive(type)
+  {
+    link_internal bool
+    Read_(type.name)(u8_cursor *Cursor, (type.name) *Dest)
+    {
+      b32 Result = False;
+      u8 *Bytes = {};
+      if (Read_bytes(Cursor, &Bytes, sizeof((type.name))))
+      {
+        *Dest = *((type.name)*)Bytes;
+        Result = True;
+      }
+      return Result;
+    }
+  }
+)
+
+poof(gen_read_primitive(u32))
+#include <generated/gen_read_primitive_u32.h>
+
+poof(gen_read_primitive(u64))
+#include <generated/gen_read_primitive_u64.h>
+
+
+
+link_internal b32
+Write(u8_stream *Dest, u8 *Src, umm Count)
+{
+  b32 Result = Dest->At+Count <= Dest->End;
+  if (Result)
+  {
+    MemCopy(Src, Dest->At, Count);
+    Dest->At += Count;
+  }
+  return Result;
+}
+
+
+poof(
+  func gen_write_primitive_from_u8_stream_little_endian(type_poof_symbol PrimitiveTypes)
+  {
+    PrimitiveTypes.map(prim)
+    {
+      link_internal b32
+      Write(u8_stream *Dest, prim.name *Src)
+      {
+        b32 Result = Write(Dest, (u8*)Src, sizeof((prim.name)));
+        return Result;
+      }
+    }
+  }
+)
+
+poof(gen_write_primitive_from_u8_stream_little_endian({s8 u8 s16 u16 s32 u32 s64 u64}))
+#include <generated/gen_write_primitive_from_u8_stream_803324607.h>
+
+
+link_internal b32
+Read_cs(u8_cursor *Cursor, cs *Dest)
+{
+  // NOTE(Jesse): This routine is kinda tortured because the string type in
+  // bonsai switches between 32 and 64 bit, whereas strings from a binary should
+  // always have a 64-bit length
+  u32 Len = {};
+
+  b32 Result  = Read_u32(Cursor, &Len);
+      Result &= Read_bytes(Cursor, (u8**)&Dest->Start, Len);
+
+  if (Result)
+  {
+    Dest->Count = Len;
+  }
+
+  return Result;
+}
+
+
 //
 // Big endian
 //
@@ -621,3 +718,7 @@ Read_u32_be(u8_stream *Source)
   Assert(Source->At <= Source->End);
   return Result;
 }
+
+
+
+
