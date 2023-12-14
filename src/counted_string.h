@@ -1009,3 +1009,15 @@ Hash(counted_string String)
   return Hash(&String);
 }
 
+
+link_internal void
+Truncate(cs *S, umm Count)
+{
+  if (S->Count >= Count) { S->Count -= Count; }
+}
+
+link_internal void
+Frontcate(cs *S, umm Count)
+{
+  if (S->Count >= Count) { S->Count -= Count; S->Start += Count; }
+}
