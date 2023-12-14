@@ -1803,7 +1803,6 @@ poof(
       return Result;
     }
 
-
     link_internal u32
     AtElements((type.name)_block *Block)
     {
@@ -1845,6 +1844,27 @@ poof(
 
       Array->Current->Elements[Array->Current->At++] = *Element;
 
+      return Result;
+    }
+  }
+)
+
+poof(
+  func flatten_block_array(type)
+  {
+    link_internal (type.name)_buffer
+    Flatten((type.name)_block_array *Array, memory_arena *Memory)
+    {
+      // TODO(Jesse): This is MAJOR barf
+      auto At = AtElements(Array);
+      auto Count = GetIndex(&At);
+      (type.name)_buffer Result = (type.name.to_capital_case)Buffer(Count, Memory);
+      IterateOver(Array, Element, ElementIndex)
+      {
+        // NOTE(Jesse): UGGGGGGHHH
+        umm Index = GetIndex(&ElementIndex);
+        Result.Start[Index] = *Element;
+      }
       return Result;
     }
   }
