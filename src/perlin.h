@@ -7,7 +7,10 @@
 
 debug_global u32 DEBUG_NOISE_SEED = 64324;
 
-global_variable int Global_PerlinIV[512] = {
+global_variable b32 Global_GradientTableInitialized = False;
+global_variable v3 Global_PerlinGradients[256] = {};
+
+global_variable u8 Global_PerlinIV[512] = {
         151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,
         8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,
         35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,
@@ -62,6 +65,7 @@ grad(int hash, f32 x, f32 y, f32 z) {
 
 link_internal f32
 PerlinNoise(f32 x, f32 y, f32 z) {
+
   // Find the unit cube that contains the point
   u32 X = (u32) Floorf(x) & 255;
   u32 Y = (u32) Floorf(y) & 255;
@@ -125,6 +129,252 @@ PerlinNoise(f32 x, f32 y, f32 z) {
   res = (res + 1.0f)/2.0f;
   return res;
 }
+
+
+// https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L94
+link_internal f32
+Smoothstep(f32 N)
+{
+  f32 Result = N * N * (3 - 2 * N);
+  return Result;
+}
+
+// https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L106
+link_internal f32
+SmoothstepDeriv(f32 N)
+{
+  f32 Result = N * (6 - 6 * N);
+  return Result;
+}
+
+// https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L276
+link_internal u8
+hash(u8 x, u8 y, u8 z)
+{
+  return Global_PerlinIV[Global_PerlinIV[Global_PerlinIV[x] + y] + z];
+}
+
+// https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L281
+//
+// Compute dot product between vector from cell corners to P with predefined gradient directions
+//    perm: a value between 0 and 255
+//    float x, float y, float z: coordinates of vector from cell corner to shaded point
+//
+float gradientDotV( uint8_t perm, float x, float y, float z)
+{
+  switch (perm & 15) {
+  case  0: return  x + y; // (1,1,0)
+  case  1: return -x + y; // (-1,1,0)
+  case  2: return  x - y; // (1,-1,0)
+  case  3: return -x - y; // (-1,-1,0)
+  case  4: return  x + z; // (1,0,1)
+  case  5: return -x + z; // (-1,0,1)
+  case  6: return  x - z; // (1,0,-1)
+  case  7: return -x - z; // (-1,0,-1)
+  case  8: return  y + z; // (0,1,1),
+  case  9: return -y + z; // (0,-1,1),
+  case 10: return  y - z; // (0,1,-1),
+  case 11: return -y - z; // (0,-1,-1)
+  case 12: return  y + x; // (1,1,0)
+  case 13: return -x + y; // (-1,1,0)
+  case 14: return -y + z; // (0,-1,1)
+  case 15: return -y - z; // (0,-1,-1)
+  }
+  return f32_MAX;
+}
+
+// https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L136C1-L142C43
+link_internal void
+InitGlobalGradientTable()
+{
+  random_series Entropy = {DEBUG_NOISE_SEED};
+
+  RangeIterator(i, 256)
+  {
+    float theta = ArcCos(RandomBilateral(&Entropy));
+    float phi = 2.f*PI32*RandomUnilateral(&Entropy);
+
+    float x = Cos(phi) * Sin(theta);
+    float y = Sin(phi) * Sin(theta);
+    float z = Cos(theta);
+    Global_PerlinGradients[i] = V3(x, y, z);
+  }
+
+  Global_GradientTableInitialized = True;
+}
+
+#if 1
+// https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/perlin-noise-part-2/perlin-noise-computing-derivatives.html
+//
+// NOTE(Jesse): This is INSAAAAAANELY slow
+link_internal f32
+PerlinNoise_Derivitives0(f32 px, f32 py, f32 pz, v3 *derivs, v3 *Normal)
+{
+  if (Global_GradientTableInitialized == False) { InitGlobalGradientTable(); }
+
+  u8 xi = u8(((u32)Floorf(px)) & 255);
+  u8 yi = u8(((u32)Floorf(py)) & 255);
+  u8 zi = u8(((u32)Floorf(pz)) & 255);
+
+  float tx = px - xi;
+  float ty = py - yi;
+  float tz = pz - zi;
+
+  float u = Smoothstep(tx);
+  float v = Smoothstep(ty);
+  float w = Smoothstep(tz);
+
+  float du = SmoothstepDeriv(tx);
+  float dv = SmoothstepDeriv(ty);
+  float dw = SmoothstepDeriv(tz);
+
+  // gradients at the corner of the cell
+  v3 c000 = Global_PerlinGradients[hash(xi, yi, zi)];
+  v3 c100 = Global_PerlinGradients[hash(xi + 1, yi, zi)];
+  v3 c010 = Global_PerlinGradients[hash(xi, yi + 1, zi)];
+  v3 c110 = Global_PerlinGradients[hash(xi + 1, yi + 1, zi)];
+
+  v3 c001 = Global_PerlinGradients[hash(xi, yi, zi + 1)];
+  v3 c101 = Global_PerlinGradients[hash(xi + 1, yi, zi + 1)];
+  v3 c011 = Global_PerlinGradients[hash(xi, yi + 1, zi + 1)];
+  v3 c111 = Global_PerlinGradients[hash(xi + 1, yi + 1, zi + 1)];
+
+  // generate vectors going from the grid points to p
+  float x0 = tx, x1 = tx - 1;
+  float y0 = ty, y1 = ty - 1;
+  float z0 = tz, z1 = tz - 1;
+
+  v3 p000 = V3(x0, y0, z0);
+  v3 p100 = V3(x1, y0, z0);
+  v3 p010 = V3(x0, y1, z0);
+  v3 p110 = V3(x1, y1, z0);
+
+  v3 p001 = V3(x0, y0, z1);
+  v3 p101 = V3(x1, y0, z1);
+  v3 p011 = V3(x0, y1, z1);
+  v3 p111 = V3(x1, y1, z1);
+
+  float a = Dot(c000, p000);
+  float b = Dot(c100, p100);
+  float c = Dot(c010, p010);
+  float d = Dot(c110, p110);
+  float e = Dot(c001, p001);
+  float f = Dot(c101, p101);
+  float g = Dot(c011, p011);
+  float h = Dot(c111, p111);
+
+  float k0 = (b - a);
+  float k1 = (c - a);
+  float k2 = (e - a);
+  float k3 = (a + d - b - c);
+  float k4 = (a + f - b - e);
+  float k5 = (a + g - c - e);
+  float k6 = (b + c + e + h - a - d - f - g);
+
+  derivs->x = du *(k0 + v * k3 + w * k4 + v * w * k6);
+  derivs->y = dv *(k1 + u * k3 + w * k5 + u * w * k6);
+  derivs->z = dw *(k2 + u * k4 + v * k5 + u * v * k6);
+
+
+  v3 tangent = V3(1.f, derivs->x, 0.f);
+  v3 bitangent = V3(0.f, derivs->z, 1.f);
+
+  // equivalent to Cross(bitangent, tangent)
+  *Normal = Normalize(V3(-derivs->x, 1.f, -derivs->z));
+
+  return a + u * k0 + v * k1 + w * k2 + u * v * k3 + u * w * k4 + v * w * k5 + u * v * w * k6;
+}
+#endif
+
+link_internal float
+quintic(float t)
+{
+    return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+link_internal float
+quinticDeriv(float t)
+{
+    return 30 * t * t * (t * (t - 2) + 1);
+}
+
+
+link_internal f32
+PerlinNoise_Derivitives1(f32 px, f32 py, f32 pz, v3 *derivs, v3 *Normal)
+{
+  u8 tableSizeMask = 0xff;
+  u8 xi0 = u8(((int)Floorf(px)) & tableSizeMask);
+  u8 yi0 = u8(((int)Floorf(py)) & tableSizeMask);
+  u8 zi0 = u8(((int)Floorf(pz)) & tableSizeMask);
+
+  u8 xi1 = u8((xi0 + 1) & tableSizeMask);
+  u8 yi1 = u8((yi0 + 1) & tableSizeMask);
+  u8 zi1 = u8((zi0 + 1) & tableSizeMask);
+
+  float tx = px - ((int)Floorf(px));
+  float ty = py - ((int)Floorf(py));
+  float tz = pz - ((int)Floorf(pz));
+
+  float u = quintic(tx);
+  float v = quintic(ty);
+  float w = quintic(tz);
+
+  // generate vectors going from the grid points to p
+  float x0 = tx, x1 = tx - 1;
+  float y0 = ty, y1 = ty - 1;
+  float z0 = tz, z1 = tz - 1;
+
+  float a = gradientDotV(hash(xi0, yi0, zi0), x0, y0, z0);
+  float b = gradientDotV(hash(xi1, yi0, zi0), x1, y0, z0);
+  float c = gradientDotV(hash(xi0, yi1, zi0), x0, y1, z0);
+  float d = gradientDotV(hash(xi1, yi1, zi0), x1, y1, z0);
+  float e = gradientDotV(hash(xi0, yi0, zi1), x0, y0, z1);
+  float f = gradientDotV(hash(xi1, yi0, zi1), x1, y0, z1);
+  float g = gradientDotV(hash(xi0, yi1, zi1), x0, y1, z1);
+  float h = gradientDotV(hash(xi1, yi1, zi1), x1, y1, z1);
+
+  float du = quinticDeriv(tx);
+  float dv = quinticDeriv(ty);
+  float dw = quinticDeriv(tz);
+
+  float k0 = a;
+  float k1 = (b - a);
+  float k2 = (c - a);
+  float k3 = (e - a);
+  float k4 = (a + d - b - c);
+  float k5 = (a + f - b - e);
+  float k6 = (a + g - c - e);
+  float k7 = (b + c + e + h - a - d - f - g);
+
+  derivs->x = du *(k1 + k4 * v + k5 * w + k7 * v * w);
+  derivs->y = dv *(k2 + k4 * u + k6 * w + k7 * v * w);
+  derivs->z = dw *(k3 + k5 * u + k6 * v + k7 * v * w);
+
+#if 0
+  v3 tangent = V3(1.f, derivs->x, 0.f);
+  v3 bitangent = V3(0.f, derivs->z, 1.f);
+
+  // equivalent to Cross(bitangent, tangent)
+  *Normal = Normalize(V3(-derivs->x, 1.f, -derivs->z));
+#else
+  v3 tangent = V3(1.f, derivs->x, 0.f);
+  v3 bitangent = V3(0.f, 1.f, derivs->y);
+
+  // equivalent to Cross(bitangent, tangent)
+  *Normal = Normalize(V3(-derivs->x, -derivs->y, 1.f));
+
+#endif
+
+  /* *Normal = Normalize(*derivs); */
+
+  /* r32 Tmp = Normal->y; */
+  /* Normal->y = Normal->z; */
+  /* Normal->z = Tmp; */
+
+
+  return k0 + k1 * u + k2 * v + k3 * w + k4 * u * v + k5 * u * w + k6 * v * w + k7 * u * v * w;
+}
+
 
 
 #endif
