@@ -341,10 +341,15 @@ Floori(r32 f)
 r32
 Floorf(r32 f)
 {
+#if 0
   if (f < 0) { f -= 1.f; }
   s32 i = (s32)(f);
   r32 Result = (r32)i;
   return Result;
+#else
+  f32 Result = f32(floor(double(f)));
+  return Result;
+#endif
 }
 
 r32

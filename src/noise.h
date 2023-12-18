@@ -68,7 +68,7 @@ float hashf(v3 p)  // replace this by something better
 }
 
 // https://iquilezles.org/articles/gradientnoise/
-float QuinticGradientNoise_InigoQuilez( v3 x )
+float IQ_QuinticGradientNoise( v3 x )
 {
     // grid
     v3 p = Floor(x);
@@ -145,7 +145,7 @@ v4 ValueNoise_InigoQuilez( v3 x )
 // value noise, and its analytical derivatives
 
 link_internal f32
-IQ_ValueNoise_AnalyticNormals(f32 xin, f32 yin, f32 zin, v3 *Ignored, v3 *Normal)
+IQ_ValueNoise_AnalyticNormals(f32 xin, f32 yin, f32 zin, v3 *Normal)
 {
   v3 x = V3(xin, yin, zin);
 
@@ -183,3 +183,5 @@ IQ_ValueNoise_AnalyticNormals(f32 xin, f32 yin, f32 zin, v3 *Ignored, v3 *Normal
   f32 Result = k0 + k1*u.x + k2*u.y + k3*u.z + k4*u.x*u.y + k5*u.y*u.z + k6*u.z*u.x + k7*u.x*u.y*u.z;
   return Result;
 }
+
+

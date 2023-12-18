@@ -1,5 +1,48 @@
-#ifndef BONSAI_PREPROCESSOR
 
+typedef r32 (*noise_callback)(r32, r32, r32, v3*);
+
+// NOTE(Jesse): This is very slow and for debug only, calculate normals analytically!
+// https://www.shadertoy.com/view/XttSz2
+link_internal v3
+CalcNormal( v3 P, noise_callback Noise )
+{
+  f32 eps = 0.0001f;
+
+  r32 pX = P.x + eps;
+  r32 pY = P.y + eps;
+  r32 pZ = P.z + eps;
+
+  r32 nX = P.x - eps;
+  r32 nY = P.y - eps;
+  r32 nZ = P.z - eps;
+
+  v3 Ignored;
+  v3 nor = V3( Noise(pX, P.y, P.z, &Ignored) - Noise(nX, P.y, P.z, &Ignored),
+               Noise(P.x, pY, P.z, &Ignored) - Noise(P.x, nY, P.z, &Ignored),
+               Noise(P.x, P.y, pZ, &Ignored) - Noise(P.x, P.y, nZ, &Ignored) );
+
+  return Normalize(nor);
+}
+
+// TODO(Jesse): Where should this go?
+link_internal void
+CalculateTBN(v3 derivs, v3 *Tangent, v3 *Bitangent, v3 *Normal)
+{
+  /* *Tangent = V3(1.f, derivs.x, 0.f); */
+  /* *Bitangent = V3(0.f, derivs.y, 1.f); */
+
+  /* *Tangent = V3(1.f, derivs.x, 0.f); */
+  /* *Bitangent = V3(0.f, 1.f, derivs.y); */
+
+  *Tangent = V3(0.f, 1.f, derivs.z);
+  *Bitangent = V3(1.f, derivs.x, 0.f);
+
+  // equivalent to Cross(bitangent, tangent)
+  /* *normal = Normalize(V3(-derivs.x, 1.f, -derivs.z)); */
+  *Normal = Normalize(Cross(*Bitangent, *Tangent));
+}
+
+#ifndef BONSAI_PREPROCESSOR
 // This is a modified version of the java implementation of the improved perlin
 // function (see http://mrl.nyu.edu/~perlin/noise/)
 //
@@ -300,7 +343,7 @@ quinticDeriv(float t)
 
 
 link_internal f32
-PerlinNoise_Derivitives1(f32 px, f32 py, f32 pz, v3 *derivs, v3 *Normal)
+PerlinNoise_Derivitives1(f32 px, f32 py, f32 pz, v3 *derivs)
 {
   u8 tableSizeMask = 0xff;
   u8 xi0 = u8(((int)Floorf(px)) & tableSizeMask);
@@ -349,28 +392,6 @@ PerlinNoise_Derivitives1(f32 px, f32 py, f32 pz, v3 *derivs, v3 *Normal)
   derivs->x = du *(k1 + k4 * v + k5 * w + k7 * v * w);
   derivs->y = dv *(k2 + k4 * u + k6 * w + k7 * v * w);
   derivs->z = dw *(k3 + k5 * u + k6 * v + k7 * v * w);
-
-#if 0
-  v3 tangent = V3(1.f, derivs->x, 0.f);
-  v3 bitangent = V3(0.f, derivs->z, 1.f);
-
-  // equivalent to Cross(bitangent, tangent)
-  *Normal = Normalize(V3(-derivs->x, 1.f, -derivs->z));
-#else
-  v3 tangent = V3(1.f, derivs->x, 0.f);
-  v3 bitangent = V3(0.f, 1.f, derivs->y);
-
-  // equivalent to Cross(bitangent, tangent)
-  *Normal = Normalize(V3(-derivs->x, -derivs->y, 1.f));
-
-#endif
-
-  /* *Normal = Normalize(*derivs); */
-
-  /* r32 Tmp = Normal->y; */
-  /* Normal->y = Normal->z; */
-  /* Normal->z = Tmp; */
-
 
   return k0 + k1 * u + k2 * v + k3 * w + k4 * u * v + k5 * u * w + k6 * v * w + k7 * u * v * w;
 }

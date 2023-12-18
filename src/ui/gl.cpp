@@ -22,7 +22,7 @@ DrawUiBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 
   BufferUVsToCard(   TextGroup->SolidUIUVBuffer,     Geo, &AttributeIndex);
   BufferColorsToCard(TextGroup->SolidUIColorBuffer,  Geo, &AttributeIndex);
 
-  Draw(Geo->At);
+  if (Geo->At) { Draw(Geo->At); }
   Geo->At = 0;
 
   GL.DisableVertexAttribArray(0);
