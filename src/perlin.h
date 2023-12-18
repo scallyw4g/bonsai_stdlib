@@ -4,22 +4,19 @@ typedef r32 (*noise_callback)(r32, r32, r32, v3*);
 // NOTE(Jesse): This is very slow and for debug only, calculate normals analytically!
 // https://www.shadertoy.com/view/XttSz2
 link_internal v3
-CalcNormal( v3 P, noise_callback Noise )
+CalcNormal( v3 P, r32 NoiseValue, noise_callback NoiseFn )
 {
-  f32 eps = 0.0001f;
+  /* f32 eps = 1.f */
+  f32 eps = 0.0002f;
 
   r32 pX = P.x + eps;
   r32 pY = P.y + eps;
   r32 pZ = P.z + eps;
 
-  r32 nX = P.x - eps;
-  r32 nY = P.y - eps;
-  r32 nZ = P.z - eps;
-
   v3 Ignored;
-  v3 nor = V3( Noise(pX, P.y, P.z, &Ignored) - Noise(nX, P.y, P.z, &Ignored),
-               Noise(P.x, pY, P.z, &Ignored) - Noise(P.x, nY, P.z, &Ignored),
-               Noise(P.x, P.y, pZ, &Ignored) - Noise(P.x, P.y, nZ, &Ignored) );
+  v3 nor = V3( NoiseFn(pX, P.y, P.z, &Ignored) - NoiseValue,
+               NoiseFn(P.x, pY, P.z, &Ignored) - NoiseValue,
+               NoiseFn(P.x, P.y, pZ, &Ignored) - NoiseValue );
 
   return Normalize(nor);
 }
