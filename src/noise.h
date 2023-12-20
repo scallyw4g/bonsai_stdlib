@@ -1,4 +1,13 @@
 
+v4 Floor(v4 v)
+{
+  v.x = Floorf(v.x);
+  v.y = Floorf(v.y);
+  v.z = Floorf(v.z);
+  v.w = Floorf(v.w);
+  return v;
+}
+
 v3 Floor(v3 v)
 {
   v.x = Floorf(v.x);

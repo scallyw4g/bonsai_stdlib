@@ -118,13 +118,24 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
   native_file File = OpenFile(SourceFile, "r+b");
   if (File.Handle)
   {
+    errno = 0;
     fseek(File.Handle, 0L, SEEK_END);
+    Assert(errno==0);
+    errno = 0;
     FileSize = (umm)ftell(File.Handle);
     if (FileSize)
     {
-      rewind(File.Handle);
-      FileContents = (u8*)AllocateProtection(u8, Memory, FileSize, False);
-      ReadBytesIntoBuffer(&File, FileSize, FileContents);
+      if (FileSize != umm(-1))
+      {
+        rewind(File.Handle);
+        FileContents = (u8*)AllocateProtection(u8, Memory, FileSize, False);
+        ReadBytesIntoBuffer(&File, FileSize, FileContents);
+      }
+      else
+      {
+        // NOTE(Jesse): Was file larger than 2gb ?  Ftell can't handle that..
+        SoftError("Error (%d) ftell-ing file (%s)", errno, SourceFile);
+      }
     }
     else
     {

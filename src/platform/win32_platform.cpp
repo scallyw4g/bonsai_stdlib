@@ -721,9 +721,13 @@ PlatformSetProtection(u8 *Base, u64 Size, memory_protection_type Protection)
 link_internal u32
 PlatformGetLogicalCoreCount()
 {
-  SYSTEM_INFO sysinfo;
-  GetSystemInfo(&sysinfo);
-  u32 Result = (u32)sysinfo.dwNumberOfProcessors;
+  local_persist u32 Result = {};
+  if (Result == 0)
+  {
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    Result = (u32)sysinfo.dwNumberOfProcessors;
+  }
   return Result;
 }
 

@@ -1,12 +1,13 @@
 
-typedef r32 (*noise_callback)(r32, r32, r32, v3*);
+typedef r32 (*noise_callback)(r32, r32, r32);
+typedef r32 (*noise_callback_derivs)(r32, r32, r32, v3*);
 
 // NOTE(Jesse): This is very slow and for debug only, calculate normals analytically!
 // https://www.shadertoy.com/view/XttSz2
 link_internal v3
-CalcNormal( v3 P, r32 NoiseValue, noise_callback NoiseFn )
+CalcNormal( v3 P, r32 NoiseValue, noise_callback_derivs NoiseFn )
 {
-  /* f32 eps = 1.f */
+  /* f32 eps = 1.f; */
   f32 eps = 0.0002f;
 
   r32 pX = P.x + eps;
@@ -21,6 +22,24 @@ CalcNormal( v3 P, r32 NoiseValue, noise_callback NoiseFn )
   return Normalize(nor);
 }
 
+link_internal v3
+CalcNormal( v3 P, r32 NoiseValue, noise_callback NoiseFn )
+{
+  /* f32 eps = 1.f; */
+  f32 eps = 0.0002f;
+
+  r32 pX = P.x + eps;
+  r32 pY = P.y + eps;
+  r32 pZ = P.z + eps;
+
+  v3 nor = V3( NoiseFn(pX, P.y, P.z) - NoiseValue,
+               NoiseFn(P.x, pY, P.z) - NoiseValue,
+               NoiseFn(P.x, P.y, pZ) - NoiseValue );
+
+  return Normalize(nor);
+}
+
+
 // TODO(Jesse): Where should this go?
 link_internal void
 CalculateTBN(v3 derivs, v3 *Tangent, v3 *Bitangent, v3 *Normal)
@@ -31,12 +50,12 @@ CalculateTBN(v3 derivs, v3 *Tangent, v3 *Bitangent, v3 *Normal)
   /* *Tangent = V3(1.f, derivs.x, 0.f); */
   /* *Bitangent = V3(0.f, 1.f, derivs.y); */
 
-  *Tangent = V3(0.f, 1.f, derivs.z);
-  *Bitangent = V3(1.f, derivs.x, 0.f);
+  *Tangent = Normalize(V3(0.f, derivs.z, 1.f));
+  *Bitangent = Normalize(V3(1.f, derivs.x, 0.f));
 
   // equivalent to Cross(bitangent, tangent)
-  /* *normal = Normalize(V3(-derivs.x, 1.f, -derivs.z)); */
-  *Normal = Normalize(Cross(*Bitangent, *Tangent));
+  *Normal = Normalize(V3(-derivs.x, 1.f, -derivs.z));
+  /* *Normal = Normalize(Cross(*Bitangent, *Tangent)); */
 }
 
 #ifndef BONSAI_PREPROCESSOR
@@ -104,8 +123,8 @@ grad(int hash, f32 x, f32 y, f32 z) {
 }
 
 link_internal f32
-PerlinNoise(f32 x, f32 y, f32 z) {
-
+PerlinNoise(f32 x, f32 y, f32 z)
+{
   // Find the unit cube that contains the point
   u32 X = (u32) Floorf(x) & 255;
   u32 Y = (u32) Floorf(y) & 255;
@@ -175,7 +194,7 @@ PerlinNoise(f32 x, f32 y, f32 z) {
 link_internal f32
 Smoothstep(f32 N)
 {
-  f32 Result = N * N * (3 - 2 * N);
+  f32 Result = N * N * (3.f - 2.f * N);
   return Result;
 }
 
@@ -183,7 +202,7 @@ Smoothstep(f32 N)
 link_internal f32
 SmoothstepDeriv(f32 N)
 {
-  f32 Result = N * (6 - 6 * N);
+  f32 Result = N * (6.f - 6.f * N);
   return Result;
 }
 
@@ -202,23 +221,24 @@ hash(u8 x, u8 y, u8 z)
 //
 float gradientDotV( uint8_t perm, float x, float y, float z)
 {
-  switch (perm & 15) {
-  case  0: return  x + y; // (1,1,0)
-  case  1: return -x + y; // (-1,1,0)
-  case  2: return  x - y; // (1,-1,0)
-  case  3: return -x - y; // (-1,-1,0)
-  case  4: return  x + z; // (1,0,1)
-  case  5: return -x + z; // (-1,0,1)
-  case  6: return  x - z; // (1,0,-1)
-  case  7: return -x - z; // (-1,0,-1)
-  case  8: return  y + z; // (0,1,1),
-  case  9: return -y + z; // (0,-1,1),
-  case 10: return  y - z; // (0,1,-1),
-  case 11: return -y - z; // (0,-1,-1)
-  case 12: return  y + x; // (1,1,0)
-  case 13: return -x + y; // (-1,1,0)
-  case 14: return -y + z; // (0,-1,1)
-  case 15: return -y - z; // (0,-1,-1)
+  switch (perm & 15)
+  {
+    case  0: return  x + y; // (1,1,0)
+    case  1: return -x + y; // (-1,1,0)
+    case  2: return  x - y; // (1,-1,0)
+    case  3: return -x - y; // (-1,-1,0)
+    case  4: return  x + z; // (1,0,1)
+    case  5: return -x + z; // (-1,0,1)
+    case  6: return  x - z; // (1,0,-1)
+    case  7: return -x - z; // (-1,0,-1)
+    case  8: return  y + z; // (0,1,1),
+    case  9: return -y + z; // (0,-1,1),
+    case 10: return  y - z; // (0,1,-1),
+    case 11: return -y - z; // (0,-1,-1)
+    case 12: return  y + x; // (1,1,0)
+    case 13: return -x + y; // (-1,1,0)
+    case 14: return -y + z; // (0,-1,1)
+    case 15: return -y - z; // (0,-1,-1)
   }
   return f32_MAX;
 }
@@ -245,8 +265,6 @@ InitGlobalGradientTable()
 
 #if 1
 // https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/perlin-noise-part-2/perlin-noise-computing-derivatives.html
-//
-// NOTE(Jesse): This is INSAAAAAANELY slow
 link_internal f32
 PerlinNoise_Derivitives0(f32 px, f32 py, f32 pz, v3 *derivs, v3 *Normal)
 {
@@ -329,31 +347,46 @@ PerlinNoise_Derivitives0(f32 px, f32 py, f32 pz, v3 *derivs, v3 *Normal)
 link_internal float
 quintic(float t)
 {
-    return t * t * t * (t * (t * 6 - 15) + 10);
+  return t * t * t * (t * (t * 6.f - 15.f) + 10.f);
 }
 
 link_internal float
 quinticDeriv(float t)
 {
-    return 30 * t * t * (t * (t - 2) + 1);
+  return 30 * t * t * (t * (t - 2) + 1);
 }
 
 
 link_internal f32
-PerlinNoise_Derivitives1(f32 px, f32 py, f32 pz, v3 *derivs)
+PerlinNoise_Derivitives1(r32 px, r32 py, r32 pz, v3 *derivs)
 {
   u8 tableSizeMask = 0xff;
-  u8 xi0 = u8(((int)Floorf(px)) & tableSizeMask);
-  u8 yi0 = u8(((int)Floorf(py)) & tableSizeMask);
-  u8 zi0 = u8(((int)Floorf(pz)) & tableSizeMask);
 
-  u8 xi1 = u8((xi0 + 1) & tableSizeMask);
-  u8 yi1 = u8((yi0 + 1) & tableSizeMask);
-  u8 zi1 = u8((zi0 + 1) & tableSizeMask);
+  u8 xi0 = u8(px);
+  u8 yi0 = u8(py);
+  u8 zi0 = u8(pz);
 
-  float tx = px - ((int)Floorf(px));
-  float ty = py - ((int)Floorf(py));
-  float tz = pz - ((int)Floorf(pz));
+  u8 xi1 = u8(xi0 + 1);
+  u8 yi1 = u8(yi0 + 1);
+  u8 zi1 = u8(zi0 + 1);
+
+#if 0
+  float tx = Fract(px);
+  float ty = Fract(py);
+  float tz = Fract(pz);
+#else
+  /* float tx = (px - Floorf(px)) / 100000.f; */
+  /* float ty = (py - Floorf(py)) / 100000.f; */
+  /* float tz = (pz - Floorf(pz)) / 100000.f; */
+
+  float tx = (px - Floorf(px));
+  float ty = (py - Floorf(py));
+  float tz = (pz - Floorf(pz));
+
+  /* float tx = 0.f; // (px - Floorf(px)); */
+  /* float ty = 0.f; // (py - Floorf(py)); */
+  /* float tz = 0.f; // (pz - Floorf(pz)); */
+#endif
 
   float u = quintic(tx);
   float v = quintic(ty);
@@ -386,9 +419,29 @@ PerlinNoise_Derivitives1(f32 px, f32 py, f32 pz, v3 *derivs)
   float k6 = (a + g - c - e);
   float k7 = (b + c + e + h - a - d - f - g);
 
-  derivs->x = du *(k1 + k4 * v + k5 * w + k7 * v * w);
-  derivs->y = dv *(k2 + k4 * u + k6 * w + k7 * v * w);
-  derivs->z = dw *(k3 + k5 * u + k6 * v + k7 * v * w);
+  derivs->x = du * (k1 + k4 * v + k5 * w + k7 * v * w);
+  derivs->y = dv * (k2 + k4 * u + k6 * w + k7 * v * w);
+  derivs->z = dw * (k3 + k5 * u + k6 * v + k7 * v * w);
+
+  /* derivs->x = v; */
+  /* derivs->y = u; */
+  /* derivs->z = w; */
+
+  /* derivs->x = Fract(px); */
+  /* derivs->y = Fract(py); */
+  /* derivs->z = Fract(pz); */
+
+  /* derivs->x = Floorf(px); */
+  /* derivs->y = Floorf(py); */
+  /* derivs->z = Floorf(pz); */
+
+  /* derivs->x = px; */
+  /* derivs->y = py; */
+  /* derivs->z = pz; */
+
+  /* derivs->x = tx; */
+  /* derivs->y = ty; */
+  /* derivs->z = tz; */
 
   return k0 + k1 * u + k2 * v + k3 * w + k4 * u * v + k5 * u * w + k6 * v * w + k7 * u * v * w;
 }

@@ -29,6 +29,7 @@
 #include <bonsai_stdlib/src/random.h>
 #include <bonsai_stdlib/src/noise.h>
 #include <bonsai_stdlib/src/perlin.h>
+#include <bonsai_stdlib/src/simplex.h>
 #include <bonsai_stdlib/src/input.h>
 #include <bonsai_stdlib/src/mutex.h>
 #include <bonsai_stdlib/src/work_queue.h>

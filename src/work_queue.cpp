@@ -231,7 +231,7 @@ PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry)
 
   u32 NewIndex = GetNextQueueIndex(Queue->EnqueueIndex);
   Assert(NewIndex != Queue->DequeueIndex);
-  DebugLine("%S", CS(NewIndex));
+  /* DebugLine("%S", CS(NewIndex)); */
 
   AtomicExchange(&Queue->EnqueueIndex, NewIndex);
 

@@ -2752,6 +2752,8 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
 link_internal void
 UiFrameBegin(renderer_2d *Ui)
 {
+  Ui->RequestedForceCapture = False;
+
   Assert(Ui->Input);
   Assert(Ui->MouseP);
   Assert(Ui->MouseDP);
@@ -2809,5 +2811,4 @@ UiFrameEnd(renderer_2d *Ui)
   }
 
   Ui->CommandBuffer->CommandCount = 0;
-  Ui->RequestedForceCapture = False;
 }

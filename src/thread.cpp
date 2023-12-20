@@ -4,7 +4,7 @@ link_internal u32
 GetTotalThreadCount()
 {
   /* TIMED_FUNCTION(); */
-  u32 Result = PlatformGetLogicalCoreCount() / 2;
+  u32 Result = PlatformGetLogicalCoreCount() / 2 + (PlatformGetLogicalCoreCount()/4);
   /* u32 Result = 12; */
   /* u32 Result = 16; */
   /* u32 Result = 2; */
