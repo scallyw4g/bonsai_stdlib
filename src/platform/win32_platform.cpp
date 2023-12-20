@@ -314,12 +314,8 @@ WindowMessageCallback(
     {
       PAINTSTRUCT ps;
       BeginPaint(hWnd, &ps);
-      if (Os->GlContext)
-      {
-        SwapBuffers(Os->Display);
-      }
+      if (Os->GlContext) { SwapBuffers(Os->Display); }
       EndPaint(hWnd, &ps);
-
     } return 0;
 
 
@@ -428,6 +424,7 @@ WindowMessageCallback(
         BindKeyupToInput(VK_SPACE, Space);
         BindKeyupToInput(VK_RETURN, Enter);
         BindKeyupToInput(VK_ESCAPE, Escape);
+        BindKeyupToInput(VK_DELETE, Delete);
         default: { /* Ignore all other keypresses */ } break;
       }
     } break;
@@ -484,6 +481,7 @@ WindowMessageCallback(
         BindKeydownToInput(VK_SPACE, Space);
         BindKeydownToInput(VK_RETURN, Enter);
         BindKeydownToInput(VK_ESCAPE, Escape);
+        BindKeydownToInput(VK_DELETE, Delete);
         default: { /* Ignore all other keypresses */ } break;
 
       } break;
