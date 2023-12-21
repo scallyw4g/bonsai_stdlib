@@ -33,7 +33,7 @@ struct untextured_3d_geometry_buffer
 
   // NOTE(Jesse): This keeps track of what buffer the current reservation buffer came from.
   untextured_3d_geometry_buffer *Parent;
-  umm BufferNeedsToGrow;
+  u32 BufferNeedsToGrow;
 #endif
 };
 
