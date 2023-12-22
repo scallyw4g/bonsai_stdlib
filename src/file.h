@@ -43,8 +43,8 @@ enum file_traversal_type
 struct file_traversal_node
 {
   file_traversal_type Type;
-  cs Name;
   cs Dir;
+  cs Name;
 };
 poof(are_equal(file_traversal_node))
 #include <generated/are_equal_file_traversal_node.h>

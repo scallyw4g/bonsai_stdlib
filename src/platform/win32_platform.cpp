@@ -791,9 +791,9 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback)
         }
 
         file_traversal_node CBArg = {
-          .Type = Type,
-          .Name = Filename,
-          .Dir = Dirname,
+          Type,
+          Dirname,
+          Filename,
         };
 
         // NOTE(Jesse): It might be better perf-wise to pass a pointer here, but

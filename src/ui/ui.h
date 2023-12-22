@@ -71,7 +71,7 @@ enum window_layout_flags
 
 struct window_layout
 {
-  counted_string Title;
+  cs Title;
 
   // TODO(Jesse): Pack Minimized into flags somehow?
   b32 Minimized;
@@ -851,5 +851,13 @@ GetWindowBounds(window_layout *Window)
   rect2 Result = RectMinMax(TopLeft, BottomRight);
   return Result;
 }
+
+link_internal v2
+GetDim(window_layout *Window)
+{
+  v2 Result = Window->MaxClip;
+  return Result;
+}
+
 
 link_internal void DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer);
