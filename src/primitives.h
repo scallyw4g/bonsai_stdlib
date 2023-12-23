@@ -180,9 +180,17 @@ struct counted_string
 {
   umm Count;
   const char* Start; // TODO(Jesse, id: 94, tags: cleanup, open_question): Make this non-const?
+                     //
+
+  operator bool()
+  {
+    bool Result = (this->Start && this->Count);
+    return Result;
+  }
 };
 
 typedef counted_string cs;
+
 
 template <typename T> inline void
 Clear(T *Struct)

@@ -1823,6 +1823,18 @@ poof(
       return Result;
     }
 
+    link_internal cs
+    CS((type.name)_block_array_index Index)
+    {
+      return FSz("(%u)(%u)", Index.BlockIndex, Index.ElementIndex);
+    }
+
+    link_internal void
+    RemoveUnordered((type.name)_block_array *Array, (type.name)_block_array_index Index)
+    {
+      Leak("RemoveUnordered");
+    }
+
     link_internal type.name *
     Push((type.name)_block_array *Array, type.name *Element)
     {
