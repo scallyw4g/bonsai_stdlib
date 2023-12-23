@@ -31,6 +31,8 @@ struct ui_debug
   b8 OutlineUiValues;
   b8 OutlineUiButtons;
   b8 OutlineUiTables;
+
+  b8 DebugBreakOnClick;
 };
 
 link_weak ui_debug *GetUiDebug();

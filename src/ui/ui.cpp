@@ -635,7 +635,14 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
   {
     v2 StartingP = AbsAt;
     v2 EndingP = AbsAt + V2(xDelta, Style->Font.Size.y);
-    BufferBorder(Group, RectMinMax(StartingP, EndingP), V3(0, 0, 1), Z, DISABLE_CLIPPING);
+
+    rect2 AbsBounds = RectMinMax(StartingP, EndingP);
+    BufferBorder(Group, AbsBounds, V3(0, 0, 1), Z, DISABLE_CLIPPING);
+
+    if (GetUiDebug && GetUiDebug()->DebugBreakOnClick)
+    {
+      if ( IsInsideRect(AbsBounds, *Group->MouseP) && Group->Input->LMB.Clicked ) { RuntimeBreak(); }
+    }
   }
 
   return;
@@ -1039,7 +1046,8 @@ link_internal void
 PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowMaxClip = V2(f32_MAX))
 {
   rect2 AbsWindowBounds = RectMinDim(Window->Basis, WindowMaxClip);
-  rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max);
+  /* rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max); */
+  rect2 ClipRect = RectMinMax(AbsWindowBounds.Min, AbsWindowBounds.Max);
 
   ui_render_command Command = {
     .Type = type_ui_render_command_window_start,
@@ -1285,6 +1293,11 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, umm InteractionId, window_la
   if (GetUiDebug && GetUiDebug()->OutlineUiButtons)
   {
     BufferBorder(Group, Rect2(Interaction), V3(1,0,0), 1.0f, DISABLE_CLIPPING);
+
+    if (GetUiDebug && GetUiDebug()->DebugBreakOnClick)
+    {
+      if ( IsInsideRect(Rect2(Interaction), *Group->MouseP) && Group->Input->LMB.Clicked ) { RuntimeBreak(); }
+    }
   }
 
   if (Hover(Group, &Interaction))
@@ -2384,7 +2397,17 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         if (GetUiDebug && GetUiDebug()->OutlineUiTables)
         {
-          BufferBorder(Group, GetAbsoluteDrawBounds(RenderState->Layout), V3(0,0,1), 0.9f, DISABLE_CLIPPING);
+          rect2 AbsDrawBounds = GetAbsoluteDrawBounds(RenderState->Layout);
+          BufferBorder(Group, AbsDrawBounds, V3(0,0,1), 0.9f, DISABLE_CLIPPING);
+
+          if (GetUiDebug && GetUiDebug()->DebugBreakOnClick)
+          {
+            if ( IsInsideRect(AbsDrawBounds, *Group->MouseP) &&
+                 Group->Input->LMB.Clicked )
+            {
+              RuntimeBreak();
+            }
+          }
         }
 
         // TODO(Jesse): It seems to me the NewRow should be before the
