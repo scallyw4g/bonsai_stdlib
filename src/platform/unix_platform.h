@@ -9,10 +9,12 @@
 // https://stackoverflow.com/questions/25867905/how-could-i-temporarily-un-typedef-something
 //
 // Could instead shove these includes in a namespace but.. meh.
-#define Cursor X11_Please_Stahp
+#define Cursor X11_Please_Stahp0
+#define Below  X11_Please_Stahp1
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #undef Cursor
+#undef Below
 
 #define XK_LATIN1 1
 #define XK_MISCELLANY 1
