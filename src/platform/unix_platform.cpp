@@ -361,3 +361,11 @@ ConnectToServer(network_connection *Connection)
   return;
 }
 #endif
+
+link_internal maybe_file_traversal_node
+PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback)
+{
+  NotImplemented;
+  maybe_file_traversal_node Result = {};
+  return Result;
+}
