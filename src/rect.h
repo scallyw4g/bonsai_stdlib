@@ -490,11 +490,11 @@ Volume(rect3i Rect)
   return Result;
 }
 
-inline s32
+inline r32
 Volume(aabb Rect)
 {
   v3 Dim     = GetDim(Rect);
-  s32 Result = Volume(Dim);
+  r32 Result = Volume(Dim);
   return Result;
 }
 

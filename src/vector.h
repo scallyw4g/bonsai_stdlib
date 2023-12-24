@@ -461,7 +461,7 @@ Volume(v4i Dim)
   return Result;
 }
 
-inline s32
+inline r32
 Volume(v3 Dim)
 {
   Assert(Dim.x >= 0);
@@ -472,8 +472,8 @@ Volume(v3 Dim)
   /* Dim.y = Max(Dim.y, 0.f); */
   /* Dim.z = Max(Dim.z, 0.f); */
 
-  s32 Result = (s32)(Dim.x*Dim.y*Dim.z);
-  Assert(Result > 0);
+  r32 Result = (Dim.x*Dim.y*Dim.z);
+  Assert(Result > 0.f);
   return Result;
 }
 
