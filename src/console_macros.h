@@ -210,3 +210,11 @@ link_internal char * GetTempFmtBuffer();
   }                                                                                                            \
                                                                                                                \
 } while (false)
+
+#define Deprecated() do {                                                             \
+                                                                                   \
+  if (Global_LogLevel <= LogLevel_Info) {                                          \
+    LogDirect(CSz("%S * Function (%s) Deprecated %S " Newline), TerminalColors.Yellow, __FUNCTION__, TerminalColors.White);   \
+  }                                                                                \
+                                                                                   \
+} while (false)
