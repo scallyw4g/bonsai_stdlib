@@ -1765,7 +1765,7 @@ poof(
     }
 
     link_internal (type.name)_block_array_index
-    AtElements((type.name)_block_array *Arr)
+    LastIndex((type.name)_block_array *Arr)
     {
       (type.name)_block_array_index Result = {};
       if (Arr->Current)
@@ -1775,6 +1775,21 @@ poof(
         Result.ElementIndex = Arr->Current->At;
         Assert(Result.ElementIndex);
         Result.ElementIndex--;
+      }
+      return Result;
+    }
+
+    link_internal (type.name)_block_array_index
+    AtElements((type.name)_block_array *Arr)
+    {
+      (type.name)_block_array_index Result = {};
+      if (Arr->Current)
+      {
+        Result.Block = Arr->Current;
+        Result.BlockIndex = Arr->Current->Index;
+        Result.ElementIndex = Arr->Current->At;
+        /* Assert(Result.ElementIndex); */
+        /* Result.ElementIndex--; */
       }
       return Result;
     }
@@ -1841,10 +1856,10 @@ poof(
     link_internal void
     RemoveUnordered((type.name)_block_array *Array, (type.name)_block_array_index Index)
     {
-      (type.name)_block_array_index LastIndex = AtElements(Array);
+      (type.name)_block_array_index Last = LastIndex(Array);
 
       type.name *Element = GetPtr(Array, Index);
-      type.name *LastElement = GetPtr(Array, LastIndex);
+      type.name *LastElement = GetPtr(Array, Last);
 
       *Element = *LastElement;
 
@@ -1854,14 +1869,18 @@ poof(
       if (Array->Current->At == 0)
       {
         // Walk the chain till we get to the second-last one
-        (type.name)_block *LastBlock = Cast( (type.name)_block *, LastIndex.Block);
         (type.name)_block *Current = &Array->First;
-        while (Current->Next != LastBlock)
+        (type.name)_block *LastB = GetBlock(&Last);
+
+        if (Current != &Array->First)
         {
-          Current = Current->Next;
+          while (Current->Next != LastB)
+          {
+            Current = Current->Next;
+          }
         }
 
-        Assert(Current->Next == LastBlock);
+        Assert(Current->Next == LastB || Current->Next == 0);
         Array->Current = Current;
       }
     }
