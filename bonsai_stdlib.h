@@ -19,6 +19,7 @@
 #include <bonsai_stdlib/src/thread.h>
 #include <bonsai_stdlib/src/math.h>
 #include <bonsai_stdlib/src/memory_arena.h>
+#include <bonsai_stdlib/src/primitive_containers.h>
 #include <bonsai_stdlib/src/file.h>
 #include <bonsai_stdlib/src/filesystem.h>
 #include <bonsai_stdlib/src/vector.h>

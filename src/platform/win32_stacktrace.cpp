@@ -201,7 +201,7 @@ PlatformDebugStacktrace()
   /* SetUnhandledExceptionFilter(DumpStackTrace); */
 
 /* #ifdef __clang_minor__ */
-  try { throw 0; } __except (DumpStackTrace(GetExceptionInformation())) { return; }
+  try { throw new int; } __except (DumpStackTrace(GetExceptionInformation())) { return; }
 /* #else */
   /* NotImplemented; */
 /* #endif */

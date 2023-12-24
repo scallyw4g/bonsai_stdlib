@@ -1730,6 +1730,13 @@ poof(
       return Result;
     }
 
+    link_inline (type.name)_block *
+    GetBlock((type.name)_block_array_index *Index)
+    {
+      (type.name)_block *Result = Cast((type.name)_block*, Index->Block);
+      return Result;
+    }
+
     link_inline umm
     GetIndex((type.name)_block_array_index *Index)
     {
@@ -1742,7 +1749,7 @@ poof(
     {
       (type.name)_block_array_index Result = {};
       Result.Block = &Arr->First;
-      Assert(Cast((type.name)_block*, Result.Block)->Index == 0);
+      Assert(GetBlock(&Result)->Index == 0);
       return Result;
     }
 
@@ -1764,8 +1771,10 @@ poof(
       if (Arr->Current)
       {
         Result.Block = Arr->Current;
-        Result.BlockIndex = Cast((type.name)_block*, Arr->Current)->Index;
-        Result.ElementIndex = Cast((type.name)_block*, Arr->Current)->At;
+        Result.BlockIndex = Arr->Current->Index;
+        Result.ElementIndex = Arr->Current->At;
+        Assert(Result.ElementIndex);
+        Result.ElementIndex--;
       }
       return Result;
     }
@@ -1774,7 +1783,7 @@ poof(
     GetPtr((type.name)_block_array *Arr, (type.name)_block_array_index Index)
     {
       type.name *Result = {};
-      if (Index.Block) { Result = Cast((type.name)_block *, Index.Block)->Elements + Index.ElementIndex; }
+      if (Index.Block) { Result = GetBlock(&Index)->Elements + Index.ElementIndex; }
       return Result;
     }
 
@@ -1832,7 +1841,29 @@ poof(
     link_internal void
     RemoveUnordered((type.name)_block_array *Array, (type.name)_block_array_index Index)
     {
-      Leak("RemoveUnordered");
+      (type.name)_block_array_index LastIndex = AtElements(Array);
+
+      type.name *Element = GetPtr(Array, Index);
+      type.name *LastElement = GetPtr(Array, LastIndex);
+
+      *Element = *LastElement;
+
+      Assert(Array->Current->At);
+      Array->Current->At -= 1;
+
+      if (Array->Current->At == 0)
+      {
+        // Walk the chain till we get to the second-last one
+        (type.name)_block *LastBlock = Cast( (type.name)_block *, LastIndex.Block);
+        (type.name)_block *Current = &Array->First;
+        while (Current->Next != LastBlock)
+        {
+          Current = Current->Next;
+        }
+
+        Assert(Current->Next == LastBlock);
+        Array->Current = Current;
+      }
     }
 
     link_internal type.name *
@@ -1844,12 +1875,19 @@ poof(
 
       if (Array->Current->At == n_elements)
       {
-        (type.name)_block *Next = Allocate_(type.name)_block(Array->Memory);
-        Next->Index = Array->Current->Index + 1;
+        if (Array->Current->Next)
+        {
+          Array->Current = Array->Current->Next;
+          Assert(Array->Current->At == 0);
+        }
+        else
+        {
+          (type.name)_block *Next = Allocate_(type.name)_block(Array->Memory);
+          Next->Index = Array->Current->Index + 1;
 
-        Array->Current->Next = Next;
-        Array->Current = Next;
-        /* Array->At = 0; */
+          Array->Current->Next = Next;
+          Array->Current = Next;
+        }
       }
 
       type.name *Result = Array->Current->Elements + Array->Current->At;
