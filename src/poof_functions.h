@@ -1856,10 +1856,10 @@ poof(
     link_internal void
     RemoveUnordered((type.name)_block_array *Array, (type.name)_block_array_index Index)
     {
-      (type.name)_block_array_index Last = LastIndex(Array);
+      (type.name)_block_array_index LastI = LastIndex(Array);
 
       type.name *Element = GetPtr(Array, Index);
-      type.name *LastElement = GetPtr(Array, Last);
+      type.name *LastElement = GetPtr(Array, LastI);
 
       *Element = *LastElement;
 
@@ -1870,14 +1870,11 @@ poof(
       {
         // Walk the chain till we get to the second-last one
         (type.name)_block *Current = &Array->First;
-        (type.name)_block *LastB = GetBlock(&Last);
+        (type.name)_block *LastB = GetBlock(&LastI);
 
-        if (Current != &Array->First)
+        while (Current->Next && Current->Next != LastB)
         {
-          while (Current->Next != LastB)
-          {
-            Current = Current->Next;
-          }
+          Current = Current->Next;
         }
 
         Assert(Current->Next == LastB || Current->Next == 0);
