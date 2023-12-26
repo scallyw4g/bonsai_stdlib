@@ -112,11 +112,13 @@ struct ui_toggle_button_handle
   umm Id;
 };
 
+// TODO(Jesse): Change these to u64 instead of umm
+#define UiId(base, mod) umm(umm(base) | ( umm(mod) << 32 ))
 
 link_internal ui_toggle_button_handle
 UiToggle(cs Text, umm IdModifier)
 {
-  ui_toggle_button_handle Result = { Text, umm(Text.Start)^IdModifier };
+  ui_toggle_button_handle Result = { Text, UiId(Text.Start, IdModifier) };
   return Result;
 }
 
