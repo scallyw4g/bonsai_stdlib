@@ -1250,6 +1250,15 @@ poof(
       return Result;
     }
 
+    link_internal Type.name*
+    LastElement((Type.name)_cursor *Cursor)
+    {
+      Type.name *Result = {};
+      s32 I = LastIndex(Cursor);
+      if (I > -1) { Result = Cursor->Start + I; }
+      return Result;
+    }
+
     link_internal b32
     Remove((Type.name)_cursor *Cursor, (Type.name) Query)
     {
