@@ -137,6 +137,22 @@ link_internal void AdvanceLayoutStackBy(v2 Delta, layout* Layout);
 
 
 link_internal b32
+WithinTolerance(f32 Epsilon, v3 A, v3 B)
+{
+  b32 Result = (A.x+Epsilon > B.x && A.x-Epsilon < B.x) &&
+               (A.y+Epsilon > B.y && A.y-Epsilon < B.y) &&
+               (A.z+Epsilon > B.z && A.z-Epsilon < B.z);
+  return Result;
+}
+
+// TODO(Jesse): These comparisons looks backwards and fucky, but they're
+// correct for where they're present in the UI.  We should audit and make this
+// more what someone would expect when they see a function like this, which should
+// be something like "A is within Epsilon of B", but now it's "B is outside Epsilon of A"
+//
+// (I think.. I'm sick right now and my brain's not working)
+//
+link_internal b32
 CloseEnough(f32 Epsilon, f32 A, f32 B)
 {
   b32 Result = (A+Epsilon < B && A-Epsilon > B);
