@@ -33,6 +33,8 @@ struct ui_toggle_button_group
   ui_element_reference UiRef;
   ui_toggle_button_group_flags Flags;
   u64 ToggleBits;
+
+  b32 AnyElementClicked;
 };
 
 link_internal ui_element_reference
@@ -71,6 +73,15 @@ ToggledOn(renderer_2d *Ui, ui_toggle_button_handle *Button)
   b32 Result = ToggledOn(Ui, &Handle);
   return Result;
 }
+
+#if 0
+link_internal b32
+SelectionChanged(ui_toggle_button_group *ButtonGroup)
+{
+  b32 Result = ButtonGroup->SelectionChanged;
+  return Result;
+}
+#endif
 
 #if 0
 link_internal b32
@@ -1484,14 +1495,14 @@ ToggleRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *Toggle
 }
 
 link_internal ui_element_reference
-DrawToggleButtonGroup(ui_toggle_button_group *Group,  UI_FUNCTION_PROTO_NAMES)
+DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_FUNCTION_PROTO_NAMES)
 {
   renderer_2d *Ui = Group->Ui;
   ui_toggle_button_handle_buffer *ButtonBuffer = &Group->Buttons;
 
   // Reset this every frame; it's ephermeral.
   //
-  // TODO(Jesse): THese aren't stored .. we should asesert this ..???
+  // TODO(Jesse): These aren't stored .. we should asesert this ..???
   Group->ToggleBits = 0;
 
   ui_element_reference Result = PushTableStart(Ui, UI_FUNCTION_INSTANCE_NAMES);
@@ -1512,6 +1523,10 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group,  UI_FUNCTION_PROTO_NAMES)
         Group->ToggleBits |= (1 << ButtonIndex);
       }
 
+      if (Clicked(Ui, &ButtonHandle))
+      {
+        Group->AnyElementClicked = True;
+      }
 
       if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
       {
