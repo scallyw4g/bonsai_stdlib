@@ -561,7 +561,18 @@ poof(
     link_internal b32
     AreEqual((Type.name) *Thing1, (Type.name) *Thing2)
     {
-      b32 Result = MemoryIsEqual((u8*)Thing1, (u8*)Thing2, sizeof( (Type.name) ) );
+      Type.contains_type(cs)?
+      {
+        b32 Result = True;
+        Type.map(member)
+        {
+          Result &= AreEqual(Thing1->member.name, Thing2->member.name);
+        }
+      }
+      {
+        b32 Result = MemoryIsEqual((u8*)Thing1, (u8*)Thing2, sizeof( (Type.name) ) );
+      }
+
       return Result;
     }
   }
