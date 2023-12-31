@@ -152,21 +152,30 @@ RandomQuaternion(random_series *Entropy)
 }
 
 
-inline Quaternion
+link_internal void
+Normalize( Quaternion *Q )
+{
+  f32 LenSq = Q->w*Q->w + Q->x*Q->x + Q->y*Q->y + Q->z*Q->z;
+  f32 Len = f32(sqrt(r64(LenSq)));
+
+  Q->x /= Len;
+  Q->y /= Len;
+  Q->z /= Len;
+  Q->w /= Len;
+}
+
+link_internal Quaternion
 Normalize( Quaternion Q )
 {
-  f32 EPSILON = 0.00001f;
-  f32 d = Q.w*Q.w + Q.x*Q.x + Q.y*Q.y + Q.z*Q.z;
-  if(d < EPSILON) return Q;
+  f32 LenSq = Q.w*Q.w + Q.x*Q.x + Q.y*Q.y + Q.z*Q.z;
+  f32 Len = f32(sqrt(r64(LenSq)));
 
-  f32 invLength = 1.0f / sqrtf(d);
+  r32 x = Q.x/Len;
+  r32 y = Q.y/Len;
+  r32 z = Q.z/Len;
+  r32 w = Q.w/Len;
 
-  r32 x = Q.x*invLength;
-  r32 y = Q.y*invLength;
-  r32 z = Q.z*invLength;
-  r32 s = Q.w*invLength;
-
-  return Quaternion(x, y, z, s);
+  return Quaternion(x, y, z, w);
 }
 
 // NOTE(Jesse): This is mostly for testing purposes as a sanity-check when I
@@ -222,33 +231,32 @@ RotateTransform( v3 Euler )
   return Result;
 }
 
+// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+//
 link_internal m4
 RotateTransform( Quaternion v )
 {
-  /* NotImplemented; */ 
-
-  /* v = Normalize(v); */
-  /* v = Conjugate(v); */
+  Normalize(&v);
 
   r32 x = v.x;
   r32 y = v.y;
   r32 z = v.z;
-  r32 s = v.w;
+  r32 w = v.w;
 
   m4 Result;
 
   r32 m00 = 1.f - 2.f*y*y - 2.f*z*z;
-  r32 m01 = 2.f*x*y - 2.f*s*z;
-  r32 m02 = 2.f*x*z + 2.f*s*y;
+  r32 m01 = 2.f*x*y - 2.f*w*z;
+  r32 m02 = 2.f*x*z + 2.f*w*y;
   r32 m03 = 0.f;
 
-  r32 m10 = 2.f*x*y + 2.f*s*z;
+  r32 m10 = 2.f*x*y + 2.f*w*z;
   r32 m11 = 1.f - 2.f*x*x - 2.f*z*z;
-  r32 m12 = 2.f*y*z - 2.f*s*x;
+  r32 m12 = 2.f*y*z - 2.f*w*x;
   r32 m13 = 0.f;
 
-  r32 m20 = 2.f*x*y - 2.f*s*y;
-  r32 m21 = 2.f*y*z + 2.f*s*x;
+  r32 m20 = 2.f*x*z - 2.f*w*y;
+  r32 m21 = 2.f*y*z + 2.f*w*x;
   r32 m22 = 1.f - 2.f*x*x - 2.f*y*y;
   r32 m23 = 0.f;
 
