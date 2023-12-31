@@ -71,6 +71,7 @@ GetTheta(v3 P1, v3 P2)
 link_internal Quaternion
 FromEuler(v3 Euler)
 {
+  /* Euler = Normalize(Euler); */
   Quaternion Result;
 
   f32 cr = Cos(Euler.x * 0.5f);
@@ -150,3 +151,118 @@ RandomQuaternion(random_series *Entropy)
   return Result;
 }
 
+
+inline Quaternion
+Normalize( Quaternion Q )
+{
+  f32 EPSILON = 0.00001f;
+  f32 d = Q.w*Q.w + Q.x*Q.x + Q.y*Q.y + Q.z*Q.z;
+  if(d < EPSILON) return Q;
+
+  f32 invLength = 1.0f / sqrtf(d);
+
+  r32 x = Q.x*invLength;
+  r32 y = Q.y*invLength;
+  r32 z = Q.z*invLength;
+  r32 s = Q.w*invLength;
+
+  return Quaternion(x, y, z, s);
+}
+
+// NOTE(Jesse): This is mostly for testing purposes as a sanity-check when I
+// was implementing quaternions.  This (AFAIK) method suffers from gimbal lock
+// and should be avoided in favor of using a matrix computed from a quaternion.
+//
+// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+//
+link_internal m4
+RotateTransform( v3 Euler )
+{
+  r32 psi   = Euler.x;
+  r32 theta = Euler.y;
+  r32 phi   = Euler.z;
+
+  r32 cpsi   = Cos(psi);
+  r32 ctheta = Cos(theta);
+  r32 cphi   = Cos(phi);
+
+  r32 spsi   = Sin(psi);
+  r32 stheta = Sin(theta);
+  r32 sphi   = Sin(phi);
+
+  m4 Result;
+
+  r32 m00 = ctheta*cphi;
+  r32 m01 = -cpsi*sphi + spsi*stheta*cphi;
+  r32 m02 = spsi*sphi + cpsi*stheta*cphi;
+  r32 m03 = 0.f;
+
+  r32 m10 = ctheta*sphi;
+  r32 m11 = cpsi*cphi + spsi*stheta*sphi;
+  r32 m12 = -spsi*cphi + cpsi*stheta*sphi;
+  r32 m13 = 0.f;
+
+  r32 m20 = -stheta;
+  r32 m21 = spsi*ctheta;
+  r32 m22 = cpsi*ctheta;
+  r32 m23 = 0.f;
+
+  r32 m30 = 0.f;
+  r32 m31 = 0.f;
+  r32 m32 = 0.f;
+  r32 m33 = 1.f;
+
+
+  // Column-major
+  Result.E[0] = V4(m00, m10, m20, m30); // column 0
+  Result.E[1] = V4(m01, m11, m21, m31); // column 1
+  Result.E[2] = V4(m02, m12, m22, m32); // column 2
+  Result.E[3] = V4(m03, m13, m23, m33); // column 3
+
+  return Result;
+}
+
+link_internal m4
+RotateTransform( Quaternion v )
+{
+  /* NotImplemented; */ 
+
+  /* v = Normalize(v); */
+  /* v = Conjugate(v); */
+
+  r32 x = v.x;
+  r32 y = v.y;
+  r32 z = v.z;
+  r32 s = v.w;
+
+  m4 Result;
+
+  r32 m00 = 1.f - 2.f*y*y - 2.f*z*z;
+  r32 m01 = 2.f*x*y - 2.f*s*z;
+  r32 m02 = 2.f*x*z + 2.f*s*y;
+  r32 m03 = 0.f;
+
+  r32 m10 = 2.f*x*y + 2.f*s*z;
+  r32 m11 = 1.f - 2.f*x*x - 2.f*z*z;
+  r32 m12 = 2.f*y*z - 2.f*s*x;
+  r32 m13 = 0.f;
+
+  r32 m20 = 2.f*x*y - 2.f*s*y;
+  r32 m21 = 2.f*y*z + 2.f*s*x;
+  r32 m22 = 1.f - 2.f*x*x - 2.f*y*y;
+  r32 m23 = 0.f;
+
+  r32 m30 = 0.f;
+  r32 m31 = 0.f;
+  r32 m32 = 0.f;
+  r32 m33 = 1.f;
+
+
+  // Column-major
+  Result.E[0] = V4(m00, m10, m20, m30); // column 0
+  Result.E[1] = V4(m01, m11, m21, m31); // column 1
+  Result.E[2] = V4(m02, m12, m22, m32); // column 2
+  Result.E[3] = V4(m03, m13, m23, m33); // column 3
+
+  return Result;
+}

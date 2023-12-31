@@ -135,3 +135,20 @@ Translate( v3 v )
 
   return Result;
 }
+
+// NOTE(Jesse): Column-major
+link_internal  m4
+ScaleTransform( v3 v )
+{
+  m4 Result;
+
+  Result.E[0] = V4(v.x,0,0,0);
+  Result.E[1] = V4(0,v.y,0,0);
+  Result.E[2] = V4(0,0,v.z,0);
+  Result.E[3] = V4(0,0,0,1);
+
+  return Result;
+}
+
+// NOTE(Jesse): Column-major
+

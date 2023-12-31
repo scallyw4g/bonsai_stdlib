@@ -212,13 +212,6 @@ struct gpu_mapped_element_buffer
   untextured_3d_geometry_buffer Buffer;
 };
 
-// This is an element buffer we compute that can get flushed on command to the GPU
-struct gpu_copied_element_buffer
-{
-  untextured_3d_geometry_buffer Src;
-  gpu_mapped_element_buffer     Dest;
-};
-
 struct framebuffer
 {
   u32 ID;
