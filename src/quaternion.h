@@ -7,7 +7,10 @@ union Quaternion
 
   Quaternion(void)
   {
-    Clear(this);
+    this->x = 0.f;
+    this->y = 0.f;
+    this->z = 0.f;
+    this->w = 1.f;
   }
 
   Quaternion( v3 Vec, r32 W )

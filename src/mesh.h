@@ -38,6 +38,7 @@ struct untextured_3d_geometry_buffer
 };
 
 typedef untextured_3d_geometry_buffer geo_u3d;
+typedef untextured_3d_geometry_buffer* geo_u3d_ptr;
 
 
 untextured_3d_geometry_buffer

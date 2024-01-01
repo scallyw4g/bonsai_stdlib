@@ -46,6 +46,7 @@ struct file_traversal_node
   cs Dir;
   cs Name;
 };
+
 poof(are_equal(file_traversal_node))
 #include <generated/are_equal_file_traversal_node.h>
 
