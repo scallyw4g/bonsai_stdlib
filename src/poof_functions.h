@@ -1708,7 +1708,7 @@ poof(
 
     struct (type.name)_block_array_index
     {
-      void *Block;
+      (type.name)_block *Block;
       u32 BlockIndex;
       u32 ElementIndex;
     };
@@ -1729,7 +1729,7 @@ poof(
         {
           I0.ElementIndex = 0;
           I0.BlockIndex++;
-          I0.Block = Cast((type.name)_block*, I0.Block)->Next;
+          I0.Block = I0.Block->Next;
         }
         else
         {
@@ -1750,13 +1750,6 @@ poof(
       return Result;
     }
 
-    link_inline (type.name)_block *
-    GetBlock((type.name)_block_array_index *Index)
-    {
-      (type.name)_block *Result = Cast((type.name)_block*, Index->Block);
-      return Result;
-    }
-
     link_inline umm
     GetIndex((type.name)_block_array_index *Index)
     {
@@ -1769,7 +1762,7 @@ poof(
     {
       (type.name)_block_array_index Result = {};
       Result.Block = &Arr->First;
-      Assert(GetBlock(&Result)->Index == 0);
+      Assert(Result.Block->Index == 0);
       return Result;
     }
 
@@ -1808,8 +1801,6 @@ poof(
         Result.Block = Arr->Current;
         Result.BlockIndex = Arr->Current->Index;
         Result.ElementIndex = Arr->Current->At;
-        /* Assert(Result.ElementIndex); */
-        /* Result.ElementIndex--; */
       }
       return Result;
     }
@@ -1818,7 +1809,7 @@ poof(
     GetPtr((type.name)_block_array *Arr, (type.name)_block_array_index Index)
     {
       type.name *Result = {};
-      if (Index.Block) { Result = GetBlock(&Index)->Elements + Index.ElementIndex; }
+      if (Index.Block) { Result = Index.Block->Elements + Index.ElementIndex; }
       return Result;
     }
 
@@ -1890,7 +1881,7 @@ poof(
       {
         // Walk the chain till we get to the second-last one
         (type.name)_block *Current = &Array->First;
-        (type.name)_block *LastB = GetBlock(&LastI);
+        (type.name)_block *LastB = LastI.Block;
 
         while (Current->Next && Current->Next != LastB)
         {

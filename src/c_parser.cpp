@@ -2050,6 +2050,25 @@ RequireTokenRaw(parser *Parser, c_token Expected )
   return Result;
 }
 
+
+// TODO(Jesse): Rewrite RequireTokenRaw in terms of this
+link_internal c_token*
+RequireTokenRawPointer(parser *Parser, c_token Expected )
+{
+  c_token *Peek = PeekTokenRawPointer(Parser);
+  if (Peek && *Peek == Expected)  // TODO(Jesse)(id_349) : Change to a function call instead of == operator
+  {
+    PopTokenRaw(Parser);
+  }
+  else
+  {
+    ParseError_RequireTokenFailed(Parser, CSz("RequireTokenRaw"), Peek, &Expected);
+  }
+
+  c_token *Result = Peek;
+  return Result;
+}
+
 link_internal c_token
 RequireTokenRaw(parser *Parser, c_token *Expected )
 {
@@ -2076,6 +2095,25 @@ RequireTokenRaw(parser *Parser, c_token_type Expected )
 
   c_token Result = {};
   if (Peek) Result = *Peek;
+  return Result;
+}
+
+// TODO(Jesse): Rewrite RequireTokenRaw in terms of this
+link_internal c_token*
+RequireTokenRawPointer(parser *Parser, c_token_type Expected )
+{
+  c_token *Peek = PeekTokenRawPointer(Parser);
+  if (Peek && Peek->Type == Expected)  // TODO(Jesse tags:id_347) : Change to a function call instead of == operator
+  {
+    PopTokenRaw(Parser);
+  }
+  else
+  {
+    c_token Temp = CToken(Expected);
+    ParseError_RequireTokenFailed(Parser, CSz("RequireTokenRaw"), Peek, &Temp);
+  }
+
+  c_token *Result = Peek;
   return Result;
 }
 
