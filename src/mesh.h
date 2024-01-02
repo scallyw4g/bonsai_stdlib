@@ -28,13 +28,10 @@ struct untextured_3d_geometry_buffer
   u32 End;
   u32 At;
 
-#if !POOF_PREPROCESSOR
-  u64 Timestamp;
-
   // NOTE(Jesse): This keeps track of what buffer the current reservation buffer came from.
-  untextured_3d_geometry_buffer *Parent;
-  u32 BufferNeedsToGrow;
-#endif
+  untextured_3d_geometry_buffer *Parent; poof(@no_serialize)
+  u32 BufferNeedsToGrow;                 poof(@no_serialize)
+  u64 Timestamp;                         poof(@no_serialize)
 };
 
 typedef untextured_3d_geometry_buffer geo_u3d;
