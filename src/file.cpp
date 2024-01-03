@@ -398,3 +398,15 @@ PrintToStdout(counted_string Output)
 #endif
 }
 
+
+link_internal file_traversal_node
+DeepCopy(heap_allocator *Memory, file_traversal_node *Node)
+{
+  file_traversal_node Result = {};
+
+  Result.Type = Node->Type;
+  Result.Dir = CopyString(Node->Dir, Memory);
+  Result.Name = CopyString(Node->Name, Memory);
+
+  return Result;
+}
