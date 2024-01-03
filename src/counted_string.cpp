@@ -1,4 +1,7 @@
 
+link_internal u8*
+HeapAllocate(heap_allocator *Allocator, umm RequestedSize);
+
 link_internal char *
 GetTempFmtBuffer()
 {
@@ -105,6 +108,20 @@ CopyString(counted_string S, memory_arena* Memory)
   counted_string Result = {
     .Count = S.Count,
     .Start = AllocateProtection(const char, Memory, S.Count, False),
+  };
+
+  MemCopy((u8*)S.Start, (u8*)Result.Start, S.Count);
+
+  return Result;
+}
+
+counted_string
+CopyString(counted_string S, heap_allocator* Memory)
+{
+  TIMED_FUNCTION();
+  counted_string Result = {
+    .Count = S.Count,
+    .Start = (const char*)HeapAllocate(Memory, S.Count),
   };
 
   MemCopy((u8*)S.Start, (u8*)Result.Start, S.Count);
