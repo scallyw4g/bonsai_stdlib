@@ -113,6 +113,9 @@ GetDataSize(heap_allocation_block* Block)
 link_internal u8*
 HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 {
+#if 1
+  u8* Result = (u8*)calloc(1, RequestedSize);
+#else
   if (Allocator->Futex.Initialized == True)
   {
     AcquireFutex(&Allocator->Futex);
@@ -173,12 +176,16 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
     ReleaseFutex(&Allocator->Futex);
   }
 
+#endif
   return Result;
 }
 
 void
 HeapDeallocate(heap_allocator *Allocator, void* Allocation)
 {
+#if 1
+  free(Allocation);
+#else
   if (Allocator->Futex.Initialized == True)
   {
     AcquireFutex(&Allocator->Futex);
@@ -207,6 +214,8 @@ HeapDeallocate(heap_allocator *Allocator, void* Allocation)
   AllocationBlock->Type = AllocationType_Free;
 
   if (Allocator->Futex.Initialized == True) { ReleaseFutex(&Allocator->Futex); }
+#endif
+
   return;
 }
 
