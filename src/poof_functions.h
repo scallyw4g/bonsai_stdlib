@@ -965,16 +965,16 @@ poof(
 )
 
 poof(
-  func buffer(Type)
+  func buffer_t(Type, count_type)
   {
     struct (Type.name)_buffer
     {
       Type.name *Start;
-      umm Count;
+      count_type.name Count;
     };
 
     link_internal (Type.name)_buffer
-    (Type.name.to_capital_case)Buffer(umm ElementCount, memory_arena* Memory)
+    (Type.name.to_capital_case)Buffer( count_type.name ElementCount, memory_arena* Memory)
     {
       (Type.name)_buffer Result = {};
 
@@ -991,36 +991,36 @@ poof(
       return Result;
     }
 
-    link_inline umm
+    link_inline count_type.name
     ZerothIndex((Type.name)_buffer *Buf)
     {
-      umm Result = 0;
+      count_type.name Result = 0;
       return Result;
     }
 
-    link_inline umm
+    link_inline count_type.name
     AtElements((Type.name)_buffer *Buf)
     {
-      umm Result = Buf->Count;
+      count_type.name Result = Buf->Count;
       return Result;
     }
 
-    link_inline umm
+    link_inline count_type.name
     TotalElements((Type.name)_buffer *Buf)
     {
-      umm Result = Buf->Count;
+      count_type.name Result = Buf->Count;
       return Result;
     }
 
-    link_inline umm
+    link_inline count_type.name
     CurrentCount((Type.name)_buffer *Buf)
     {
-      umm Result = Buf->Count;
+      count_type.name Result = Buf->Count;
       return Result;
     }
 
     link_inline (Type.name) *
-    GetPtr((Type.name)_buffer *Buf, umm Index)
+    GetPtr((Type.name)_buffer *Buf, count_type.name Index)
     {
       Type.name *Result = 0;
       if (Index < Buf->Count) { Result = Buf->Start + Index; }
@@ -1028,11 +1028,18 @@ poof(
     }
 
     link_inline (Type.name) *
-    Get((Type.name)_buffer *Buf, umm Index)
+    Get((Type.name)_buffer *Buf, count_type.name Index)
     {
       Type.name *Result = GetPtr(Buf, Index);
       return Result;
     }
+  }
+)
+
+poof(
+  func buffer(Type)
+  {
+    buffer_t(Type, umm)
   }
 )
 
