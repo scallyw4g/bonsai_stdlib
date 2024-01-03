@@ -222,7 +222,7 @@ link_internal char * GetTempFmtBuffer();
 #define Asset(fmt, ...) do {                                                                                   \
                                                                                                                \
   if (Global_LogLevel <= LogLevel_Info) {                                                                      \
-    LogDirect(CSz("%S * Asset   %S- " fmt Newline), TerminalColors.Blue, TerminalColors.White, ##__VA_ARGS__); \
+    LogDirect(CSz("   Asset   - " fmt Newline), ##__VA_ARGS__); \
   }                                                                                                            \
                                                                                                                \
 } while (false)
