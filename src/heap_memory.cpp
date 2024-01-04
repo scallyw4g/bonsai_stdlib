@@ -113,7 +113,7 @@ GetDataSize(heap_allocation_block* Block)
 link_internal u8*
 HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 {
-#if 1
+#if 0
   u8* Result = (u8*)calloc(1, RequestedSize);
 #else
   if (Allocator->Futex.Initialized == True)
@@ -183,7 +183,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 void
 HeapDeallocate(heap_allocator *Allocator, void* Allocation)
 {
-#if 1
+#if 0
   free(Allocation);
 #else
   if (Allocator->Futex.Initialized == True)
