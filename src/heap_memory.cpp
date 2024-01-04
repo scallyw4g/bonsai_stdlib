@@ -44,7 +44,7 @@ GetPrevBlock(heap_allocation_block* Current)
   heap_allocation_block* Result = 0;
 
   if (Current->PrevAllocationSize)
-      Result = (heap_allocation_block*)((u8*)Current + Current->PrevAllocationSize);
+      Result = (heap_allocation_block*)((u8*)Current - Current->PrevAllocationSize);
 
   return Result;
 }
