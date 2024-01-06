@@ -41,9 +41,9 @@ DebugPrint(volatile void* E, u32 Depth = 0)
 }
 
 link_internal void
-DebugPrint(void* E, u32 Depth = 0)
+DebugPrint(void *E, u32 Depth = 0)
 {
-  DebugChars("%*s%p", Depth, "", E);
+  DebugChars("%*s%p\n", Depth, "", E);
 }
 
 link_internal void
@@ -63,6 +63,13 @@ DebugPrint(counted_string E, u32 Depth = 0)
   {
     DebugChars("%*s'%S'", Depth, "", E);
   }
+}
+
+
+link_internal void
+DebugPrint(counted_string *E, u32 Depth = 0)
+{
+  if (E) { DebugPrint(*E, Depth); }
 }
 
 link_internal void

@@ -790,8 +790,6 @@ poof(
       }
 
       return Result;
-
-
     }
   }
 );
@@ -855,38 +853,42 @@ poof(
     }
 
     link_internal void
-    DebugPrint( (DUnion.type) Struct, u32 Depth)
+    DebugPrint( (DUnion.type) *Struct, u32 Depth)
     {
       DebugPrint("DUnion.type {\n", Depth);
 
-      switch(Struct.Type)
+      if (Struct)
       {
-        DUnion.map_members (M)
+        switch(Struct->Type)
         {
-          M.is_union?
+          DUnion.map_members (M)
           {
-            M.map_members (UnionMember)
+            M.is_union?
             {
-              case type_(UnionMember.type):
+              M.map_members (UnionMember)
               {
-                DebugPrint(Struct.(UnionMember.name), Depth+4);
-              } break;
+                case type_(UnionMember.type):
+                {
+                  DebugPrint(Struct->(UnionMember.name), Depth+4);
+                } break;
+              }
             }
           }
-        }
 
-        default : { DebugPrint("default while printing ((DUnion.type)) ((DUnion.name)) ", Depth+4); DebugLine("Type(%d)", Struct.Type); } break;
+          default : { DebugPrint("default while printing ((DUnion.type)) ((DUnion.name)) ", Depth+4); DebugLine("Type(%d)", Struct->Type); } break;
+        }
+      }
+      else
+      {
+        DebugPrint("(null)", Depth);
       }
       DebugPrint("}\n", Depth);
     }
 
     link_internal void
-    DebugPrint( (DUnion.type) *Struct, u32 Depth)
+    DebugPrint( (DUnion.type) Struct, u32 Depth)
     {
-      if (Struct)
-      {
-        DebugPrint(*Struct, Depth);
-      }
+      DebugPrint(&Struct, Depth);
     }
   }
 )
@@ -1632,59 +1634,66 @@ poof(
 poof(
   func debug_print_struct(StructDef)
   {
-    link_internal void DebugPrint( StructDef.name RuntimeStruct, u32 Depth = 0)
+    link_internal void DebugPrint( StructDef.name *RuntimeStruct, u32 Depth = 0)
     {
       /* if (Depth == 0) */
       {
-        DebugPrint("StructDef.name {\n", Depth);
+        DebugPrint("StructDef.name ", Depth);
       }
 
-      StructDef.map_members (Member)
+      if (RuntimeStruct)
       {
-        Member.is_defined?
+        DebugPrint("{\n", Depth);
+        StructDef.map_members (Member)
         {
-          Member.name?
+          Member.is_defined?
           {
-            Member.is_compound?
+            Member.name?
             {
-              DebugPrint("Member.type Member.name {\n", Depth+2);
-              DebugPrint(RuntimeStruct.(Member.name), Depth+4);
-              DebugPrint("}\n", Depth+2);
+              Member.is_compound?
+              {
+                DebugPrint("Member.type Member.name {\n", Depth+2);
+                DebugPrint(&RuntimeStruct->(Member.name), Depth+4);
+                DebugPrint("}\n", Depth+2);
+              }
+              {
+                Member.is_function?
+                {
+                  DebugPrint("Member.type Member.name = {function};", Depth+2);
+                }
+                // primitive
+                {
+                  DebugPrint("Member.type Member.name =", Depth+2);
+                  DebugPrint(&RuntimeStruct->(Member.name), 1);
+                  DebugPrint(";\n");
+                }
+              }
             }
+            // NOTE(Jesse): an anonymous struct or union
             {
-              Member.is_function?
-              {
-                DebugPrint("Member.type Member.name = {function};", Depth+2);
-              }
-              // primitive
-              {
-                DebugPrint("Member.type Member.name =", Depth+2);
-                DebugPrint(RuntimeStruct.(Member.name), 1);
-                DebugPrint(";\n");
-              }
+              DebugPrint("Member.type Member.name\n", Depth+2);
             }
           }
-          // NOTE(Jesse): an anonymous struct or union
+          // NOTE(Jesse): found no definition for this type.. probably an OS type
           {
-            DebugPrint("Member.type Member.name\n", Depth+2);
+            DebugPrint("poof_undefined_type ((Member.type) (Member.name))\n", Depth+2);
           }
         }
-        // NOTE(Jesse): found no definition for this type.. probably an OS type
+        /* if (Depth == 0) */
         {
-          DebugPrint("poof_undefined_type ((Member.type) (Member.name))\n", Depth+2);
+          DebugPrint("}\n", Depth);
         }
+      }
+      else
+      {
+        DebugPrint(" = (null)\n", Depth);
       }
 
-      /* if (Depth == 0) */
-      {
-        DebugPrint("}\n", Depth);
-      }
     }
 
-    link_internal void DebugPrint( StructDef.name *RuntimePtr, u32 Depth = 0)
+    link_internal void DebugPrint( StructDef.name RuntimePtr, u32 Depth = 0)
     {
-      if (RuntimePtr) { DebugPrint(*RuntimePtr, Depth); }
-      else { DebugPrint("ptr(0)\n", Depth); }
+      DebugPrint(&RuntimePtr, Depth);
     }
   }
 )
@@ -1722,7 +1731,7 @@ poof(
 
     struct (type.name)_block_array
     {
-      (type.name)_block First;
+      (type.name)_block *First;
       (type.name)_block *Current;
       memory_arena *Memory;
     };
@@ -1768,8 +1777,8 @@ poof(
     ZerothIndex((type.name)_block_array *Arr)
     {
       (type.name)_block_array_index Result = {};
-      Result.Block = &Arr->First;
-      Assert(Result.Block->Index == 0);
+      Result.Block = Arr->First;
+      /* Assert(Result.Block->Index == 0); */
       return Result;
     }
 
@@ -1835,7 +1844,7 @@ poof(
       umm ElementIndex = Index % n_elements;
 
       umm AtBlock = 0;
-      (type.name)_block *Block = &Arr->First;
+      (type.name)_block *Block = Arr->First;
       while (AtBlock++ < BlockIndex)
       {
         Block = Block->Next;
@@ -1887,7 +1896,7 @@ poof(
       if (Array->Current->At == 0)
       {
         // Walk the chain till we get to the second-last one
-        (type.name)_block *Current = &Array->First;
+        (type.name)_block *Current = Array->First;
         (type.name)_block *LastB = LastI.Block;
 
         while (Current->Next && Current->Next != LastB)
@@ -1905,7 +1914,7 @@ poof(
     {
       if (Array->Memory == 0) { Array->Memory = AllocateArena(); }
 
-      if (Array->Current == 0) { Array->First = *Allocate_(type.name)_block(Array->Memory); Array->Current = &Array->First; }
+      if (Array->First == 0) { Array->First = Allocate_(type.name)_block(Array->Memory); Array->Current = Array->First; }
 
       if (Array->Current->At == n_elements)
       {
