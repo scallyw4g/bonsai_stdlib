@@ -1,4 +1,5 @@
 Delimeter="$RED-----------------------------------------------------------$WHITE"
+ Indent="$WHITE           $WHITE-"
     Info="$BLUE   Info    $WHITE-"
 Success="$GREEN   Success $WHITE-"
 Building="$BLUE   Build   $WHITE-"
