@@ -869,7 +869,7 @@ poof(
               {
                 case type_(UnionMember.type):
                 {
-                  DebugPrint(Struct->(UnionMember.name), Depth+4);
+                  DebugPrint(&Struct->(UnionMember.name), Depth+4);
                 } break;
               }
             }
