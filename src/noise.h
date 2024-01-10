@@ -59,7 +59,7 @@ v2 hash( v2 x )   // this hash is not production ready, please
 #endif
 
 #if 1
-v3 hash( v3 p )      // this hash is not production ready, please
+v3 hash_v3( v3 p )      // this hash is not production ready, please
 {                    // replace this by something better
   p = V3( Dot(p, V3(127.1f,311.7f, 74.7f)),
           Dot(p, V3(269.5f,183.3f,246.1f)),
@@ -68,7 +68,7 @@ v3 hash( v3 p )      // this hash is not production ready, please
 }
 #endif
 
-float hash( float n ) { return Fract(Sin(n)*753.5453123f); }
+float hash_f32( float n ) { return Fract(Sin(n)*753.5453123f); }
 
 float hashf(v3 p)  // replace this by something better
 {
@@ -87,14 +87,14 @@ float IQ_QuinticGradientNoise( v3 x )
     v3 u = w*w*w*(w*(w*6.0-15.0)+10.0);
 
     // gradients
-    v3 ga = hash( p+V3(0.0f,0.0f,0.0f) );
-    v3 gb = hash( p+V3(1.0f,0.0f,0.0f) );
-    v3 gc = hash( p+V3(0.0f,1.0f,0.0f) );
-    v3 gd = hash( p+V3(1.0f,1.0f,0.0f) );
-    v3 ge = hash( p+V3(0.0f,0.0f,1.0f) );
-    v3 gf = hash( p+V3(1.0f,0.0f,1.0f) );
-    v3 gg = hash( p+V3(0.0f,1.0f,1.0f) );
-    v3 gh = hash( p+V3(1.0f,1.0f,1.0f) );
+    v3 ga = hash_v3( p+V3(0.0f,0.0f,0.0f) );
+    v3 gb = hash_v3( p+V3(1.0f,0.0f,0.0f) );
+    v3 gc = hash_v3( p+V3(0.0f,1.0f,0.0f) );
+    v3 gd = hash_v3( p+V3(1.0f,1.0f,0.0f) );
+    v3 ge = hash_v3( p+V3(0.0f,0.0f,1.0f) );
+    v3 gf = hash_v3( p+V3(1.0f,0.0f,1.0f) );
+    v3 gg = hash_v3( p+V3(0.0f,1.0f,1.0f) );
+    v3 gh = hash_v3( p+V3(1.0f,1.0f,1.0f) );
 
     // projections
     float va = Dot( ga, w-V3(0.0f,0.0f,0.0f) );
@@ -165,14 +165,14 @@ IQ_ValueNoise_AnalyticNormals(f32 xin, f32 yin, f32 zin, v3 *Normal)
 
   float n = p.x + p.y*157.0f + 113.0f*p.z;
 
-  float a = hash(n+  0.f);
-  float b = hash(n+  1.f);
-  float c = hash(n+157.f);
-  float d = hash(n+158.f);
-  float e = hash(n+113.f);
-  float f = hash(n+114.f);
-  float g = hash(n+270.f);
-  float h = hash(n+271.f);
+  float a = hash_f32(n+  0.f);
+  float b = hash_f32(n+  1.f);
+  float c = hash_f32(n+157.f);
+  float d = hash_f32(n+158.f);
+  float e = hash_f32(n+113.f);
+  float f = hash_f32(n+114.f);
+  float g = hash_f32(n+270.f);
+  float h = hash_f32(n+271.f);
 
   float k0 =   a;
   float k1 =   b - a;

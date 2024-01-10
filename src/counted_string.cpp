@@ -374,6 +374,11 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
             s64 Value = va_arg(Args, s64);
             s64ToChar(DestCursor, Value, FormatWidth);
           }
+          else if (CursorAt == 'x')
+          {
+            u64 Value = va_arg(Args, u64);
+            u64ToChar(DestCursor, Value, FormatWidth, 16, UpperHexChars);
+          }
         } break;
 
         case 'p':
@@ -384,8 +389,8 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
 
         case 'x':
         {
-          u64 Value = va_arg(Args, u64);
-          u64ToChar(DestCursor, Value, FormatWidth, 16, UpperHexChars);
+          u32 Value = va_arg(Args, u32);
+          u64ToChar(DestCursor, Cast(u64, Value), FormatWidth, 16, UpperHexChars);
         } break;
 
         case 'u':
@@ -658,6 +663,39 @@ CS(v2 V)
   counted_string Result = FormatCountedString(GetTranArena(), CSz("(%.2f,%.2f)"), (r64)V.x, (r64)V.y);
   return Result;
 }
+
+poof(
+  func to_hex_64(type_poof_symbol type_list)
+  {
+    type_list.map(type)
+    {
+      link_internal cs
+      ToHex( type.name Value )
+      {
+        cs Result = FSz("%lx", Value);
+        return Result;
+      }
+    }
+  }
+)
+
+poof(
+  func to_hex_32(type_list)
+  {
+    type_list.map(type)
+    {
+      link_internal cs
+      ToHex( type.name Value )
+      {
+        cs Result = FSz("%x", Value);
+        return Result;
+      }
+    }
+  }
+)
+
+poof(to_hex_64({s64 u64 r64}))
+#include <generated/to_hex_64_272205387.h>
 
 link_internal counted_string
 FormatThousands(u64 Number)

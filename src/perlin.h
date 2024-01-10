@@ -208,7 +208,7 @@ SmoothstepDeriv(f32 N)
 
 // https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L276
 link_internal u8
-hash(u8 x, u8 y, u8 z)
+hash_u8(u8 x, u8 y, u8 z)
 {
   return Global_PerlinIV[Global_PerlinIV[Global_PerlinIV[x] + y] + z];
 }
@@ -287,15 +287,15 @@ PerlinNoise_Derivitives0(f32 px, f32 py, f32 pz, v3 *derivs, v3 *Normal)
   float dw = SmoothstepDeriv(tz);
 
   // gradients at the corner of the cell
-  v3 c000 = Global_PerlinGradients[hash(xi, yi, zi)];
-  v3 c100 = Global_PerlinGradients[hash(xi + 1, yi, zi)];
-  v3 c010 = Global_PerlinGradients[hash(xi, yi + 1, zi)];
-  v3 c110 = Global_PerlinGradients[hash(xi + 1, yi + 1, zi)];
+  v3 c000 = Global_PerlinGradients[hash_u8(xi, yi, zi)];
+  v3 c100 = Global_PerlinGradients[hash_u8(xi + 1, yi, zi)];
+  v3 c010 = Global_PerlinGradients[hash_u8(xi, yi + 1, zi)];
+  v3 c110 = Global_PerlinGradients[hash_u8(xi + 1, yi + 1, zi)];
 
-  v3 c001 = Global_PerlinGradients[hash(xi, yi, zi + 1)];
-  v3 c101 = Global_PerlinGradients[hash(xi + 1, yi, zi + 1)];
-  v3 c011 = Global_PerlinGradients[hash(xi, yi + 1, zi + 1)];
-  v3 c111 = Global_PerlinGradients[hash(xi + 1, yi + 1, zi + 1)];
+  v3 c001 = Global_PerlinGradients[hash_u8(xi, yi, zi + 1)];
+  v3 c101 = Global_PerlinGradients[hash_u8(xi + 1, yi, zi + 1)];
+  v3 c011 = Global_PerlinGradients[hash_u8(xi, yi + 1, zi + 1)];
+  v3 c111 = Global_PerlinGradients[hash_u8(xi + 1, yi + 1, zi + 1)];
 
   // generate vectors going from the grid points to p
   float x0 = tx, x1 = tx - 1;
@@ -397,14 +397,14 @@ PerlinNoise_Derivitives1(r32 px, r32 py, r32 pz, v3 *derivs)
   float y0 = ty, y1 = ty - 1;
   float z0 = tz, z1 = tz - 1;
 
-  float a = gradientDotV(hash(xi0, yi0, zi0), x0, y0, z0);
-  float b = gradientDotV(hash(xi1, yi0, zi0), x1, y0, z0);
-  float c = gradientDotV(hash(xi0, yi1, zi0), x0, y1, z0);
-  float d = gradientDotV(hash(xi1, yi1, zi0), x1, y1, z0);
-  float e = gradientDotV(hash(xi0, yi0, zi1), x0, y0, z1);
-  float f = gradientDotV(hash(xi1, yi0, zi1), x1, y0, z1);
-  float g = gradientDotV(hash(xi0, yi1, zi1), x0, y1, z1);
-  float h = gradientDotV(hash(xi1, yi1, zi1), x1, y1, z1);
+  float a = gradientDotV(hash_u8(xi0, yi0, zi0), x0, y0, z0);
+  float b = gradientDotV(hash_u8(xi1, yi0, zi0), x1, y0, z0);
+  float c = gradientDotV(hash_u8(xi0, yi1, zi0), x0, y1, z0);
+  float d = gradientDotV(hash_u8(xi1, yi1, zi0), x1, y1, z0);
+  float e = gradientDotV(hash_u8(xi0, yi0, zi1), x0, y0, z1);
+  float f = gradientDotV(hash_u8(xi1, yi0, zi1), x1, y0, z1);
+  float g = gradientDotV(hash_u8(xi0, yi1, zi1), x0, y1, z1);
+  float h = gradientDotV(hash_u8(xi1, yi1, zi1), x1, y1, z1);
 
   float du = quinticDeriv(tx);
   float dv = quinticDeriv(ty);
