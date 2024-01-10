@@ -1421,7 +1421,7 @@ PeekTokenRawCursor(c_token_cursor *Tokens, s32 Direction, b32 CanSearchDown)
     {
       c_token_cursor *Down = HasValidDownPointer(Result.At);
       if (Down) { Assert(Result.At->Down == Result.At->Macro.Expansion); } // @janky-macro-expansion-struct-ordering
-                                                             //
+
       b32 SearchDown = CanSearchDown && Down && RemainingForDir(Down, Direction) > 0;
       if (SearchDown)
       {
@@ -1574,6 +1574,7 @@ PeekTokenRawPointer(parser* Parser, s32 Lookahead)
       T = Current.At;
     }
   }
+
   return T;
 }
 
@@ -1676,6 +1677,7 @@ PeekTokenPointer(parser* Parser, s32 Skip)
     peek_result C = PeekTokenCursor(Parser->Tokens, Skip);
     if (IsValid(&C)) Result = C.At;
   }
+
   return Result;
 }
 
@@ -2121,52 +2123,55 @@ link_internal b32
 TokenIsOperator(c_token *T)
 {
   b32 Result = False;
-  switch (T->Type)
+  if (T)
   {
-    case CTokenType_Ampersand:
-    case CTokenType_Tilde:
-    case CTokenType_Hat:
-    case CTokenType_LT:
-    case CTokenType_GT:
-    case CTokenType_Bang:
-    case CTokenType_LeftShift:
-    case CTokenType_RightShift:
-    case CTokenType_LessEqual:
-    case CTokenType_GreaterEqual:
-    case CTokenType_AreEqual:
-    case CTokenType_NotEqual:
-    case CTokenType_PlusEquals:
-    case CTokenType_MinusEquals:
-    case CTokenType_TimesEquals:
-    case CTokenType_DivEquals:
-    case CTokenType_ModEquals:
-    case CTokenType_AndEquals:
-    case CTokenType_OrEquals:
-    case CTokenType_XorEquals:
-    case CTokenType_Increment:
-    case CTokenType_Decrement:
-    case CTokenType_LogicalAnd:
-    case CTokenType_LogicalOr:
-    case CTokenType_Percent:
-    case CTokenType_Pipe:
-    case CTokenType_Plus:
-    case CTokenType_Minus:
-    case CTokenType_FSlash:
-    case CTokenType_Question:
-    case CTokenType_Star:
-    case CTokenType_OpenBracket:
-    case CTokenType_Arrow:
-    case CTokenType_Dot:
+    switch (T->Type)
     {
-      Result = True;
-    } break;
+      case CTokenType_Ampersand:
+      case CTokenType_Tilde:
+      case CTokenType_Hat:
+      case CTokenType_LT:
+      case CTokenType_GT:
+      case CTokenType_Bang:
+      case CTokenType_LeftShift:
+      case CTokenType_RightShift:
+      case CTokenType_LessEqual:
+      case CTokenType_GreaterEqual:
+      case CTokenType_AreEqual:
+      case CTokenType_NotEqual:
+      case CTokenType_PlusEquals:
+      case CTokenType_MinusEquals:
+      case CTokenType_TimesEquals:
+      case CTokenType_DivEquals:
+      case CTokenType_ModEquals:
+      case CTokenType_AndEquals:
+      case CTokenType_OrEquals:
+      case CTokenType_XorEquals:
+      case CTokenType_Increment:
+      case CTokenType_Decrement:
+      case CTokenType_LogicalAnd:
+      case CTokenType_LogicalOr:
+      case CTokenType_Percent:
+      case CTokenType_Pipe:
+      case CTokenType_Plus:
+      case CTokenType_Minus:
+      case CTokenType_FSlash:
+      case CTokenType_Question:
+      case CTokenType_Star:
+      case CTokenType_OpenBracket:
+      case CTokenType_Arrow:
+      case CTokenType_Dot:
+      {
+        Result = True;
+      } break;
 
-    case CTokenType_IntLiteral:
-    {
-      if (T->Flags & CTFlags_Signed) { Result = (T->as_s64 < 0); }
-    } break;
+      case CTokenType_IntLiteral:
+      {
+        if (T->Flags & CTFlags_Signed) { Result = (T->as_s64 < 0); }
+      } break;
 
-    default: {} break;
+      default: {} break;
+    }
   }
 
   return Result;

@@ -143,6 +143,8 @@ enum c_token_type
   CT_KeywordPragma,
   CT_KeywordAttribute,
 
+  // TODO(Jesse)(add_sizeof_keyword): Add this?
+  // CT_Keyword_Sizeof,
   CT_StaticAssert,
 
   CTokenType_Extern,
