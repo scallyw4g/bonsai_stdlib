@@ -40,6 +40,7 @@ enum parse_error_code
   ParseErrorCode_InvalidArgumentType,
   ParseErrorCode_InvalidArgumentCount,
   ParseErrorCode_InvalidName,
+  ParseErrorCode_InvalidTag,
   ParseErrorCode_InvalidFunction,
   ParseErrorCode_SyntaxError,
   ParseErrorCode_NotImplemented, // NOTE(Jesse): This means the compiler should support this case, but doesn't
