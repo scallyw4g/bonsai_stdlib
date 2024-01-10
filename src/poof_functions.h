@@ -697,7 +697,6 @@ poof(
 poof(
   func hashtable_impl(Type)
   {
-
     link_internal (Type.name)_linked_list_node *
     Allocate_(Type.name)_linked_list_node(memory_arena *Memory)
     {
@@ -758,6 +757,67 @@ poof(
       Bucket->Element = Element;
       Insert(Bucket, Table);
       return &Bucket->Element;
+    }
+
+    //
+    // Iterator impl.
+    //
+
+    struct (Type.name)_hashtable_iterator
+    {
+      umm HashIndex;
+      (Type.name)_hashtable *Table;
+      (Type.name)_linked_list_node *Node;
+    };
+
+    link_internal (Type.name)_hashtable_iterator
+    operator++( (Type.name)_hashtable_iterator &Iterator )
+    {
+      if (Iterator.Node)
+      {
+        Iterator.Node = Iterator.Node->Next;
+      }
+      else
+      {
+        Assert (Iterator.HashIndex < Iterator.Table->Size );
+        Iterator.Node = Iterator.Table->Elements[++Iterator.HashIndex];
+      }
+
+      return Iterator;
+    }
+
+    link_internal b32
+    operator<( (Type.name)_hashtable_iterator I0, (Type.name)_hashtable_iterator I1)
+    {
+      b32 Result = I0.HashIndex < I1.HashIndex;
+      return Result;
+    }
+
+    link_inline (Type.name)_hashtable_iterator
+    ZerothIndex((Type.name)_hashtable *Hashtable)
+    {
+      (Type.name)_hashtable_iterator Iterator = {};
+      Iterator.Table = Hashtable;
+      Iterator.Node = Hashtable->Elements[0];
+      return Iterator;
+    }
+
+    link_inline (Type.name)_hashtable_iterator
+    AtElements((Type.name)_hashtable *Hashtable)
+    {
+      (Type.name)_hashtable_iterator Result = { Hashtable->Size, 0, 0 };
+      return Result;
+    }
+
+    link_inline Type.name *
+    GetPtr((Type.name)_hashtable *Hashtable, (Type.name)_hashtable_iterator Iterator)
+    {
+      Type.name *Result = {};
+      if (Iterator.Node)
+      {
+        Result = &Iterator.Node->Element;
+      }
+      return Result;
     }
   }
 )
