@@ -51,7 +51,7 @@
 #endif // BONSAI_INTERNAL
 
 
-#if DEBUG_SYSTEM_API
+#if BONSAI_DEBUG_SYSTEM_API
 #define TriggeredRuntimeBreak(BoolPointer) do { if (*(BoolPointer)) { *(BoolPointer) = False; RuntimeBreak(); } } while (0)
 
 #else

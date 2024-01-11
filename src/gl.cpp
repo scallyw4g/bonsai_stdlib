@@ -428,7 +428,7 @@ HandleGlDebugMessage(GLenum Source, GLenum Type, GLuint Id, GLenum Severity,
 inline void
 BufferDataToCard(u32 BufferId, u32 Stride, u32 ByteCount, void *Data, u32 *AttributeIndex)
 {
-#if DEBUG_SYSTEM_API
+#if BONSAI_DEBUG_SYSTEM_API
   debug_state *DebugState = GetDebugState();
   DebugState->BytesBufferedToCard += ByteCount;
 #endif

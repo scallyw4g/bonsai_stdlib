@@ -39,7 +39,7 @@ InitializeBonsaiStdlib( bonsai_init_flags Flags,
 
   if (Flags & BonsaiInit_InitDebugSystem)
   {
-#if DEBUG_SYSTEM_API && DEBUG_SYSTEM_LOADER_API
+#if BONSAI_DEBUG_SYSTEM_API && BONSAI_DEBUG_SYSTEM_LOADER_API
     auto DebugSystem = &Stdlib->DebugSystem;
     {
       DebugSystem->Lib = OpenLibrary("./bin/lib_debug_system_loadable" PLATFORM_RUNTIME_LIB_EXTENSION);
@@ -50,8 +50,10 @@ InitializeBonsaiStdlib( bonsai_init_flags Flags,
 
     DebugSystem->Api.BonsaiDebug_OnLoad(GetDebugState(), Global_ThreadStates, BONSAI_INTERNAL);
     Ensure( DebugSystem->Api.InitDebugState(Global_DebugStatePointer) );
+
+    MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(GetDt());
 #else
-    Error("Asked to init debug system when DEBUG_SYSTEM_API was not compiled in!");
+    Error("Asked to init debug system when BONSAI_DEBUG_SYSTEM_API was not compiled in!");
 #endif
   }
 

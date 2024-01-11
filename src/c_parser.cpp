@@ -2523,6 +2523,8 @@ EatSpacesTabsEscapedNewlinesAndComments(parser *Parser)
 link_internal void
 EatWhitespaceAndComments(parser *Parser)
 {
+  TIMED_FUNCTION();
+
   while ( c_token *T = PeekTokenRawPointer(Parser) )
   {
     if (IsWhitespace(T))

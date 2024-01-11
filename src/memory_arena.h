@@ -147,7 +147,7 @@ struct memory_arena
 #define STRINGIZE2(x) #x
 #define LINE_STRING STRINGIZE(__LINE__)
 
-#if DEBUG_SYSTEM_API
+#if BONSAI_DEBUG_SYSTEM_API
 
 #define AllocateProtection(Type, Arena, Number, Protection)                                                                                              \
   ( GetDebugState() ?                                                                                                                   \
@@ -182,7 +182,7 @@ void noop() {}
 
 
       //
-#else // DEBUG_SYSTEM_API
+#else // BONSAI_DEBUG_SYSTEM_API
       //
 
 #define AllocateProtection(Type, Arena, Number, Protection) \
@@ -735,11 +735,15 @@ struct temp_memory_handle
 link_internal void
 EndTemporaryMemory(temp_memory_handle *Handle, b32 ReportLeaks)
 {
+
   memory_arena *Arena = Handle->Arena;
   u8 *BeginMark = Handle->BeginMark;
   if (Contains(Arena->Start, BeginMark, Arena->End))
   {
     Assert(BeginMark <= Arena->At);
+
+    /* s64 Size = Arena->At-BeginMark; */
+    /* Info("Clearing Size(%lu)", Size); */
 
 #if 1
     // TODO(Jesse): Improve this from its current state of a thunk to memset

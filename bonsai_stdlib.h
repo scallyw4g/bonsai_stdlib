@@ -61,7 +61,7 @@ struct camera;
 
 #include <bonsai_stdlib/src/debug_ui.h>
 
-#if DEBUG_SYSTEM_API
+#if BONSAI_DEBUG_SYSTEM_API
   #include <bonsai_debug/debug.h>
   #include <bonsai_debug/src/api.h>
 #else

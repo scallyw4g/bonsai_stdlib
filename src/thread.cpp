@@ -102,7 +102,7 @@ WorkerThread_BeforeJobStart(thread_startup_params *StartupParams)
 {
   if (ThreadLocal_ThreadIndex == INVALID_THREAD_LOCAL_THREAD_INDEX) { SetThreadLocal_ThreadIndex(StartupParams->ThreadIndex); }
 
-#if DEBUG_SYSTEM_API 
+#if BONSAI_DEBUG_SYSTEM_API 
   Assert(GetDebugState());
 #endif
 

@@ -7,8 +7,13 @@
 // #define SCR_HEIGHT (1080)
 
 
+#ifndef BONSAI_SHADER_PATH
 #define BONSAI_SHADER_PATH "shaders/"
+#endif
+
+#ifndef STDLIB_SHADER_PATH
 #define STDLIB_SHADER_PATH "external/bonsai_stdlib/shaders/"
+#endif
 
 #include <bonsai_stdlib/src/memory_arena.cpp>
 #include <bonsai_stdlib/src/vector.cpp>
