@@ -156,24 +156,19 @@ WithinTolerance(f32 Epsilon, v3 A, v3 B)
   return Result;
 }
 
-// TODO(Jesse): These comparisons looks backwards and fucky, but they're
-// correct for where they're present in the UI.  We should audit and make this
-// more what someone would expect when they see a function like this, which should
-// be something like "A is within Epsilon of B", but now it's "B is outside Epsilon of A"
-//
-// (I think.. I'm sick right now and my brain's not working)
-//
 link_internal b32
-CloseEnough(f32 Epsilon, f32 A, f32 B)
+WithinTolerance(f32 Epsilon, f32 A, f32 B)
 {
-  b32 Result = (A+Epsilon < B && A-Epsilon > B);
+  b32 Result = (A+Epsilon > B && A-Epsilon < B);
   return Result;
 }
 
 link_internal void
 NewRow(layout *Layout)
 {
-  r32 Epsilon = 0.0001f;
+  // NOTE(Jesse): This epsilon is INSANELY (in caps!) big.  Should find a
+  // better way to deal with this.  It's a bit of a weird hack anyways..
+  r32 Epsilon = 0.01f;
   while (Layout)
   {
 #if 1
@@ -189,7 +184,7 @@ NewRow(layout *Layout)
   // layout, and do advance the DrawBounds
   //
   r32 VerticalAdvance = 0.f;
-  if (CloseEnough(Epsilon, Layout->At.y, Layout->DrawBounds.Max.y)) { VerticalAdvance = Global_Font.Size.y; }
+  if (WithinTolerance(Epsilon, Layout->At.y, Layout->DrawBounds.Max.y)) { VerticalAdvance = Global_Font.Size.y; }
 
   Layout->At.x = Layout->Padding.Left;
 
@@ -821,8 +816,14 @@ PushColumn(renderer_2d *Group, counted_string String, ui_style* Style = &Default
   u32 StartIndex = StartColumn(Group, Style, Padding, Params);
     Text(Group, String, Style);
   EndColumn(Group, StartIndex);
+}
 
-  return;
+link_internal void
+PushColumn(renderer_2d *Group, counted_string String, column_render_params Params)
+{
+  u32 StartIndex = StartColumn(Group, &DefaultStyle, DefaultColumnPadding, Params);
+    Text(Group, String, &DefaultStyle);
+  EndColumn(Group, StartIndex);
 }
 
 link_internal void
