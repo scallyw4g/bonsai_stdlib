@@ -65,23 +65,30 @@ struct m_nxn
 link_internal  v4
 TransformColumnMajor(m4 A, v4 P)
 {
-    v4 R;
-    R.x = P.x*A.E[0][0] + P.y*A.E[1][0] + P.z*A.E[2][0] + P.w*A.E[3][0];
-    R.y = P.x*A.E[0][1] + P.y*A.E[1][1] + P.z*A.E[2][1] + P.w*A.E[3][1];
-    R.z = P.x*A.E[0][2] + P.y*A.E[1][2] + P.z*A.E[2][2] + P.w*A.E[3][2];
-    R.w = P.x*A.E[0][3] + P.y*A.E[1][3] + P.z*A.E[2][3] + P.w*A.E[3][3];
-    return(R);
+  v4 R;
+  R.x = P.x*A.E[0][0] + P.y*A.E[1][0] + P.z*A.E[2][0] + P.w*A.E[3][0];
+  R.y = P.x*A.E[0][1] + P.y*A.E[1][1] + P.z*A.E[2][1] + P.w*A.E[3][1];
+  R.z = P.x*A.E[0][2] + P.y*A.E[1][2] + P.z*A.E[2][2] + P.w*A.E[3][2];
+  R.w = P.x*A.E[0][3] + P.y*A.E[1][3] + P.z*A.E[2][3] + P.w*A.E[3][3];
+  return(R);
 }
 
 link_internal  v4
 TransformRowMajor(m4 A, v4 P)
 {
-    v4 R;
-    R.x = P.x*A.E[0][0] + P.y*A.E[0][1] + P.z*A.E[0][2] + P.w*A.E[0][3];
-    R.y = P.x*A.E[1][0] + P.y*A.E[1][1] + P.z*A.E[1][2] + P.w*A.E[1][3];
-    R.z = P.x*A.E[2][0] + P.y*A.E[2][1] + P.z*A.E[2][2] + P.w*A.E[2][3];
-    R.w = P.x*A.E[3][0] + P.y*A.E[3][1] + P.z*A.E[3][2] + P.w*A.E[3][3];
-    return(R);
+  v4 R;
+  R.x = P.x*A.E[0][0] + P.y*A.E[0][1] + P.z*A.E[0][2] + P.w*A.E[0][3];
+  R.y = P.x*A.E[1][0] + P.y*A.E[1][1] + P.z*A.E[1][2] + P.w*A.E[1][3];
+  R.z = P.x*A.E[2][0] + P.y*A.E[2][1] + P.z*A.E[2][2] + P.w*A.E[2][3];
+  R.w = P.x*A.E[3][0] + P.y*A.E[3][1] + P.z*A.E[3][2] + P.w*A.E[3][3];
+  return(R);
+}
+
+v4
+operator*(m4 A, v4 B)
+{
+  v4 Result = TransformColumnMajor(A, B);
+  return Result;
 }
 
 m4
