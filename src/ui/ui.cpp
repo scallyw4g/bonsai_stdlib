@@ -661,7 +661,7 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
     rect2 AbsBounds = RectMinMax(StartingP, EndingP);
     BufferBorder(Group, AbsBounds, V3(0, 0, 1), Z, DISABLE_CLIPPING);
 
-    if (GetUiDebug && GetUiDebug()->DebugBreakOnClick)
+    if (GetUiDebug && GetUiDebug()->DebugBreakOnElementClick)
     {
       if ( IsInsideRect(AbsBounds, *Group->MouseP) && Group->Input->LMB.Clicked ) { RuntimeBreak(); }
     }
@@ -805,6 +805,9 @@ StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_
   };
 
   Command.ui_render_command_column_start.Layout.Padding = Padding;
+
+  Assert(Command.ui_render_command_column_start.Layout.DrawBounds.Min == InvertedInfinityRectangle().Min);
+  Assert(Command.ui_render_command_column_start.Layout.DrawBounds.Max == InvertedInfinityRectangle().Max);
 
   u32 Result = PushUiRenderCommand(Group, &Command);
   return Result;
@@ -1333,7 +1336,7 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, umm InteractionId, window_la
   {
     BufferBorder(Group, Rect2(Interaction), V3(1,0,0), 1.0f, DISABLE_CLIPPING);
 
-    if (GetUiDebug && GetUiDebug()->DebugBreakOnClick)
+    if (GetUiDebug && GetUiDebug()->DebugBreakOnElementClick)
     {
       if ( IsInsideRect(Rect2(Interaction), *Group->MouseP) && Group->Input->LMB.Clicked ) { RuntimeBreak(); }
     }
@@ -1603,9 +1606,15 @@ DrawFileNodes(renderer_2d *Ui, file_traversal_node Node)
 link_internal void
 PushLayout(layout** Dest, layout* Layout)
 {
+  /* Layout->DrawBounds = InvertedInfinityRectangle(); */
+
   Assert(!Layout->Prev);
   Layout->Prev = *Dest;
   *Dest = Layout;
+
+/*   if (Layout != &GlobalLightPosition */
+  /* Assert(Layout->At == V2(0)); */
+  /* Info("%f %f", double(Layout->At.x), r64(Layout->At.y)); */
 
   // NOTE(Jesse): We have to do this such that the padding we're about to advance
   // by gets accounted for (or, rather, the basis we're starting at is accurate).
@@ -2148,6 +2157,17 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
             }
           } break;
 
+          case type_ui_render_command_untextured_quad:
+          {
+            // TODO(Jesse): Should this not be represented?  The assert in here fires sometimes (when opening entities)
+            /* if (SubTableCount == 0) */
+            /* { */
+            /*   ui_render_command_untextured_quad* TypedCommand = RenderCommandAs(untextured_quad, Command); */
+            /*   Assert(CurrentWidth); */
+            /*   *CurrentWidth += TypedCommand->QuadDim.x; */
+            /* } */
+          } break;
+
           case type_ui_render_command_textured_quad:
           {
             if (SubTableCount == 0)
@@ -2450,7 +2470,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           rect2 AbsDrawBounds = GetAbsoluteDrawBounds(RenderState->Layout);
           BufferBorder(Group, AbsDrawBounds, V3(0,0,1), 0.9f, DISABLE_CLIPPING);
 
-          if (GetUiDebug && GetUiDebug()->DebugBreakOnClick)
+          if (GetUiDebug && GetUiDebug()->DebugBreakOnElementClick)
           {
             if ( IsInsideRect(AbsDrawBounds, *Group->MouseP) &&
                  Group->Input->LMB.Clicked )
@@ -2480,9 +2500,10 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         PushLayout(&RenderState->Layout, &TypedCommand->Layout);
 
+        v2 Advance = {};
         if (TypedCommand->Params & ColumnRenderParam_RightAlign)
         {
-          v2 Advance = V2(TypedCommand->MaxWidth - TypedCommand->Width, 0);
+          Advance = V2(TypedCommand->MaxWidth - TypedCommand->Width, 0);
           AdvanceLayoutStackBy(Advance, RenderState->Layout);
         }
       } break;
@@ -2494,9 +2515,10 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         ui_render_command *StartCommandBase = CommandBuffer->Commands + TypedCommand->StartCommandIndex;
         ui_render_command_column_start *StartCommand = RenderCommandAs(column_start, StartCommandBase);
 
+        v2 Advance = {};
         if (StartCommand->Params == ColumnRenderParam_LeftAlign)
         {
-          v2 Advance = V2(StartCommand->MaxWidth - StartCommand->Width, 0);
+          Advance = V2(StartCommand->MaxWidth - StartCommand->Width, 0);
           AdvanceLayoutStackBy(Advance, RenderState->Layout);
         }
 
@@ -2505,6 +2527,11 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         {
           rect2 AbsDrawBounds = GetAbsoluteDrawBounds(RenderState->Layout);
           BufferBorder(Group, AbsDrawBounds, Normalize(V3(1,0,1)), 0.9f, DISABLE_CLIPPING);
+
+          if (GetUiDebug()->DebugBreakOnElementClick)
+          {
+            if ( IsInsideRect(AbsDrawBounds, *Group->MouseP) && Group->Input->LMB.Clicked ) { RuntimeBreak(); }
+          }
         }
 #endif
 

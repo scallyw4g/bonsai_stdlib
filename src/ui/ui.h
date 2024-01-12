@@ -33,7 +33,7 @@ struct ui_debug
   b8 OutlineUiTables;
   b8 OutlineUiTableColumns;
 
-  b8 DebugBreakOnClick;
+  b8 DebugBreakOnElementClick;
   b8 DebugBreakUiCommand;
 };
 
