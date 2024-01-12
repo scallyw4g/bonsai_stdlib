@@ -373,7 +373,7 @@ debug_global v4 DefaultButtonPadding = DefaultColumnPadding;
 /* debug_global v4 DefaultButtonPadding = V4(15); */
 /* debug_global v4 DefaultButtonPadding = V4(0); */
 
-debug_global ui_style DefaultStyle         = UiStyleFromLightestColor(V3(1));
+debug_global ui_style DefaultStyle         = UiStyleFromLightestColor(V3(0.8f));
 debug_global ui_style DefaultSelectedStyle = UiStyleFromLightestColor(V3(.6f, 1.f, .6f));
 debug_global ui_style DefaultBlurredStyle  = UiStyleFromLightestColor(V3(.25f, .25f, .25f));
 
