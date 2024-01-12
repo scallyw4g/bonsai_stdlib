@@ -746,6 +746,19 @@ PushUiRenderCommand(renderer_2d *Group, ui_render_command* Command)
 }
 
 link_internal void
+PushDebugCommand(renderer_2d *Group)
+{
+  ui_render_command Command = {
+    .Type = type_ui_render_command_debug,
+  };
+
+  PushUiRenderCommand(Group, &Command);
+
+  // NOTE(Jesse): This doesn't really work because the thing that toggles DebugBreakUiCommand happens last in the UI ..
+  /* if (GetUiDebug && GetUiDebug()->DebugBreakUiCommand) { RuntimeBreak(); } */
+}
+
+link_internal void
 PushNewRow(renderer_2d *Group)
 {
   ui_render_command Command = {
@@ -1136,7 +1149,6 @@ PushWindowStartInternal( renderer_2d *Group,
   PushForceAdvance(Group, V2(Global_TitleBarPadding));
 
   Text(Group, TitleText, &DefaultStyle, TextRenderParam_DisableClipping );
-  /* PushForceAdvance(Group, V2(.0f, Global_TitleBarPadding)); */
 
   if (!Window->Minimized)
   {
@@ -1150,18 +1162,17 @@ PushWindowStartInternal( renderer_2d *Group,
   PushButtonEnd(Group);
 
   PushBorder(Group, AbsWindowBounds, TitleBarStyle.HoverColor, UI_WINDOW_BORDER_DEFAULT_WIDTH);
-  /* PushBorder(Group, AbsWindowBounds, V3(0.5f), V4(2.f)); */
 
   ui_style BackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
   PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &BackgroundStyle);
-
-  PushForceAdvance(Group, V2(0.f, Global_TitleBarHeight));
-  PushForceAdvance(Group, V2(0.f, Global_TitleBarPadding));
-
   PushNewRow(Group);
+
+/*   PushResetDrawBounds(Group); */
+
   PushForceUpdateBasis(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f);
   PushForceUpdateBasis(Group, WindowScroll);
-  PushResetDrawBounds(Group);
+
+  /* PushResetDrawBounds(Group); */
 }
 
 link_internal void
@@ -1534,6 +1545,7 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_FUNCTION_PROTO_NAMES)
         PushNewRow(Ui);
       }
     }
+  PushNewRow(Ui);
   PushTableEnd(Ui);
   return Result;
 }
@@ -2102,10 +2114,11 @@ FindRelativeDrawBoundsBetween(ui_render_command_buffer* CommandBuffer, v2 Relati
 //
 
 link_internal u32
-PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
+PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
 {
   u32 OnePastTableEnd = StartingIndex;
   u16 ColumnCount = 0;
+  u16 RowCount = 0;
 
   {
     u32 NextCommandIndex = StartingIndex;
@@ -2161,6 +2174,7 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
             {
               CurrentWidth = 0;
               NextColumnIndex = 0;
+              ++RowCount;
             }
           } break;
 
@@ -2300,6 +2314,7 @@ PreprocessTable(ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
     }
   }
 
+
   return OnePastTableEnd;
 }
 
@@ -2315,6 +2330,11 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
     switch(Command->Type)
     {
       InvalidCase(type_ui_render_command_noop);
+
+      case type_ui_render_command_debug:
+      {
+        if (GetUiDebug && GetUiDebug()->DebugBreakUiCommand) { RuntimeBreak(); }
+      } break;
 
       case type_ui_render_command_window_start:
       {
@@ -2383,7 +2403,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
       case type_ui_render_command_table_start:
       {
-        u32 OnePastTableEnd = PreprocessTable(CommandBuffer, NextCommandIndex);
+        u32 OnePastTableEnd = PreprocessTable(Group, RenderState, CommandBuffer, NextCommandIndex);
         if (OnePastTableEnd)
         {
           ui_render_command_table_start* TypedCommand = RenderCommandAs(table_start, Command);
@@ -2425,8 +2445,6 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
       case type_ui_render_command_table_end:
       {
-        if (RenderState->Layout->At.x > 0.0f) { AdvanceLayoutStackBy( V2(0.f, Global_Font.Size.y), RenderState->Layout); }
-
         if (GetUiDebug && GetUiDebug()->OutlineUiTables)
         {
           rect2 AbsDrawBounds = GetAbsoluteDrawBounds(RenderState->Layout);
@@ -2446,8 +2464,13 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         // PopLayout here, but I don't super want to change it without a test..
         PopLayout(&RenderState->Layout);
 
-        // NOTE(Jesse): This is here so we vertical-advance if we were drawing a row of stuff
-        NewRow(RenderState->Layout);
+        // NOTE(Jesse): This is a bug, not a feature.  If this is here there's no way to have
+        // tables inline next to one-another, except by using position, which is annoying.
+        //
+        // In addition, I was seeing some wacky positioning when doing this that I didn't
+        // totally hunt down, but I was able to get the positioning to behave when I removed
+        // this, so suffice to say there are a few reasons this is a bug...
+        /* NewRow(RenderState->Layout); */
       } break;
 
       case type_ui_render_command_column_start:
@@ -2476,6 +2499,14 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           v2 Advance = V2(StartCommand->MaxWidth - StartCommand->Width, 0);
           AdvanceLayoutStackBy(Advance, RenderState->Layout);
         }
+
+#if 1
+        if (GetUiDebug && GetUiDebug()->OutlineUiTableColumns)
+        {
+          rect2 AbsDrawBounds = GetAbsoluteDrawBounds(RenderState->Layout);
+          BufferBorder(Group, AbsDrawBounds, Normalize(V3(1,0,1)), 0.9f, DISABLE_CLIPPING);
+        }
+#endif
 
         PopLayout(&RenderState->Layout);
       } break;
@@ -2580,15 +2611,22 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         AdvanceLayoutStackBy(TypedCommand->Offset, RenderState->Layout);
       } break;
 
-      case type_ui_render_command_reset_draw_bounds:
-      {
-        RenderState->Layout->DrawBounds = InvertedInfinityRectangle();
-      } break;
-
       case type_ui_render_command_force_update_basis:
       {
         ui_render_command_force_update_basis* TypedCommand = RenderCommandAs(force_update_basis, Command);
+        /* AdvanceLayoutStackBy(TypedCommand->Offset, RenderState->Layout); */
         RenderState->Layout->Basis += TypedCommand->Offset;
+        /* RenderState->Layout->DrawBounds.Min -= TypedCommand->Offset; */
+        /* RenderState->Layout->DrawBounds.Max -= TypedCommand->Offset; */
+        /* AdvanceLayoutStackBy(TypedCommand->Offset, RenderState->Layout); */
+        AdvanceLayoutStackBy(V2(0), RenderState->Layout);
+        /* UpdateDrawBounds(RenderState->Layout); */
+
+      } break;
+
+      case type_ui_render_command_reset_draw_bounds:
+      {
+        RenderState->Layout->DrawBounds = InvertedInfinityRectangle();
       } break;
     }
 
@@ -2640,6 +2678,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_force_advance:
       case type_ui_render_command_force_update_basis:
       case type_ui_render_command_reset_draw_bounds:
+      case type_ui_render_command_debug:
         { break; }
 
       case type_ui_render_command_textured_quad:
@@ -2866,4 +2905,5 @@ UiFrameEnd(renderer_2d *Ui)
   }
 
   Ui->CommandBuffer->CommandCount = 0;
+  if (GetUiDebug) { GetUiDebug()->DebugBreakUiCommand = False; }
 }

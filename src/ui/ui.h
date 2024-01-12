@@ -31,8 +31,10 @@ struct ui_debug
   b8 OutlineUiValues;
   b8 OutlineUiButtons;
   b8 OutlineUiTables;
+  b8 OutlineUiTableColumns;
 
   b8 DebugBreakOnClick;
+  b8 DebugBreakUiCommand;
 };
 
 link_weak ui_debug *GetUiDebug();
@@ -67,8 +69,9 @@ enum window_layout_flags
 
   WindowLayoutFlag_StartupAlign_Right      = (1 << 3),
   WindowLayoutFlag_StartupAlign_Bottom     = (1 << 4),
+  WindowLayoutFlag_StartupAlign_BottomRight = (WindowLayoutFlag_StartupAlign_Right|WindowLayoutFlag_StartupAlign_Bottom),
 
-  WindowLayoutFlag_Default = (WindowLayoutFlag_DynamicSize|WindowLayoutFlag_StartupSize_Infer),
+  WindowLayoutFlag_Default                  = (WindowLayoutFlag_DynamicSize|WindowLayoutFlag_StartupSize_Infer),
 };
 
 struct window_layout
@@ -588,6 +591,8 @@ poof(
     ui_render_command_new_row           enum_only
     ui_render_command_table_end         enum_only
     ui_render_command_reset_draw_bounds enum_only
+
+    ui_render_command_debug             enum_only
   }
 )
 #include <generated/d_union_ui_render_command.h>
