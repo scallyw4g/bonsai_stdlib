@@ -112,14 +112,18 @@ ToggledOn(renderer_2d *Ui, ui_toggle_button_group *Group, cs ButtonName)
 inline void
 UpdateDrawBounds(layout *Layout, v2 LayoutRelativeTestP)
 {
-  v2 AbsP = Layout->Basis + LayoutRelativeTestP;
-  while (Layout)
+  // I know it's tempting.. but don't..
+  /* if (LayoutRelativeTestP.x != 0.f || LayoutRelativeTestP.y != 0.f) */
   {
-    v2 LayoutRelP = AbsP - Layout->Basis;
-    Layout->DrawBounds.Min = Min(LayoutRelP, Layout->DrawBounds.Min);
-    Layout->DrawBounds.Max = Max(LayoutRelP, Layout->DrawBounds.Max);
+    v2 AbsP = Layout->Basis + LayoutRelativeTestP;
+    while (Layout)
+    {
+      v2 LayoutRelP = AbsP - Layout->Basis;
+      Layout->DrawBounds.Min = Min(LayoutRelP, Layout->DrawBounds.Min);
+      Layout->DrawBounds.Max = Max(LayoutRelP, Layout->DrawBounds.Max);
 
-    Layout = Layout->Prev;
+      Layout = Layout->Prev;
+    }
   }
 }
 
@@ -1175,7 +1179,7 @@ PushWindowStartInternal( renderer_2d *Group,
   PushForceUpdateBasis(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f);
   PushForceUpdateBasis(Group, WindowScroll);
 
-  /* PushResetDrawBounds(Group); */
+  PushResetDrawBounds(Group);
 }
 
 link_internal void
@@ -1594,8 +1598,8 @@ DrawFileNodes(renderer_2d *Ui, file_traversal_node Node)
 
 #define GetCommandAs(TypeName, CommandBuffer, CommandIndex)                     \
   &(GetCommand((CommandBuffer), (CommandIndex))->ui_render_command_##TypeName); \
-  ui_render_command* TempCommand = GetCommand((CommandBuffer), (CommandIndex)); \
-  Assert(TempCommand->Type == type_ui_render_command_##TypeName)
+  do {ui_render_command* TempCommand = GetCommand((CommandBuffer), (CommandIndex)); \
+  Assert(TempCommand->Type == type_ui_render_command_##TypeName);} while (false)
 
 
 #define RenderCommandAs(TypeName, Command)                                  \
@@ -2122,16 +2126,16 @@ FindRelativeDrawBoundsBetween(ui_render_command_buffer* CommandBuffer, v2 Relati
 // 3. Write the max width to each column command in the table
 //
 
-link_internal u32
+link_internal table_info
 PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_buffer* CommandBuffer, u32 StartingIndex)
 {
-  u32 OnePastTableEnd = StartingIndex;
-  u16 ColumnCount = 0;
-  u16 RowCount = 0;
+  table_info Result = {};
+
+  Result.OnePastTableEnd = StartingIndex;
 
   {
     u32 NextCommandIndex = StartingIndex;
-    u16 NextColumnIndex = 0;
+    u32 NextColumnIndex = 0;
 
     b32 FoundEnd = False;
     ui_render_command* Command = GetCommand(CommandBuffer, NextCommandIndex++);
@@ -2147,14 +2151,14 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
           {
             if (SubTableCount == 0)
             {
-              ++NextColumnIndex;
-              ColumnCount = (u16)Max(ColumnCount, NextColumnIndex);
+            ++NextColumnIndex;
+              Result.ColumnCount = Max(Result.ColumnCount, NextColumnIndex);
               Assert(NextColumnIndex <= u16_MAX);
-
-              ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
-              CurrentWidth = &TypedCommand->Width;
-              *CurrentWidth += TypedCommand->Layout.Padding.Left + TypedCommand->Layout.Padding.Right;
             }
+
+            ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
+            CurrentWidth = &TypedCommand->Width;
+            *CurrentWidth += TypedCommand->Layout.Padding.Left + TypedCommand->Layout.Padding.Right;
           } break;
 
           case type_ui_render_command_untextured_quad:
@@ -2194,7 +2198,7 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
             {
               CurrentWidth = 0;
               NextColumnIndex = 0;
-              ++RowCount;
+            ++Result.RowCount;
             }
           } break;
 
@@ -2205,6 +2209,8 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
 
           case type_ui_render_command_table_end:
           {
+            ui_render_command_table_end* TypedCommand = RenderCommandAs(table_end, Command);
+            TypedCommand->TableStartIndex = StartingIndex-1;
             if (SubTableCount)
             {
               --SubTableCount;
@@ -2212,7 +2218,7 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
             else
             {
               FoundEnd = True;
-              OnePastTableEnd = NextCommandIndex;
+              Result.OnePastTableEnd = NextCommandIndex;
             }
           } break;
 
@@ -2223,14 +2229,14 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
     }
   }
 
-  r32* MaxColumnWidths = Allocate(r32, GetTranArena(), ColumnCount);
+  Result.ColumnWidths = Allocate(r32, GetTranArena(), Result.ColumnCount);
 
   {
     u32 SubTableCount = 0;
 
     u32 NextColumnIndex = 0;
     for (u32 CommandIndex = StartingIndex;
-             CommandIndex < OnePastTableEnd;
+             CommandIndex < Result.OnePastTableEnd;
            ++CommandIndex)
     {
       ui_render_command* Command = GetCommand(CommandBuffer, CommandIndex);
@@ -2240,9 +2246,10 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
           {
             if (SubTableCount == 0)
             {
-              Assert(NextColumnIndex < ColumnCount);
               ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
-              MaxColumnWidths[NextColumnIndex] = Max(MaxColumnWidths[NextColumnIndex], TypedCommand->Width);
+
+              Assert(NextColumnIndex < Result.ColumnCount);
+              Result.ColumnWidths[NextColumnIndex] = Max(Result.ColumnWidths[NextColumnIndex], TypedCommand->Width);
               ++NextColumnIndex;
             }
           } break;
@@ -2268,7 +2275,7 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
             }
             else
             {
-              Assert(CommandIndex == OnePastTableEnd-1);
+              Assert(CommandIndex == Result.OnePastTableEnd-1);
             }
           } break;
 
@@ -2284,7 +2291,7 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
     u32 NextColumnIndex = 0;
 
     for (u32 CommandIndex = StartingIndex;
-        CommandIndex < OnePastTableEnd;
+        CommandIndex < Result.OnePastTableEnd;
         ++CommandIndex)
     {
       ui_render_command* Command =  GetCommand(CommandBuffer, CommandIndex);
@@ -2294,10 +2301,10 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
           {
             if (SubTableCount == 0)
             {
-              Assert(NextColumnIndex < ColumnCount);
-
               ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
-              TypedCommand->MaxWidth = MaxColumnWidths[NextColumnIndex];
+
+              Assert(NextColumnIndex < Result.ColumnCount);
+              TypedCommand->MaxWidth = Result.ColumnWidths[NextColumnIndex];
               ++NextColumnIndex;
             }
           } break;
@@ -2323,7 +2330,7 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
             }
             else
             {
-              Assert(CommandIndex == OnePastTableEnd-1);
+              Assert(CommandIndex == Result.OnePastTableEnd-1);
             }
           } break;
 
@@ -2335,7 +2342,7 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
   }
 
 
-  return OnePastTableEnd;
+  return Result;
 }
 
 link_internal void
@@ -2423,10 +2430,12 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
       case type_ui_render_command_table_start:
       {
-        u32 OnePastTableEnd = PreprocessTable(Group, RenderState, CommandBuffer, NextCommandIndex);
+        ui_render_command_table_start* TypedCommand = RenderCommandAs(table_start, Command);
+        TypedCommand->TableInfo = PreprocessTable(Group, RenderState, CommandBuffer, NextCommandIndex);
+
+        u32 OnePastTableEnd = TypedCommand->TableInfo.OnePastTableEnd;
         if (OnePastTableEnd)
         {
-          ui_render_command_table_start* TypedCommand = RenderCommandAs(table_start, Command);
 
           switch(TypedCommand->Position)
           {
@@ -2465,24 +2474,37 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
       case type_ui_render_command_table_end:
       {
+        ui_render_command_table_end *TypedCommand = RenderCommandAs(table_end, Command);
+
+        layout *Popped = PopLayout(&RenderState->Layout);
+
         if (GetUiDebug && GetUiDebug()->OutlineUiTables)
         {
-          rect2 AbsDrawBounds = GetAbsoluteDrawBounds(RenderState->Layout);
+          rect2 AbsDrawBounds = GetAbsoluteDrawBounds(Popped);
           BufferBorder(Group, AbsDrawBounds, V3(0,0,1), 0.9f, DISABLE_CLIPPING);
 
-          if (GetUiDebug && GetUiDebug()->DebugBreakOnElementClick)
+          if (IsInsideRect(AbsDrawBounds, *Group->MouseP))
           {
-            if ( IsInsideRect(AbsDrawBounds, *Group->MouseP) &&
-                 Group->Input->LMB.Clicked )
+            ui_render_command_table_start *StartCommand = GetCommandAs(table_start, CommandBuffer, TypedCommand->TableStartIndex);
+
+            r32 At = 0;
+            r32 Height = Max(1u, StartCommand->TableInfo.RowCount) * Global_Font.Size.y;
+            RangeIterator_t(u32, ColumnIndex, StartCommand->TableInfo.ColumnCount)
+            {
+              r32 Width = StartCommand->TableInfo.ColumnWidths[ColumnIndex];
+              v2 Pad = V2(StartCommand->Layout.Padding.Left, StartCommand->Layout.Padding.Top);
+              rect2 Bounds = RectMinDim(AbsDrawBounds.Min + V2(At, 0) + Pad, V2(Width, Height));
+              BufferBorder(Group, Bounds, Normalize(V3(0,1,1)), 0.9f, DISABLE_CLIPPING);
+              At += Width;
+            }
+
+            if (GetUiDebug && GetUiDebug()->DebugBreakOnElementClick && Group->Input->LMB.Clicked )
             {
               RuntimeBreak();
             }
+
           }
         }
-
-        // TODO(Jesse): It seems to me the NewRow should be before the
-        // PopLayout here, but I don't super want to change it without a test..
-        PopLayout(&RenderState->Layout);
 
         // NOTE(Jesse): This is a bug, not a feature.  If this is here there's no way to have
         // tables inline next to one-another, except by using position, which is annoying.

@@ -208,6 +208,15 @@ struct layout
   layout* Prev;
 };
 
+struct table_info
+{
+  u32 ColumnCount;
+  u32 RowCount;
+  r32 *ColumnWidths;
+
+  u32 OnePastTableEnd;
+};
+
 struct render_state
 {
   window_layout*  Window;
@@ -419,7 +428,6 @@ SetGlobalFontScale(r32 Scale)
 
 
 
-
 struct ui_render_command_rel_border
 {
   window_layout* Window;
@@ -548,6 +556,13 @@ struct ui_render_command_table_start
 
   relative_position Position;
   ui_element_reference RelativeTo;
+
+  table_info TableInfo;
+};
+
+struct ui_render_command_table_end
+{
+  u32 TableStartIndex; // NOTE(Jesse): Set by PreprocessTable
 };
 
 struct ui_render_command_force_advance
@@ -571,6 +586,7 @@ poof(
     ui_render_command_button_end
 
     ui_render_command_table_start
+    ui_render_command_table_end
 
     ui_render_command_column_start
     ui_render_command_column_end
@@ -588,8 +604,8 @@ poof(
     ui_render_command_force_advance
     ui_render_command_force_update_basis
 
+
     ui_render_command_new_row           enum_only
-    ui_render_command_table_end         enum_only
     ui_render_command_reset_draw_bounds enum_only
 
     ui_render_command_debug             enum_only
