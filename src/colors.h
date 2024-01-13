@@ -21,6 +21,12 @@
 #define SAND        4
 #define DIRT        138
 
+#define LONG_YELLOW_GRASS0 5
+#define LONG_YELLOW_GRASS1 6
+
+#define LONG_GREEN_GRASS0 119
+#define LONG_GREEN_GRASS1 120
+
 #define BLUE 211
 #define PINK 27
 #define TEAL 181 // actually cyan
