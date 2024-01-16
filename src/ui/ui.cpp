@@ -1429,6 +1429,8 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, umm Interact
 link_internal void
 PushBargraph(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor, r32 BarWidth, r32 *BarHeight = &Global_Font.Size.y)
 {
+  PercFilled = Clamp01(PercFilled);
+
   v2 BackgroundQuadDim = V2(BarWidth, *BarHeight);
   v2 ShadedQuadDim = BackgroundQuadDim * V2(PercFilled, 1);
 
