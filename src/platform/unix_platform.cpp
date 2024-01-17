@@ -363,7 +363,7 @@ ConnectToServer(network_connection *Connection)
 #endif
 
 link_internal maybe_file_traversal_node
-PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback)
+PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback, u64 UserData)
 {
   NotImplemented;
   maybe_file_traversal_node Result = {};

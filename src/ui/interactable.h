@@ -1,14 +1,40 @@
 struct layout;
 struct window_layout;
 
+struct ui_id
+{
+  u32 _Reserved;
+  u32 WindowBits;
+  u32 InteractionBits;
+  u32 ElementBits;
+
+  /* operator bool(); */
+};
+
+link_internal b32
+IsValid(ui_id *Id)
+{
+  b32 Reuslt = (Id->WindowBits | Id->InteractionBits | Id->ElementBits) != 0;
+  return Reuslt;
+}
+
+/* poof(gen_default_equality_operator(ui_id)) */
+#include <generated/gen_default_equality_operator_ui_id.h>
+
+/* poof(gen_default_boolean_operator(ui_id)) */
+/* #include <generated/gen_default_boolean_operator_ui_id.h> */
+
+/* poof(are_equal(ui_id)) */
+#include <generated/are_equal_ui_id.h>
+
 struct interactable_handle
 {
-  umm Id;
+  ui_id Id;
 };
 
 struct interactable
 {
-  umm ID;
+  ui_id ID;
   v2 MinP;
   v2 MaxP;
 
@@ -25,7 +51,7 @@ struct button_interaction_result
 };
 
 link_internal interactable
-Interactable(v2 MinP, v2 MaxP, umm ID, window_layout *Window)
+Interactable(v2 MinP, v2 MaxP, ui_id ID, window_layout *Window)
 {
   interactable Result = {};
   Result.MinP = MinP;
@@ -37,7 +63,7 @@ Interactable(v2 MinP, v2 MaxP, umm ID, window_layout *Window)
 }
 
 link_internal interactable
-Interactable(rect2 Rect, umm ID, window_layout *Window)
+Interactable(rect2 Rect, ui_id ID, window_layout *Window)
 {
   interactable Result = Interactable(Rect.Min, Rect.Max, ID, Window);
   return Result;
@@ -46,7 +72,7 @@ Interactable(rect2 Rect, umm ID, window_layout *Window)
 v2 GetAbsoluteAt(layout* Layout);
 
 link_internal interactable
-StartInteractable(layout* Layout, umm ID, window_layout *Window)
+StartInteractable(layout* Layout, ui_id ID, window_layout *Window)
 {
   v2 StartingAt = GetAbsoluteAt(Layout);
   interactable Result = Interactable(StartingAt, StartingAt, ID, Window);

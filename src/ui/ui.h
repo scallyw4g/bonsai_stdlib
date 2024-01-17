@@ -105,22 +105,51 @@ struct window_layout
 
 struct ui_toggle
 {
-  umm Id;
+  ui_id Id;
   b32 ToggledOn;
 };
 
 struct ui_toggle_button_handle
 {
   cs Text;
-  umm Id;
+  ui_id Id;
 };
 
-#define UiId(base, mod) u64( (u64(base)&0xffffffff) | ( (u64(mod)&0xffffffff) << 32 ))
+/* // 0x3FFFFF == 22 set bits == 4,194,303 in decimal */
+/* CAssert(0x3FFFFF == 0b1111111111111111111111); */
+/* #define UiId(window, base, mod) u64( (u64(base)&0x3FFFFF) | ( (u64(mod)&0x3FFFFF) << 22 | (u64(window)&0x3FFFFF) << 44)) */
+
+#define UiMaskAndCastPointer(p) u32(u64(p)&0xffffffff)
+
+link_internal ui_id
+UiId(window_layout *Window, void *Interaction, void *Element)
+{
+  ui_id Result = {0, UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};
+  return Result;
+}
+
+link_internal ui_id
+UiId(window_layout *Window, const char *Interaction, u32 Element)
+{
+  return UiId(Window, Cast(void*, Interaction), (void*)u64(Element));
+}
+
+link_internal ui_id
+UiId(window_layout *Window, const char *Interaction, u64 Element)
+{
+  return UiId(Window, Cast(void*, Interaction), (void*)Element);
+}
+
+link_internal ui_id
+UiId(window_layout *Window, const char *Interaction, void *Element)
+{
+  return UiId(Window, Cast(void*, Interaction), Element);
+}
 
 link_internal ui_toggle_button_handle
-UiToggle(cs Text, umm IdModifier)
+UiToggle(cs Text, window_layout *Window, const char*Interaction, void* Element)
 {
-  ui_toggle_button_handle Result = { Text, UiId(Text.Start, IdModifier) };
+  ui_toggle_button_handle Result = { Text, UiId(Window, Interaction, Element) };
   return Result;
 }
 
@@ -129,10 +158,18 @@ typedef ui_toggle* ui_toggle_ptr;
 link_internal umm
 Hash(umm *Value) { return *Value; }
 
+link_internal u64
+Hash(ui_id *Id)
+{
+  // TODO(Jesse)(hash): Is this any good?
+  u64 Result = 654378024321 ^ (Id->WindowBits | (Id->InteractionBits << 31)) ^ (Id->ElementBits << 15);
+  return Result;
+}
+
 link_internal umm
 Hash(ui_toggle *Toggle)
 {
-  return Toggle->Id;
+  return Hash(&Toggle->Id);
 }
 
 poof(maybe(ui_toggle))
@@ -540,7 +577,7 @@ struct ui_render_command_textured_quad
 
 struct ui_render_command_button_start
 {
-  umm ID;
+  ui_id ID;
   ui_style Style;
   button_params Params;
 };

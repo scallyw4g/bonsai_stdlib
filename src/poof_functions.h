@@ -566,7 +566,12 @@ poof(
         b32 Result = True;
         Type.map(member)
         {
-          Result &= AreEqual(Thing1->member.name, Thing2->member.name);
+          member.is_function?
+          {
+          }
+          {
+            Result &= AreEqual(Thing1->member.name, Thing2->member.name);
+          }
         }
       }
       {

@@ -10,10 +10,10 @@ poof(buffer(ui_toggle_button_handle))
 poof(hashtable_impl(ui_toggle))
 #include <generated/hashtable_impl_ui_toggle.h>
 
-poof(hashtable_get(ui_toggle, {umm}, {Id}))
+poof(hashtable_get(ui_toggle, {ui_id}, {Id}))
 #include <generated/hashtable_get_ui_toggle_31501_688856534.h>
 
-poof(hashtable_get_ptr(ui_toggle, {umm}, {Id}))
+poof(hashtable_get_ptr(ui_toggle, {ui_id}, {Id}))
 #include <generated/hashtable_get_ptr_ui_toggle_31501_688856534.h>
 
 
@@ -970,7 +970,7 @@ PushButtonEnd(renderer_2d *Group)
 }
 
 link_internal interactable_handle
-PushButtonStart(renderer_2d *Group, umm InteractionId, ui_style* Style = 0)
+PushButtonStart(renderer_2d *Group, ui_id InteractionId, ui_style* Style = 0)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_button_start,
@@ -1118,9 +1118,9 @@ PushWindowStartInternal( renderer_2d *Group,
                          window_layout *Window,
                          cs TitleText,
                          cs MinimizedIcon,
-                         umm ResizeHandleInteractionId,
-                         umm MinimizeInteractionId,
-                         umm TitleBarInteractionId,
+                         ui_id ResizeHandleInteractionId,
+                         ui_id MinimizeInteractionId,
+                         ui_id TitleBarInteractionId,
                          v2 WindowResizeHandleMin,
                          v2 WindowResizeHandleDim,
                          v2 MinimizeButtonOffset,
@@ -1208,11 +1208,11 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   rect2 TitleRect = GetDrawBounds(TitleText, &DefaultStyle);
   rect2 MinimizeRect = GetDrawBounds(MinimizedIcon, &DefaultStyle);
 
-  umm TitleBarInteractionId = (umm)"WindowTitleBar"^(umm)Window;
+  ui_id TitleBarInteractionId = UiId(Window, Cast(void*, "WindowTitleBar"), 0);
   interactable_handle TitleBarHandle = { .Id = TitleBarInteractionId };
 
 
-  umm MinimizeInteractionId = (umm)"WindowMinimizeInteraction"^(umm)Window;
+  ui_id MinimizeInteractionId = UiId(Window, Cast(void*, "WindowMinimizeInteraction"), 0);
   interactable_handle MinimizeButtonHandle = { .Id = MinimizeInteractionId };
 
   if (Window->Minimized && Clicked(Group, &TitleBarHandle))
@@ -1256,7 +1256,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   }
 
 
-  umm ResizeHandleInteractionId = (umm)"WindowResizeWidget"^(umm)Window;
+  ui_id ResizeHandleInteractionId = UiId(Window, Cast(void*, "WindowResizeWidget"), Window);
   interactable_handle ResizeHandle = { .Id = ResizeHandleInteractionId };
 
   v2 TitleBounds = V2(Window->Title.Count*Global_Font.Size.x, Global_Font.Size.y);
@@ -1329,7 +1329,7 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window)
 
 
 link_internal button_interaction_result
-ButtonInteraction(renderer_2d* Group, rect2 Bounds, umm InteractionId, window_layout *Window, ui_style *Style)
+ButtonInteraction(renderer_2d* Group, rect2 Bounds, ui_id InteractionId, window_layout *Window, ui_style *Style)
 {
   button_interaction_result Result = {};
 
@@ -1373,7 +1373,7 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, umm InteractionId, window_la
 }
 
 link_internal b32
-Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
+Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
   // TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
   interactable_handle Button = PushButtonStart(Group, ButtonId, Style);
@@ -1385,7 +1385,7 @@ Button(renderer_2d* Group, counted_string ButtonName, umm ButtonId, ui_style* St
 }
 
 link_internal b32
-ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, umm InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
+ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
   interactable_handle Handle = {
     .Id = InteractionId
@@ -1427,6 +1427,23 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, umm Interact
 
 
 link_internal void
+PushSliderBar(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor, r32 BarWidth, r32 *BarHeight = &Global_Font.Size.y)
+{
+  PercFilled = Clamp01(PercFilled);
+
+  v2 BackgroundQuadDim = V2(BarWidth, *BarHeight);
+  v2 SliderQuadDim = V2(1.f, *BarHeight);
+
+  r32 SliderOffset = (BackgroundQuadDim.x*PercFilled) - BackgroundQuadDim.x - (SliderQuadDim.x/2.f);
+
+  ui_style Style = UiStyleFromLightestColor(BColor);
+  PushUntexturedQuad(Group, V2(0), BackgroundQuadDim, zDepth_TitleBar, &Style);
+
+  Style = UiStyleFromLightestColor(FColor);
+  PushUntexturedQuad(Group, V2(SliderOffset, 0.f), SliderQuadDim, zDepth_TitleBar, &Style, V4(0), QuadRenderParam_NoAdvance);
+}
+
+link_internal void
 PushBargraph(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor, r32 BarWidth, r32 *BarHeight = &Global_Font.Size.y)
 {
   PercFilled = Clamp01(PercFilled);
@@ -1437,17 +1454,10 @@ PushBargraph(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor,
   v2 UnshadedQuadDim = V2(BackgroundQuadDim.x - ShadedQuadDim.x, BackgroundQuadDim.y);
 
   ui_style Style = UiStyleFromLightestColor(FColor);
-  /* PushUntexturedQuad(Group, V2(0), ShadedQuadDim, zDepth_TitleBar, &Style, V4(0), QuadRenderParam_NoAdvance); */
   PushUntexturedQuad(Group, V2(0), ShadedQuadDim, zDepth_TitleBar, &Style);
 
   Style = UiStyleFromLightestColor(BColor);
-  /* PushUntexturedQuad(Group, V2(0), UnshadedQuadDim, zDepth_TitleBar, &Style, V4(0), QuadRenderParam_NoAdvance); */
   PushUntexturedQuad(Group, V2(0), UnshadedQuadDim, zDepth_TitleBar, &Style);
-
-  /* PushForceAdvance(Group, BackgroundQuadDim); */
-  /* PushForceAdvance(Group, V2(BackgroundQuadDim.x, 0)); */
-
-  return;
 }
 
 link_internal b32
@@ -1485,7 +1495,6 @@ SetRadioButton(ui_toggle_button_group *Group, maybe_ui_toggle_ptr MaybeToggle, u
 {
   UnsetAllTogglesExcluding(Group, umm_MAX);
 
-  /* maybe_ui_toggle_ptr MaybeToggle = GetPtrById(&Group->Ui->ToggleTable, ToggleHandle->Id); */
   if (MaybeToggle.Tag)
   {
     MaybeToggle.Value->ToggledOn = Value;
@@ -1560,7 +1569,7 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_FUNCTION_PROTO_NAMES)
 }
 
 link_internal maybe_file_traversal_node
-DrawFileNodes(renderer_2d *Ui, file_traversal_node Node)
+DrawFileNodes(renderer_2d *Ui, window_layout *Window, file_traversal_node Node)
 {
   maybe_file_traversal_node Result = {};
 
@@ -1571,7 +1580,10 @@ DrawFileNodes(renderer_2d *Ui, file_traversal_node Node)
 
     case FileTraversalType_File:
     {
-      interactable_handle FileButton = PushButtonStart(Ui, umm("DrawFileNodes") ^ umm(Node.Name.Start) );
+      // TODO(Jesse): Is it actually safe to uset the Node.Name.Start here as the ID modifier?  I think they're stack allocated ..?
+      /* NotImplemented; */
+      TODO("!!!!!!!!!!!!!!!!!!!!");
+      interactable_handle FileButton = PushButtonStart(Ui, UiId(Window, Cast(void*, "DrawFileNodes"), Cast(void*, Node.Name.Start)) );
         PushColumn(Ui, CSz(" "), &DefaultStyle, Pad);
         PushColumn(Ui, Node.Name);
         PushNewRow(Ui);
@@ -1703,7 +1715,7 @@ GetHighestWindow(renderer_2d* Group, ui_render_command_buffer* CommandBuffer)
 }
 
 link_internal void
-ProcessButtonStart(renderer_2d* Group, render_state* RenderState, umm ButtonId)
+ProcessButtonStart(renderer_2d* Group, render_state* RenderState, ui_id ButtonId)
 {
   if (ButtonId == Group->Hover.ID)
   {
@@ -1727,9 +1739,9 @@ ProcessButtonStart(renderer_2d* Group, render_state* RenderState, umm ButtonId)
 }
 
 link_internal button_interaction_result
-ProcessButtonEnd(renderer_2d *Group, umm InteractionId, render_state* RenderState, rect2 AbsButtonBounds, ui_style* Style)
+ProcessButtonEnd(renderer_2d *Group, ui_id InteractionId, render_state* RenderState, rect2 AbsButtonBounds, ui_style* Style)
 {
-  Assert(InteractionId);
+  Assert(IsValid(&InteractionId));
 
   button_interaction_result Button = ButtonInteraction( Group,
                                                         AbsButtonBounds,
@@ -2186,11 +2198,14 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
 
           case type_ui_render_command_text:
           {
-            if (SubTableCount == 0)
+            if (CurrentWidth)
             {
-              ui_render_command_text* TypedCommand = RenderCommandAs(text, Command);
-              Assert(CurrentWidth);
-              *CurrentWidth += GetDrawBounds(TypedCommand->String, &TypedCommand->Style).Max.x;
+              if (SubTableCount == 0)
+              {
+                ui_render_command_text* TypedCommand = RenderCommandAs(text, Command);
+                Assert(CurrentWidth);
+                *CurrentWidth += GetDrawBounds(TypedCommand->String, &TypedCommand->Style).Max.x;
+              }
             }
           } break;
 
@@ -2629,7 +2644,6 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         {
           if (ButtonResult.Clicked)
           {
-            /* SetRadioButton(); */
             maybe_ui_toggle_ptr Maybe = GetPtrById(&Group->ToggleTable, ButtonStart->ID);
             if (Maybe.Tag)
             {
@@ -2914,14 +2928,14 @@ global_variable interactable Global_ViewportInteraction = {
    // a string constant because with multiple DLLs there are multiple of them!
    // Could do a comptime string hash if poof supported that..
 
-  .ID = 4208142317, // 420blazeit  Couldn't spell faggot.. rip.
+  .ID = {0, 0, 4208142317, 0}, // 420blazeit  Couldn't spell faggot.. rip.
 };
 
 link_internal b32
 UiCapturedMouseInput(renderer_2d *Ui)
 {
   b32 MouseWasHoveringOverWindow = Ui->HighestWindow != 0;
-  b32 PressedIdWasNotViewportId = (Ui->Pressed.ID != 0 && Ui->Pressed.ID != Global_ViewportInteraction.ID);
+  b32 PressedIdWasNotViewportId = (IsValid(&Ui->Pressed.ID) && Ui->Pressed.ID != Global_ViewportInteraction.ID);
   b32 ForceCapture = Ui->RequestedForceCapture;
 
   b32 Result = ForceCapture || MouseWasHoveringOverWindow || PressedIdWasNotViewportId;

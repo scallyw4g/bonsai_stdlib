@@ -53,4 +53,4 @@ poof(are_equal(file_traversal_node))
 poof(maybe(file_traversal_node))
 #include <generated/maybe_file_traversal_node.h>
 
-typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node);
+typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node, u64 UserData);

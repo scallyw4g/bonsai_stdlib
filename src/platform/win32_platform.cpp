@@ -749,7 +749,7 @@ PlatformDebugStacktrace()
 #endif
 
 link_internal maybe_file_traversal_node
-PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback)
+PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback, u64 UserData)
 {
   TIMED_FUNCTION();
 
@@ -783,7 +783,7 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback)
           // TODO(Jesse): This should use a string builder
           cs SubDir = Concat(Dirname, CSz("/"), GetTranArena());
           SubDir    = Concat(SubDir, Filename, GetTranArena());
-          maybe_file_traversal_node MaybeNode = PlatformTraverseDirectoryTree(SubDir, Callback);
+          maybe_file_traversal_node MaybeNode = PlatformTraverseDirectoryTree(SubDir, Callback, UserData);
           if (MaybeNode.Tag)
           {
             Result = MaybeNode;
@@ -799,7 +799,7 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback)
         // NOTE(Jesse): It might be better perf-wise to pass a pointer here, but
         // I'm scared of forgetting you're not allowed to save it and read some
         // random stack garbage afterwards
-        maybe_file_traversal_node MaybeNode = Callback(CBArg);
+        maybe_file_traversal_node MaybeNode = Callback(CBArg, UserData);
         if (MaybeNode.Tag) { Result = MaybeNode; }
       }
     }

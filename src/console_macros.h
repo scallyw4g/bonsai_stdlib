@@ -226,3 +226,11 @@ link_internal char * GetTempFmtBuffer();
   }                                                                                                            \
                                                                                                                \
 } while (false)
+
+#define TODO(fmt, ...) do {                                                                                   \
+                                                                                                               \
+  if (Global_LogLevel <= LogLevel_Info) {                                                                      \
+    LogDirect(CSz("    TODO   - " fmt Newline), ##__VA_ARGS__); \
+  }                                                                                                            \
+                                                                                                               \
+} while (false)
