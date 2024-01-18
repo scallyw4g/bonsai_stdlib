@@ -2932,13 +2932,20 @@ global_variable interactable Global_ViewportInteraction = {
 };
 
 link_internal b32
-UiCapturedMouseInput(renderer_2d *Ui)
+UiHoveredMouseInput(renderer_2d *Ui)
 {
   b32 MouseWasHoveringOverWindow = Ui->HighestWindow != 0;
-  b32 PressedIdWasNotViewportId = (IsValid(&Ui->Pressed.ID) && Ui->Pressed.ID != Global_ViewportInteraction.ID);
-  b32 ForceCapture = Ui->RequestedForceCapture;
+  b32 Result = MouseWasHoveringOverWindow;
+  return Result;
+}
 
-  b32 Result = ForceCapture || MouseWasHoveringOverWindow || PressedIdWasNotViewportId;
+link_internal b32
+UiCapturedMouseInput(renderer_2d *Ui)
+{
+  b32 PressedIdWasNotViewportId = ( IsValid(&Ui->Pressed.ID) &&
+                                             Ui->Pressed.ID != Global_ViewportInteraction.ID );
+  b32 ForceCapture = Ui->RequestedForceCapture;
+  b32 Result = ForceCapture || PressedIdWasNotViewportId;
   return Result;
 }
 
@@ -2964,6 +2971,7 @@ UiFrameEnd(renderer_2d *Ui)
   DrawUi(Ui, Ui->CommandBuffer);
 
   if ( UiCapturedMouseInput(Ui) == False &&
+       UiHoveredMouseInput(Ui) == False &&
       (Input->LMB.Pressed || Input->RMB.Pressed) )
   {
     Ui->Pressed = Global_ViewportInteraction;
