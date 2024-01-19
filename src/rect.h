@@ -54,6 +54,13 @@ poof(
       return Result;
     }
 
+    link_internal rect.name
+    RectMinRad((vector.name) Min, vector.name Rad)
+    {
+      rect.name Result = { .Min = Min, .Max = Min+(Rad*2.f) };
+      return Result;
+    }
+
     link_internal vector.name
     GetRadius((rect.name) *Rect)
     {
@@ -205,6 +212,15 @@ Intersect(aabb *First, aabb *Second)
 /*   return Result; */
 /* } */
 
+link_internal rect3i
+Rect3iCenterRad(v3i Center, v3i Rad)
+{
+  auto Min = Center-Rad;
+  auto Max = Center+Rad;
+  rect3i Result = Rect3iMinMax(Min, Max);
+  return Result;
+}
+
 link_internal rect3
 RectCenterRad(v3 Center, v3 Rad)
 {
@@ -246,17 +262,6 @@ link_internal rect3
 Rect3(rect3i *Rect)
 {
   rect3 Result = AABBMinMax(V3(Rect->Min), V3(Rect->Max));
-  return Result;
-}
-
-link_internal aabb
-RectMinRad(v3 Min, v3 Rad)
-{
-  rect3 Result =
-  {
-    Min,
-    Min + (Rad*2.f)
-  };
   return Result;
 }
 
@@ -497,5 +502,6 @@ Volume(aabb Rect)
   r32 Result = Volume(Dim);
   return Result;
 }
+
 
 

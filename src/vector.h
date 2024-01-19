@@ -688,6 +688,16 @@ operator%(v3 A, s32 i)
   return Result;
 }
 
+inline v3i
+operator%(v3i A, s32 i)
+{
+  v3i Result;
+  Result.x = ((s32)A.x % i);
+  Result.y = ((s32)A.y % i);
+  Result.z = ((s32)A.z % i);
+  return Result;
+}
+
 poof(gen_vector_infix_operator(v3i, {^}))
 #include <generated/gen_vector_infix_operator_v3i_688856449.h>
 
@@ -807,6 +817,26 @@ Perp( v3 A )
   v3 Result = Cross(A, B);
   return Result;
 }
+
+
+inline v3
+RoundToMultiple(v3 N, v3i Thresh)
+{
+  v3i Ni = V3i(N);
+  v3i Rem = Ni % Thresh;
+  v3 Result = V3(Ni - Rem);
+  return Result;
+}
+
+inline v3
+RoundToMultiple(v3 N, s32 Thresh)
+{
+  v3i Ni = V3i(N);
+  v3i Rem = Ni % Thresh;
+  v3 Result = V3(Ni - Rem);
+  return Result;
+}
+
 
 inline v3
 SafeDivide0(v3 Dividend, r32 Divisor)

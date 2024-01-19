@@ -19,6 +19,7 @@
 #include <bonsai_stdlib/src/vector.cpp>
 #include <bonsai_stdlib/src/debug_print.cpp>  // TODO(Jesse, id: 91, tags: cleanup, metaprogramming, format_counted_string): Jettison this .. Can it be metaprogrammed?
 #include <bonsai_stdlib/src/counted_string.cpp>
+#include <bonsai_stdlib/src/rect.cpp>
 #include <bonsai_stdlib/src/primitive_containers.cpp>
 #include <bonsai_stdlib/src/platform.cpp>
 #include <bonsai_stdlib/src/thread.cpp>

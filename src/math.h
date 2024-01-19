@@ -74,6 +74,14 @@ Round(r32 N)
 }
 
 inline r32
+ModToThresh(r32 N, s32 Thresh)
+{
+  s32 Ni = s32(N);
+  f32 Result = f32( Ni % Thresh );
+  return Result;
+}
+
+inline r32
 Pow(r32 N, int Exp)
 {
   r32 Result = N;

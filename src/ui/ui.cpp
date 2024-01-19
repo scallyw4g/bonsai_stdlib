@@ -1582,7 +1582,7 @@ DrawFileNodes(renderer_2d *Ui, window_layout *Window, file_traversal_node Node)
     {
       // NOTE(Jesse): The Node strings (Name and Dir) are transient allocated so
       // we have to hash the string to have a stable identifier across frames.
-      interactable_handle FileButton = PushButtonStart(Ui, UiId(Window, "DrawFileNodes", Hash(Node.Name)) );
+      interactable_handle FileButton = PushButtonStart(Ui, UiId(Window, "DrawFileNodes", Hash(Node.Name) ^ Hash(Node.Dir)) );
         PushColumn(Ui, CSz(" "), &DefaultStyle, Pad);
         PushColumn(Ui, Node.Name);
         PushNewRow(Ui);
