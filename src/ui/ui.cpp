@@ -1580,10 +1580,9 @@ DrawFileNodes(renderer_2d *Ui, window_layout *Window, file_traversal_node Node)
 
     case FileTraversalType_File:
     {
-      // TODO(Jesse): Is it actually safe to uset the Node.Name.Start here as the ID modifier?  I think they're stack allocated ..?
-      /* NotImplemented; */
-      /* TODO("!!!!!!!!!!!!!!!!!!!!"); */
-      interactable_handle FileButton = PushButtonStart(Ui, UiId(Window, Cast(void*, "DrawFileNodes"), Cast(void*, Node.Name.Start)) );
+      // NOTE(Jesse): The Node strings (Name and Dir) are transient allocated so
+      // we have to hash the string to have a stable identifier across frames.
+      interactable_handle FileButton = PushButtonStart(Ui, UiId(Window, "DrawFileNodes", Hash(Node.Name)) );
         PushColumn(Ui, CSz(" "), &DefaultStyle, Pad);
         PushColumn(Ui, Node.Name);
         PushNewRow(Ui);
