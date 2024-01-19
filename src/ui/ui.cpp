@@ -1582,7 +1582,7 @@ DrawFileNodes(renderer_2d *Ui, window_layout *Window, file_traversal_node Node)
     {
       // TODO(Jesse): Is it actually safe to uset the Node.Name.Start here as the ID modifier?  I think they're stack allocated ..?
       /* NotImplemented; */
-      TODO("!!!!!!!!!!!!!!!!!!!!");
+      /* TODO("!!!!!!!!!!!!!!!!!!!!"); */
       interactable_handle FileButton = PushButtonStart(Ui, UiId(Window, Cast(void*, "DrawFileNodes"), Cast(void*, Node.Name.Start)) );
         PushColumn(Ui, CSz(" "), &DefaultStyle, Pad);
         PushColumn(Ui, Node.Name);
@@ -2923,6 +2923,14 @@ UiFrameBegin(renderer_2d *Ui)
   if ( ! (Input->LMB.Pressed || Input->RMB.Pressed) ) { Ui->Pressed = {}; }
 }
 
+global_variable interactable Global_GenericWindowInteraction = {
+   // TODO(Jesse): Come up with a less nonsense way of doing this!  Cannot use
+   // a string constant because with multiple DLLs there are multiple of them!
+   // Could do a comptime string hash if poof supported that..
+
+  .ID = {0, 0, 0, 4208142317, }, // 420blazeit  Couldn't spell faggot.. rip.
+};
+
 global_variable interactable Global_ViewportInteraction = {
    // TODO(Jesse): Come up with a less nonsense way of doing this!  Cannot use
    // a string constant because with multiple DLLs there are multiple of them!
@@ -2949,6 +2957,15 @@ UiCapturedMouseInput(renderer_2d *Ui)
   return Result;
 }
 
+link_internal b32
+UiInteractionWasViewport(renderer_2d *Ui)
+{
+  b32 InteractionWasViewport = ( IsValid(&Ui->Pressed.ID) &&
+                                          Ui->Pressed.ID == Global_ViewportInteraction.ID );
+  b32 Result = InteractionWasViewport;
+  return Result;
+}
+
 link_internal void
 UiFrameEnd(renderer_2d *Ui)
 {
@@ -2970,11 +2987,40 @@ UiFrameEnd(renderer_2d *Ui)
 
   DrawUi(Ui, Ui->CommandBuffer);
 
-  if ( UiCapturedMouseInput(Ui) == False &&
-       UiHoveredMouseInput(Ui) == False &&
-      (Input->LMB.Pressed || Input->RMB.Pressed) )
+  if (Input->LMB.Pressed || Input->RMB.Pressed)
   {
-    Ui->Pressed = Global_ViewportInteraction;
+    if ( UiHoveredMouseInput(Ui) )
+    {
+      if (IsValid(&Ui->Pressed.ID))
+      {
+        // Do nothing, we recorded a specific interaction
+      }
+      else
+      {
+        // Set the interaction to a generic one so we know to not do things
+        // like update the game camera
+        Ui->Pressed = Global_GenericWindowInteraction;
+      }
+    }
+    else if (UiCapturedMouseInput(Ui))
+    {
+      // If we force captured the input we didn't necessarily click on a UI
+      // element.  Otherwise, we should have a valid ID
+      if (Ui->RequestedForceCapture)
+      {
+      }
+      else
+      {
+        Assert(IsValid(&Ui->Pressed.ID));
+      }
+    }
+    else
+    {
+      // We clicked outside the UI, therefore we must be interacting with the
+      // viewport
+      Ui->Pressed = Global_ViewportInteraction;
+    }
+
   }
 
   Ui->CommandBuffer->CommandCount = 0;
