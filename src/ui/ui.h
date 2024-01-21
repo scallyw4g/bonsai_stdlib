@@ -561,6 +561,7 @@ struct ui_render_command_textured_quad
   };
 
   b32 IsDepthTexture;
+  b32 HasAlphaChannel;
 
   layout Layout;
   // TODO(Jesse): Add this

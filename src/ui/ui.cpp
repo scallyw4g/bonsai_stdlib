@@ -871,7 +871,7 @@ PushTooltip(renderer_2d *Group, counted_string Text)
 }
 
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False)
+PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
@@ -881,6 +881,7 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
     .ui_render_command_textured_quad.IsDepthTexture = IsDepthTexture,
+    .ui_render_command_textured_quad.HasAlphaChannel = HasAlphaChannel,
     .ui_render_command_textured_quad.Layout =
     {
       .DrawBounds = InvertedInfinityRectangle(),
@@ -891,7 +892,7 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b
 }
 
 link_internal void
-PushTexturedQuad(renderer_2d *Group, debug_texture_array_slice TextureSlice, v2 Dim, z_depth zDepth)
+PushTexturedQuad(renderer_2d *Group, debug_texture_array_slice TextureSlice, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
@@ -900,6 +901,8 @@ PushTexturedQuad(renderer_2d *Group, debug_texture_array_slice TextureSlice, v2 
     .ui_render_command_textured_quad.TextureSlice = TextureSlice,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
+    .ui_render_command_textured_quad.IsDepthTexture = IsDepthTexture,
+    .ui_render_command_textured_quad.HasAlphaChannel = HasAlphaChannel,
     .ui_render_command_textured_quad.Layout =
     {
       .DrawBounds = InvertedInfinityRectangle(),
@@ -909,6 +912,14 @@ PushTexturedQuad(renderer_2d *Group, debug_texture_array_slice TextureSlice, v2 
   PushUiRenderCommand(Group, &Command);
 
   return;
+}
+
+link_internal void
+PushTexturedQuadColumn(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
+{
+  u32 Start = StartColumn(Group);
+    PushTexturedQuad(Group, Texture, Dim, zDepth, IsDepthTexture, HasAlphaChannel);
+  EndColumn(Group, Start);
 }
 
 link_internal void
@@ -2759,26 +2770,26 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           if (TypedCommand->Texture)
           {
             Assert(Group->TextGroup->Geo.At == 0);
-            /* Assert(Group->TexturedQuadShader.FirstUniform->Next == 0); */
 
             shader *Shader = &Group->TexturedQuadShader;
             GL.UseProgram(Shader->ID);
 
-            Shader->FirstUniform->Texture = TypedCommand->Texture;
-            /* Assert(Shader->FirstUniform->Next == 0); */
-
-            Shader->FirstUniform->Next->U32 = &TypedCommand->IsDepthTexture;
-            Assert(Shader->FirstUniform->Next->Next == 0);
-
-
-            BindShaderUniforms(Shader);
+            BindUniform(Shader, "Texture", TypedCommand->Texture, 0);
+            BindUniform(Shader, "IsDepthTexture", TypedCommand->IsDepthTexture);
+            BindUniform(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel);
 
             // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
             BufferTexturedQuad(Group, debug_texture_array_slice(0), MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
 
             Group->SolidGeoCountLastFrame += Group->Geo.At;
             Group->TextGeoCountLastFrame += Group->TextGroup->Geo.At;
+
+            GL.Enable(GL_BLEND);
+            GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
             DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
+
+            GL.Disable(GL_BLEND);
           }
           else
           {

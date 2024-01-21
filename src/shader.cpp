@@ -148,6 +148,9 @@ MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
   *Current = GetUniform(GraphicsMemory, &Shader, (b32*)0, "IsDepthTexture");
   Current = &(*Current)->Next;
 
+  *Current = GetUniform(GraphicsMemory, &Shader, (b32*)0, "HasAlphaChannel");
+  Current = &(*Current)->Next;
+
   AssertNoGlErrors;
 
   return Shader;
@@ -226,6 +229,21 @@ BindUniform(shader *Shader, const char *Name, s32 Value)
     Warn("Couldn't retieve uniform %S", Name);
   }
 }
+
+link_internal void
+BindUniform(shader *Shader, const char *Name, b32 Value)
+{
+  s32 Uniform = GL.GetUniformLocation(Shader->ID, Name); 
+  if (Uniform != INVALID_SHADER_UNIFORM)
+  {
+    GL.Uniform1i(Uniform, s32(Value));
+  }
+  else
+  {
+    Warn("Couldn't retieve uniform %S", Name);
+  }
+}
+
 
 link_internal void
 BindUniform(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)

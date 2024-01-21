@@ -34,6 +34,27 @@ struct bitmap
 };
 #pragma pack(pop)
 
+link_internal void
+SwizzleRedToBlueChannel(u32_cursor *PixelCursor)
+{
+  for (umm PixelIndex = 0; PixelIndex < TotalElements(PixelCursor); ++PixelIndex)
+  {
+    u32 *Pixel = PixelCursor->Start + PixelIndex;
+
+    u32 Alpha = (*Pixel & 0xFF000000 ) >> 24;
+    u32 Red   = (*Pixel & 0xFF0000   ) >> 16;
+    u32 Green = (*Pixel & 0xFF00     ) >> 8;
+    u32 Blue  = (*Pixel & 0xFF       );
+
+    Assert( Alpha <= 0xFF );
+    Assert( Red   <= 0xFF );
+    Assert( Green <= 0xFF );
+    Assert( Blue  <= 0xFF );
+
+    *Pixel    = Red | (Green<<8) | (Blue<<16) | (Alpha<<24);
+  }
+}
+
 bitmap
 ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 {
@@ -42,6 +63,7 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
   s32 SizeReadFromDisk = 0;
   u32* Pixels = 0;
   u32 PixelCount = 0;
+
   if (File.Handle)
   {
     SizeReadFromDisk += fread(&Header, 1, sizeof(Header), File.Handle);
@@ -55,11 +77,36 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
   else { Error("Opening %s for reading", Filename); }
 
   Assert(Header.Image.CompressionType == 3);
-  Assert(SizeReadFromDisk == (s32)Header.FileSizeInBytes);
+  if (SizeReadFromDisk != (s32)Header.FileSizeInBytes)
+  {
+    Warn("(%s) loaded successfully, but we detected unsupported metadata during loading.", Filename);
+  }
+
 
   bitmap Result = {};
   Result.Dim = V2i(Header.Image.WidthInPixels, Header.Image.HeightInPixels);
   Result.Pixels = U32Cursor(Pixels, Pixels+PixelCount);
+
+
+  if (Header.Image.RedMask == 0xFF)
+  {
+    Assert(Header.Image.GreenMask == 0xFF00    );
+    Assert(Header.Image.BlueMask  == 0xFF0000  );
+    /* Assert(Header.Image.AlphaMask == 0xFF000000); */
+  }
+  else if (Header.Image.BlueMask == 0xFF)
+  {
+    Assert(Header.Image.GreenMask == 0xFF00    );
+    Assert(Header.Image.RedMask   == 0xFF0000  );
+    /* Assert(Header.Image.AlphaMask == 0xFF000000); */
+
+    SwizzleRedToBlueChannel(&Result.Pixels);
+  }
+  else
+  {
+    Warn("(%s) loaded successfully, but detected unsupported pixel masking during loading.", Filename);
+  }
+
 
   return Result;
 }
