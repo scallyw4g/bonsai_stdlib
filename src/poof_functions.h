@@ -1418,7 +1418,27 @@ poof(
       {
         EnumType.map_values (EnumValue)
         {
-          case EnumValue.name: { Result = CSz("EnumValue.name"); } break;
+          case EnumValue.name: { Result = CSz("EnumValue.name.strip_all_prefix"); } break;
+        }
+
+        EnumType.has_tag(bitfield)?
+        {
+          // TODO(Jesse): This is pretty barf and we could do it in a single allocation,
+          // but the metaprogram might have to be a bit fancier..
+          default:
+          {
+            u32 CurrentFlags = u32(Type);
+
+            u32 FirstValue = UnsetLeastSignificantSetBit(&CurrentFlags);
+            Result = ToString((EnumType.name)(FirstValue));
+
+            while (CurrentFlags)
+            {
+              u32 Value = UnsetLeastSignificantSetBit(&CurrentFlags);
+              cs Next = ToString((EnumType.name)(Value));
+              Result = FSz("%S | %S", Result, Next);
+            }
+          } break;
         }
       }
       return Result;
