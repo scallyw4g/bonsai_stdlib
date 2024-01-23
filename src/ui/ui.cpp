@@ -253,15 +253,15 @@ SelectColorState(render_state* RenderState, ui_style *Style)
 
 
 link_internal void
-BufferQuadUVs(textured_2d_geometry_buffer* Geo, rect2 UV, debug_texture_array_slice Slice)
+BufferQuadUVs(textured_2d_geometry_buffer* Geo, rect2 UV, s32 Slice)
 {
   // @streaming_ui_render_memory
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
 
-  v3 LeftTop    = V3(UV.Min.x, UV.Min.y, (r32)Slice);
-  v3 RightTop   = V3(UV.Max.x, UV.Min.y, (r32)Slice);
-  v3 RightBottom = V3(UV.Max.x, UV.Max.y, (r32)Slice);
-  v3 LeftBottom  = V3(UV.Min.x, UV.Max.y, (r32)Slice);
+  v3 LeftTop     = V3(UV.Min.x, UV.Min.y, r32(Slice));
+  v3 RightTop    = V3(UV.Max.x, UV.Min.y, r32(Slice));
+  v3 RightBottom = V3(UV.Max.x, UV.Max.y, r32(Slice));
+  v3 LeftBottom  = V3(UV.Min.x, UV.Max.y, r32(Slice));
 
   u32 StartingIndex = Geo->At;
   Geo->UVs[StartingIndex++] = LeftTop;
@@ -473,10 +473,15 @@ BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
 }
 
 link_internal clip_result
-BufferTexturedQuad(renderer_2d *Group,
-                   debug_texture_array_slice TextureSlice,
-                   v2 MinP, v2 Dim, rect2 UV, v3 Color, r32 Z,
-                   rect2 Clip, rect2 *ClipOptional)
+BufferTexturedQuad( renderer_2d *Group,
+                    s32 TextureSlice,
+                    v2 MinP,
+                    v2 Dim,
+                    rect2 UV,
+                    v3 Color,
+                    r32 Z,
+                    rect2  Clip,
+                    rect2 *ClipOptional )
 {
   textured_2d_geometry_buffer* Geo = &Group->TextGroup->Geo;
 
@@ -871,12 +876,12 @@ PushTooltip(renderer_2d *Group, counted_string Text)
 }
 
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
+PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
 
-    .ui_render_command_textured_quad.Source = TexturedQuadSource_Discrete,
+    .ui_render_command_textured_quad.TextureSlice = TextureSlice,
     .ui_render_command_textured_quad.Texture = Texture,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
@@ -891,14 +896,15 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b
   PushUiRenderCommand(Group, &Command);
 }
 
+#if 1
 link_internal void
-PushTexturedQuad(renderer_2d *Group, debug_texture_array_slice TextureSlice, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
+PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
 
-    .ui_render_command_textured_quad.Source = TexturedQuadSource_ArraySlice,
-    .ui_render_command_textured_quad.TextureSlice = TextureSlice,
+    .ui_render_command_textured_quad.TextureSlice = -1,
+    .ui_render_command_textured_quad.Texture = Texture,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
     .ui_render_command_textured_quad.IsDepthTexture = IsDepthTexture,
@@ -913,12 +919,13 @@ PushTexturedQuad(renderer_2d *Group, debug_texture_array_slice TextureSlice, v2 
 
   return;
 }
+#endif
 
 link_internal void
-PushTexturedQuadColumn(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
+PushTexturedQuadColumn(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
 {
   u32 Start = StartColumn(Group);
-    PushTexturedQuad(Group, Texture, Dim, zDepth, IsDepthTexture, HasAlphaChannel);
+    PushTexturedQuad(Group, Texture, TextureSlice, Dim, zDepth, IsDepthTexture, HasAlphaChannel);
   EndColumn(Group, Start);
 }
 
@@ -1789,24 +1796,11 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
   v2 Dim     = Command->QuadDim;
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
 
-  switch (Command->Source)
-  {
-    InvalidCase(TexturedQuadSource_Undefined);
+  // There's a second pass that draws all discrete textures
+  Command->Clip = Clip;
+  Command->Z = Z;
 
-    case TexturedQuadSource_ArraySlice:
-    {
-      BufferTexturedQuad( Group, Command->TextureSlice, MinP, Dim, UVsForFullyCoveredQuad(), V3(1), Z, Clip, 0);
-    } break;
-
-    case TexturedQuadSource_Discrete:
-    {
-      // There's a second pass that draws all discrete textures
-      Command->Clip = Clip;
-      Command->Z = Z;
-
-      if (Command->Texture == 0) { BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, TextRenderParam_NoAdvanceLayout); }
-    } break;
-  }
+  if (Command->Texture == 0) { BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, TextRenderParam_NoAdvanceLayout); }
 
   AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
   UpdateDrawBounds(RenderState->Layout, Dim);
@@ -2725,8 +2719,9 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
   Group->SolidGeoCountLastFrame = Group->Geo.At;
   Group->TextGeoCountLastFrame = Group->TextGroup->Geo.At;
-  DrawUiBuffers(Group, Group->ScreenDim);
+  DrawUiBuffers(Group, Group->ScreenDim); // Draws text and solid UI buffers
 
+  // Draw textured quads
   u32 NextCommandIndex = 0;
   ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
   while (Command)
@@ -2760,7 +2755,6 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       {
         ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
 
-        if (TypedCommand->Source == TexturedQuadSource_Discrete)
         {
           v2 MinP    = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
           v2 Dim     = TypedCommand->QuadDim;
@@ -2774,29 +2768,43 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             shader *Shader = &Group->TexturedQuadShader;
             GL.UseProgram(Shader->ID);
 
-            BindUniform(Shader, "Texture", TypedCommand->Texture, 0);
-            BindUniform(Shader, "IsDepthTexture", TypedCommand->IsDepthTexture);
-            BindUniform(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel);
+            if (TypedCommand->TextureSlice < 0)
+            {
+              /* BindUniform(Shader, "Texture", TypedCommand->Texture, 0); */
+            }
+            else
+            {
+            }
+
+            /* GL.ActiveTexture(GL_TEXTURE0); */
+            /* GL.ActiveTexture(GL_TEXTURE1); */
+            /* GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray->ID); */
+
+            BindUniform(Shader, "TextureArray",    TypedCommand->Texture, 0);
+            /* BindUniform(Shader, "TextureArray",    TypedCommand->Texture, 0); */
+            BindUniform(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
+            BindUniform(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel );
+            /* BindUniform(Shader, "TextureSlice",    TypedCommand->TextureSlice   ); */
+            BindUniform(Shader, "TextureSlice",    8  );
 
             // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
-            BufferTexturedQuad(Group, debug_texture_array_slice(0), MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
+            // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
+            BufferTexturedQuad(Group, TypedCommand->TextureSlice, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
 
             Group->SolidGeoCountLastFrame += Group->Geo.At;
-            Group->TextGeoCountLastFrame += Group->TextGroup->Geo.At;
+            Group->TextGeoCountLastFrame  += Group->TextGroup->Geo.At;
 
             GL.Enable(GL_BLEND);
             GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
-
+              DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
             GL.Disable(GL_BLEND);
           }
           else
           {
             // we already drew "(null texture)" text in the previous pass
           }
-
         }
+
       } break;
     }
 

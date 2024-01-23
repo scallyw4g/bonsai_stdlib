@@ -542,23 +542,21 @@ struct ui_render_command_untextured_quad_at
   z_depth zDepth;
 };
 
-enum textured_quad_source
-{
-  TexturedQuadSource_Undefined,
+/* enum textured_quad_source */
+/* { */
+/*   TexturedQuadSource_Undefined, */
 
-  // Are we referring to a slice in the pre-loaded texture array, or a discrete
-  // texture we rendered to?
-  TexturedQuadSource_ArraySlice,
-  TexturedQuadSource_Discrete,
-};
+/*   // Are we referring to a slice in the pre-loaded texture array, or a discrete */
+/*   // texture we rendered to? */
+/*   TexturedQuadSource_ArraySlice, */
+/*   TexturedQuadSource_Discrete, */
+/* }; */
 
 struct ui_render_command_textured_quad
 {
-  textured_quad_source Source;
-  union {
-    debug_texture_array_slice TextureSlice;
-    texture *Texture;
-  };
+  /* textured_quad_source Source; */
+  s32 TextureSlice;
+  texture *Texture;
 
   b32 IsDepthTexture;
   b32 HasAlphaChannel;

@@ -3,6 +3,8 @@ struct texture
 {
   u32 ID;
   v2i Dim;
+
+  u32 Slices;
 };
 
 typedef texture* texture_ptr;

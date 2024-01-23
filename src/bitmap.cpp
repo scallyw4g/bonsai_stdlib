@@ -55,7 +55,25 @@ SwizzleRedToBlueChannel(u32_cursor *PixelCursor)
   }
 }
 
-bitmap
+// https://en.wikipedia.org/wiki/BMP_file_format
+//
+enum bitmap_compression_type
+{
+  BitmapCompressionType_RGB            = 0,  // none Most common
+  BitmapCompressionType_RLE8           = 1,  // RLE 8-bit/pixel Can be used only with 8-bit/pixel bitmaps
+  BitmapCompressionType_RLE4           = 2,  // RLE 4-bit/pixel Can be used only with 4-bit/pixel bitmaps
+  BitmapCompressionType_BITFIELDS      = 3,  // OS22XBITMAPHEADER: Huffman 1D BITMAPV2INFOHEADER: RGB bit field masks, BITMAPV3INFOHEADER+: RGBA
+  BitmapCompressionType_JPEG           = 4,  // OS22XBITMAPHEADER: RLE-24 BITMAPV4INFOHEADER+: JPEG image for printing[14]
+  BitmapCompressionType_PNG            = 5,  // BITMAPV4INFOHEADER+: PNG image for printing[14]
+  BitmapCompressionType_ALPHABITFIELDS = 6,  // RGBA bit field masks only Windows CE 5.0 with .NET 4.0 or later
+  BitmapCompressionType_CMYK           = 11, // none only Windows Metafile CMYK[4]
+  BitmapCompressionType_CMYKRLE8       = 12, // RLE-8 only Windows Metafile CMYK
+  BitmapCompressionType_CMYKRLE4       = 13, // ?
+};
+poof(string_and_value_tables(bitmap_compression_type))
+#include <generated/string_and_value_tables_bitmap_compression_type.h>
+
+link_internal bitmap
 ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 {
   bitmap_header Header = {};
@@ -70,13 +88,60 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 
     // For now, we only support reading bitmaps that are bottom-up ie. Origin in top-left corner
     PixelCount = (u32)Header.Image.WidthInPixels * (u32)Header.Image.HeightInPixels;
-    Pixels = Allocate(u32, Arena, PixelCount);
-    SizeReadFromDisk += fread(Pixels, 1, Header.Image.SizeInBytes, File.Handle);
-    CloseFile(&File);
   }
   else { Error("Opening %s for reading", Filename); }
 
-  Assert(Header.Image.CompressionType == 3);
+  fseek(File.Handle, s32(Header.OffsetToPixelData), SEEK_SET);
+
+  switch (bitmap_compression_type(Header.Image.CompressionType))
+  {
+    case BitmapCompressionType_RGB:
+    {
+      u32 TmpPixelsSize = PixelCount*3;
+      Assert(TmpPixelsSize == Header.Image.SizeInBytes);
+
+      u8 *TmpPixels = Allocate(u8, GetTranArena(), TmpPixelsSize); // 3 bytes per pixel
+      Pixels = Allocate(u32, Arena, PixelCount);
+      SizeReadFromDisk += fread(TmpPixels, 1, Header.Image.SizeInBytes, File.Handle);
+
+      u8 A = 0xFF;
+      RangeIterator_t(u32, PixelIndex, PixelCount)
+      {
+        u32 rOffset = 0 + (PixelIndex*3);
+        u32 gOffset = 1 + (PixelIndex*3);
+        u32 bOffset = 2 + (PixelIndex*3);
+        Assert(rOffset < TmpPixelsSize);
+        Assert(gOffset < TmpPixelsSize);
+        Assert(bOffset < TmpPixelsSize);
+
+        u8 R = TmpPixels[rOffset];
+        u8 G = TmpPixels[gOffset];
+        u8 B = TmpPixels[bOffset];
+        Pixels[PixelIndex] = u32(R | (G<<8) | (B<<16) | (A<<24));
+      }
+    } break;
+
+    case BitmapCompressionType_BITFIELDS:
+    {
+      Pixels = Allocate(u32, Arena, PixelCount);
+      SizeReadFromDisk += fread(Pixels, 1, Header.Image.SizeInBytes, File.Handle);
+    } break;
+
+    case BitmapCompressionType_RLE8:
+    case BitmapCompressionType_RLE4:
+    case BitmapCompressionType_JPEG:
+    case BitmapCompressionType_PNG:
+    case BitmapCompressionType_ALPHABITFIELDS:
+    case BitmapCompressionType_CMYK:
+    case BitmapCompressionType_CMYKRLE8:
+    case BitmapCompressionType_CMYKRLE4:
+    {
+      SoftError("Unsupported Bitmap compression format encountered (%S)", ToString(bitmap_compression_type(Header.Image.CompressionType)));
+    } break;
+  }
+  CloseFile(&File);
+
+  /* Assert(Header.Image.CompressionType == 3); */
   if (SizeReadFromDisk != (s32)Header.FileSizeInBytes)
   {
     Warn("(%s) loaded successfully, but we detected unsupported metadata during loading.", Filename);
@@ -110,6 +175,9 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 
   return Result;
 }
+
+poof(block_array(bitmap, {32}))
+#include <generated/block_array_bitmap_688853862.h>
 
 b32
 WriteBitmapToDisk(bitmap *Bitmap, const char *Filename)

@@ -145,6 +145,9 @@ MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
   *Current = GetUniform(GraphicsMemory, &Shader, Texture, "Texture");
   Current = &(*Current)->Next;
 
+  *Current = GetUniform(GraphicsMemory, &Shader, Texture, "TextureArray");
+  Current = &(*Current)->Next;
+
   *Current = GetUniform(GraphicsMemory, &Shader, (b32*)0, "IsDepthTexture");
   Current = &(*Current)->Next;
 
@@ -226,7 +229,7 @@ BindUniform(shader *Shader, const char *Name, s32 Value)
   }
   else
   {
-    Warn("Couldn't retieve uniform %S", Name);
+    Warn("Couldn't retieve uniform %s", Name);
   }
 }
 
@@ -240,7 +243,7 @@ BindUniform(shader *Shader, const char *Name, b32 Value)
   }
   else
   {
-    Warn("Couldn't retieve uniform %S", Name);
+    Warn("Couldn't retieve uniform %s", Name);
   }
 }
 
@@ -259,6 +262,7 @@ BindUniform(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
     Warn("Couldn't retieve uniform %s", Name);
   }
 
+  GL.Uniform1i(Uniform, s32(TextureUnit)); // Assign texture unit to the TexureUniform
   GL.BindTexture(GL_TEXTURE_2D, Texture->ID);
 }
 

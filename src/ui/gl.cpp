@@ -76,7 +76,11 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   SetViewport(*ScreenDim);
 
   GL.UseProgram(TextGroup->SolidUIShader.ID);
-  DrawUiBuffer(TextGroup, &UiGroup->Geo, ScreenDim);
+
+    DrawUiBuffer(TextGroup, &UiGroup->Geo, ScreenDim);
+  /* UiGroup->Geo.At = 0; */
+
+
 
   GL.UseProgram(TextGroup->Text2DShader.ID);
   GL.ActiveTexture(GL_TEXTURE0);
@@ -85,10 +89,10 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   GL.Enable(GL_BLEND);
   GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  DrawUiBuffer(UiGroup->TextGroup, &UiGroup->TextGroup->Geo, ScreenDim);
+    DrawUiBuffer(UiGroup->TextGroup, &UiGroup->TextGroup->Geo, ScreenDim);
+  /* UiGroup->TextGroup->Geo.At = 0; */
 
   GL.Disable(GL_BLEND);
-
   GL.Enable(GL_CULL_FACE);
 }
 

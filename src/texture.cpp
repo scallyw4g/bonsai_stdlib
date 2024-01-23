@@ -270,7 +270,7 @@ FramebufferTexture(framebuffer *FBO, texture *Tex)
   GL.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, GL_TEXTURE_2D, Tex->ID, 0);
 }
 
-texture*
+link_internal texture*
 LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount)
 {
   bitmap TexBitmap = ReadBitmapFromDisk(FilePath, GetTranArena());
@@ -278,10 +278,63 @@ LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount)
   return Result;
 }
 
-texture*
+link_internal texture*
 LoadBitmap(const char* FilePath, memory_arena *Arena)
 {
   bitmap TexBitmap = ReadBitmapFromDisk(FilePath, GetTranArena());
   texture *Result = MakeTexture_RGBA(TexBitmap.Dim, TexBitmap.Pixels.Start, Arena);
+  return Result;
+}
+
+link_internal bitmap
+LoadBitmap(file_traversal_node *Node, memory_arena *Arena)
+{
+  cs Path = Concat(Node->Dir, CSz("/"), Node->Name, GetTranArena());
+  bitmap Result = ReadBitmapFromDisk(GetNullTerminated(Path), Arena);
+  return Result;
+}
+
+link_internal maybe_file_traversal_node
+LoadBitmapFileHelper(file_traversal_node Node, u64 UserData)
+{
+  bitmap_block_array *Bitmaps = Cast(bitmap_block_array*, UserData);
+
+  bitmap B = LoadBitmap(&Node, GetTranArena());
+  Push(Bitmaps, &B);
+
+  maybe_file_traversal_node Result = {};
+  return Result;
+}
+
+link_internal texture*
+LoadBitmapsFromFolder(cs FilePath, memory_arena *Arena)
+{
+  bitmap_block_array Bitmaps = {};
+
+  PlatformTraverseDirectoryTree(FilePath, LoadBitmapFileHelper, u64(&Bitmaps));
+
+  u32 BitmapCount = u32(TotalElements(&Bitmaps));
+
+  texture *Result = MakeTexture_RGBA(V2i(32,32), 0, Arena, BitmapCount);
+
+  s32 TextureDepth = 1;
+
+  u32 InternalFormat = GL_RGBA8;
+  u32 TextureFormat = GL_RGBA;
+  u32 ElementType = GL_UNSIGNED_BYTE;
+  s32 xOffset = 0;
+  s32 yOffset = 0;
+
+  IterateOver(&Bitmaps, Bitmap, BitmapIndex)
+  {
+    s32 zOffset = s32(GetIndex(&BitmapIndex));
+    GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
+                      xOffset, yOffset, zOffset,
+                      Result->Dim.x, Result->Dim.y,
+                      TextureDepth,
+                      TextureFormat, ElementType,
+                      Cast(void*, Bitmap->Pixels.Start) );
+  }
+
   return Result;
 }

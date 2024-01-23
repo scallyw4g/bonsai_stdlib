@@ -1,30 +1,54 @@
 in vec2 UV;
 out vec4 color;
 
-uniform sampler2D Texture;
+uniform highp sampler2D Texture;
+uniform highp sampler2DArray TextureArray;
+
 uniform bool IsDepthTexture;
 uniform bool HasAlphaChannel;
+uniform int TextureSlice;
 
 void main()
 {
+  color = V4(0.f, 0.f, 0.f, 1.f);
+
   if (IsDepthTexture)
   {
     // Linearize Depth texture
     float Far = 50.0f;
     float Near = 0.1f;
     float ZDepth = texture(Texture, UV).x;
-    color = vec4( vec3(Linearize(ZDepth, Far, Near)), 1 );
+    color = vec4( vec3(Linearize(ZDepth, Far, Near)), 1.f );
   }
   else
   {
-    v4 C = texture(Texture, UV);
+    v4 C;
 
+/*     if (TextureSlice < 0) */
+/*     { */
+/*       C = texture(Texture, UV); */
+/*       color.rgb = C.rgb; */
+/*       color.a = 1.f; */
+/*     } */
+/*     else */
+/*     { */
+/*       C = V4(1,0,0,1); */
+/*       C = texture(TextureArray, vec3(UV, float(TextureSlice))); */
+/*       /1* v4 C1 = texture(TextureArray, UV); *1/ */
+/*     } */
+
+    C = texture(TextureArray, vec3(UV, float(TextureSlice)));
     color.rgb = C.rgb;
     color.a = 1.f;
 
     if (HasAlphaChannel)
     {
-      color.a = C.a;
+      /* color.a = C.a; */
     }
+
+    /* color = V4(float(TextureSlice)/32.f, 0.f, 0.f, 1.f); */
+    /* color.a = 1.f; */
   }
+
+  /* color = V4(1.f, 1.f, 0.f, 1.f); */
 }
