@@ -2770,22 +2770,16 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
             if (TypedCommand->TextureSlice < 0)
             {
-              /* BindUniform(Shader, "Texture", TypedCommand->Texture, 0); */
+              BindUniform(Shader, "Texture", TypedCommand->Texture, 0);
             }
             else
             {
+              BindUniform(Shader, "TextureArray", TypedCommand->Texture, 1);
             }
 
-            /* GL.ActiveTexture(GL_TEXTURE0); */
-            /* GL.ActiveTexture(GL_TEXTURE1); */
-            /* GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray->ID); */
-
-            BindUniform(Shader, "TextureArray",    TypedCommand->Texture, 0);
-            /* BindUniform(Shader, "TextureArray",    TypedCommand->Texture, 0); */
             BindUniform(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
             BindUniform(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel );
-            /* BindUniform(Shader, "TextureSlice",    TypedCommand->TextureSlice   ); */
-            BindUniform(Shader, "TextureSlice",    8  );
+            BindUniform(Shader, "TextureSlice",    TypedCommand->TextureSlice   );
 
             // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
             // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
@@ -2889,20 +2883,6 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
 
     // Generic shader that gets reused to draw simple textured quads
     Renderer->TexturedQuadShader = MakeFullTextureShader(0, PermMemory);
-    AssertNoGlErrors;
-
-    v2i TextureDim = V2i(DEBUG_TEXTURE_DIM, DEBUG_TEXTURE_DIM);
-    texture *DepthTexture = MakeDepthTexture( TextureDim, PermMemory );
-    FramebufferDepthTexture(DepthTexture);
-    AssertNoGlErrors;
-
-
-    Result = CheckAndClearFramebuffer();
-    Assert(Result);
-
-    GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
-    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     AssertNoGlErrors;
   }
 

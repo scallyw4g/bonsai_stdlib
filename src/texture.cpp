@@ -151,21 +151,23 @@ MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, u32 MaxTextureSlices = 1
   }
   else
   {
-    /*
-     */
-
-#if 0
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, MaxTextureSlices, InternalFormat,
-        Texture->Dim.x, Texture->Dim.y, MaxTextureSlices,
-        0, TextureFormat, ElementType,
+    Texture->Slices = MaxTextureSlices;
+    // TODO(Jesse, id: 137, tags: robustness, open_question): This _should_ be
+    // able to be glTexImage3D, but the driver is throwing an error .. why?!
+    //
+#if 1
+    GL.TexImage3D(
+        GL_TEXTURE_2D_ARRAY,
+        0,
+        s32(InternalFormat),
+        Texture->Dim.x, Texture->Dim.y, s32(MaxTextureSlices),
+        0,
+        TextureFormat,
+        ElementType,
         0);
 #else
 
-    /* TODO(Jesse, id: 137, tags: robustness, open_question): This _should_ be
-     * able to be glTexImage3D, but the driver is throwing an error .. why?!
-     */
-
-    s32 Mips = (s32)MaxTextureSlices;
+    s32 Mips = 0; //(s32)MaxTextureSlices;
     GL.TexStorage3D(GL_TEXTURE_2D_ARRAY, Mips, InternalFormat,
                     Dim.x, Dim.x, (s32)MaxTextureSlices);
 #endif
@@ -174,14 +176,17 @@ MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, u32 MaxTextureSlices = 1
     s32 yOffset = 0;
     s32 zOffset = 0;
 
-    s32 TextureDepth = 1;
-    GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
-                      xOffset, yOffset, zOffset,
-                      Texture->Dim.x, Texture->Dim.y, TextureDepth,
-                      TextureFormat, ElementType, Data );
+    if (Data)
+    {
+      s32 TextureDepth = 1;
+      GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
+                        xOffset, yOffset, zOffset,
+                        Texture->Dim.x, Texture->Dim.y, TextureDepth,
+                        TextureFormat, ElementType, Data );
+    }
   }
 
-  GL.BindTexture(TextureDimensionality, 0);
+/*   GL.BindTexture(TextureDimensionality, 0); */
 
   return Texture;
 }
@@ -252,7 +257,7 @@ MakeDepthTexture(v2i Dim, memory_arena *Mem)
   r32 BorderColors[4] = {1, 1, 1, 1};
   GL.TexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BorderColors);
 
-  GL.BindTexture(GL_TEXTURE_2D, 0);
+  /* GL.BindTexture(GL_TEXTURE_2D, 0); */
 
   return Texture;
 }

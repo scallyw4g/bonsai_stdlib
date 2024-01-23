@@ -255,15 +255,21 @@ BindUniform(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
   s32 Uniform = GL.GetUniformLocation(Shader->ID, Name);
   if (Uniform != INVALID_SHADER_UNIFORM)
   {
-    GL.Uniform1i(Uniform, (s32)TextureUnit);
+    GL.Uniform1i(Uniform, s32(TextureUnit));
   }
   else
   {
     Warn("Couldn't retieve uniform %s", Name);
   }
 
-  GL.Uniform1i(Uniform, s32(TextureUnit)); // Assign texture unit to the TexureUniform
-  GL.BindTexture(GL_TEXTURE_2D, Texture->ID);
+  if (Texture->Slices)
+  {
+    GL.BindTexture(GL_TEXTURE_2D_ARRAY, Texture->ID);
+  }
+  else
+  {
+    GL.BindTexture(GL_TEXTURE_2D, Texture->ID);
+  }
 }
 
 link_internal void

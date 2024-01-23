@@ -191,6 +191,8 @@ struct renderer_2d
 {
   render_buffers_2d *TextGroup;
 
+  texture *SpriteTextureArray;
+
   u64 InteractionStackTop;
 
   v2 *MouseP;
