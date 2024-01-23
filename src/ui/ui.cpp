@@ -876,8 +876,9 @@ PushTooltip(renderer_2d *Group, counted_string Text)
 }
 
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
+PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth)
 {
+  Assert(Texture->Slices > 0);
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
 
@@ -885,8 +886,8 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim,
     .ui_render_command_textured_quad.Texture = Texture,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
-    .ui_render_command_textured_quad.IsDepthTexture = IsDepthTexture,
-    .ui_render_command_textured_quad.HasAlphaChannel = HasAlphaChannel,
+    .ui_render_command_textured_quad.IsDepthTexture = Texture->IsDepthTexture,
+    .ui_render_command_textured_quad.HasAlphaChannel = (Texture->Channels == 4),
     .ui_render_command_textured_quad.Layout =
     {
       .DrawBounds = InvertedInfinityRectangle(),
@@ -898,8 +899,9 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim,
 
 #if 1
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
+PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth)
 {
+  Assert(Texture->Slices == 0);
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
 
@@ -907,8 +909,8 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b
     .ui_render_command_textured_quad.Texture = Texture,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
-    .ui_render_command_textured_quad.IsDepthTexture = IsDepthTexture,
-    .ui_render_command_textured_quad.HasAlphaChannel = HasAlphaChannel,
+    .ui_render_command_textured_quad.IsDepthTexture = Texture->IsDepthTexture,
+    .ui_render_command_textured_quad.HasAlphaChannel = (Texture->Channels == 4),
     .ui_render_command_textured_quad.Layout =
     {
       .DrawBounds = InvertedInfinityRectangle(),
@@ -922,10 +924,10 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, b
 #endif
 
 link_internal void
-PushTexturedQuadColumn(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, b32 IsDepthTexture = False, b32 HasAlphaChannel = False)
+PushTexturedQuadColumn(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth)
 {
   u32 Start = StartColumn(Group);
-    PushTexturedQuad(Group, Texture, TextureSlice, Dim, zDepth, IsDepthTexture, HasAlphaChannel);
+    PushTexturedQuad(Group, Texture, TextureSlice, Dim, zDepth);
   EndColumn(Group, Start);
 }
 

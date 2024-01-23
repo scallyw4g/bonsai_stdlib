@@ -50,11 +50,12 @@ struct render_buffers_2d
   u32 SolidUIUVBuffer;
 
   texture *DebugTextureArray;
-  shader Text2DShader;
   s32 TextTextureUniform;
-  textured_2d_geometry_buffer Geo;
-  shader DebugFontTextureShader;
+
+  shader Text2DShader;
   shader SolidUIShader;
+
+  textured_2d_geometry_buffer Geo;
 };
 
 enum window_layout_flags
@@ -135,6 +136,12 @@ UiId(window_layout *Window, const char *Interaction, u32 Element)
 }
 
 link_internal ui_id
+UiId(window_layout *Window, u64 Interaction, u64 Element)
+{
+  return UiId(Window, Cast(void*, Interaction), (void*)Element);
+}
+
+link_internal ui_id
 UiId(window_layout *Window, const char *Interaction, u64 Element)
 {
   return UiId(Window, Cast(void*, Interaction), (void*)Element);
@@ -211,9 +218,6 @@ struct renderer_2d
   interactable Pressed;
   b32 RequestedForceCapture;
 
-  u32 SolidGeoCountLastFrame;
-  u32 TextGeoCountLastFrame;
-
   untextured_2d_geometry_buffer Geo;
   shader TexturedQuadShader;
 
@@ -224,6 +228,9 @@ struct renderer_2d
 
 #define RANDOM_COLOR_COUNT 128
   v3 DebugColors[RANDOM_COLOR_COUNT];
+
+  u32 SolidGeoCountLastFrame;
+  u32 TextGeoCountLastFrame;
 
   v3_cursor *ColorPalette;
 };

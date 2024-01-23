@@ -94,12 +94,21 @@ struct camera;
   os *Os         = &(Stdlib)->Os; \
   platform *Plat = &(Stdlib)->Plat;
 
+
 struct bonsai_stdlib
 {
   os Os;
   platform Plat;
   thread_local_state *ThreadStates;
 
+  //
+  // Debug
+  //
+
+  texture_ptr_block_array AllTextures;
+
   bonsai_debug_system DebugSystem;
 };
+
+link_weak bonsai_stdlib *GetStdlib();
 

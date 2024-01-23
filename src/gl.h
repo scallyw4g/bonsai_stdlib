@@ -218,7 +218,7 @@ struct framebuffer
   u32 Attachments;
 };
 
-struct texture_block_array;
+struct texture_ptr_block_array;
 
 struct render_entity_to_texture_group
 {
