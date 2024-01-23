@@ -40,10 +40,5 @@ void main()
     {
       color.a = C.a;
     }
-
-    /* color = V4(float(TextureSlice)/32.f, 0.f, 0.f, 1.f); */
-    /* color.a = 1.f; */
   }
-
-  /* color = V4(1.f, 1.f, 0.f, 1.f); */
 }

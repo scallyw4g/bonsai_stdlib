@@ -320,7 +320,7 @@ LoadBitmapsFromFolder(cs FilePath, memory_arena *Arena)
 
   u32 BitmapCount = u32(TotalElements(&Bitmaps));
 
-  texture *Result = MakeTexture_RGBA(V2i(32,32), 0, Arena, BitmapCount);
+  texture *Result = MakeTexture_RGBA(V2i(48,48), 0, Arena, BitmapCount);
 
   s32 TextureDepth = 1;
 
