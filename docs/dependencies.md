@@ -6,7 +6,7 @@
 
 ## On Windows:
 Projects making use of bonsai_stdlib require `clang` and a unix-like shell to build on Windows.
-Installing [MSYS2 ](https://www.msys2.org/) usually works for me.
+Installing [MSYS2 ](https://www.msys2.org/) satisfies all the required dependencies.
 
 ## On Linux:
 Ensure you have an OpenGL driver, GL headers, X11 headers, and clang
