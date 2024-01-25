@@ -539,7 +539,8 @@ int attribs[] =
     0
   };
 
-  PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = ReinterpretCast(PFNWGLCREATECONTEXTATTRIBSARBPROC, wglGetProcAddress("wglCreateContextAttribsARB"));
+  auto foo = wglGetProcAddress("wglCreateContextAttribsARB");
+  PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = ReinterpretCast(PFNWGLCREATECONTEXTATTRIBSARBPROC, foo);
   Os->GlContext = wglCreateContextAttribsARB(Os->Display, 0, attribs);
 
   wglMakeCurrent(NULL, NULL);

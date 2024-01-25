@@ -54,7 +54,8 @@
 
 
 #define Cast(T, Ptr) ((T)(Ptr))
-#define ReinterpretCast(T, Ptr) (T)(void*)(Ptr)
+/* #define ReinterpretCast(T, Ptr) (T)(void*)(Ptr) */
+#define ReinterpretCast(T, Object) (*(T*)(&Object))
 
 #define TryCast(T, Ptr) ((Ptr)->Type == type_##T ? (&(Ptr)->T) : 0)
 #define SafeCast(T, Ptr) (T*)(&(Ptr)->T); Assert((Ptr)->Type == type_##T)
