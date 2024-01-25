@@ -876,16 +876,18 @@ PushTooltip(renderer_2d *Group, counted_string Text)
 }
 
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth)
+PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, v3 Tint = V3(1), quad_render_params Params = QuadRenderParam_Default )
 {
   Assert(Texture->Slices > 0);
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
 
+    .ui_render_command_textured_quad.Params = Params,
     .ui_render_command_textured_quad.TextureSlice = TextureSlice,
     .ui_render_command_textured_quad.Texture = Texture,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
+    .ui_render_command_textured_quad.Tint = Tint,
     .ui_render_command_textured_quad.IsDepthTexture = Texture->IsDepthTexture,
     .ui_render_command_textured_quad.HasAlphaChannel = (Texture->Channels == 4),
     .ui_render_command_textured_quad.Layout =
@@ -899,16 +901,18 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim,
 
 #if 1
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth)
+PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, v3 Tint = V3(1), quad_render_params Params = QuadRenderParam_Default )
 {
   Assert(Texture->Slices == 0);
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
 
+    .ui_render_command_textured_quad.Params = Params,
     .ui_render_command_textured_quad.TextureSlice = -1,
     .ui_render_command_textured_quad.Texture = Texture,
     .ui_render_command_textured_quad.QuadDim = Dim,
     .ui_render_command_textured_quad.zDepth = zDepth,
+    .ui_render_command_textured_quad.Tint = Tint,
     .ui_render_command_textured_quad.IsDepthTexture = Texture->IsDepthTexture,
     .ui_render_command_textured_quad.HasAlphaChannel = (Texture->Channels == 4),
     .ui_render_command_textured_quad.Layout =
@@ -924,10 +928,11 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth)
 #endif
 
 link_internal void
-PushTexturedQuadColumn(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth)
+PushTexturedQuadColumn(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, v3 Tint = V3(1), quad_render_params Params = QuadRenderParam_Default )
 {
+  Assert(TextureSlice >= 0);
   u32 Start = StartColumn(Group);
-    PushTexturedQuad(Group, Texture, TextureSlice, Dim, zDepth);
+    PushTexturedQuad(Group, Texture, TextureSlice, Dim, zDepth, Tint, Params);
   EndColumn(Group, Start);
 }
 
@@ -1804,8 +1809,16 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
 
   if (Command->Texture == 0) { BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, TextRenderParam_NoAdvanceLayout); }
 
-  AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
-  UpdateDrawBounds(RenderState->Layout, Dim);
+  if (Command->Params & QuadRenderParam_AdvanceClip)
+  {
+    UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At);
+    UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At + Dim);
+  }
+
+  if (Command->Params & QuadRenderParam_AdvanceLayout)
+  {
+    AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
+  }
 }
 
 link_internal void
@@ -2782,6 +2795,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             BindUniform(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
             BindUniform(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel );
             BindUniform(Shader, "TextureSlice",    TypedCommand->TextureSlice   );
+            BindUniform(Shader, "Tint",            &TypedCommand->Tint   );
 
             // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
             // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?

@@ -19,7 +19,9 @@
 #define STONE       GREY_6
 #define GRAVEL      3
 #define SAND        4
-#define DIRT        138
+
+#define LIGHT_DIRT        102
+#define       DIRT        138
 
 #define LONG_YELLOW_GRASS0 5
 #define LONG_YELLOW_GRASS1 6

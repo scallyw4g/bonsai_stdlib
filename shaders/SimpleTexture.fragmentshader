@@ -7,6 +7,7 @@ uniform highp sampler2DArray TextureArray;
 uniform bool IsDepthTexture;
 uniform bool HasAlphaChannel;
 uniform int TextureSlice;
+uniform vec3 Tint;
 
 void main()
 {
@@ -33,7 +34,7 @@ void main()
       C = texture(TextureArray, vec3(UV, float(TextureSlice)));
     }
 
-    color.rgb = C.rgb;
+    color.rgb = C.rgb * Tint;
     color.a = 1.f;
 
     if (HasAlphaChannel)

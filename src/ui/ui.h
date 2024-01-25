@@ -563,7 +563,8 @@ struct ui_render_command_untextured_quad_at
 
 struct ui_render_command_textured_quad
 {
-  /* textured_quad_source Source; */
+  quad_render_params Params;
+
   s32 TextureSlice;
   texture *Texture;
 
@@ -575,6 +576,7 @@ struct ui_render_command_textured_quad
   /* ui_style Style; */
   v2 QuadDim;
   z_depth zDepth;
+  v3 Tint;
 
   // NOTE(Jesse): Written to by the layout engine, not for use by external code
   // At the moment, only valid for TexturedQuadSource_Discrete

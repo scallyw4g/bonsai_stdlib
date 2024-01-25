@@ -329,22 +329,23 @@ LoadBitmapsFromFolder(cs FilePath, bitmap_block_array *Bitmaps)
 }
 
 link_internal texture*
-CreateTextureArrayFromBitmapArray(bitmap_block_array *Bitmaps, v2i Dim, memory_arena *Arena)
+CreateTextureArrayFromBitmapArray(bitmap_block_array *Bitmaps, v2i TextureArrayXY, memory_arena *Arena)
 {
   umm BitmapCount = TotalElements(Bitmaps);
-  texture *Result = MakeTexture_RGBA(Dim, 0, Arena, CSz("TODO: DebugName"), u32(BitmapCount));
+  texture *Result = MakeTexture_RGBA(TextureArrayXY, 0, Arena, CSz("TODO: DebugName"), u32(BitmapCount));
 
   s32 TextureDepth = 1;
 
   u32 InternalFormat = GL_RGBA8;
   u32 TextureFormat = GL_RGBA;
   u32 ElementType = GL_UNSIGNED_BYTE;
-  s32 xOffset = 0;
-  s32 yOffset = 0;
 
   IterateOver(Bitmaps, Bitmap, BitmapIndex)
   {
     s32 zOffset = s32(GetIndex(&BitmapIndex));
+
+    s32 xOffset = (TextureArrayXY.x - Bitmap->Dim.x) / 2;
+    s32 yOffset = (TextureArrayXY.y - Bitmap->Dim.y) / 2;
     GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
                       xOffset, yOffset, zOffset,
                       Bitmap->Dim.x, Bitmap->Dim.y,

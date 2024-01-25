@@ -287,6 +287,28 @@ BindUniform(shader *Shader, const char *Name, r32 Value)
 }
 
 link_internal b32
+TryBindUniform(shader *Shader, const char *Name, v3 *V)
+{
+  b32 Result = False;
+  s32 Uniform = GL.GetUniformLocation(Shader->ID, Name);
+  if (Uniform != INVALID_SHADER_UNIFORM)
+  {
+    GL.Uniform3fv(Uniform, 1, (r32*)V);
+    Result = True;
+  }
+  return Result;
+}
+
+link_internal void
+BindUniform(shader *Shader, const char *Name, v3 *V)
+{
+  if (TryBindUniform(Shader, Name, V) == False)
+  {
+    Warn("Couldn't retieve uniform %s", Name);
+  }
+}
+
+link_internal b32
 TryBindUniform(shader *Shader, const char *Name, m4 *Matrix)
 {
   b32 Result = False;
