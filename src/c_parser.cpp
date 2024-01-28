@@ -1103,16 +1103,16 @@ OutputContextMessage(parser* Parser, parse_error_code ErrorCode, counted_string 
 
     // TODO(Jesse, tags: bug): This isn't working for some reason.  I think
     // GetLongestLineInCursor is busted here.
-    counted_string NameLine = FormatCountedString(GetTranArena(), CSz("  %S:%u  "), ParserName, ErrorLineNumber);
+    counted_string NameLine = FormatCountedString(GetTranArena(), CSz("./%S:%u:0: %S "), ParserName, ErrorLineNumber, Message);
     u64 LongestLine = Max(MinLineLen, GetLongestLineInCursor(ParseErrorCursor));
     LongestLine = Max(MinLineLen, (u64)NameLine.Count+4);
 
     string_builder Builder = {};
 
-    u64 HalfDashes = (LongestLine-NameLine.Count)/2;
-    for (u32 DashIndex = 0; DashIndex < HalfDashes; ++DashIndex) { Append(&Builder, CSz("-")); }
+    /* u64 HalfDashes = (LongestLine-NameLine.Count)/2; */
+    /* for (u32 DashIndex = 0; DashIndex < HalfDashes; ++DashIndex) { Append(&Builder, CSz("-")); } */
     Append(&Builder, NameLine);
-    for (u32 DashIndex = 0; DashIndex < HalfDashes; ++DashIndex) { Append(&Builder, CSz("-")); }
+    /* for (u32 DashIndex = 0; DashIndex < HalfDashes; ++DashIndex) { Append(&Builder, CSz("-")); } */
     Append(&Builder, CSz("\n"));
 
     // Intentional copy
