@@ -18,14 +18,26 @@ IsValid(ui_id *Id)
   return Reuslt;
 }
 
-/* poof(gen_default_equality_operator(ui_id)) */
+poof(gen_default_equality_operator(ui_id))
 #include <generated/gen_default_equality_operator_ui_id.h>
 
-/* poof(gen_default_boolean_operator(ui_id)) */
-/* #include <generated/gen_default_boolean_operator_ui_id.h> */
-
 /* poof(are_equal(ui_id)) */
-#include <generated/are_equal_ui_id.h>
+/* #include <generated/are_equal_ui_id.h> */
+
+link_internal b32
+AreEqual(ui_id &Thing1, ui_id &Thing2)
+{
+  b32 Result = Thing1 == Thing2;
+  return Result;
+}
+
+link_internal b32
+AreEqual(ui_id *Thing1, ui_id *Thing2)
+{
+  b32 Result = *Thing1 == *Thing2;
+  return Result;
+}
+
 
 struct interactable_handle
 {
