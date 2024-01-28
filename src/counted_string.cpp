@@ -220,8 +220,8 @@ StripPrefix(counted_string Source, memory_arena* Memory, u32 Count)
   u32 Hits = 0;
   u32 CharAfterUnderscore = 0;
   for (u32 CharIndex = 0;
-      CharIndex < Source.Count;
-      ++CharIndex)
+           CharIndex < Source.Count;
+         ++CharIndex)
   {
     if (Source.Start[CharIndex] == '_')
     {
@@ -233,10 +233,12 @@ StripPrefix(counted_string Source, memory_arena* Memory, u32 Count)
     }
   }
 
-  Assert(Source.Count > CharAfterUnderscore);
-
-  umm ResultLength = Source.Count - CharAfterUnderscore;
-  counted_string Result = CS(Source.Start+CharAfterUnderscore, ResultLength);
+  cs Result = Source;
+  if (Source.Count > CharAfterUnderscore)
+  {
+    umm ResultLength = Source.Count - CharAfterUnderscore;
+    Result = CS(Source.Start+CharAfterUnderscore, ResultLength);
+  }
   return Result;
 }
 link_internal counted_string
