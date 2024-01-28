@@ -754,6 +754,13 @@ poof(
     }
 
     link_internal (Type.name)*
+    Upsert((Type.name) Element, (Type.name)_hashtable *Table)
+    {
+      NotImplemented;
+      return 0;
+    }
+
+    link_internal (Type.name)*
     Insert((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
