@@ -256,9 +256,10 @@ StripPrefixesUntilDoubleUnderscore(counted_string Source)
   u32 Hits = 0;
   cs Current = Source;
 
+  cs Prefix = {};
   do
   {
-    cs Prefix = {};
+    Prefix = {};
     Current = StripPrefix(Current, 0, &Prefix);
   } while (Prefix && !StringsMatch(Prefix, CSz("_")));
 

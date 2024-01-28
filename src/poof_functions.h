@@ -1474,7 +1474,7 @@ poof(
       {
         EnumType.map_values (EnumValue)
         {
-          case EnumValue.name: { Result = CSz("EnumValue.name.strip_all_prefix"); } break;
+          case EnumValue.name: { Result = CSz("EnumValue.name"); } break;
         }
 
         EnumType.has_tag(bitfield)?
