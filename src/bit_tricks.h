@@ -149,3 +149,37 @@ GetIndexOfSingleSetBit( u64 O )
   return Result;
 }
 
+// https://graphics.stanford.edu/%7Eseander/bithacks.html#RoundUpPowerOf2
+//
+link_inline u64
+NextPowerOfTwo(u64 Input)
+{
+  u64 Result = Input;
+
+  Result--;
+  Result |= Result >> 1;
+  Result |= Result >> 2;
+  Result |= Result >> 4;
+  Result |= Result >> 8;
+  Result |= Result >> 16;
+  Result |= Result >> 32;
+  Result++;
+
+  return Result;
+}
+
+link_inline u32
+NextPowerOfTwo(u32 Input)
+{
+  u32 Result = Input;
+
+  Result--;
+  Result |= Result >> 1;
+  Result |= Result >> 2;
+  Result |= Result >> 4;
+  Result |= Result >> 8;
+  Result |= Result >> 16;
+  Result++;
+
+  return Result;
+}
