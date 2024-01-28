@@ -215,7 +215,7 @@ ToLowerCase(counted_string Source, memory_arena* Memory)
 }
 
 link_internal counted_string
-StripPrefix(counted_string Source, memory_arena* Memory, u32 Count)
+StripPrefix(counted_string Source, u32 Count, cs *Prefix = 0)
 {
   u32 Hits = 0;
   u32 CharAfterUnderscore = 0;
@@ -239,8 +239,33 @@ StripPrefix(counted_string Source, memory_arena* Memory, u32 Count)
     umm ResultLength = Source.Count - CharAfterUnderscore;
     Result = CS(Source.Start+CharAfterUnderscore, ResultLength);
   }
+
+  if (Prefix)
+  {
+    Assert(CharAfterUnderscore <= Source.Count);
+    umm PrefixLength = CharAfterUnderscore;
+    *Prefix = CS(Source.Start, CharAfterUnderscore);
+  }
+
   return Result;
 }
+
+link_internal counted_string
+StripPrefixesUntilDoubleUnderscore(counted_string Source)
+{
+  u32 Hits = 0;
+  cs Current = Source;
+
+  do
+  {
+    cs Prefix = {};
+    Current = StripPrefix(Current, 0, &Prefix);
+  } while (Prefix && !StringsMatch(Prefix, CSz("_")));
+
+  cs Result = Current;
+  return Result;
+}
+
 link_internal counted_string
 ToCapitalCase(counted_string Source, memory_arena* Memory)
 {
