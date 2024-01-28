@@ -901,6 +901,39 @@ poof(
 );
 
 poof(
+  func hashtable_to_buffer(type)
+  {
+    (type.name)_buffer
+    ToBuffer( (type.name)_hashtable *Table, memory_arena *Memory )
+    {
+      umm Count = 0;
+      RangeIterator_t(umm, Index, Table->Size)
+      {
+        (type.name)_linked_list_node *E = Table->Elements[Index];
+        if (E) Count++;
+      }
+
+      (type.name)_buffer Result = (type.name.to_capital_case)Buffer(Count, Memory);
+
+      Count = 0;
+      RangeIterator_t(umm, Index, Table->Size)
+      {
+        (type.name)_linked_list_node *E = Table->Elements[Index];
+        if (E) { Result.Start[Count] = E->Element; Count++; }
+      }
+      Assert(Count == Result.Count);
+
+      return Result;
+    }
+
+  }
+)
+
+
+
+
+
+poof(
   func dunion_debug_print_prototype(DUnion)
   {
     link_internal void DebugPrint( (DUnion.type) *Struct, u32 Depth = 0);
@@ -1825,7 +1858,7 @@ poof(
     {
       (type.name)_block *First;
       (type.name)_block *Current;
-      memory_arena *Memory;
+      memory_arena *Memory; poof(@no_serialize)
     };
 
     link_internal (type.name)_block_array_index
