@@ -110,6 +110,9 @@ struct ui_toggle
   b32 ToggledOn;
 };
 
+poof(are_equal(ui_toggle))
+#include <generated/are_equal_ui_toggle.h>
+
 struct ui_toggle_button_handle
 {
   cs Text;

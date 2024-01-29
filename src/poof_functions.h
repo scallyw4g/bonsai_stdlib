@@ -577,9 +577,9 @@ poof(
       {
         b32 Result = MemoryIsEqual((u8*)Thing1, (u8*)Thing2, sizeof( (Type.name) ) );
       }
-
       return Result;
     }
+
   }
 )
 
@@ -754,13 +754,6 @@ poof(
     }
 
     link_internal (Type.name)*
-    Upsert((Type.name) Element, (Type.name)_hashtable *Table)
-    {
-      NotImplemented;
-      return 0;
-    }
-
-    link_internal (Type.name)*
     Insert((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
@@ -769,6 +762,29 @@ poof(
       Bucket->Element = Element;
       Insert(Bucket, Table);
       return &Bucket->Element;
+    }
+
+    link_internal (Type.name)*
+    Upsert((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
+    {
+      umm HashValue = Hash(&Element) % Table->Size;
+      (Type.name)_linked_list_node **Bucket = Table->Elements + HashValue;
+      while (*Bucket)
+      {
+        if (AreEqual(&Bucket[0]->Element, &Element)) { break; }
+        Bucket = &(*Bucket)->Next;
+      }
+
+      if (*Bucket)
+      {
+        Bucket[0]->Element = Element;
+      }
+      else
+      {
+        Insert(Element, Table, Memory);
+      }
+
+      return &Bucket[0]->Element;
     }
 
     //

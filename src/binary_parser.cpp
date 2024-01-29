@@ -552,6 +552,14 @@ poof(gen_read_primitive(u64))
 
 
 link_internal b32
+Write(u8_cursor_block_array *Dest, u8 *Src, umm Count)
+{
+  b32 Result = False;
+  NotImplemented;
+  return Result;
+}
+
+link_internal b32
 Write(u8_stream *Dest, u8 *Src, umm Count)
 {
   b32 Result = Dest->At+Count <= Dest->End;
@@ -573,6 +581,27 @@ poof(
       Write(u8_stream *Dest, prim.name *Src)
       {
         b32 Result = Write(Dest, (u8*)Src, sizeof((prim.name)));
+        return Result;
+      }
+
+      link_internal b32
+      Write(u8_stream *Dest, prim.name Src)
+      {
+        b32 Result = Write(Dest, (u8*)&Src, sizeof((prim.name)));
+        return Result;
+      }
+
+      link_internal b32
+      Write(u8_cursor_block_array *Dest, prim.name *Src)
+      {
+        b32 Result = Write(Dest, (u8*)Src, sizeof((prim.name)));
+        return Result;
+      }
+
+      link_internal b32
+      Write(u8_cursor_block_array *Dest, prim.name Src)
+      {
+        b32 Result = Write(Dest, (u8*)&Src, sizeof((prim.name)));
         return Result;
       }
     }

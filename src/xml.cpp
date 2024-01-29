@@ -1,3 +1,6 @@
+poof(are_equal(xml_tag))
+#include <generated/are_equal_xml_tag.h>
+
 poof(hashtable_impl(xml_tag));
 #include <generated/hashtable_impl_xml_tag.h>
 

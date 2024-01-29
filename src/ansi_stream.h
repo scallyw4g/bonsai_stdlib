@@ -3,6 +3,9 @@
 poof(generate_cursor(u8))
 #include <generated/generate_cursor_u8.h>
 
+poof(block_array_h(u8_cursor, {8}))
+#include <generated/block_array_h_u8_cursor_688856411.h>
+
 // TODO(Jesse): Get rid of this
 typedef u8_cursor u8_stream;
 

@@ -274,6 +274,14 @@ GetTempFile(random_series* Entropy, memory_arena* Memory)
 }
 
 link_internal inline b32
+WriteToFile(native_file* File, u8_cursor_block_array *Buf)
+{
+  b32 Result = False;
+  NotImplemented;
+  return Result;
+}
+
+link_internal inline b32
 WriteToFile(native_file* File, u8 *Buf, umm Count)
 {
   b32 Result = False;

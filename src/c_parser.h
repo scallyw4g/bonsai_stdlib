@@ -70,6 +70,13 @@ struct parser
 };
 
 link_internal b32
+AreEqual(parser *P1, parser *P2)
+{
+  NotImplemented;
+  return False;
+}
+
+link_internal b32
 AreEqual(parser P1, parser P2)
 {
   NotImplemented;
