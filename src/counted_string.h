@@ -703,10 +703,11 @@ Exp(u64 Base, s32 Exponent)
 link_internal u32
 IsNumeric(counted_string S)
 {
-  u32 Result = True;
+  u32 Result = S.Count > 0;
+
   for (u32 CharIndex = 0;
-      CharIndex < S.Count;
-      ++CharIndex)
+           CharIndex < S.Count;
+         ++CharIndex)
   {
     Result &= IsNumeric(S.Start[CharIndex]);
   }
