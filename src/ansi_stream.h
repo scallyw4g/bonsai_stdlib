@@ -3,7 +3,7 @@
 poof(generate_cursor(u8))
 #include <generated/generate_cursor_u8.h>
 
-poof(block_array_h(u8_cursor, {8}))
+poof(block_array_h(u8_cursor, {8}, {u64 BlockSize;}))
 #include <generated/block_array_h_u8_cursor_688856411.h>
 
 // TODO(Jesse): Get rid of this

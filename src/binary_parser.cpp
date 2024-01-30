@@ -552,14 +552,6 @@ poof(gen_read_primitive(u64))
 
 
 link_internal b32
-Write(u8_cursor_block_array *Dest, u8 *Src, umm Count)
-{
-  b32 Result = False;
-  NotImplemented;
-  return Result;
-}
-
-link_internal b32
 Write(u8_stream *Dest, u8 *Src, umm Count)
 {
   b32 Result = Dest->At+Count <= Dest->End;
@@ -570,6 +562,33 @@ Write(u8_stream *Dest, u8 *Src, umm Count)
   }
   return Result;
 }
+
+link_internal b32
+Write(u8_cursor_block_array *Dest, u8 *Src, umm Count)
+{
+  u8_cursor *Last = GetPtr(Dest, LastIndex(Dest));
+
+  b32 Result = False;
+  if (Last)
+  {
+    Result = Write(Last, Src, Count);
+    if (Result == False)
+    {
+      Assert(Dest->BlockSize);
+      Assert(Dest->BlockSize >= Count);
+      u8_cursor Next = U8Cursor(Dest->BlockSize, Dest->Memory);
+      Result = Write(&Next, Src, Count);
+      Ensure( Push(Dest, &Next) );
+    }
+  }
+  else
+  {
+    Assert(False);
+  }
+
+  return Result;
+}
+
 
 
 poof(

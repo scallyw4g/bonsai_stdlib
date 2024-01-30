@@ -274,14 +274,6 @@ GetTempFile(random_series* Entropy, memory_arena* Memory)
 }
 
 link_internal inline b32
-WriteToFile(native_file* File, u8_cursor_block_array *Buf)
-{
-  b32 Result = False;
-  NotImplemented;
-  return Result;
-}
-
-link_internal inline b32
 WriteToFile(native_file* File, u8 *Buf, umm Count)
 {
   b32 Result = False;
@@ -322,6 +314,19 @@ link_internal inline b32
 WriteToFile(native_file* File, ansi_stream *Str)
 {
   b32 Result = WriteToFile(File, CountedString(Str));
+  return Result;
+}
+
+link_internal inline b32
+WriteToFile(native_file* File, u8_cursor_block_array *Buf)
+{
+  b32 Result = True;
+
+  IterateOver(Buf, Cursor, CursorIndex)
+  {
+    Result &= WriteToFile(File, Cursor->Start, AtElements(Cursor));
+  }
+
   return Result;
 }
 

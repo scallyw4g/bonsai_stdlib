@@ -1092,8 +1092,8 @@ poof(
   {
     struct (Type.name)_buffer
     {
-      Type.name *Start;
       count_type.name Count;
+      Type.name *Start; poof(@array_length(Element->Count))
     };
 
     link_internal (Type.name)_buffer
@@ -1853,7 +1853,7 @@ poof(
 
 
 poof(
-  func block_array_h(type, type_poof_symbol n_elements)
+  func block_array_h(type, type_poof_symbol n_elements, type_poof_symbol extra_members)
   {
     struct (type.name)_block
     {
@@ -1875,6 +1875,7 @@ poof(
       (type.name)_block *First;
       (type.name)_block *Current;
       memory_arena *Memory; poof(@no_serialize)
+      extra_members
     };
 
     link_internal (type.name)_block_array_index
@@ -2108,7 +2109,7 @@ poof(
 poof(
   func block_array(type, type_poof_symbol n_elements)
   {
-    (block_array_h( type, {8} ))
+    (block_array_h( type, {8}, {} ))
     (block_array_c( type, {8} ))
   }
 )
