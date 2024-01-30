@@ -238,13 +238,13 @@ StripPrefix(counted_string Source, u32 Count, cs *Prefix = 0)
   {
     umm ResultLength = Source.Count - CharAfterUnderscore;
     Result = CS(Source.Start+CharAfterUnderscore, ResultLength);
-  }
 
-  if (Prefix)
-  {
-    Assert(CharAfterUnderscore <= Source.Count);
-    umm PrefixLength = CharAfterUnderscore;
-    *Prefix = CS(Source.Start, CharAfterUnderscore);
+    if (Prefix)
+    {
+      Assert(CharAfterUnderscore <= Source.Count);
+      umm PrefixLength = CharAfterUnderscore;
+      *Prefix = CS(Source.Start, CharAfterUnderscore);
+    }
   }
 
   return Result;
