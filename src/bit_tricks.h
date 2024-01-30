@@ -165,6 +165,7 @@ NextPowerOfTwo(u64 Input)
   Result |= Result >> 32;
   Result++;
 
+  Assert(CountBitsSet_Kernighan(Result) == 1);
   return Result;
 }
 
@@ -181,5 +182,6 @@ NextPowerOfTwo(u32 Input)
   Result |= Result >> 16;
   Result++;
 
+  Assert(CountBitsSet_Kernighan(Result) == 1);
   return Result;
 }
