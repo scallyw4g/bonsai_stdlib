@@ -11,10 +11,12 @@
 // Could instead shove these includes in a namespace but.. meh.
 #define Cursor X11_Please_Stahp0
 #define Below  X11_Please_Stahp1
+#define Status X11_Please_Stahp2
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #undef Cursor
 #undef Below
+#undef Status
 
 #define XK_LATIN1 1
 #define XK_MISCELLANY 1
