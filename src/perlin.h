@@ -186,6 +186,9 @@ PerlinNoise(f32 x, f32 y, f32 z)
                  );
 
   res = (res + 1.0f)/2.0f;
+
+  Assert(res <= 1.05f);
+  Assert(res > -1.05f);
   return res;
 }
 
