@@ -1,53 +1,4 @@
 
-v4 Floor(v4 v)
-{
-  v.x = Floorf(v.x);
-  v.y = Floorf(v.y);
-  v.z = Floorf(v.z);
-  v.w = Floorf(v.w);
-  return v;
-}
-
-v3 Floor(v3 v)
-{
-  v.x = Floorf(v.x);
-  v.y = Floorf(v.y);
-  v.z = Floorf(v.z);
-  return v;
-}
-
-f32 Fract(f32 v)
-{
-  double intval;
-  f32 Result = f32(modf((double)v, &intval));
-  return Result;
-}
-
-v2 Fract(v2 v)
-{
-  double intval;
-  v.x = f32(modf((double)v.x, &intval));
-  v.y = f32(modf((double)v.y, &intval));
-  return v;
-}
-
-v3 Fract(v3 v)
-{
-  double intval;
-  v.x = f32(modf((double)v.x, &intval));
-  v.y = f32(modf((double)v.y, &intval));
-  v.z = f32(modf((double)v.z, &intval));
-  return v;
-}
-
-v3 Sin(v3 v)
-{
-  v.x = f32(Sin(v.x));
-  v.y = f32(Sin(v.y));
-  v.z = f32(Sin(v.z));
-  return v;
-}
-
 
 #if 0
 v2 hash( v2 x )   // this hash is not production ready, please
@@ -57,25 +8,6 @@ v2 hash( v2 x )   // this hash is not production ready, please
     return -1.0f + 2.0f*Fract( 16.0f * k*Fract( x.x*x.y*(x.x+x.y)) );
 }
 #endif
-
-#if 1
-v3 hash_v3( v3 p )      // this hash is not production ready, please
-{                    // replace this by something better
-  p = V3( Dot(p, V3(127.1f,311.7f, 74.7f)),
-          Dot(p, V3(269.5f,183.3f,246.1f)),
-          Dot(p, V3(113.5f,271.9f,124.6f)));
-  return -1.0 + 2.0*Fract(Sin(p)*43758.5453123f);
-}
-#endif
-
-float hash_f32( float n ) { return Fract(Sin(n)*753.5453123f); }
-
-float hashf(v3 p)  // replace this by something better
-{
-    p  = 50.0*Fract( p*0.3183099f + V3(0.71f,0.113f,0.419f));
-    return -1.0f+2.0f*Fract( p.x*p.y*p.z*(p.x+p.y+p.z) );
-}
-
 // https://iquilezles.org/articles/gradientnoise/
 float IQ_QuinticGradientNoise( v3 x )
 {
@@ -194,3 +126,82 @@ IQ_ValueNoise_AnalyticNormals(f32 xin, f32 yin, f32 zin, v3 *Normal)
 }
 
 
+// Based on code found here:
+// https://www.ronja-tutorials.com/post/028-voronoi-noise/
+//
+link_internal f32
+VoronoiNoise3D(v3 Basis)
+{
+  v3 baseCell = Floor(Basis);
+
+  // first pass to find the closest cell
+  //
+  f32 minDistToCellSq = 100;
+  v3 toClosestCell;
+  v3 closestCell;
+  for( s32 x1 = -1;
+           x1 <= 1;
+         ++x1 )
+  {
+    for(s32 y1 = -1;
+            y1 <= 1;
+          ++y1 )
+    {
+      for( s32 z1 = -1;
+               z1 <= 1;
+             ++z1 )
+      {
+        v3 cell = baseCell + V3(x1, y1, z1);
+        v3 cellPosition = cell + RandomV3FromV3(cell);
+        v3 toCell = cellPosition - Basis;
+        f32 distToCellSq = LengthSq(toCell);
+        if(distToCellSq < minDistToCellSq)
+        {
+          minDistToCellSq = distToCellSq;
+          closestCell = cell;
+          toClosestCell = toCell;
+        }
+      }
+    }
+  }
+
+  // TODO(Jesse): This seems like you'd just want to do it in-line in the first
+  // loop ..?
+  //
+  // second pass to find the distance to the closest edge
+  //
+  f32 minEdgeDistance = 10;
+  for( s32 x2 = -1;
+           x2 <= 1;
+         ++x2 )
+  {
+    for(s32 y2 = -1;
+            y2 <= 1;
+          ++y2 )
+    {
+      for( s32 z2 = -1;
+               z2 <= 1;
+             ++z2 )
+      {
+        v3 cell = baseCell + V3(x2, y2, z2);
+        v3 cellPosition = cell + RandomV3FromV3(cell);
+        v3 toCell = cellPosition - Basis;
+
+        v3 diffToClosestCell = Abs(closestCell - cell);
+        b32 isClosestCell = diffToClosestCell.x + diffToClosestCell.y + diffToClosestCell.z < 0.1f;
+        if(isClosestCell == False)
+        {
+          v3 toCenter = (toClosestCell + toCell) * 0.5;
+          v3 cellDifference = Normalize(toCell - toClosestCell);
+          f32 edgeDistance = Dot(toCenter, cellDifference);
+          minEdgeDistance = Min(minEdgeDistance, edgeDistance);
+        }
+      }
+    }
+  }
+
+  /* f32 random = rand3dTo1d(closestCell); */
+  /* return V3(minDistToCellSq, random, minEdgeDistance); */
+  return minEdgeDistance;
+  /* return SquareRoot(minDistToCellSq); */
+}

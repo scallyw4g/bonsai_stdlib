@@ -395,6 +395,13 @@ Square( r32 f )
   return Result;
 }
 
+link_inline r32
+SquareRoot(r32 F)
+{
+  r32 Result = r32(sqrt(r64(F)));
+  return Result;
+}
+
 enum sign { Negative = -1, Zero = 0, Positive = 1 };
 
 inline sign

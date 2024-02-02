@@ -1,4 +1,93 @@
 
+v4 Floor(v4 v)
+{
+  v.x = Floorf(v.x);
+  v.y = Floorf(v.y);
+  v.z = Floorf(v.z);
+  v.w = Floorf(v.w);
+  return v;
+}
+
+v3 Floor(v3 v)
+{
+  v.x = Floorf(v.x);
+  v.y = Floorf(v.y);
+  v.z = Floorf(v.z);
+  return v;
+}
+
+f32 Fract(f32 v)
+{
+  double intval;
+  f32 Result = f32(modf((double)v, &intval));
+  return Result;
+}
+
+v2 Fract(v2 v)
+{
+  double intval;
+  v.x = f32(modf((double)v.x, &intval));
+  v.y = f32(modf((double)v.y, &intval));
+  return v;
+}
+
+v3 Fract(v3 v)
+{
+  double intval;
+  v.x = f32(modf((double)v.x, &intval));
+  v.y = f32(modf((double)v.y, &intval));
+  v.z = f32(modf((double)v.z, &intval));
+  return v;
+}
+
+v3 Sin(v3 v)
+{
+  v.x = f32(Sin(v.x));
+  v.y = f32(Sin(v.y));
+  v.z = f32(Sin(v.z));
+  return v;
+}
+
+// NOTE(Jesse): These hash functions came from Inigo Quilez shadertoys.  When
+// he says 'replace by something better' .. I don't know what would be better,
+// so I'm just using them for now.  Maybe he means test that they produce a
+// reasonable hash distribution ..?  I did this for the string hashing routines
+// so maybe I should do something similar here.
+//
+
+// @iq_shadertoy_hash_function
+link_inline v3
+hash_v3( v3 p )   // this hash is not production ready, please
+{                 // replace this by something better
+  p = V3( Dot(p, V3(127.1f,311.7f, 74.7f)),
+          Dot(p, V3(269.5f,183.3f,246.1f)),
+          Dot(p, V3(113.5f,271.9f,124.6f)));
+  return -1.0 + 2.0*Fract(Sin(p)*43758.5453123f);
+}
+
+// @iq_shadertoy_hash_function
+link_inline f32
+hash_f32( float n )
+{
+  return Fract(Sin(n)*753.5453123f);
+}
+
+// @iq_shadertoy_hash_function
+link_inline f32
+hashf(v3 p)       // replace this by something better
+{
+  p  = 50.0*Fract( p*0.3183099f + V3(0.71f,0.113f,0.419f));
+  return Fract( p.x*p.y*p.z*(p.x+p.y+p.z) );
+}
+
+
+
+
+
+
+
+
+
 struct random_series
 {
   u64 Seed;
@@ -153,3 +242,33 @@ RandomV3i(random_series *Entropy, v3i MaxValue)
   return Result;
 }
 
+inline v3
+RandomV3FromV3(v3 Input)
+{
+  // TODO(Jesse): Better hash function..
+  //
+
+#if 0
+  f32 Hash0 = hash_f32(Input.x);
+  f32 Hash1 = hash_f32(Input.y);
+  f32 Hash2 = hash_f32(Input.z);
+  f32 Hash3 = hashf(Input);
+
+  u16 Bits0 = ReinterpretCast(u16, Hash0) * 76;
+  u16 Bits1 = ReinterpretCast(u16, Hash1) * 3518;
+  u16 Bits2 = ReinterpretCast(u16, Hash2) * 984;
+  u16 Bits3 = ReinterpretCast(u16, Hash3) * 27823;
+#else
+  u32 Bits0 = (ReinterpretCast(u32, Input.x)>>15) * 79;
+  u32 Bits1 = (ReinterpretCast(u32, Input.y)>>15) * 3518;
+  u32 Bits2 = (ReinterpretCast(u32, Input.z)>>15) * 984;
+  u32 Bits3 = (ReinterpretCast(u32, Input.x)>>15) * 27823;
+#endif
+
+  random_series Entropy = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
+
+  v3 Result =  {{ RandomUnilateral(&Entropy),
+                  RandomUnilateral(&Entropy),
+                  RandomUnilateral(&Entropy) }};
+  return Result;
+}
