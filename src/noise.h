@@ -129,8 +129,10 @@ IQ_ValueNoise_AnalyticNormals(f32 xin, f32 yin, f32 zin, v3 *Normal)
 // Based on code found here:
 // https://www.ronja-tutorials.com/post/028-voronoi-noise/
 //
+//
+// NOTE(Jesse): Squareness == 0 (not square), Squareness == 1 (very square)
 link_internal f32
-VoronoiNoise3D(v3 Basis)
+VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f)
 {
   v3 baseCell = Floor(Basis);
 
@@ -152,7 +154,8 @@ VoronoiNoise3D(v3 Basis)
              ++z1 )
       {
         v3 cell = baseCell + V3(x1, y1, z1);
-        v3 cellPosition = cell + RandomV3FromV3(cell);
+        v3 offset = Clamp01(RandomV3FromV3(cell) - Squreness);
+        v3 cellPosition = cell + offset;
         v3 toCell = cellPosition - Basis;
         f32 distToCellSq = LengthSq(toCell);
         if(distToCellSq < minDistToCellSq)

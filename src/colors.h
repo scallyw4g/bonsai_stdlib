@@ -16,7 +16,9 @@
 
 #define ICE_BLUE    207
 #define GRASS_GREEN 232
-#define STONE       GREY_6
+#define SNOW        1
+#define      STONE       GREY_6
+#define DARK_STONE       GREY_8
 #define GRAVEL      3
 #define SAND        4
 

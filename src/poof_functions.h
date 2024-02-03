@@ -493,6 +493,18 @@ poof(
           return Result;
         }
 
+        inline vec_t.name
+        Clamp01( vec_t.name V )
+        {
+          vec_t.name Result = V;
+          base_array.map_array(Index)
+          {
+            if ( V.base_array.name[Index] < base_array.type(0) ) Result.base_array.name[Index] = base_array.type(0);
+            if ( V.base_array.name[Index] > base_array.type(1) ) Result.base_array.name[Index] = base_array.type(1);
+          }
+          return Result;
+        }
+
 
       }
       {
