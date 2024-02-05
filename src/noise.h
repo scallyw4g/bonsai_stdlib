@@ -187,7 +187,8 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f)
              ++z2 )
       {
         v3 cell = baseCell + V3(x2, y2, z2);
-        v3 cellPosition = cell + RandomV3FromV3(cell);
+        v3 offset = Clamp01(RandomV3FromV3(cell) - Squreness);
+        v3 cellPosition = cell + offset;
         v3 toCell = cellPosition - Basis;
 
         v3 diffToClosestCell = Abs(closestCell - cell);
