@@ -307,13 +307,24 @@ ClampBetween(r32 Min, r32 Value, r32 Max)
   return Value;
 }
 
-inline u32
-Clamp(u32 Min, u32 Value, u32 Max)
-{
-  if (Value > Max) { Value = Max; }
-  if (Value < Min) { Value = Min; }
-  return Value;
-}
+poof(
+  func scalar_math_fuctions(type_poof_symbol scalar_types)
+  {
+    scalar_types.map(scalar)
+    {
+      inline scalar.name
+      Clamp( scalar.name Min, scalar.name Value, scalar.name Max )
+      {
+        if (Value > Max) { Value = Max; }
+        if (Value < Min) { Value = Min; }
+        return Value;
+      }
+    }
+  }
+)
+
+poof(scalar_math_fuctions({r32 r64 u32 u64 s32 s64}))
+#include <generated/scalar_math_fuctions_451039071.h>
 
 inline r32
 ClampBilateral(r32 F)
