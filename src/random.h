@@ -254,6 +254,21 @@ RandomV3i(random_series *Entropy, v3i MaxValue)
   return Result;
 }
 
+inline f32
+RandomUnilateralFromV3(v3 Input)
+{
+  // TODO(Jesse): Better hash function..
+  //
+  u32 Bits0 = (ReinterpretCast(u32, Input.x)>>15) * 79;
+  u32 Bits1 = (ReinterpretCast(u32, Input.y)>>15) * 3518;
+  u32 Bits2 = (ReinterpretCast(u32, Input.z)>>15) * 984;
+  u32 Bits3 = (ReinterpretCast(u32, Input.x)>>15) * 27823;
+
+  random_series Entropy = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
+
+  f32 Result =  RandomUnilateral(&Entropy);
+  return Result;
+}
 inline v3
 RandomV3FromV3(v3 Input)
 {

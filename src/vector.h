@@ -704,18 +704,18 @@ poof(gen_vector_infix_operator(v3i, {^}))
 poof(gen_vector_infix_operator(v3i, {&}))
 #include <generated/gen_vector_infix_operator_v3i_688856393.h>
 
-poof(gen_vector_lerp(f32))
+poof(vector_interpolation_functions(f32))
 #include <generated/gen_lerp_f32.h>
 
-poof(gen_vector_lerp(v2))
+poof(vector_interpolation_functions(v2))
 #include <generated/gen_lerp_v2.h>
 
-poof(gen_vector_lerp(v3))
+poof(vector_interpolation_functions(v3))
 #include <generated/gen_lerp_v3.h>
 
 // TODO(Jesse): The heck do we use this for?
 // UPDATE(Jesse): Apparently nothing..
-/* poof(gen_vector_lerp(v4)) */
+/* poof(vector_interpolation_functions(v4)) */
 /* #include <generated/gen_lerp_v4.h> */
 
 poof(gen_vector_area(v2))

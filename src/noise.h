@@ -136,11 +136,14 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f)
 {
   v3 baseCell = Floor(Basis);
 
+  v3 CellOffsets[27];
+
   // first pass to find the closest cell
   //
   f32 minDistToCellSq = 100;
   v3 toClosestCell;
   v3 closestCell;
+  s32 CellIndex = 0;
   for( s32 x1 = -1;
            x1 <= 1;
          ++x1 )
@@ -155,6 +158,8 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f)
       {
         v3 cell = baseCell + V3(x1, y1, z1);
         v3 offset = Clamp01(RandomV3FromV3(cell) - Squreness);
+        CellOffsets[CellIndex++] = offset;
+
         v3 cellPosition = cell + offset;
         v3 toCell = cellPosition - Basis;
         f32 distToCellSq = LengthSq(toCell);
@@ -167,6 +172,7 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f)
       }
     }
   }
+  Assert(CellIndex == 27);
 
   // TODO(Jesse): This seems like you'd just want to do it in-line in the first
   // loop ..?
@@ -174,6 +180,7 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f)
   // second pass to find the distance to the closest edge
   //
   f32 minEdgeDistance = 10;
+  CellIndex = 0;
   for( s32 x2 = -1;
            x2 <= 1;
          ++x2 )
@@ -187,7 +194,8 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f)
              ++z2 )
       {
         v3 cell = baseCell + V3(x2, y2, z2);
-        v3 offset = Clamp01(RandomV3FromV3(cell) - Squreness);
+        v3 offset = CellOffsets[CellIndex++];
+
         v3 cellPosition = cell + offset;
         v3 toCell = cellPosition - Basis;
 
@@ -203,6 +211,7 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f)
       }
     }
   }
+  Assert(CellIndex == 27);
 
   /* f32 random = rand3dTo1d(closestCell); */
   /* return V3(minDistToCellSq, random, minEdgeDistance); */

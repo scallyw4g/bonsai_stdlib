@@ -14,11 +14,16 @@
 #define LIGHT_GREEN 75
 #define       GREEN 186
 
-#define ICE_BLUE    207
+
+#define MOSS_GREEN  174
 #define GRASS_GREEN 232
+
 #define SNOW        1
+#define ICE_BLUE    207
+
 #define      STONE       GREY_6
 #define DARK_STONE       GREY_8
+
 #define GRAVEL      3
 #define SAND        4
 

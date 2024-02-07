@@ -325,7 +325,7 @@ poof(
 )
 
 poof(
-  func gen_vector_lerp(vec_t)
+  func vector_interpolation_functions(vec_t)
   {
     inline vec_t.name
     Lerp(r32 t, vec_t.name P1, vec_t.name P2)
@@ -334,6 +334,15 @@ poof(
       Assert(t>=0);
       vec_t.name Result = (1.0f-t)*P1 + t*P2;
       return Result;
+    }
+
+    // https://paulbourke.net/miscellaneous/interpolation/
+    //
+    link_internal vec_t.name
+    CosineInterpolate( f32 t, vec_t.name y1, vec_t.name y2 )
+    {
+       f32 t2 = (1.f-Cos(t*PI32))/2.f;
+       return(y1*(1.f-t2)+y2*t2);
     }
   }
 )
