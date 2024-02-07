@@ -68,6 +68,7 @@ struct camera;
   struct bonsai_debug_system {};
   #define TIMED_FUNCTION(...)
   #define TIMED_NAMED_BLOCK(...)
+  #define HISTOGRAM_FUNCTION(...)
 
   #define TIMED_BLOCK(...)
   #define END_BLOCK(...)

@@ -398,7 +398,7 @@ Chunk_Dimension(s32 x, s32 y, s32 z)
 v3
 Truncate(v3 Input)
 {
-  v3 Result = V3(Voxel_Position(Input));
+  v3 Result = V3(V3i(Input));
   return Result;
 }
 

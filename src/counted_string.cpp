@@ -506,6 +506,11 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
 
         } break;
 
+        case '%':
+        {
+          CopyToDest(DestCursor, '%');
+        } break;
+
         default:
         {
           va_arg(Args, void*);
