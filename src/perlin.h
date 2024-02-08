@@ -193,8 +193,14 @@ PerlinNoise(f32 x, f32 y, f32 z)
 }
 
 link_internal void
-PerlinNoise_8x(f32 xStep, f32 xIn, f32 yIn, f32 zIn, f32 *Result)
+PerlinNoise_8x(f32 *xIn, f32 yIn, f32 zIn, f32 *Result)
 {
+#if 0
+  RangeIterator(Index, 8)
+  {
+    Result[Index] = PerlinNoise(xIn[Index], yIn, zIn);
+  }
+#else
   f32 y = yIn;
   f32 z = zIn;
 
@@ -212,14 +218,14 @@ PerlinNoise_8x(f32 xStep, f32 xIn, f32 yIn, f32 zIn, f32 *Result)
 
   f32 _x[8] =
   {
-    xIn,
-    xIn+xStep,
-    xIn+xStep*1.f,
-    xIn+xStep*2.f,
-    xIn+xStep*3.f,
-    xIn+xStep*4.f,
-    xIn+xStep*5.f,
-    xIn+xStep*6.f,
+    xIn[0],
+    xIn[1],
+    xIn[2],
+    xIn[3],
+    xIn[4],
+    xIn[5],
+    xIn[6],
+    xIn[7],
   };
 
   u32 _Xi[8] =
@@ -297,6 +303,7 @@ PerlinNoise_8x(f32 xStep, f32 xIn, f32 yIn, f32 zIn, f32 *Result)
 
     Result[Index] = res;
   }
+#endif
 }
 
 
