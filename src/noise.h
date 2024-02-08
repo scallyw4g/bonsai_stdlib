@@ -220,11 +220,13 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f)
 }
 
 link_internal void
-VoronoiNoise3D_8x(f32 *Results, v3 Basis, r32 Squreness = 0.f)
+VoronoiNoise3D_8x(f32 *Results, f32 *xMapped, v2 yzMapped, r32 Squreness = 0.f)
 {
   RangeIterator(Index, 8)
   {
-    v3 baseCell = Floor(Basis) + V3(Index, 0, 0);
+    v3 Basis = V3(xMapped[Index], yzMapped.E[0], yzMapped.E[1]);
+    v3 baseCell = Floor(Basis);
+    /* v3 baseCell = Floor(Basis) + V3(Index, 0, 0); */
 
     v3 CellOffsets[27];
 

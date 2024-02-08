@@ -255,12 +255,26 @@ RandomV3i(random_series *Entropy, v3i MaxValue)
 }
 
 inline random_series
+RandomSeriesFromV3i(v3i Input)
+{
+  // TODO(Jesse): Better hash function .. ?
+  s32 Bits0 = (Input.x) * 79;
+  s32 Bits1 = (Input.y) * 3518;
+  s32 Bits2 = (Input.z) * 984;
+  s32 Bits3 = (Input.x) * 27823;
+
+  random_series Result = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
+  return Result;
+}
+
+inline random_series
 RandomSeriesFromV3(v3 Input)
 {
   // TODO(Jesse): Better hash function .. ?
   u32 Bits0 = (ReinterpretCast(u32, Input.x)>>15) * 79;
   u32 Bits1 = (ReinterpretCast(u32, Input.y)>>15) * 3518;
   u32 Bits2 = (ReinterpretCast(u32, Input.z)>>15) * 984;
+  /* u32 Bits3 = 1763547654; */
   u32 Bits3 = (ReinterpretCast(u32, Input.x)>>15) * 27823;
 
   random_series Result = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
