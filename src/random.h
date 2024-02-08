@@ -254,46 +254,31 @@ RandomV3i(random_series *Entropy, v3i MaxValue)
   return Result;
 }
 
+inline random_series
+RandomSeriesFromV3(v3 Input)
+{
+  // TODO(Jesse): Better hash function .. ?
+  u32 Bits0 = (ReinterpretCast(u32, Input.x)>>15) * 79;
+  u32 Bits1 = (ReinterpretCast(u32, Input.y)>>15) * 3518;
+  u32 Bits2 = (ReinterpretCast(u32, Input.z)>>15) * 984;
+  u32 Bits3 = (ReinterpretCast(u32, Input.x)>>15) * 27823;
+
+  random_series Result = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
+  return Result;
+}
+
 inline f32
 RandomUnilateralFromV3(v3 Input)
 {
-  // TODO(Jesse): Better hash function..
-  //
-  u32 Bits0 = (ReinterpretCast(u32, Input.x)>>15) * 79;
-  u32 Bits1 = (ReinterpretCast(u32, Input.y)>>15) * 3518;
-  u32 Bits2 = (ReinterpretCast(u32, Input.z)>>15) * 984;
-  u32 Bits3 = (ReinterpretCast(u32, Input.x)>>15) * 27823;
-
-  random_series Entropy = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
-
+  random_series Entropy = RandomSeriesFromV3(Input);
   f32 Result =  RandomUnilateral(&Entropy);
   return Result;
 }
+
 inline v3
 RandomV3FromV3(v3 Input)
 {
-  // TODO(Jesse): Better hash function..
-  //
-
-#if 0
-  f32 Hash0 = hash_f32(Input.x);
-  f32 Hash1 = hash_f32(Input.y);
-  f32 Hash2 = hash_f32(Input.z);
-  f32 Hash3 = hashf(Input);
-
-  u16 Bits0 = ReinterpretCast(u16, Hash0) * 76;
-  u16 Bits1 = ReinterpretCast(u16, Hash1) * 3518;
-  u16 Bits2 = ReinterpretCast(u16, Hash2) * 984;
-  u16 Bits3 = ReinterpretCast(u16, Hash3) * 27823;
-#else
-  u32 Bits0 = (ReinterpretCast(u32, Input.x)>>15) * 79;
-  u32 Bits1 = (ReinterpretCast(u32, Input.y)>>15) * 3518;
-  u32 Bits2 = (ReinterpretCast(u32, Input.z)>>15) * 984;
-  u32 Bits3 = (ReinterpretCast(u32, Input.x)>>15) * 27823;
-#endif
-
-  random_series Entropy = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
-
+  random_series Entropy = RandomSeriesFromV3(Input);
   v3 Result =  {{ RandomUnilateral(&Entropy),
                   RandomUnilateral(&Entropy),
                   RandomUnilateral(&Entropy) }};

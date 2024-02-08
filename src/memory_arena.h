@@ -365,6 +365,8 @@ MemSet(u8 *Src, umm Size, u8 Value)
 inline void
 MemCopy(u8 *Src, u8 *Dest, umm Size)
 {
+  memcpy((void*)Dest, (void*)Src, Size);
+#if 0
   // TODO(Jesse, id: 97, tags: speed): Vectorize for speed boost!
   for( umm BytesCopied = 0;
        BytesCopied < Size;
@@ -372,6 +374,7 @@ MemCopy(u8 *Src, u8 *Dest, umm Size)
   {
      Dest[BytesCopied] = Src[BytesCopied];
   }
+#endif
 }
 
 #ifdef CopyMemory
