@@ -105,11 +105,8 @@ fade(f32 t) {
 
 link_internal f32
 lerp(f32 t, f32 a, f32 b) {
-  /* Assert(t<=1.01f); */
-  /* Assert(t>=-0.01f); */
   f32 res = a + t * (b - a);
   return res;
-  /* return Lerp(a, t, b); */
 }
 
 link_internal f32
@@ -126,18 +123,18 @@ link_internal f32
 PerlinNoise(f32 x, f32 y, f32 z)
 {
   // Find the unit cube that contains the point
-  u32 X = (u32) Floorf(x) & 255;
-  u32 Y = (u32) Floorf(y) & 255;
-  u32 Z = (u32) Floorf(z) & 255;
+  if (x < 0) x -= 1.f;
+  if (y < 0) y -= 1.f;
+  if (z < 0) z -= 1.f;
+
+  u32 Xi = u32(x) & 255;
+  u32 Yi = u32(y) & 255;
+  u32 Zi = u32(z) & 255;
 
   // Find relative x, y,z of point in cube
-  f32 floorX = Floorf(x);
-  f32 floorY = Floorf(y);
-  f32 floorZ = Floorf(z);
-
-  x -= floorX;
-  y -= floorY;
-  z -= floorZ;
+  x -= Floorf(x);
+  y -= Floorf(y);
+  z -= Floorf(z);
 
   // Compute fade curves for each of x, y, z
   f32 u = fade(x);
@@ -145,28 +142,30 @@ PerlinNoise(f32 x, f32 y, f32 z)
   f32 w = fade(z);
 
   // Hash coordinates of the 8 cube corners
-  u32 A  = (u32)Global_PerlinIV[X]   + Y;
-  u32 AA = (u32)Global_PerlinIV[A]   + Z;
-  u32 AB = (u32)Global_PerlinIV[A+1] + Z;
-  u32 B  = (u32)Global_PerlinIV[X+1] + Y;
-  u32 BA = (u32)Global_PerlinIV[B]   + Z;
-  u32 BB = (u32)Global_PerlinIV[B+1] + Z;
+  u32 A  = (u32)Global_PerlinIV[Xi]  + Yi;
+  u32 AA = (u32)Global_PerlinIV[A]   + Zi;
+  u32 AB = (u32)Global_PerlinIV[A+1] + Zi;
+  u32 B  = (u32)Global_PerlinIV[Xi+1]+ Yi;
+  u32 BA = (u32)Global_PerlinIV[B]   + Zi;
+  u32 BB = (u32)Global_PerlinIV[B+1] + Zi;
 
-  Assert(A  >= 0);
-  Assert(AA >= 0);
-  Assert(AB >= 0);
-  Assert(B  >= 0);
-  Assert(BA >= 0);
-  Assert(BB >= 0);
 
-  Assert(A  <= 511);
-  Assert(AA <= 511);
-  Assert(AB <= 511);
-  Assert(B  <= 511);
-  Assert(BA <= 511);
-  Assert(BB <= 511);
+  /* Assert(A  >= 0); */
+  /* Assert(AA >= 0); */
+  /* Assert(AB >= 0); */
+  /* Assert(B  >= 0); */
+  /* Assert(BA >= 0); */
+  /* Assert(BB >= 0); */
+
+  /* Assert(A  <= 511); */
+  /* Assert(AA <= 511); */
+  /* Assert(AB <= 511); */
+  /* Assert(B  <= 511); */
+  /* Assert(BA <= 511); */
+  /* Assert(BB <= 511); */
 
   // Add blended results from 8 corners of cube
+
   f32 res = lerp(w,
                  lerp(v,
                       lerp(u,
@@ -187,10 +186,265 @@ PerlinNoise(f32 x, f32 y, f32 z)
 
   res = (res + 1.0f)/2.0f;
 
-  Assert(res <= 1.05f);
-  Assert(res > -1.05f);
+  /* Assert(res <= 1.05f); */
+  /* Assert(res > -1.05f); */
   return res;
 }
+
+#if 0
+link_internal void
+PerlinNoise_8x(f32 xIn, f32 y, f32 z, f32 *Result)
+{
+  // Find the unit cube that contains the point
+  if (xIn < 0) xIn -= 1.f;
+  if (y < 0) y -= 1.f;
+  if (z < 0) z -= 1.f;
+
+  u32 Xi = u32(xIn) & 255;
+  u32 Yi = u32(y) & 255;
+  u32 Zi = u32(z) & 255;
+
+  // Find relative x, y,z of point in cube
+  y   -= Floorf(y);
+  z   -= Floorf(z);
+
+  u32 _Xi[8] =
+  {
+    Xi,
+    (Xi+1)&255,
+    (Xi+2)&255,
+    (Xi+3)&255,
+    (Xi+4)&255,
+    (Xi+5)&255,
+    (Xi+6)&255,
+    (Xi+7)&255
+  };
+
+  f32 _x[8] =
+  {
+    Floorf(xIn),
+    Floorf(xIn+1.f),
+    Floorf(xIn+2.f),
+    Floorf(xIn+3.f),
+    Floorf(xIn+4.f),
+    Floorf(xIn+5.f),
+    Floorf(xIn+6.f),
+    Floorf(xIn+7.f)
+  };
+
+  f32 _u[8] =
+  {
+    fade(_x[0]),
+    fade(_x[1]),
+    fade(_x[2]),
+    fade(_x[3]),
+    fade(_x[4]),
+    fade(_x[5]),
+    fade(_x[6]),
+    fade(_x[7])
+  };
+
+  f32 v = fade(y);
+  f32 w = fade(z);
+
+  RangeIterator(Index, 8)
+  {
+    u32 X = _Xi[Index];
+    f32 x = _x[Index];
+    f32 u = _u[Index];
+
+  // Hash coordinates of the 8 cube corners
+    u32 A  = (u32)Global_PerlinIV[Xi]   + Yi;
+    u32 B  = (u32)Global_PerlinIV[Xi+1] + Yi;
+    u32 AA = (u32)Global_PerlinIV[A]   + Zi;
+    u32 AB = (u32)Global_PerlinIV[A+1] + Zi;
+    u32 BA = (u32)Global_PerlinIV[B]   + Zi;
+    u32 BB = (u32)Global_PerlinIV[B+1] + Zi;
+
+
+    // Add blended results from 8 corners of cube
+    f32 res = lerp(w,
+                lerp(v,
+                     lerp(u,
+                          grad(Global_PerlinIV[AA], x, y, z),
+                          grad(Global_PerlinIV[BA], x-1, y, z)),
+                     lerp(u,
+                          grad(Global_PerlinIV[AB], x, y-1, z),
+                          grad(Global_PerlinIV[BB], x-1, y-1, z))),
+                lerp(v,
+                     lerp(u,
+                          grad(Global_PerlinIV[AA+1], x, y, z-1),
+                          grad(Global_PerlinIV[BA+1], x-1, y, z-1)),
+                     lerp(u,
+                          grad(Global_PerlinIV[AB+1], x, y-1, z-1),
+                          grad(Global_PerlinIV[BB+1], x-1, y-1, z-1))
+                     )
+                );
+    res = (res + 1.0f)/2.0f;
+    Result[Index] = res;
+  }
+
+}
+
+#else
+
+
+link_internal void
+PerlinNoise_8x(f32 xStep, f32 xIn, f32 yIn, f32 zIn, f32 *Result)
+{
+  /* f32 x = xIn; */
+  f32 y = yIn;
+  f32 z = zIn;
+
+  // Find the unit cube that contains the point
+  if (xIn < 0) xIn -= 1.f;
+  if (y < 0) y -= 1.f;
+  if (z < 0) z -= 1.f;
+
+  u32 Yi = u32(y) & 255;
+  u32 Zi = u32(z) & 255;
+
+  y -= Floorf(y);
+  z -= Floorf(z);
+
+  f32 v = fade(y);
+  f32 w = fade(z);
+
+  RangeIterator(Index, 8)
+  {
+    f32 xIt = xIn + (xStep*f32(Index));
+    u32 Xi = u32(xIt) & 255;
+    f32 x = xIt - Floorf(xIt);
+    f32 u = fade(xIt);
+
+    /* u32 Xi = _Xi[Index]; */
+    /* r32 x  = _x[Index]; */
+    /* f32 u  = _u[Index]; */
+
+    // Hash coordinates of the 8 cube corners
+    u32 A  = (u32)Global_PerlinIV[Xi]  + Yi;
+    u32 AA = (u32)Global_PerlinIV[A]   + Zi;
+    u32 AB = (u32)Global_PerlinIV[A+1] + Zi;
+    u32 B  = (u32)Global_PerlinIV[Xi+1]+ Yi;
+    u32 BA = (u32)Global_PerlinIV[B]   + Zi;
+    u32 BB = (u32)Global_PerlinIV[B+1] + Zi;
+
+    // Add blended results from 8 corners of cube
+    f32 res = lerp(w,
+                   lerp(v,
+                        lerp(u,
+                             grad(Global_PerlinIV[AA], x, y, z),
+                             grad(Global_PerlinIV[BA], x-1, y, z)),
+                        lerp(u,
+                             grad(Global_PerlinIV[AB], x, y-1, z),
+                             grad(Global_PerlinIV[BB], x-1, y-1, z))),
+                   lerp(v,
+                        lerp(u,
+                             grad(Global_PerlinIV[AA+1], x, y, z-1),
+                             grad(Global_PerlinIV[BA+1], x-1, y, z-1)),
+                        lerp(u,
+                             grad(Global_PerlinIV[AB+1], x, y-1, z-1),
+                             grad(Global_PerlinIV[BB+1], x-1, y-1, z-1))
+                        )
+                   );
+
+    res = (res + 1.0f)/2.0f;
+    Result[Index] = res;
+  }
+#if 0
+  /* f32 x = xIn; */
+  f32 y = yIn;
+  f32 z = zIn;
+
+  // Find the unit cube that contains the point
+  if (xIn < 0) xIn -= 1.f;
+  if (y < 0) y -= 1.f;
+  if (z < 0) z -= 1.f;
+
+  u32 _Xi[8] =
+  {
+    u32(xIn            )&255,
+    u32(xIn+     xStep )&255,
+    u32(xIn+(2.f*xStep))&255,
+    u32(xIn+(3.f*xStep))&255,
+    u32(xIn+(4.f*xStep))&255,
+    u32(xIn+(5.f*xStep))&255,
+    u32(xIn+(6.f*xStep))&255,
+    u32(xIn+(7.f*xStep))&255
+  };
+
+  f32 _x[8] =
+  {
+    Floorf(xIn            ),
+    Floorf(xIn+     xStep ),
+    Floorf(xIn+(2.f*xStep)),
+    Floorf(xIn+(3.f*xStep)),
+    Floorf(xIn+(4.f*xStep)),
+    Floorf(xIn+(5.f*xStep)),
+    Floorf(xIn+(6.f*xStep)),
+    Floorf(xIn+(7.f*xStep))
+  };
+
+  f32 _u[8] =
+  {
+    fade(_x[0]),
+    fade(_x[1]),
+    fade(_x[2]),
+    fade(_x[3]),
+    fade(_x[4]),
+    fade(_x[5]),
+    fade(_x[6]),
+    fade(_x[7])
+  };
+
+  u32 Yi = u32(y) & 255;
+  u32 Zi = u32(z) & 255;
+
+  y -= Floorf(y);
+  z -= Floorf(z);
+
+  f32 v = fade(y);
+  f32 w = fade(z);
+
+  RangeIterator(Index, 8)
+  {
+    u32 Xi = _Xi[Index];
+    r32 x  = _x[Index];
+    f32 u  = _u[Index];
+
+    // Hash coordinates of the 8 cube corners
+    u32 A  = (u32)Global_PerlinIV[Xi]  + Yi;
+    u32 AA = (u32)Global_PerlinIV[A]   + Zi;
+    u32 AB = (u32)Global_PerlinIV[A+1] + Zi;
+    u32 B  = (u32)Global_PerlinIV[Xi+1]+ Yi;
+    u32 BA = (u32)Global_PerlinIV[B]   + Zi;
+    u32 BB = (u32)Global_PerlinIV[B+1] + Zi;
+
+    // Add blended results from 8 corners of cube
+    f32 res = lerp(w,
+                   lerp(v,
+                        lerp(u,
+                             grad(Global_PerlinIV[AA], x, y, z),
+                             grad(Global_PerlinIV[BA], x-1, y, z)),
+                        lerp(u,
+                             grad(Global_PerlinIV[AB], x, y-1, z),
+                             grad(Global_PerlinIV[BB], x-1, y-1, z))),
+                   lerp(v,
+                        lerp(u,
+                             grad(Global_PerlinIV[AA+1], x, y, z-1),
+                             grad(Global_PerlinIV[BA+1], x-1, y, z-1)),
+                        lerp(u,
+                             grad(Global_PerlinIV[AB+1], x, y-1, z-1),
+                             grad(Global_PerlinIV[BB+1], x-1, y-1, z-1))
+                        )
+                   );
+
+    res = (res + 1.0f)/2.0f;
+    Result[Index] = res;
+  }
+#endif
+}
+#endif
 
 
 // https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L94

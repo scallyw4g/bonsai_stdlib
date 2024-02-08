@@ -357,13 +357,20 @@ Floori(r32 f)
   return Result;
 }
 
+u32
+Floorfu(r32 f)
+{
+  if (f < 0) { f -= 1.f; }
+  u32 Result = u32(f);
+  return Result;
+}
 r32
 Floorf(r32 f)
 {
-#if 0
+#if 1
   if (f < 0) { f -= 1.f; }
-  s32 i = (s32)(f);
-  r32 Result = (r32)i;
+  s32 i = s32(f);
+  r32 Result = r32(i);
   return Result;
 #else
   f32 Result = f32(floor(double(f)));
