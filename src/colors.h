@@ -15,8 +15,11 @@
 #define       GREEN 186
 
 
-#define MOSS_GREEN  174
-#define GRASS_GREEN 232
+#define      LIGHT_MOSS_GREEN  168
+#define            MOSS_GREEN  174
+
+#define      GRASS_GREEN 232
+#define DARK_GRASS_GREEN 235
 
 #define SNOW        1
 #define ICE_BLUE    207

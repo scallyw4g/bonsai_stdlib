@@ -277,7 +277,8 @@ RandomSeriesFromV3(v3 Input)
   /* u32 Bits3 = 1763547654; */
   u32 Bits3 = (ReinterpretCast(u32, Input.x)>>15) * 27823;
 
-  random_series Result = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
+  random_series Basis = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
+  random_series Result = {RandomU32(&Basis) | (RandomU32(&Basis)<<31)};
   return Result;
 }
 
