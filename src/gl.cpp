@@ -5,7 +5,9 @@ Draw(u32 VertexCount)
   TIMED_FUNCTION();
   Assert(VertexCount);
   /* GetEngineDebug()->Render.DrawCallsLastFrame++; */
+  AssertNoGlErrors;
   GL.DrawArrays(GL_TRIANGLES, 0, s32(VertexCount) );
+  AssertNoGlErrors;
 }
 
 inline void

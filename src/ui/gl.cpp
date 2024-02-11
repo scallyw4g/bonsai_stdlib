@@ -11,6 +11,7 @@ link_internal void
 DrawUiBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 *ScreenDim)
 {
   GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
+  AssertNoGlErrors;
   /* SetViewport(*ScreenDim); */
   /* GL.UseProgram(TextGroup->Text2DShader.ID); */
   /* GL.ActiveTexture(GL_TEXTURE0); */
@@ -40,6 +41,7 @@ DrawUiBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer
   if (TextGroup)
   {
     GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
+    AssertNoGlErrors;
     /* UseShader(&TextGroup->SolidUIShader); */
 
     u32 AttributeIndex = 0;

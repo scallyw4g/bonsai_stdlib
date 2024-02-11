@@ -150,6 +150,7 @@ MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, cs DebugName, u32 MaxTex
   u32 ElementType = GL_UNSIGNED_BYTE;
   if (MaxTextureSlices == 1)
   {
+    Assert(Data == 0); // Unsupported
     GL.TexImage2D(GL_TEXTURE_2D, 0, (s32)InternalFormat,
         Texture->Dim.x, Texture->Dim.y, 0, TextureFormat, ElementType, Data);
   }
