@@ -554,7 +554,7 @@ int attribs[] =
   ShowWindow(Os->Window, SW_SHOW);
   UpdateWindow(Os->Window);
 
-  /* SetVSync(Os, 0); */
+  SetVSync(Os, 0);
 
   timeBeginPeriod(1);
 

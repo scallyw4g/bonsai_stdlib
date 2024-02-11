@@ -261,9 +261,9 @@ RandomSeriesFromV3i(v3i Input)
   s32 Bits0 = (Input.x) * 79;
   s32 Bits1 = (Input.y) * 3518;
   s32 Bits2 = (Input.z) * 984;
-  s32 Bits3 = (Input.x) * 27823;
+  s32 Bits3 = (Input.x+Input.y+Input.z) * 23;
 
-  random_series Result = {u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47};
+  random_series Result = {0x71f9160faf ^ (u64(Bits0) | u64(Bits1)<<15 | u64(Bits2)<<31 | u64(Bits3)<<47)};
   return Result;
 }
 
