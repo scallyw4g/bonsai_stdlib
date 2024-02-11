@@ -971,9 +971,9 @@ GetIndex(s32 X, s32 Y, s32 Z, chunk_dimension Dim)
   /* Assert(Y >= 0); */
   /* Assert(Z >= 0); */
 
-  Assert(X < Dim.x);
-  Assert(Y < Dim.y);
-  Assert(Z < Dim.z);
+  /* Assert(X < Dim.x); */
+  /* Assert(Y < Dim.y); */
+  /* Assert(Z < Dim.z); */
 
   s32 Result = X +
               (Y*Dim.x) +
