@@ -1,9 +1,27 @@
 /* #include <bonsai_stdlib/platform/win32_etw.cpp> */
 #include "win32_stacktrace.cpp"
 
-#define BONSAI_MAIN() int CALLBACK WinMain( HINSTANCE AppHandle, HINSTANCE Ignored, LPSTR CmdLine, int CmdShow )
-
 global_variable HPALETTE global_hPalette;
+
+link_internal void
+Win32PrintLastError()
+{
+  DWORD errorMessageID = ::GetLastError();
+  if(errorMessageID)
+  {
+    LPSTR messageBuffer = nullptr;
+
+    //Ask Win32 to give us the string version of that message ID.
+    //The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).
+    size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                 NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+    printf("GetLastError(%s)", messageBuffer);
+
+    //Free the Win32's string's buffer.
+    LocalFree(messageBuffer);
+  }
+}
 
 link_internal void
 SleepMs(u32 Ms)
@@ -811,3 +829,26 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback,
 
   return Result;
 }
+
+link_internal umm
+PlatformGetFileSize(native_file *File)
+{
+#if 1
+  s64 Result= _ftelli64(File->Handle);
+#else
+  umm Result = 0;
+  LARGE_INTEGER Size;
+  if (GetFileSizeEx(File->Handle, &Size))
+  {
+    Result = umm(Size.QuadPart);
+  }
+  else
+  {
+    Win32PrintLastError();
+    SoftError("GetFileSizeEx failed on (%S). Handle(%p)", File->Path, File->Handle);
+  }
+
+#endif
+  return SafeTruncateToUMM(Result);
+}
+
