@@ -369,3 +369,32 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback,
   maybe_file_traversal_node Result = {};
   return Result;
 }
+
+
+link_internal umm
+PlatformGetFileSize(native_file *File)
+{
+  // NOTE(Jesse): I lifted this out of U8_StreamFromFile when I ported Windows
+  // to use it's native file type.  I didn't actually test it on linux, so I'm
+  // leaving this here until I get a chance to.
+  NotImplemented;
+
+  umm Result = 0;
+
+  errno = 0;
+  fseek(File->Handle, 0L, SEEK_END);
+  Assert(errno==0);
+
+  errno = 0;
+  umm FileSize = (umm)ftell(File.Handle);
+  if (FileSize)
+  {
+    if (FileSize != umm(-1))
+    {
+      rewind(File.Handle);
+      Result = FileSize;
+    }
+  }
+
+  return Result;
+}

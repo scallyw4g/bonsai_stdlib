@@ -189,7 +189,9 @@ OpenFile(const char* FilePath, const char* Permissions)
   }
 
   errno = 0;
-  fopen_s(&Result.Handle, FilePath, Permissions);
+  s32 Code = fopen_s(&Result.Handle, FilePath, Permissions);
+  Assert(Code == 0);
+  Assert(errno == 0);
 
   if (!Result.Handle)
   {

@@ -17,11 +17,11 @@
     BindToInput(Keysym, InputField, False)
 
 #if BONSAI_WIN32
-#include <bonsai_stdlib/src/platform/win32_platform.h>
+#include <bonsai_stdlib/src/platform/win32/win32_platform.h>
 
 #elif BONSAI_LINUX
 #include <bonsai_stdlib/src/platform/posix_platform.h>
-#include <bonsai_stdlib/src/platform/unix_platform.h>
+#include <bonsai_stdlib/src/platform/linux/linux_platform.h>
 
 #elif BONSAI_EMCC
 #include <bonsai_stdlib/src/platform/posix_platform.h>

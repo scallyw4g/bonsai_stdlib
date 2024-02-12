@@ -14,6 +14,15 @@ enum memory_protection_type
 
 
 inline umm
+SafeTruncateToUMM(s64 Size)
+{
+  Assert(Size >= 0);
+  Assert(umm(Size) <= umm_MAX);
+  umm Result = (umm)Size;
+  return Result;
+}
+
+inline umm
 SafeTruncateToUMM(u64 Size)
 {
   Assert(Size <= umm_MAX);

@@ -112,24 +112,24 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
 {
   TIMED_FUNCTION();
 
-  u8* FileContents = 0;
-  umm FileSize = 0;
+  u8_stream Result = {};
 
   native_file File = OpenFile(SourceFile, "r+b");
   if (File.Handle)
   {
-    errno = 0;
-    fseek(File.Handle, 0L, SEEK_END);
-    Assert(errno==0);
-    errno = 0;
-    FileSize = (umm)ftell(File.Handle);
+    umm FileSize = PlatformGetFileSize(&File);
     if (FileSize)
     {
-      if (FileSize != umm(-1))
+      if (FileSize != INVALID_FILE_SIZE)
       {
-        rewind(File.Handle);
-        FileContents = (u8*)AllocateProtection(u8, Memory, FileSize, False);
+        u8 *FileContents = (u8*)AllocateProtection(u8, Memory, FileSize, False);
         ReadBytesIntoBuffer(&File, FileSize, FileContents);
+
+        Result = {
+          FileContents,
+          FileContents,
+          FileContents + FileSize
+        };
       }
       else
       {
@@ -148,12 +148,6 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
   {
     SoftError("Opening %s", SourceFile);
   }
-
-  u8_stream Result = {
-    FileContents,
-    FileContents,
-    FileContents + FileSize
-  };
 
   return Result;
 }
