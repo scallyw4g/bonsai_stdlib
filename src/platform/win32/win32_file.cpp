@@ -71,9 +71,6 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback,
 link_internal umm
 PlatformGetFileSize(native_file *File)
 {
-#if 1
-  s64 Result= _ftelli64(File->Handle);
-#else
   umm Result = 0;
   LARGE_INTEGER Size;
   if (GetFileSizeEx(File->Handle, &Size))
@@ -83,17 +80,151 @@ PlatformGetFileSize(native_file *File)
   else
   {
     Win32PrintLastError();
-    SoftError("GetFileSizeEx failed on (%S). Handle(%p)", File->Path, File->Handle);
+    SoftError("GetFileSizeEx failed on file (%S). Handle(%p)", File->Path, File->Handle);
   }
 
-#endif
   return SafeTruncateToUMM(Result);
 }
 
 link_internal native_file
-PlatformOpenFile(const char *Filepath)
+PlatformOpenFile(const char *Filepath, file_permission Permissions)
 {
   native_file Result = {};
-  NotImplemented;
+
+  DWORD CreationBehavior = 0;
+  if (Permissions & FilePermission_Read)
+  {
+    CreationBehavior = OPEN_EXISTING;
+  }
+
+  if (Permissions & FilePermission_Write)
+  {
+    CreationBehavior = CREATE_ALWAYS;
+  }
+
+  DWORD PlatPermissions = 0;
+  while (Permissions)
+  {
+    u32 Bit = UnsetLeastSignificantSetBit(Cast(u32*, &Permissions));
+
+    switch (file_permission(Bit))
+    {
+      InvalidCase(FilePermission_None);
+
+      case FilePermission_Read:
+      {
+        PlatPermissions |= GENERIC_READ;
+      } break;
+
+      case FilePermission_Write:
+      {
+        PlatPermissions |= GENERIC_WRITE;
+      } break;
+    }
+  }
+
+  DWORD ShareMode = 0;
+  HANDLE hFile = CreateFileA(Filepath, PlatPermissions, ShareMode, 0, CreationBehavior, FILE_ATTRIBUTE_NORMAL, 0);
+  if (hFile == INVALID_HANDLE_VALUE)
+  {
+    SoftError("Opening File (%s)", Filepath);
+    Win32PrintLastError();
+  }
+  else
+  {
+    Result.Path = CS(Filepath);
+    Result.Handle = hFile;
+  }
+
+  return Result;
+}
+
+link_internal DWORD
+Win32GetSectorSize()
+{
+  // NOTE(Jesse): use the current disk .. whatever that means.
+  const char *DiskName = 0;
+
+  DWORD Ignored[3];
+  local_persist DWORD BytesPerSector = 0;
+
+  if (BytesPerSector == 0)
+  {
+    Ensure(GetDiskFreeSpaceA(0,  &Ignored[0], &BytesPerSector, &Ignored[1], &Ignored[2]));
+    Assert(BytesPerSector > 0);
+  }
+
+  return BytesPerSector;
+}
+
+link_internal b32
+PlatformWriteToFile(native_file *File, u8* Bytes, umm Count)
+{
+  /* DWORD BytesPerSector = Win32GetSectorSize(); */
+
+  umm TotalBytesWritten = 0;
+  b32 Result = False;
+  do
+  {
+    DWORD BytesWritten;
+    DWORD BytesPerWrite = DWORD(Min(Gigabytes(2), Count-TotalBytesWritten));
+    Result = (WriteFile(File->Handle, Bytes, BytesPerWrite, &BytesWritten, 0) != 0);
+    TotalBytesWritten += u32(BytesWritten);
+
+  } while (Result && TotalBytesWritten < Count);
+
+  if (Result == False)
+  {
+    SoftError("Error Writing to file (%s)", File->Path.Start);
+  }
+
+  if (TotalBytesWritten != Count)
+  {
+    SoftError("Wrote (%llu)/(%llu) bytes to file (%s)", TotalBytesWritten, Count, File->Path.Start);
+  }
+
+  return Result;
+}
+
+link_internal b32
+PlatformCloseFile(native_file *File)
+{
+  b32 Result = (CloseHandle(File->Handle) != 0);
+  return Result;
+}
+
+link_internal b32 
+PlatformReadFile(native_file *File, u8 *Dest, umm Count)
+{
+  /* DWORD BytesPerSector = Win32GetSectorSize(); */
+
+  BOOL Result = False;
+
+  umm TotalBytesRead = 0;
+  do
+  {
+    DWORD BytesThisRead = 0;
+    DWORD BytesPerRead = DWORD(Min(Gigabytes(2), Count-TotalBytesRead));
+    Result = ReadFile(File->Handle, Dest, BytesPerRead, &BytesThisRead, 0);
+    TotalBytesRead += BytesThisRead;
+  } while (Result && TotalBytesRead < Count);
+
+  if (Result == False)
+  {
+    SoftError("Error reading file (%S)", File->Path);
+  }
+
+  if (TotalBytesRead != Count)
+  {
+    SoftError("Read (%llu)/(%llu) bytes from file (%s)", TotalBytesRead, Count, File->Path.Start);
+  }
+
+  return b32(Result);
+}
+
+link_internal b32
+PlatformReadBytesIntoBuffer(native_file *Src, u8 *Dest, umm Count)
+{
+  b32 Result = PlatformReadFile(Src, Dest, Count);
   return Result;
 }

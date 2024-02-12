@@ -77,22 +77,24 @@ link_internal bitmap
 ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 {
   bitmap_header Header = {};
-  native_file File = OpenFile(CS(Filename), "r+b");
-  s32 SizeReadFromDisk = 0;
-  u32* Pixels = 0;
-  u32 PixelCount = 0;
+  u32 *DestPixels = 0;
+  u32  PixelCount = 0;
 
-  if (File.Handle)
+  u8_stream Buf = U8_StreamFromFile(Filename, Arena);
+  if (Buf.Start)
   {
-    SizeReadFromDisk += fread(&Header, 1, sizeof(Header), File.Handle);
+    Ensure(Read_struct(&Buf, &Header));
 
     // For now, we only support reading bitmaps that are bottom-up ie. Origin in top-left corner
     PixelCount = (u32)Header.Image.WidthInPixels * (u32)Header.Image.HeightInPixels;
   }
   else { Error("Opening %s for reading", Filename); }
 
-  fseek(File.Handle, s32(Header.OffsetToPixelData), SEEK_SET);
+  Assert( Header.OffsetToPixelData < TotalElements(&Buf));
+  Buf.At = Buf.Start+Header.OffsetToPixelData;
+  /* fseek(File.Handle, s32(Header.OffsetToPixelData), SEEK_SET); */
 
+  u8 *SrcPixels = Buf.At;
   switch (bitmap_compression_type(Header.Image.CompressionType))
   {
     case BitmapCompressionType_RGB:
@@ -100,9 +102,7 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
       u32 TmpPixelsSize = PixelCount*3;
       Assert(TmpPixelsSize == Header.Image.SizeInBytes);
 
-      u8 *TmpPixels = Allocate(u8, GetTranArena(), TmpPixelsSize); // 3 bytes per pixel
-      Pixels = Allocate(u32, Arena, PixelCount);
-      SizeReadFromDisk += fread(TmpPixels, 1, Header.Image.SizeInBytes, File.Handle);
+      DestPixels = Allocate(u32, Arena, PixelCount);
 
       u8 A = 0xFF;
       RangeIterator_t(u32, PixelIndex, PixelCount)
@@ -114,17 +114,17 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
         Assert(gOffset < TmpPixelsSize);
         Assert(bOffset < TmpPixelsSize);
 
-        u8 R = TmpPixels[rOffset];
-        u8 G = TmpPixels[gOffset];
-        u8 B = TmpPixels[bOffset];
-        Pixels[PixelIndex] = u32(R | (G<<8) | (B<<16) | (A<<24));
+        u8 R = SrcPixels[rOffset];
+        u8 G = SrcPixels[gOffset];
+        u8 B = SrcPixels[bOffset];
+        DestPixels[PixelIndex] = u32(R | (G<<8) | (B<<16) | (A<<24));
       }
     } break;
 
     case BitmapCompressionType_BITFIELDS:
     {
-      Pixels = Allocate(u32, Arena, PixelCount);
-      SizeReadFromDisk += fread(Pixels, 1, Header.Image.SizeInBytes, File.Handle);
+      DestPixels = Allocate(u32, Arena, PixelCount);
+      CopyMemory(SrcPixels, Cast(u8*, DestPixels), PixelCount*4);
     } break;
 
     case BitmapCompressionType_RLE8:
@@ -139,10 +139,10 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
       SoftError("Unsupported Bitmap compression format encountered (%S)", ToString(bitmap_compression_type(Header.Image.CompressionType)));
     } break;
   }
-  CloseFile(&File);
+  /* CloseFile(&File); */
 
   /* Assert(Header.Image.CompressionType == 3); */
-  if (SizeReadFromDisk != (s32)Header.FileSizeInBytes)
+  if (Buf.At != Buf.End)
   {
     Warn("(%s) loaded successfully, but we detected unsupported metadata during loading.", Filename);
   }
@@ -150,7 +150,7 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 
   bitmap Result = {};
   Result.Dim = V2i(Header.Image.WidthInPixels, Header.Image.HeightInPixels);
-  Result.Pixels = U32Cursor(Pixels, Pixels+PixelCount);
+  Result.Pixels = U32Cursor(DestPixels, DestPixels+PixelCount);
 
 
   if (Header.Image.RedMask == 0xFF)
@@ -203,12 +203,12 @@ WriteBitmapToDisk(bitmap *Bitmap, const char *Filename)
   Header.Image.BlueMask             = 0x00FF0000;
 
   u32 SizeWritten = 0;
-  native_file File = OpenFile(Filename, "w+b");
+  native_file File = PlatformOpenFile(Filename, FilePermission_Write);
   if (File.Handle)
   {
-    SizeWritten += fwrite(&Header, 1, sizeof(Header), File.Handle);
-    SizeWritten += fwrite(Bitmap->Pixels.Start, 1, TotalSize(&Bitmap->Pixels), File.Handle);
-    fclose(File.Handle);
+    SizeWritten += PlatformWriteToFile(&File,              Cast(u8*, &Header), sizeof(Header));
+    SizeWritten += PlatformWriteToFile(&File, Cast(u8*, Bitmap->Pixels.Start), TotalSize(&Bitmap->Pixels));
+    CloseFile(&File);
   }
   else { Error("Opening %s for writing", Filename); }
 

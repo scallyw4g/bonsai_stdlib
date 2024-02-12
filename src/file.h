@@ -3,15 +3,22 @@ struct memory_arena;
 struct ansi_stream;
 
 
+enum file_permission
+{
+  FilePermission_None  = 0,
+  FilePermission_Read  = (1 << 0),
+  FilePermission_Write = (1 << 1),
+};
+
 link_internal b32 CloseFile(native_file* File);
 
 link_internal b32 Rename(counted_string CurrentFilePath, counted_string NewFilePath);
 
 link_internal b32 Remove(counted_string Filepath);
 
-link_internal native_file OpenFile(const char* FilePath, const char* Permissions);
+link_internal native_file OpenFile(const char* FilePath, file_permission Permissions);
 
-link_internal native_file OpenFile(counted_string FilePath, const char* Permissions);
+link_internal native_file OpenFile(counted_string FilePath, file_permission Permissions);
 
 link_internal counted_string GetRandomString(u32 Length, random_series* Entropy, memory_arena* Memory);
 
@@ -29,7 +36,7 @@ link_internal b32 FileExists(const char* Path);
 
 link_internal b32 FileExists(counted_string Path);
 
-link_internal b32 ReadBytesIntoBuffer(native_file *Src, umm BytesToRead, u8* Dest);
+link_internal b32 ReadBytesIntoBuffer(native_file *Src, u8* Dest, umm BytesToRead);
 
 
 enum file_traversal_type

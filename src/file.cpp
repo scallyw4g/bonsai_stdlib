@@ -16,7 +16,7 @@ CreateDirectory(const char *zPath)
 }
 
 link_internal b32
-CreateDirectory(counted_string Filepath)
+CreateDirectory(cs Filepath)
 {
   const char* zPath = GetNullTerminated(Filepath);
   b32 Result = CreateDirectory(zPath);
@@ -38,7 +38,7 @@ TryCreateDirectory(const char* zPath)
 }
 
 link_internal b32
-TryCreateDirectory(counted_string Filepath)
+TryCreateDirectory(cs Filepath)
 {
   const char* zPath = GetNullTerminated(Filepath);
   b32 Result = TryCreateDirectory(zPath);
@@ -63,7 +63,7 @@ DeleteDirectory(const char *zPath)
 }
 
 link_internal b32
-DeleteDirectory(counted_string Filepath)
+DeleteDirectory(cs Filepath)
 {
   const char* zPath = GetNullTerminated(Filepath);
   b32 Result = DeleteDirectory(zPath);
@@ -85,7 +85,7 @@ TryDeleteDirectory(const char* zPath)
 }
 
 link_internal b32
-TryDeleteDirectory(counted_string Filepath)
+TryDeleteDirectory(cs Filepath)
 {
   const char* zPath = GetNullTerminated(Filepath);
   b32 Result = TryDeleteDirectory(zPath);
@@ -98,138 +98,29 @@ TryDeleteDirectory(counted_string Filepath)
 
 
 
-link_internal b32
-CloseFile(native_file* File)
+link_internal native_file
+OpenFile(const char *FilePath, file_permission Permissions)
 {
-  b32 Result = False;
-  if (File->Handle)
-  {
-    Result = fclose(File->Handle) == 0 ? True : False;
-    File->Handle = 0;
-  }
-  else
-  {
-    Error("Attempted to close %S, which was not open.", File->Path);
-  }
-
-  if (!Result)
-  {
-    Error("Closing file %S", File->Path);
-  }
-
-  Assert(File->Handle == 0);
-  return Result;
-}
-
-global_variable random_series TempFileEntropy = {3215432};
-
-link_internal b32
-Rename(counted_string CurrentFilePath, counted_string NewFilePath)
-{
-  counted_string TmpFilename = {};
-  if (FileExists(NewFilePath))
-  {
-    TmpFilename = GetTmpFilename(&TempFileEntropy, GetTranArena());
-    Rename(NewFilePath, TmpFilename);
-  }
-
-
-  const char* Old = GetNullTerminated(CurrentFilePath);
-  const char* New = GetNullTerminated(NewFilePath);
-  b32 Result = (rename(Old, New) == 0);
-
-  if (Result)
-  {
-    if (TmpFilename.Count)
-    {
-      Remove(TmpFilename);
-    }
-  }
-  else
-  {
-    /* Info("Error renaming %S -> %S , errno(%d)", CurrentFilePath, NewFilePath, errno); */
-    if (TmpFilename.Count)
-    {
-      Rename(TmpFilename, NewFilePath);
-    }
-  }
-
-  return Result;
-}
-
-link_internal b32
-Remove(counted_string Filepath)
-{
-  const char* NullTerminated = GetNullTerminated(Filepath);
-  b32 Result = (remove(NullTerminated) == 0) ? True : False;
-  return Result;
+  return PlatformOpenFile(FilePath, Permissions);
 }
 
 link_internal native_file
-OpenFile(const char* FilePath, const char* Permissions)
-{
-  native_file Result = {
-    .Path = CS(FilePath)
-  };
-
-  counted_string PermStr = CS(Permissions);
-  if (!Contains(PermStr, CSz("b")))
-  {
-    Error("Files must be opened in binary mode.");
-  }
-
-  if (Permissions == 0)
-  {
-    Warn("Invalid Permissions value (null) passed to OpenFile");
-  }
-
-  if (FilePath == 0)
-  {
-    Warn("Invalid FilePath value (null) passed to OpenFile");
-  }
-
-  errno = 0;
-  s32 Code = fopen_s(&Result.Handle, FilePath, Permissions);
-  Assert(Code == 0);
-  Assert(errno == 0);
-
-  if (!Result.Handle)
-  {
-    switch(errno)
-    {
-      case 0: { } break;
-
-      case EINVAL:
-      {
-        Warn("fopen_s failed with EINVAL on Filepath (%s) with Permissions (%s)", FilePath, Permissions);
-      } break;
-
-      default:
-      {
-        /* Warn("Error opening file %s. Errno==(%d) Message=(%s)", FilePath, errno, ErrnoToString(errno)); */
-      } break;
-    }
-
-    errno = 0;
-  }
-
-  Assert(errno == 0);
-
-  return Result;
-}
-
-link_internal native_file
-OpenFile(counted_string FilePath, const char* Permissions)
+OpenFile(cs FilePath, file_permission Permissions)
 {
   const char* NullTerminatedFilePath = GetNullTerminated(FilePath);
-  native_file Result = OpenFile(NullTerminatedFilePath, Permissions);
+  native_file Result = PlatformOpenFile(NullTerminatedFilePath, Permissions);
   return Result;
 }
 
-link_internal counted_string
+link_internal b32 CloseFile(native_file* File)
+{
+  return PlatformCloseFile(File);
+}
+
+link_internal cs
 GetRandomString(u32 Length, random_series* Entropy, memory_arena* Memory)
 {
-  counted_string Filename = {
+  cs Filename = {
     .Count = Length,
     .Start = Allocate(char, Memory, Length),
   };
@@ -249,18 +140,18 @@ GetRandomString(u32 Length, random_series* Entropy, memory_arena* Memory)
   return Filename;
 }
 
-link_internal counted_string
+link_internal cs
 GetRandomString(u32 Length, umm EntropySeed, memory_arena* Memory)
 {
   random_series Entropy = { .Seed = EntropySeed };
-  counted_string Result = GetRandomString(Length, &Entropy, Memory);
+  cs Result = GetRandomString(Length, &Entropy, Memory);
   return Result;
 }
 
-link_internal counted_string
+link_internal cs
 GetTmpFilename(random_series* Entropy, memory_arena* Memory)
 {
-  counted_string Filename = GetRandomString(32, Entropy, Memory);
+  cs Filename = GetRandomString(32, Entropy, Memory);
   Filename = Concat(CSz(TMP_DIR_ROOT), Filename, Memory);
   return Filename;
 }
@@ -268,54 +159,37 @@ GetTmpFilename(random_series* Entropy, memory_arena* Memory)
 link_internal native_file
 GetTempFile(random_series* Entropy, memory_arena* Memory)
 {
-  counted_string Filename = GetTmpFilename(Entropy, Memory);
-  native_file Result = OpenFile(Filename, "w+b");
-  if (!Result.Handle)
-    { Warn("Error opening tmpfile %S, errno: %d", Filename, errno); }
-  return Result;
-}
-
-link_internal inline b32
-WriteToFile(native_file* File, u8 *Buf, umm Count)
-{
-  b32 Result = False;
-  umm BytesWriten = fwrite(Buf, 1, Count, File->Handle);
-  if (BytesWriten == Count)
-  {
-    Result = True;
-  }
-  else
-  {
-    Warn("Error Writing to file %.*s", (s32)File->Path.Count, File->Path.Start);
-  }
+  cs Filename = GetTmpFilename(Entropy, Memory);
+  native_file Result = OpenFile(Filename, FilePermission_Write);
+  if (!Result.Handle) { Warn("Error opening tmpfile %S", Filename); }
   return Result;
 }
 
 link_internal inline b32
 WriteToFile(native_file* File, u64 Value)
 {
-  b32 Result = WriteToFile(File, (u8*)&Value, sizeof(Value));
+  b32 Result = PlatformWriteToFile(File, (u8*)&Value, sizeof(Value));
   return Result;
 }
 
 link_internal inline b32
 WriteToFile(native_file* File, u32 Value)
 {
-  b32 Result = WriteToFile(File, (u8*)&Value, sizeof(Value));
+  b32 Result = PlatformWriteToFile(File, (u8*)&Value, sizeof(Value));
   return Result;
 }
 
 link_internal inline b32
-WriteToFile(native_file* File, counted_string Str)
+WriteToFile(native_file* File, cs Str)
 {
-  b32 Result = WriteToFile(File, (u8*)Str.Start, Str.Count);
+  b32 Result = PlatformWriteToFile(File, (u8*)Str.Start, Str.Count);
   return Result;
 }
 
 link_internal inline b32
 WriteToFile(native_file* File, ansi_stream *Str)
 {
-  b32 Result = WriteToFile(File, CountedString(Str));
+  b32 Result =WriteToFile(File, CountedString(Str));
   return Result;
 }
 
@@ -326,24 +200,14 @@ WriteToFile(native_file* File, u8_cursor_block_array *Buf)
 
   IterateOver(Buf, Cursor, CursorIndex)
   {
-    Result &= WriteToFile(File, Cursor->Start, AtElements(Cursor));
+    Result &= PlatformWriteToFile(File, Cursor->Start, AtElements(Cursor));
   }
 
   return Result;
 }
 
 link_internal b32
-ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest)
-{
-  Assert(BytesToRead);
-  u64 BytesRead = fread(Dest, 1, BytesToRead, Src);
-  b32 Result = BytesRead == BytesToRead;
-  Assert(Result);
-  return Result;
-}
-
-link_internal b32
-ReadBytesIntoBuffer(u8_cursor *Src, umm BytesToRead, u8* Dest)
+ReadBytesIntoBuffer(u8_cursor *Src, u8* Dest, umm BytesToRead)
 {
   b32 Result = Src->At+BytesToRead <= Src->End;
   if (Result)
@@ -355,24 +219,20 @@ ReadBytesIntoBuffer(u8_cursor *Src, umm BytesToRead, u8* Dest)
 }
 
 link_internal b32
-ReadBytesIntoBuffer(native_file *Src, umm BytesToRead, u8* Dest)
+ReadBytesIntoBuffer(native_file *Src, u8* Dest, umm BytesToRead)
 {
-  b32 Result = ReadBytesIntoBuffer(Src->Handle, BytesToRead, Dest);
+  b32 Result = PlatformReadBytesIntoBuffer(Src, Dest, BytesToRead);
   return Result;
 }
 
-link_internal void
-Rewind(native_file *File)
-{
-  rewind(File->Handle);
-}
-
+// TODO(Jesse): There's sure to be a much more efficient way to do this.  I'm
+// completely sure that's true on Windows, not sure about other platforms.
 link_internal b32
 FileExists(const char* Path)
 {
   b32 Result = False;
 
-  native_file File = OpenFile(Path, "r+b");
+  native_file File = PlatformOpenFile(Path, FilePermission_Read);
   if (File.Handle)
   {
     Result = True;
@@ -387,7 +247,7 @@ FileExists(const char* Path)
 }
 
 link_internal b32
-FileExists(counted_string Path)
+FileExists(cs Path)
 {
   const char* NullTerminatedFilePath = GetNullTerminated(Path);
   b32 Result = FileExists(NullTerminatedFilePath);
@@ -397,8 +257,10 @@ FileExists(counted_string Path)
 global_variable bonsai_futex Lock = {};
 
 link_internal void
-PrintToStdout(counted_string Output)
+PrintToStdout(cs Output)
 {
+  if (Stdout.Handle == 0) { PlatformInitializeStdout(&Stdout); }
+
   if (Lock.Initialized == False) { InitializeFutex(&Lock); }
 
   // TODO(Jesse): What's a better way than printf of notifying the user an error occurred if we can't write to stdout???

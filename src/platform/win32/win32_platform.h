@@ -43,7 +43,7 @@ typedef HDC display;
 
 struct native_file
 {
-  FILE* Handle;
+  HANDLE Handle;
   counted_string Path;
 };
 
@@ -55,6 +55,18 @@ struct os
 
   b32 ContinueRunning = True;
 };
+
+link_internal void
+Win32PrintLastError();
+
+link_internal void
+PlatformInitializeStdout(native_file *Stdout)
+{
+  Stdout->Handle = CreateFileA("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
+  Stdout->Path = CSz("stdout");
+
+  Assert(Stdout->Handle != INVALID_HANDLE_VALUE);
+}
 
 
 link_internal u64

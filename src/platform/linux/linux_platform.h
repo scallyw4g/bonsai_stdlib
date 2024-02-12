@@ -978,3 +978,10 @@ GetCurrentThreadId()
   u32 Result = (u32)pthread_self();
   return Result;
 }
+
+link_internal void
+PlatformInitializeStdout(native_file *Stdout)
+{
+  Stdout->Handle = stdout;
+  Stdout->Path = CSz("stdout");
+}

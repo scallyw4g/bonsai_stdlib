@@ -114,7 +114,7 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
 
   u8_stream Result = {};
 
-  native_file File = OpenFile(SourceFile, "r+b");
+  native_file File = PlatformOpenFile(SourceFile, FilePermission_Read);
   if (File.Handle)
   {
     umm FileSize = PlatformGetFileSize(&File);
@@ -123,7 +123,7 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
       if (FileSize != INVALID_FILE_SIZE)
       {
         u8 *FileContents = (u8*)AllocateProtection(u8, Memory, FileSize, False);
-        ReadBytesIntoBuffer(&File, FileSize, FileContents);
+        ReadBytesIntoBuffer(&File, FileContents, FileSize);
 
         Result = {
           FileContents,
@@ -419,7 +419,7 @@ poof(
       Read_(prim.name)(native_file *File)
       {
         prim.name Result;
-        Ensure(ReadBytesIntoBuffer(File, sizeof((prim.name)), (u8*)&Result));
+        Ensure( ReadBytesIntoBuffer(File, (u8*)&Result, sizeof((prim.name))) );
         return Result;
       }
     }
@@ -502,7 +502,9 @@ poof(gen_read_primitive_from_u8_cursor_little_endian({s8 s16 u16 s32 u32 s64 u64
 #include <generated/gen_read_primitive_from_u8_cursor_little_endian_851742148.h>
 
 
+
 // TODO(Jesse): Make the rest of the reading routines match this prototype (return b32, read into pointer)
+// TODO(Jesse): This is more like SnapPointerTo_bytes ..
 link_internal b32
 Read_bytes(u8_cursor *Cursor, u8 **Dest, umm Count)
 {
@@ -518,6 +520,24 @@ Read_bytes(u8_cursor *Cursor, u8 **Dest, umm Count)
   return Result;
 }
 
+link_internal b32
+Copy_bytes(u8_cursor *Cursor, u8 *Dest, umm Count)
+{
+  b32 Result = False;
+
+  if (Cursor->At + Count < Cursor->End)
+  {
+    CopyMemory(Cursor->At, Dest, Count);
+    Result = True;
+    Cursor->At += Count;
+  }
+
+  return Result;
+}
+
+
+#define Read_struct(Buf, StructPtr) \
+    Copy_bytes(Buf, Cast(u8*, (StructPtr)), sizeof((StructPtr)[0]))
 
 poof(
   func gen_read_primitive(type)

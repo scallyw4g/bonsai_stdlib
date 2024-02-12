@@ -13,11 +13,7 @@
 poof(string_and_value_tables(log_level));
 #include <generated/string_and_value_tables_log_level.h>
 
-global_variable native_file Stdout =
-{
-  .Handle = stdout,
-  .Path = CSz("stdout")
-};
+global_variable native_file Stdout = {};
 
 link_internal void
 DumpValidLogLevelOptions()

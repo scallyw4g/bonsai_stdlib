@@ -234,3 +234,12 @@ link_internal char * GetTempFmtBuffer();
   }                                                                                                            \
                                                                                                                \
 } while (false)
+
+
+#define IndentMessage(fmt, ...) do {                                                                                   \
+                                                                                                                \
+  if (Global_LogLevel <= LogLevel_Info) {                                                                       \
+    LogDirect(CSz("           - " fmt Newline), ##__VA_ARGS__);                                                 \
+  }                                                                                                             \
+                                                                                                                \
+} while (false)

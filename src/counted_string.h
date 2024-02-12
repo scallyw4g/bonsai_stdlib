@@ -1019,6 +1019,16 @@ Hash(counted_string String)
 
 
 link_internal void
+TruncateAndNullTerminate(cs *S, umm Count)
+{
+  if (S->Count >= Count)
+  {
+    S->Count -= Count;
+    Cast(char*, S->Start)[S->Count] = 0;
+  }
+}
+
+link_internal void
 Truncate(cs *S, umm Count)
 {
   if (S->Count >= Count) { S->Count -= Count; }
