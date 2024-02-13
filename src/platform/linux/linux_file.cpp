@@ -91,7 +91,7 @@ PlatformOpenFile(const char* FilePath, file_permission Permissions)
       PermissionChars = "w+";
     } break;
 
-    InvalidDefaultCase();
+    InvalidDefaultCase;
   }
 
   /* cs PermStr = CS(Permissions); */
@@ -111,7 +111,7 @@ PlatformOpenFile(const char* FilePath, file_permission Permissions)
   }
 
   errno = 0;
-  s32 Code = fopen(&Result.Handle, FilePath, PermissionChars);
+  s32 Code = fopen(&Result.Handle, PermissionChars);
   Assert(Code == 0);
   Assert(errno == 0);
 
