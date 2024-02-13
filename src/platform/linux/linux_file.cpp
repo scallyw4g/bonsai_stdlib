@@ -67,19 +67,40 @@ PlatformRemoveFile(cs Filepath)
 }
 
 link_internal native_file
-PlatformOpenFile(const char* FilePath, const char* Permissions)
+PlatformOpenFile(const char* FilePath, file_permission Permissions)
 {
   native_file Result = {
     .Path = CS(FilePath)
   };
 
-  cs PermStr = CS(Permissions);
-  if (!Contains(PermStr, CSz("b")))
+  const char *PermissionChars = 0;
+  switch (s32(Permissions))
   {
-    Error("Files must be opened in binary mode.");
+    case FilePermission_Read:
+    {
+      PermissionChars = "r";
+    } break;
+
+    case FilePermission_Write:
+    {
+      PermissionChars = "w";
+    } break;
+
+    case FilePermission_Read|FilePermission_Write:
+    {
+      PermissionChars = "w+";
+    } break;
+
+    InvalidDefaultCase();
   }
 
-  if (Permissions == 0)
+  /* cs PermStr = CS(Permissions); */
+  /* if (!Contains(PermStr, CSz("b"))) */
+  /* { */
+  /*   Error("Files must be opened in binary mode."); */
+  /* } */
+
+  if (PermissionChars == 0)
   {
     Warn("Invalid Permissions value (null) passed to OpenFile");
   }
@@ -90,7 +111,7 @@ PlatformOpenFile(const char* FilePath, const char* Permissions)
   }
 
   errno = 0;
-  s32 Code = fopen_s(&Result.Handle, FilePath, Permissions);
+  s32 Code = fopen(&Result.Handle, FilePath, PermissionChars);
   Assert(Code == 0);
   Assert(errno == 0);
 

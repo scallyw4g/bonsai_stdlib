@@ -371,6 +371,7 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback,
 }
 
 
+#define INVALID_FILE_SIZE (umm(-1))
 link_internal umm
 PlatformGetFileSize(native_file *File)
 {
@@ -379,22 +380,13 @@ PlatformGetFileSize(native_file *File)
   // leaving this here until I get a chance to.
   NotImplemented;
 
-  umm Result = 0;
-
   errno = 0;
   fseek(File->Handle, 0L, SEEK_END);
   Assert(errno==0);
 
   errno = 0;
-  umm FileSize = (umm)ftell(File.Handle);
-  if (FileSize)
-  {
-    if (FileSize != umm(-1))
-    {
-      rewind(File.Handle);
-      Result = FileSize;
-    }
-  }
+  umm Result = (umm)ftell(File->Handle);
+  rewind(File->Handle);
 
   return Result;
 }
