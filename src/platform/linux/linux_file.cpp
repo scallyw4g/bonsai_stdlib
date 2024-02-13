@@ -94,12 +94,6 @@ PlatformOpenFile(const char* FilePath, file_permission Permissions)
     InvalidDefaultCase;
   }
 
-  /* cs PermStr = CS(Permissions); */
-  /* if (!Contains(PermStr, CSz("b"))) */
-  /* { */
-  /*   Error("Files must be opened in binary mode."); */
-  /* } */
-
   if (PermissionChars == 0)
   {
     Warn("Invalid Permissions value (null) passed to OpenFile");
@@ -111,11 +105,10 @@ PlatformOpenFile(const char* FilePath, file_permission Permissions)
   }
 
   errno = 0;
-  s32 Code = fopen(&Result.Handle, PermissionChars);
-  Assert(Code == 0);
+  Result.Handle = fopen(FilePath, PermissionChars);
   Assert(errno == 0);
 
-  if (!Result.Handle)
+  if (Result.Handle == 0)
   {
     switch(errno)
     {
