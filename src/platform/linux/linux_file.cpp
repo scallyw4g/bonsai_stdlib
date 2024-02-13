@@ -150,13 +150,19 @@ PlatformWriteToFile(native_file* File, u8 *Buf, umm Count)
 }
 
 link_internal b32
-ReadBytesIntoBuffer(FILE *Src, umm BytesToRead, u8* Dest)
+PlatformReadFile(native_file *Src, u8* Dest, umm BytesToRead)
 {
   Assert(BytesToRead);
-  u64 BytesRead = fread(Dest, 1, BytesToRead, Src);
+  u64 BytesRead = fread(Dest, 1, BytesToRead, Src->Handle);
   b32 Result = BytesRead == BytesToRead;
   Assert(Result);
   return Result;
+}
+
+link_internal b32
+PlatformReadBytesIntoBuffer(native_file *Src, u8* Dest, umm BytesToRead)
+{
+  return PlatformReadFile(Src, Dest, BytesToRead);
 }
 
 link_internal void
