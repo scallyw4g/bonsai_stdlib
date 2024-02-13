@@ -759,7 +759,7 @@ Win32PrintLastError()
     if (LastChar(Str) == '\n') { TruncateAndNullTerminate(&Str, 1); }
     if (LastChar(Str) == '\r') { TruncateAndNullTerminate(&Str, 1); }
 
-    IndentMessage("GetLastError(%S)", Str);
+    IndentMessage("Win32 GetLastError (%S)", Str);
 
     //Free the Win32's string's buffer.
     LocalFree(messageBuffer);

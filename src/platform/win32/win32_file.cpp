@@ -86,6 +86,17 @@ PlatformGetFileSize(native_file *File)
   return SafeTruncateToUMM(Result);
 }
 
+// Functional behavior
+// 1) FilePermission_Write
+//    - succeeds if file exists
+//    - fails    if file does not exist
+//
+// 2) FilePermission_Write
+//    - succeeds and truncates if file exists
+//    - succeeds and creates if file does not exist
+//
+// 3) TODO(Jesse): FilePermission_Append ?
+//
 link_internal native_file
 PlatformOpenFile(const char *Filepath, file_permission Permissions)
 {
@@ -99,13 +110,14 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
 
   if (Permissions & FilePermission_Write)
   {
-    CreationBehavior = CREATE_ALWAYS;
+    CreationBehavior = OPEN_ALWAYS;
   }
 
   DWORD PlatPermissions = 0;
-  while (Permissions)
+  file_permission CurrentPermissions = Permissions;
+  while (CurrentPermissions)
   {
-    u32 Bit = UnsetLeastSignificantSetBit(Cast(u32*, &Permissions));
+    u32 Bit = UnsetLeastSignificantSetBit(Cast(u32*, &CurrentPermissions));
 
     switch (file_permission(Bit))
     {
@@ -134,7 +146,17 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
   {
     Result.Path = CS(Filepath);
     Result.Handle = hFile;
+
+    if (Permissions & FilePermission_Write)
+    {
+      if (SetEndOfFile(hFile) == 0)
+      {
+        SoftError("Unable to truncate file (%s)", Filepath);
+      }
+    }
   }
+
+
 
   return Result;
 }
@@ -168,7 +190,7 @@ PlatformWriteToFile(native_file *File, u8* Bytes, umm Count)
   {
     DWORD BytesWritten;
     DWORD BytesPerWrite = DWORD(Min(Gigabytes(2), Count-TotalBytesWritten));
-    Result = (WriteFile(File->Handle, Bytes, BytesPerWrite, &BytesWritten, 0) != 0);
+    Result = (WriteFile(File->Handle, Bytes+TotalBytesWritten, BytesPerWrite, &BytesWritten, 0) != 0);
     TotalBytesWritten += u32(BytesWritten);
 
   } while (Result && TotalBytesWritten < Count);
@@ -205,7 +227,7 @@ PlatformReadFile(native_file *File, u8 *Dest, umm Count)
   {
     DWORD BytesThisRead = 0;
     DWORD BytesPerRead = DWORD(Min(Gigabytes(2), Count-TotalBytesRead));
-    Result = ReadFile(File->Handle, Dest, BytesPerRead, &BytesThisRead, 0);
+    Result = ReadFile(File->Handle, Dest+TotalBytesRead, BytesPerRead, &BytesThisRead, 0);
     TotalBytesRead += BytesThisRead;
   } while (Result && TotalBytesRead < Count);
 
