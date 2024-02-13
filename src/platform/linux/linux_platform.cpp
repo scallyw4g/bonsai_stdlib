@@ -2,6 +2,7 @@
 #include <bonsai_net/network.h>
 #endif
 
+#include "linux_file.cpp"
 
 #if PLATFORM_WINDOW_IMPLEMENTATIONS
 
