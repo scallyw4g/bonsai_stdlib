@@ -290,7 +290,7 @@ WindowMessageCallback(
         UnrealizeObject(global_hPalette);
         SelectPalette(Os->Display, global_hPalette, FALSE);
         RealizePalette(Os->Display);
-        SwapBuffers(Os->Display);
+        /* SwapBuffers(Os->Display); */
       }
 
     } return 0;
@@ -303,7 +303,7 @@ WindowMessageCallback(
         UnrealizeObject(global_hPalette);
         SelectPalette(Os->Display, global_hPalette, FALSE);
         RealizePalette(Os->Display);
-        SwapBuffers(Os->Display);
+        /* SwapBuffers(Os->Display); */
         return TRUE;
       }
 
@@ -313,7 +313,7 @@ WindowMessageCallback(
     {
       PAINTSTRUCT ps;
       BeginPaint(hWnd, &ps);
-      if (Os->GlContext) { SwapBuffers(Os->Display); }
+      /* if (Os->GlContext) { SwapBuffers(Os->Display); } */
       EndPaint(hWnd, &ps);
     } return 0;
 
