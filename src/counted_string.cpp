@@ -70,6 +70,19 @@ CountedString(const char* Start, memory_arena* Memory)
   return Result;
 }
 
+const char *
+CopyZString(const char* Start, memory_arena* Memory)
+{
+  TIMED_FUNCTION();
+
+  umm Count = Length(Start);
+
+  char *Result =  Allocate(char, Memory, Count);
+  MemCopy((u8*)Start, (u8*)Result, Count);
+
+  return Cast(const char*, Result);
+}
+
 counted_string
 CopyString(const char* Start, memory_arena* Memory)
 {

@@ -159,28 +159,28 @@ struct memory_arena
 #if BONSAI_DEBUG_SYSTEM_API
 
 #define AllocateProtection(Type, Arena, Number, Protection)                                                                                              \
-  ( GetDebugState() ?                                                                                                                   \
-      (Type*)GetDebugState()->Debug_Allocate(Arena, sizeof(Type), (umm)Number, #Type " " __FILE__ ":" LINE_STRING, __LINE__, __FILE__, 1, Protection ) : \
-      (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, 1, Protection)                                                                                   \
-  )
+( GetDebugState() ?                                                                                                                   \
+    (Type*)GetDebugState()->Debug_Allocate(Arena, sizeof(Type), (umm)Number, #Type " " __FILE__ ":" LINE_STRING, __LINE__, __FILE__, 1, Protection ) : \
+    (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, 1, Protection)                                                                                   \
+)
 
 #define AllocateAlignedProtection(Type, Arena, Number, Alignment, Protection)                                                                                   \
-  ( GetDebugState() ?                                                                                                                          \
-    (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), (umm)Number, #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, Protection ) : \
-    (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, Alignment, Protection)                                                                                    \
-  )
+( GetDebugState() ?                                                                                                                          \
+  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), (umm)Number, #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, Protection ) : \
+  (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, Alignment, Protection)                                                                                    \
+)
 
 #define AllocateAligned(Type, Arena, Number, Alignment)                                                                                                  \
-  ( GetDebugState() ?                                                                                                                   \
-    (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), (umm)Number, #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, True) : \
-    (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, Alignment, True)                                                                                   \
-  )
+( GetDebugState() ?                                                                                                                   \
+  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), (umm)Number, #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, True) : \
+  (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, Alignment, True)                                                                                   \
+)
 
 #define Allocate(Type, Arena, Number)                                                                                                             \
-  ( GetDebugState() ?                                                                                                            \
-    (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), (umm)Number, #Type ":" __FILE__ ":" LINE_STRING , __LINE__, __FILE__, 1, True) : \
-    (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, 1, True)                                                                                    \
-  )
+( GetDebugState() ?                                                                                                            \
+  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), (umm)Number, #Type ":" __FILE__ ":" LINE_STRING , __LINE__, __FILE__, 1, True) : \
+  (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, 1, True)                                                                                    \
+)
 
 void noop() {}
 
