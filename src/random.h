@@ -233,11 +233,18 @@ RandomV3Bilateral(random_series *Entropy)
 }
 
 inline v3
-RandomV3(random_series *Entropy)
+RandomV3Unilateral(random_series *Entropy)
 {
   v3 Result =  {{ RandomUnilateral(Entropy),
                   RandomUnilateral(Entropy),
                   RandomUnilateral(Entropy) }};
+  return Result;
+}
+
+inline v3
+RandomV3(random_series *Entropy)
+{
+  v3 Result = RandomV3Unilateral(Entropy);
   return Result;
 }
 
