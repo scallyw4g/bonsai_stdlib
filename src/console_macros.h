@@ -113,8 +113,17 @@ link_internal char * GetTempFmtBuffer();
 
 #define DEFAULT_FILE_IDENTIFIER  __FILE__ ":" STRINGIZE(__LINE__)
 
+#define DEBUG_CONSOLE_LOG_CALLING_LOCATION (0)
+#if DEBUG_CONSOLE_LOG_CALLING_LOCATION
+#define MaybeLogLocation() PrintToStdout(FormatCountedString_(GetTempFmtBuffer(), TempStdoutFormatStringBufferSize, CSz("%s:%d\n\n"), __FILE__, __LINE__))
+#else
+#define MaybeLogLocation()
+#endif
+
 #define LogDirect(...) \
-  PrintToStdout(FormatCountedString_(GetTempFmtBuffer(), TempStdoutFormatStringBufferSize, ##__VA_ARGS__))
+  PrintToStdout(FormatCountedString_(GetTempFmtBuffer(), TempStdoutFormatStringBufferSize, ##__VA_ARGS__)); \
+  MaybeLogLocation()
+
 
 #define DebugChars(fmt, ...) do {               \
                                                 \
