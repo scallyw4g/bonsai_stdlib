@@ -1,4 +1,6 @@
 
+#include <ftw.h>
+
 link_internal b32
 PlatformCloseFile(native_file* File)
 {
@@ -59,12 +61,25 @@ PlatformRenameFile(cs CurrentFilePath, cs NewFilePath)
 }
 
 link_internal b32
+Rename(counted_string CurrentFilePath, counted_string NewFilePath)
+{
+  return PlatformRenameFile(CurrentFilePath, NewFilePath);
+}
+
+link_internal b32
 PlatformRemoveFile(cs Filepath)
 {
   const char* NullTerminated = GetNullTerminated(Filepath);
   b32 Result = (remove(NullTerminated) == 0) ? True : False;
   return Result;
 }
+
+link_internal b32
+Remove(cs Filepath)
+{
+  return PlatformRemoveFile(Filepath);
+}
+
 
 link_internal native_file
 PlatformOpenFile(const char* FilePath, file_permission Permissions)
@@ -171,3 +186,68 @@ Rewind(native_file *File)
   rewind(File->Handle);
 }
 
+global_variable directory_traversal_callback *Global_CurrentDirectoryTraversalCallback;
+global_variable                          u64  Global_CurrentDirectoryTraversalUserData;
+global_variable maybe_file_traversal_node     Global_CurrentDirectoryTraversalResult;
+
+link_internal s32
+LinuxDirectoryTraversalCallback(const char *FilePath, const struct stat *Stat, s32 TypeFlag, struct FTW *FTWBuf)
+{
+  Info("Visiting File (%s)", FilePath);
+/* typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node, u64 UserData); */
+  cs Path = CS(FilePath);
+  file_traversal_type Type = FileTraversalType_None;
+  switch (TypeFlag)
+  {
+    case FTW_F: { Type = FileTraversalType_File; } break;
+    case FTW_D: { Type = FileTraversalType_Dir; } break;
+  }
+  file_traversal_node Node = {Type, Dirname(Path), Basename(Path) };
+
+  maybe_file_traversal_node MaybeNode = (*Global_CurrentDirectoryTraversalCallback)(Node, Global_CurrentDirectoryTraversalUserData);
+  if (MaybeNode.Tag) { Global_CurrentDirectoryTraversalResult = MaybeNode; }
+
+  return 0; // Tell nftw to continue the traversal
+}
+
+link_internal maybe_file_traversal_node
+PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback, u64 UserData)
+{
+  // NOTE(Jesse): This function cannot run concurrently without some extra
+  // leg-work because nftw doesn't give us a user-supplied parameter.
+  Assert(Global_CurrentDirectoryTraversalCallback == 0);
+  Assert(Global_CurrentDirectoryTraversalUserData == 0);
+  Global_CurrentDirectoryTraversalCallback = &Callback;
+  Global_CurrentDirectoryTraversalUserData = UserData;
+  Global_CurrentDirectoryTraversalResult = {};
+
+
+  struct stat Stat = {};
+  s32 TraversalResult = nftw(GetNullTerminated(Dirname), LinuxDirectoryTraversalCallback, 32, 0);
+
+  Global_CurrentDirectoryTraversalCallback = 0;
+  Global_CurrentDirectoryTraversalUserData = 0;
+
+  maybe_file_traversal_node Result = Global_CurrentDirectoryTraversalResult;
+  return Result;
+}
+
+#define INVALID_FILE_SIZE (umm(-1))
+link_internal umm
+PlatformGetFileSize(native_file *File)
+{
+  // NOTE(Jesse): I lifted this out of U8_StreamFromFile when I ported Windows
+  // to use it's native file type.  I didn't actually test it on linux, so I'm
+  // leaving this here until I get a chance to.
+  /* NotImplemented; */
+
+  errno = 0;
+  fseek(File->Handle, 0L, SEEK_END);
+  Assert(errno==0);
+
+  errno = 0;
+  umm Result = (umm)ftell(File->Handle);
+  rewind(File->Handle);
+
+  return Result;
+}

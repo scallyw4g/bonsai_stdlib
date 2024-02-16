@@ -363,31 +363,3 @@ ConnectToServer(network_connection *Connection)
 }
 #endif
 
-link_internal maybe_file_traversal_node
-PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback, u64 UserData)
-{
-  NotImplemented;
-  maybe_file_traversal_node Result = {};
-  return Result;
-}
-
-
-#define INVALID_FILE_SIZE (umm(-1))
-link_internal umm
-PlatformGetFileSize(native_file *File)
-{
-  // NOTE(Jesse): I lifted this out of U8_StreamFromFile when I ported Windows
-  // to use it's native file type.  I didn't actually test it on linux, so I'm
-  // leaving this here until I get a chance to.
-  NotImplemented;
-
-  errno = 0;
-  fseek(File->Handle, 0L, SEEK_END);
-  Assert(errno==0);
-
-  errno = 0;
-  umm Result = (umm)ftell(File->Handle);
-  rewind(File->Handle);
-
-  return Result;
-}
