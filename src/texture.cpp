@@ -131,6 +131,8 @@ GenTexture(v2i Dim, memory_arena *Mem, cs DebugName, u32 TextureDimensionality =
   /* glTexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE); */
   GL.TexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 
+  AssertNoGlErrors;
+
   return Texture;
 }
 
@@ -193,6 +195,7 @@ MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, cs DebugName, u32 MaxTex
   }
 
 /*   GL.BindTexture(TextureDimensionality, 0); */
+  AssertNoGlErrors;
 
   return Texture;
 }
@@ -249,6 +252,8 @@ MakeTexture_RGB(v2i Dim, const v3* Data, memory_arena *Mem, cs DebugName)
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
   GL.BindTexture(GL_TEXTURE_2D, 0);
+
+  AssertNoGlErrors;
 
   return Texture;
 }
@@ -314,10 +319,13 @@ LoadBitmap(file_traversal_node *Node, memory_arena *Arena)
 link_internal maybe_file_traversal_node
 LoadBitmapFileHelper(file_traversal_node Node, u64 UserData)
 {
-  bitmap_block_array *Bitmaps = Cast(bitmap_block_array*, UserData);
+  if (Node.Type == FileTraversalType_File)
+  {
+    bitmap_block_array *Bitmaps = Cast(bitmap_block_array*, UserData);
 
-  bitmap B = LoadBitmap(&Node, GetTranArena());
-  Push(Bitmaps, &B);
+    bitmap B = LoadBitmap(&Node, GetTranArena());
+    Push(Bitmaps, &B);
+  }
 
   maybe_file_traversal_node Result = {};
   return Result;
