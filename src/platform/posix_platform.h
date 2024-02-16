@@ -20,7 +20,8 @@
 
 #include <time.h> // nanosleep
 
-#define PLATFORM_RUNTIME_BREAK() raise(SIGTRAP)
+
+#define PLATFORM_RUNTIME_BREAK() do { PlatformDebugStacktrace(); raise(SIGTRAP); } while (false)
 
 #define Newline "\n"
 
@@ -91,6 +92,18 @@ AtomicIncrement( volatile s32 *Source )
 {
   __sync_add_and_fetch( Source, 1 );
   return;
+}
+
+inline void
+AtomicWrite(volatile u64 *Source, u64 Value)
+{
+  *Source = Value;
+}
+
+inline void
+AtomicWrite(volatile u32 *Source, u32 Value)
+{
+  __sync_lock_test_and_set( Source, Value );
 }
 
 inline void*
