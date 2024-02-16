@@ -529,7 +529,9 @@ QueryOpenglVersion(s32 *Major, s32 *Minor)
 link_internal b32
 CheckOpenglVersion(s32 Major, s32 Minor)
 {
-  b32 Result = (Major >= 3 && Minor >= 3);
+  b32 Result = False;
+  if (Major > 3) { Result = True; }
+  else if (Major == 3) { Result = Minor >= 3; }
   return Result;
 }
 
