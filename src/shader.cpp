@@ -17,21 +17,52 @@ CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
   GL.CompileShader(ShaderID);
 
   // Check Status
-  s32 Result = GL_FALSE;
-  GL.GetShaderiv(ShaderID, GL_COMPILE_STATUS, &Result);
+  s32 CompileSuccess = GL_FALSE;
+  GL.GetShaderiv(ShaderID, GL_COMPILE_STATUS, &CompileSuccess);
   GL.GetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, (s32*)&InfoLogLength);
-  if ( InfoLogLength > 0 )
+  AssertNoGlErrors;
+
+  // TODO(Jesse): We should probably return a flag from this function that indicates
+  // the compilation failed..?  Or reinstate CheckShaderCompilationStatus?
+  if (CompileSuccess == GL_FALSE)
   {
-    char VertexShaderErrorMessage[InfoLogLength+1] = {};
-    GL.GetShaderInfoLog(ShaderID, InfoLogLength, NULL, VertexShaderErrorMessage);
-    Error("Shader : %s", VertexShaderErrorMessage);
-    return INVALID_SHADER;
+    char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength);
+    s32 ActualLength = 0;
+    GL.GetShaderInfoLog(ShaderID, InfoLogLength, &ActualLength, ProgramErrorMessage);
+    if (ActualLength == 0)
+    {
+      SoftError("Compiling Shader : Unfortunately, the driver did not provide an error message.  Sorry, friend.");
+    }
+    else
+    {
+      SoftError("Compiling Shader : (%d)(%S)", InfoLogLength, CS(ProgramErrorMessage, umm(ActualLength)));
+    }
   }
-  else
+
+  u32 Result = ShaderID;
+  return Result;
+}
+
+#if 0
+link_internal void
+CheckShaderCompilationStatus(cs ShaderPath, u32 ShaderId)
+{
+  s32 Success = False;
+  GL.GetShaderiv(ShaderId, GL_COMPILE_STATUS, &Success);
+
+  if (Success == GL_FALSE)
   {
-    return ShaderID;
+    s32 InfoLogLength;
+    GL.GetProgramiv(ShaderId, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    // Apparently the log length includes the null terminator
+    char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength);
+    GL.GetShaderInfoLog(ShaderId, InfoLogLength, NULL, ProgramErrorMessage);
+
+    SoftError("Error Compiling shader (%S)", ShaderPath);
+    Error("%d (%s)", InfoLogLength, ProgramErrorMessage);
   }
 }
+#endif
 
 shader
 LoadShaders(counted_string VertShaderPath, counted_string FragShaderPath)
@@ -42,38 +73,45 @@ LoadShaders(counted_string VertShaderPath, counted_string FragShaderPath)
   ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
   ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(FragShaderPath, GetTranArena());
 
-  s32 Result = GL_FALSE;
   int InfoLogLength;
 
   u32 VertexShaderID = CompileShader(HeaderCode, VertexShaderCode, GL_VERTEX_SHADER);
+  /* CheckShaderCompilationStatus(VertShaderPath, VertexShaderID); */
+
   u32 FragmentShaderID = CompileShader(HeaderCode, FragShaderCode, GL_FRAGMENT_SHADER);
+  /* CheckShaderCompilationStatus(FragShaderPath, FragmentShaderID); */
 
-  // Link the program
-  u32 ProgramID = GL.CreateProgram();
-  Assert(ProgramID);
-  GL.AttachShader(ProgramID, VertexShaderID);
-  GL.AttachShader(ProgramID, FragmentShaderID);
-  GL.LinkProgram(ProgramID);
-
-  // Check the program
-  GL.GetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-  GL.GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-  if ( InfoLogLength > 0 )
+  shader Shader = { INVALID_SHADER, 0 };
+  /* if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER) */
   {
-    char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
-    GL.GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
-    Error("%s", ProgramErrorMessage);
+    // Link the program
+    u32 ProgramID = GL.CreateProgram();
+    Assert(ProgramID);
+    GL.AttachShader(ProgramID, VertexShaderID);
+    GL.AttachShader(ProgramID, FragmentShaderID);
+    GL.LinkProgram(ProgramID);
+
+    // Check the program linked
+    s32 LinkResult = GL_FALSE;
+    GL.GetProgramiv(ProgramID, GL_LINK_STATUS, &LinkResult);
+    GL.GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    if (LinkResult == GL_FALSE)
+    {
+      char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
+      GL.GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
+      SoftError("Linking shader pair %S | %S", VertShaderPath, FragShaderPath);
+      Error("%s", ProgramErrorMessage);
+    }
+
+
+    GL.DetachShader(ProgramID, VertexShaderID);
+    GL.DetachShader(ProgramID, FragmentShaderID);
+
+    GL.DeleteShader(VertexShaderID);
+    GL.DeleteShader(FragmentShaderID);
+
+    Shader.ID = ProgramID;
   }
-
-
-  GL.DetachShader(ProgramID, VertexShaderID);
-  GL.DetachShader(ProgramID, FragmentShaderID);
-
-  GL.DeleteShader(VertexShaderID);
-  GL.DeleteShader(FragmentShaderID);
-
-  shader Shader = {};
-  Shader.ID = ProgramID;
 
   return Shader;
 }
