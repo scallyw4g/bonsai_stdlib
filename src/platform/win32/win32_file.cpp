@@ -28,25 +28,9 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback,
     {
       cs Filename = CopyString(FindFileDescriptor.cFileName, GetTranArena());
 
-      // NOTE(Jesse): ntfw on linux calls us back for the root directory you pass
-      // in, so this emulates that behavior.  I thought it was more ergonomic to
-      // do that than to torture the ntfw code, which is already pretty shitty
-      // because ntfw isn't flexible enough.
-      //
-      if (StringsMatch(Filename, CSz(".")))
+      if (StringsMatch(Filename, CSz(".")) || StringsMatch(Filename, CSz("..")))
       {
-        file_traversal_node CBArg = {
-          FileTraversalType_Dir,
-          Dirname,
-          CSz(""),
-        };
-
-        maybe_file_traversal_node MaybeNode = Callback(CBArg, UserData);
-        if (MaybeNode.Tag) { Result = MaybeNode; }
-      }
-      else if (StringsMatch(Filename, CSz("..")))
-      {
-        // Skip '..'
+        // Skip '.' and '..'
       }
       else
       {

@@ -188,24 +188,34 @@ Rewind(native_file *File)
 
 global_variable directory_traversal_callback *Global_CurrentDirectoryTraversalCallback;
 global_variable                          u64  Global_CurrentDirectoryTraversalUserData;
-global_variable maybe_file_traversal_node     Global_CurrentDirectoryTraversalResult;
+global_variable    maybe_file_traversal_node  Global_CurrentDirectoryTraversalResult;
+global_variable                          b32  Global_CurrentDirectoryTraversalSkipFirstWin32Compat;
 
 link_internal s32
 LinuxDirectoryTraversalCallback(const char *FilePath, const struct stat *Stat, s32 TypeFlag, struct FTW *FTWBuf)
 {
   Info("Visiting File (%s)", FilePath);
-/* typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node, u64 UserData); */
-  cs Path = CS(FilePath);
-  file_traversal_type Type = FileTraversalType_None;
-  switch (TypeFlag)
-  {
-    case FTW_F: { Type = FileTraversalType_File; } break;
-    case FTW_D: { Type = FileTraversalType_Dir; } break;
-  }
-  file_traversal_node Node = {Type, Dirname(Path), Basename(Path) };
 
-  maybe_file_traversal_node MaybeNode = (*Global_CurrentDirectoryTraversalCallback)(Node, Global_CurrentDirectoryTraversalUserData);
-  if (MaybeNode.Tag) { Global_CurrentDirectoryTraversalResult = MaybeNode; }
+  // NOTE(Jesse): The windows platform layer doesn't call us back for the root
+  // directory.  The default linux behavior makes more sense (?), but it's more
+  // annoying to put that behavior into the win32 layer, so I'm just doing this
+  // until I have a concrete reason to prefer one over the other.
+  if (Global_CurrentDirectoryTraversalSkipFirstWin32Compat) { Global_CurrentDirectoryTraversalSkipFirstWin32Compat = False; }
+  else
+  {
+  /* typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node, u64 UserData); */
+    cs Path = CS(FilePath);
+    file_traversal_type Type = FileTraversalType_None;
+    switch (TypeFlag)
+    {
+      case FTW_F: { Type = FileTraversalType_File; } break;
+      case FTW_D: { Type = FileTraversalType_Dir; } break;
+    }
+    file_traversal_node Node = {Type, Dirname(Path), Basename(Path) };
+
+    maybe_file_traversal_node MaybeNode = (*Global_CurrentDirectoryTraversalCallback)(Node, Global_CurrentDirectoryTraversalUserData);
+    if (MaybeNode.Tag) { Global_CurrentDirectoryTraversalResult = MaybeNode; }
+  }
 
   return 0; // Tell nftw to continue the traversal
 }
@@ -220,6 +230,7 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback,
   Global_CurrentDirectoryTraversalCallback = &Callback;
   Global_CurrentDirectoryTraversalUserData = UserData;
   Global_CurrentDirectoryTraversalResult = {};
+  Global_CurrentDirectoryTraversalSkipFirstWin32Compat = True;
 
 
   struct stat Stat = {};
