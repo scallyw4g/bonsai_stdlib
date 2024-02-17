@@ -142,12 +142,12 @@ CopyString(counted_string S, heap_allocator* Memory)
   return Result;
 }
 
-link_internal counted_string
-Concat(counted_string S1, counted_string S2, memory_arena* Memory)
+link_internal cs
+Concat(cs S1, cs S2, memory_arena* Memory, umm ExtraChars = 0)
 {
   umm TotalLength = S1.Count + S2.Count;
   counted_string Result = {
-    .Count = TotalLength,
+    .Count = TotalLength + ExtraChars,
     .Start = AllocateProtection(char, Memory, TotalLength, False),
   };
 
@@ -158,11 +158,11 @@ Concat(counted_string S1, counted_string S2, memory_arena* Memory)
 }
 
 link_internal counted_string
-Concat(cs S1, cs S2, cs S3, memory_arena* Memory)
+Concat(cs S1, cs S2, cs S3, memory_arena* Memory, umm ExtraChars = 0)
 {
   umm TotalLength = S1.Count + S2.Count + S3.Count;
   counted_string Result = {
-    .Count = TotalLength,
+    .Count = TotalLength + ExtraChars,
     .Start = AllocateProtection(char, Memory, TotalLength, False),
   };
 
@@ -171,6 +171,22 @@ Concat(cs S1, cs S2, cs S3, memory_arena* Memory)
   MemCopy((u8*)S3.Start, (u8*)Result.Start+S1.Count+S2.Count, S3.Count);
 
   return Result;
+}
+
+link_internal const char*
+ConcatZ(cs S1, cs S2, memory_arena* Memory)
+{
+  cs S = Concat(S1, S2, Memory, 1);
+  Assert(LastChar(S) == 0);
+  return S.Start;
+}
+
+link_internal const char*
+ConcatZ(cs S1, cs S2, cs S3, memory_arena* Memory)
+{
+  cs S = Concat(S1, S2, S3, Memory, 1);
+  Assert(LastChar(S) == 0);
+  return S.Start;
 }
 
 link_internal const char*
