@@ -8,6 +8,9 @@
 #define BONSAI_API_WORKER_THREAD_CALLBACK_NAME        WorkerThreadCallback
 #define BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS      volatile work_queue_entry* Entry, thread_local_state* Thread
 
+#define BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_NAME      WorkerThreadBeforeJobCallback
+#define BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_PARAMS    thread_local_state* Thread, thread_startup_params *StartupParams
+
 #define BONSAI_API_WORKER_THREAD_INIT_CALLBACK_NAME   InitWorkerThreadCallback
 #define BONSAI_API_WORKER_THREAD_INIT_CALLBACK_PARAMS thread_local_state* AllThreads, s32 ThreadIndex
 
@@ -27,6 +30,10 @@
 
 #define BONSAI_API_WORKER_THREAD_INIT_CALLBACK() \
   link_export void BONSAI_API_WORKER_THREAD_INIT_CALLBACK_NAME(BONSAI_API_WORKER_THREAD_INIT_CALLBACK_PARAMS)
+
+#define BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK() \
+  link_export void BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_NAME(BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_PARAMS)
+
 
 #define BONSAI_API_ON_LIBRARY_RELOAD() \
   link_export void BONSAI_API_ON_GAME_LIB_LOAD_CALLBACK_NAME(BONSAI_API_ON_GAME_LIB_LOAD_CALLBACK_PARAMS)
@@ -77,6 +84,7 @@ struct thread_startup_params;
 
 typedef void (*bonsai_main_thread_callback)        (BONSAI_API_MAIN_THREAD_CALLBACK_PARAMS);
 typedef void (*bonsai_worker_thread_init_callback) (BONSAI_API_WORKER_THREAD_INIT_CALLBACK_PARAMS);
+typedef void (*bonsai_worker_thread_before_job_callback) (BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_PARAMS);
 
 typedef bool        (*bonsai_worker_thread_callback)    (BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
 typedef game_state* (*bonsai_main_thread_init_callback) (BONSAI_API_MAIN_THREAD_INIT_CALLBACK_PARAMS);
@@ -90,6 +98,7 @@ struct application_api
   bonsai_main_thread_callback GameMain;
 
   bonsai_worker_thread_init_callback WorkerInit;
+  bonsai_worker_thread_before_job_callback WorkerBeforeJob;
   bonsai_worker_thread_callback WorkerMain;
 
   bonsai_main_thread_callback OnLibraryLoad; // Anytime the game library is loaded
@@ -121,3 +130,7 @@ link_weak void WorkerThread_BeforeSleep();
 
 link_internal void WorkerThread_BeforeJobStart(thread_startup_params *StartupParams);
 
+BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK()
+{
+  WorkerThread_BeforeJobStart(StartupParams);
+}
