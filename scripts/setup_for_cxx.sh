@@ -118,14 +118,6 @@ function SetOutputBinaryPathBasename()
   output_basename="$2/${base_file%%.*}"
 }
 
-function SetFullOutputName()
-{
-  base_file="${1##*/}"
-  output_basename="$2/${base_file%%.*}"
-  full_output_name="$output_basename$PLATFORM_EXE_EXTENSION"
-}
-
-
 function ColorizeTitle()
 {
   echo -e " $YELLOW$1$WHITE"
