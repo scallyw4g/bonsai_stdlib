@@ -121,7 +121,6 @@ PlatformOpenFile(const char* FilePath, file_permission Permissions)
 
   errno = 0;
   Result.Handle = fopen(FilePath, PermissionChars);
-  Assert(errno == 0);
 
   if (Result.Handle == 0)
   {
