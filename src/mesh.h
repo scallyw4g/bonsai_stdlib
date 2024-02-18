@@ -18,6 +18,8 @@ FillArray(vertex_material Color, vertex_material *Dest, s32 Count)
 
 struct untextured_3d_geometry_buffer
 {
+  void *Next; poof(@ui_skip @no_serialize)
+
   v3 *Verts;
   v3 *Normals;
   vertex_material *Mat;
