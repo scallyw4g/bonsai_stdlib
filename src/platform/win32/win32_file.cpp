@@ -140,8 +140,8 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
   HANDLE hFile = CreateFileA(Filepath, PlatPermissions, ShareMode, 0, CreationBehavior, FILE_ATTRIBUTE_NORMAL, 0);
   if (hFile == INVALID_HANDLE_VALUE)
   {
-    SoftError("Opening File (%s)", Filepath);
-    Win32PrintLastError();
+    /* SoftError("Opening File (%s)", Filepath); */
+    /* Win32PrintLastError(); */
   }
   else
   {
@@ -152,7 +152,7 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
     {
       if (SetEndOfFile(hFile) == 0)
       {
-        SoftError("Unable to truncate file (%s)", Filepath);
+        SoftError("Unable to truncate file (%s) after opening", Filepath);
       }
     }
   }

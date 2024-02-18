@@ -26,6 +26,13 @@ InitHeap(umm AllocationSize, b32 Multithreaded = False)
   return Result;
 }
 
+link_internal b32
+DeinitHeap(heap_allocator *Heap)
+{
+  b32 Result = PlatformDeallocate(Cast(u8*, Heap->FirstBlock), Heap->Size);
+  return Result;
+}
+
 link_internal umm
 OffsetForHeapAllocation(heap_allocator *Allocator, u8 *Alloc)
 {
