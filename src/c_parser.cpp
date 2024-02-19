@@ -2629,19 +2629,16 @@ LastNonNBSPToken(parser* Parser)
         CurrentToken->Type == CT_MacroLiteral  )
     {
       OutputContextMessage( Parser, ParseErrorCode_NotImplemented, CSz("Fffff"), CSz("Last NBSP token was a macro literal; we do not currently handle this case."), CurrentToken);
-      return Result;
     }
 
     if ( IsNBSP(CurrentToken) )
     {
-      CurrentToken -= 1;
+      --CurrentToken;
     }
     else
     {
       break;
     }
-
-    --CurrentToken;
   }
 
   if (CurrentToken >= Parser->Tokens->Start && !IsNBSP(CurrentToken) )
