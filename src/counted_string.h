@@ -354,10 +354,17 @@ StartsWith(counted_string S1, counted_string S2)
 }
 
 link_internal b32
-EndsWith(counted_string S1, counted_string S2)
+EndsWith(cs S1, cs S2)
 {
-  b32 Result = False;
-  NotImplemented;
+  b32 Result = S2.Count <= S1.Count;
+
+  if (Result)
+  {
+    umm Offset = S1.Count - S2.Count;
+    Assert(Offset+S2.Count == S1.Count);
+    Result = StringsMatch(CS(S1.Start+Offset, S2.Count), S2);
+  }
+
   return Result;
 }
 
