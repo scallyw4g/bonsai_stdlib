@@ -742,6 +742,20 @@ struct find_command_result
 
 
 
+typedef b32 (*file_traversal_filter_function)(file_traversal_node*);
+
+struct filtered_file_traversal_helper_params
+{
+  window_layout *Window;
+  file_traversal_filter_function FilterFunction;
+};
+
+
+
+
+
+
+
 // FIXME(Jesse): Pretty sure this is unnecessary if we just draw the shadow first
 // @shadow_epsilon
 #define DEBUG_FONT_SHADOW_EPSILON (0.0000001f)
