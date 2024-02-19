@@ -32,6 +32,9 @@ struct ui_toggle_button_group
 
   ui_element_reference UiRef;
   ui_toggle_button_group_flags Flags;
+
+  // This is a bitfield which indicates which enum values are toggled on.  Each
+  // bit corresponds to the enum value index.
   u64 ToggleBits;
 
   b32 AnyElementClicked;
