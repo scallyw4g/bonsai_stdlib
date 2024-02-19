@@ -49,7 +49,7 @@ struct render_buffers_2d
   u32 SolidUIColorBuffer;
   u32 SolidUIUVBuffer;
 
-  texture *DebugTextureArray;
+  texture DebugTextureArray;
   s32 TextTextureUniform;
 
   shader Text2DShader;
@@ -201,7 +201,7 @@ struct renderer_2d
 {
   render_buffers_2d *TextGroup;
 
-  texture *SpriteTextureArray;
+  texture SpriteTextureArray;
 
   u64 InteractionStackTop;
 

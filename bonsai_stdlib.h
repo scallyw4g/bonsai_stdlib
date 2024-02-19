@@ -106,6 +106,8 @@ struct bonsai_stdlib
   // Debug
   //
 
+  // TODO(Jesse): make this texture_block_array
+  // @texture_block_array
   texture_ptr_block_array AllTextures;
 
   bonsai_debug_system DebugSystem;

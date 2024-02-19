@@ -105,18 +105,19 @@ LoadDDS(const char * FilePath, memory_arena *Arena)
 }
 #endif
 
-// TODO(Jesse, id: 136, tags: allocation, speed): Why are these allocated on the heap?  Seems unnecessary..
-link_internal texture *
-GenTexture(v2i Dim, memory_arena *Mem, cs DebugName, u32 TextureDimensionality = GL_TEXTURE_2D)
+link_internal texture
+GenTexture(v2i Dim, cs DebugName, u32 TextureDimensionality = GL_TEXTURE_2D)
 {
-  texture *Texture = Allocate(texture, Mem, 1);
-  Texture->Dim = Dim;
-  Texture->DebugName = DebugName;
+  texture Result = {};
 
-  GL.GenTextures(1, &Texture->ID);
-  GL.BindTexture(TextureDimensionality, Texture->ID);
+  Result.Dim = Dim;
+  Result.DebugName = DebugName;
 
-  if (GetStdlib) { Push(&GetStdlib()->AllTextures, &Texture); }
+  GL.GenTextures(1, &Result.ID);
+  GL.BindTexture(TextureDimensionality, Result.ID);
+
+  // @texture_block_array
+  /* if (GetStdlib) { Push(&GetStdlib()->AllTextures, &Result); } */
 
   // Note(Jesse): This is required to be set if mipmapping is off.  The default
   // behavior is to lerp between the two closest mipmap levels, and when there
@@ -133,19 +134,19 @@ GenTexture(v2i Dim, memory_arena *Mem, cs DebugName, u32 TextureDimensionality =
 
   AssertNoGlErrors;
 
-  return Texture;
+  return Result;
 }
 
-texture *
-MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, cs DebugName, u32 MaxTextureSlices = 1)
+link_internal texture
+MakeTexture_RGBA(v2i Dim, u32 *Data, cs DebugName, u32 MaxTextureSlices = 1)
 {
   Assert(MaxTextureSlices);
 
   b32 Multidimensional = MaxTextureSlices > 1;
 
   u32 TextureDimensionality = Multidimensional ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
-  texture *Texture = GenTexture(Dim, Mem, DebugName, TextureDimensionality);
-  Texture->Channels = 4;
+  texture Result = GenTexture(Dim, DebugName, TextureDimensionality);
+  Result.Channels = 4;
 
   u32 InternalFormat = GL_RGBA8;
   u32 TextureFormat = GL_RGBA;
@@ -154,11 +155,11 @@ MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, cs DebugName, u32 MaxTex
   {
     Assert(Data == 0); // Unsupported
     GL.TexImage2D(GL_TEXTURE_2D, 0, (s32)InternalFormat,
-        Texture->Dim.x, Texture->Dim.y, 0, TextureFormat, ElementType, Data);
+        Result.Dim.x, Result.Dim.y, 0, TextureFormat, ElementType, Data);
   }
   else
   {
-    Texture->Slices = MaxTextureSlices;
+    Result.Slices = MaxTextureSlices;
     // TODO(Jesse, id: 137, tags: robustness, open_question): This _should_ be
     // able to be glTexImage3D, but the driver is throwing an error .. why?!
     //
@@ -167,7 +168,7 @@ MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, cs DebugName, u32 MaxTex
         GL_TEXTURE_2D_ARRAY,
         0,
         s32(InternalFormat),
-        Texture->Dim.x, Texture->Dim.y, s32(MaxTextureSlices),
+        Result.Dim.x, Result.Dim.y, s32(MaxTextureSlices),
         0,
         TextureFormat,
         ElementType,
@@ -189,7 +190,7 @@ MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, cs DebugName, u32 MaxTex
       s32 TextureDepth = 1;
       GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
                         xOffset, yOffset, zOffset,
-                        Texture->Dim.x, Texture->Dim.y, TextureDepth,
+                        Result.Dim.x, Result.Dim.y, TextureDepth,
                         TextureFormat, ElementType, Data );
     }
   }
@@ -197,34 +198,34 @@ MakeTexture_RGBA(v2i Dim, u32* Data, memory_arena *Mem, cs DebugName, u32 MaxTex
 /*   GL.BindTexture(TextureDimensionality, 0); */
   AssertNoGlErrors;
 
-  return Texture;
+  return Result;
 }
 
-texture *
-MakeTexture_RGBA(v2i Dim, v4* Data, memory_arena *Mem, cs DebugName)
+link_internal texture
+MakeTexture_RGBA(v2i Dim, v4 *Data, cs DebugName)
 {
-  texture *Texture = GenTexture(Dim, Mem, DebugName);
-  Texture->Channels = 4;
+  texture Texture = GenTexture(Dim, DebugName);
+  Texture.Channels = 4;
 
   u32 TextureFormat = GL_RGBA;
   s32 InternalFormat = GL_RGBA32F;
   u32 ElementType = GL_FLOAT;
   GL.TexImage2D(GL_TEXTURE_2D, 0, InternalFormat,
-      Texture->Dim.x, Texture->Dim.y, 0,  TextureFormat, ElementType, Data);
+      Texture.Dim.x, Texture.Dim.y, 0,  TextureFormat, ElementType, Data);
 
   GL.BindTexture(GL_TEXTURE_2D, 0);
 
   return Texture;
 }
 
-texture *
-MakeTexture_SingleChannel(v2i Dim, memory_arena *Mem, cs DebugName)
+link_internal texture
+MakeTexture_SingleChannel(v2i Dim, cs DebugName)
 {
-  texture *Texture = GenTexture(Dim, Mem, DebugName);
-  Texture->Channels = 1;
+  texture Texture = GenTexture(Dim, DebugName);
+  Texture.Channels = 1;
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, GL_R32F,
-      Texture->Dim.x, Texture->Dim.y, 0,  GL_RED, GL_FLOAT, 0);
+      Texture.Dim.x, Texture.Dim.y, 0,  GL_RED, GL_FLOAT, 0);
 
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -234,11 +235,11 @@ MakeTexture_SingleChannel(v2i Dim, memory_arena *Mem, cs DebugName)
   return Texture;
 }
 
-texture *
-MakeTexture_RGB(v2i Dim, const v3* Data, memory_arena *Mem, cs DebugName)
+link_internal texture
+MakeTexture_RGB(v2i Dim, const v3 *Data, cs DebugName)
 {
-  texture *Texture = GenTexture(Dim, Mem, DebugName);
-  Texture->Channels = 3;
+  texture Texture = GenTexture(Dim, DebugName);
+  Texture.Channels = 3;
 
   /* TODO(Jesse, id: 138, tags: opengl, memory_consumption): 32F is only
    * necessary for reprojection of Position for calculating AO.  Consider
@@ -246,7 +247,7 @@ MakeTexture_RGB(v2i Dim, const v3* Data, memory_arena *Mem, cs DebugName)
    */
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
-      Texture->Dim.x, Texture->Dim.y, 0,  GL_RGB, GL_FLOAT, Data);
+      Texture.Dim.x, Texture.Dim.y, 0,  GL_RGB, GL_FLOAT, Data);
 
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -258,14 +259,14 @@ MakeTexture_RGB(v2i Dim, const v3* Data, memory_arena *Mem, cs DebugName)
   return Texture;
 }
 
-texture *
-MakeDepthTexture(v2i Dim, memory_arena *Mem, cs DebugName)
+link_internal texture
+MakeDepthTexture(v2i Dim, cs DebugName)
 {
-  texture *Texture = GenTexture(Dim, Mem, DebugName);
-  Texture->Channels = 1;
+  texture Texture = GenTexture(Dim, DebugName);
+  Texture.Channels = 1;
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F,
-    Texture->Dim.x, Texture->Dim.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    Texture.Dim.x, Texture.Dim.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -274,7 +275,7 @@ MakeDepthTexture(v2i Dim, memory_arena *Mem, cs DebugName)
   GL.TexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BorderColors);
 
   /* GL.BindTexture(GL_TEXTURE_2D, 0); */
-  Texture->IsDepthTexture = True;
+  Texture.IsDepthTexture = True;
 
   return Texture;
 }
@@ -285,34 +286,34 @@ FramebufferDepthTexture(texture *Tex)
   GL.FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, Tex->ID, 0);
 }
 
-void
+link_internal void
 FramebufferTexture(framebuffer *FBO, texture *Tex)
 {
   u32 Attachment = FBO->Attachments++;
   GL.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, GL_TEXTURE_2D, Tex->ID, 0);
 }
 
-link_internal texture*
-LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount)
+link_internal texture
+LoadBitmap(const char* FilePath, u32 SliceCount, memory_arena *Arena)
 {
-  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, GetTranArena());
-  texture *Result = MakeTexture_RGBA(TexBitmap.Dim, TexBitmap.Pixels.Start, Arena, CS(FilePath), SliceCount);
+  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, Arena);
+  texture Result = MakeTexture_RGBA(TexBitmap.Dim, TexBitmap.Pixels.Start, CS(FilePath), SliceCount);
   return Result;
 }
 
-link_internal texture*
+link_internal texture
 LoadBitmap(const char* FilePath, memory_arena *Arena)
 {
-  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, GetTranArena());
-  texture *Result = MakeTexture_RGBA(TexBitmap.Dim, TexBitmap.Pixels.Start, Arena, CS(FilePath));
+  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, Arena);
+  texture Result = MakeTexture_RGBA(TexBitmap.Dim, TexBitmap.Pixels.Start, CS(FilePath));
   return Result;
 }
 
 link_internal bitmap
 LoadBitmap(file_traversal_node *Node, memory_arena *Arena)
 {
-  cs Path = Concat(Node->Dir, CSz("/"), Node->Name, GetTranArena());
-  bitmap Result = ReadBitmapFromDisk(GetNullTerminated(Path), Arena);
+  cs Path = Concat(Node->Dir, CSz("/"), Node->Name, GetTranArena(), 1);
+  bitmap Result = ReadBitmapFromDisk((const char*)Path.Start, Arena);
   return Result;
 }
 
@@ -337,11 +338,11 @@ LoadBitmapsFromFolder(cs FilePath, bitmap_block_array *Bitmaps)
   PlatformTraverseDirectoryTree(FilePath, LoadBitmapFileHelper, u64(Bitmaps));
 }
 
-link_internal texture*
-CreateTextureArrayFromBitmapArray(bitmap_block_array *Bitmaps, v2i TextureArrayXY, memory_arena *Arena)
+link_internal texture
+CreateTextureArrayFromBitmapArray(bitmap_block_array *Bitmaps, v2i TextureArrayXY)
 {
   umm BitmapCount = TotalElements(Bitmaps);
-  texture *Result = MakeTexture_RGBA(TextureArrayXY, 0, Arena, CSz("TODO: DebugName"), u32(BitmapCount));
+  texture Result = MakeTexture_RGBA(TextureArrayXY, 0, CSz("TODO: DebugName"), u32(BitmapCount));
 
   s32 TextureDepth = 1;
 

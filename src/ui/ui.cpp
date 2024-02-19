@@ -2864,7 +2864,7 @@ AllocateAndInitGeoBuffer(untextured_2d_geometry_buffer *Geo, u32 ElementCount, m
   return;
 }
 
-texture* LoadBitmap(const char* FilePath, memory_arena *Arena, u32 SliceCount);
+link_internal texture LoadBitmap(const char* FilePath, u32 SliceCount, memory_arena *Arena);
 
 link_internal b32
 InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMemory, v2 *MouseP, v2 *MouseDP, v2 *ScreenDim, input *Input, b32 Headless = False)
@@ -2888,7 +2888,7 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   if (Headless == False)
   {
     auto TextGroup = Renderer->TextGroup;
-    TextGroup->DebugTextureArray = LoadBitmap("texture_atlas_0.bmp", PermMemory, DebugTextureArraySlice_Count);
+    TextGroup->DebugTextureArray = LoadBitmap("texture_atlas_0.bmp", DebugTextureArraySlice_Count, GetTranArena());
     GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
     GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
     GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);

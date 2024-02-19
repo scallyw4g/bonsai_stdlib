@@ -86,7 +86,7 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
 
   GL.UseProgram(TextGroup->Text2DShader.ID);
   GL.ActiveTexture(GL_TEXTURE0);
-  GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray->ID);
+  GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray.ID);
   GL.Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
   GL.Enable(GL_BLEND);
   GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
