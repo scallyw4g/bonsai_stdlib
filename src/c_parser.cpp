@@ -2618,14 +2618,19 @@ TrimLeadingWhitespace(parser* Parser)
 link_internal c_token
 LastNonNBSPToken(parser* Parser)
 {
+  c_token Result = {};
   c_token* CurrentToken = Parser->Tokens->End-1;
 
   while (CurrentToken >= Parser->Tokens->Start)
   {
     // TODO(Jesse)(correctness) This function fails if we hit one of these!
     // Rewrite it such that we properly traverse "Down" pointers.
-    Assert( ! (CurrentToken->Type == CT_InsertedCode ||
-               CurrentToken->Type == CT_MacroLiteral) );
+    if( CurrentToken->Type == CT_InsertedCode ||
+        CurrentToken->Type == CT_MacroLiteral  )
+    {
+      OutputContextMessage( Parser, ParseErrorCode_NotImplemented, CSz("Fffff"), CSz("Last NBSP token was a macro literal; we do not currently handle this case."), CurrentToken);
+      return Result;
+    }
 
     if ( IsNBSP(CurrentToken) )
     {
@@ -2639,7 +2644,6 @@ LastNonNBSPToken(parser* Parser)
     --CurrentToken;
   }
 
-  c_token Result = {};
   if (CurrentToken >= Parser->Tokens->Start && !IsNBSP(CurrentToken) )
   {
     Result = *CurrentToken;
