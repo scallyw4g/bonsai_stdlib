@@ -1,7 +1,5 @@
 #define TMP_DIR_ROOT "tmp/"
 
-
-
 // TODO(Jesse): The Create and Delete functions here are identical mirrors of
 // each other.. metaprogram them.
 link_internal b32
@@ -115,6 +113,11 @@ OpenFile(cs FilePath, file_permission Permissions)
 link_internal b32 CloseFile(native_file* File)
 {
   return PlatformCloseFile(File);
+}
+
+link_internal b32 Rename(cs CurrentFilePath, cs NewFilePath)
+{
+  return PlatformRenameFile(CurrentFilePath, NewFilePath);
 }
 
 link_internal cs

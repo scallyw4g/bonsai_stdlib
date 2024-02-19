@@ -61,12 +61,6 @@ PlatformRenameFile(cs CurrentFilePath, cs NewFilePath)
 }
 
 link_internal b32
-Rename(counted_string CurrentFilePath, counted_string NewFilePath)
-{
-  return PlatformRenameFile(CurrentFilePath, NewFilePath);
-}
-
-link_internal b32
 PlatformRemoveFile(cs Filepath)
 {
   const char* NullTerminated = GetNullTerminated(Filepath);
