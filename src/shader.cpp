@@ -1,7 +1,7 @@
 #define INVALID_SHADER_UNIFORM (-1)
 #define INVALID_SHADER (u32)(-1)
 
-u32
+link_internal u32
 CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
 {
   const int InfoLogLength = 0;

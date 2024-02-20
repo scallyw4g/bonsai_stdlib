@@ -10,10 +10,10 @@ enum bonsai_init_flags
 
 
 link_internal b32
-InitializeBonsaiStdlib( bonsai_init_flags Flags,
-                        application_api  *AppApi,
-                        bonsai_stdlib    *Stdlib,
-                        memory_arena *Memory )
+InitializeBonsaiStdlib( bonsai_init_flags  Flags,
+                          application_api *AppApi,
+                            bonsai_stdlib *Stdlib,
+                             memory_arena *Memory )
 {
   Info("Initializing Bonsai");
 
@@ -68,6 +68,7 @@ InitializeBonsaiStdlib( bonsai_init_flags Flags,
   {
 #if PLATFORM_WINDOW_IMPLEMENTATIONS
     s32 VSyncFrames = 0;
+
     if (!OpenAndInitializeWindow(Os, Plat, VSyncFrames)) { Error("Initializing Window :( "); return False; }
     Assert(Os->GlContext);
 

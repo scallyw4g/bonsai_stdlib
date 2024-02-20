@@ -308,8 +308,8 @@ WindowMessageCallback(
       int WinWidth = LOWORD(lParam);
       int WinHeight = HIWORD(lParam);
 
-      Plat->WindowWidth = WinWidth;
-      Plat->WindowHeight = WinHeight;
+      Plat->ScreenDim.x = WinWidth;
+      Plat->ScreenDim.y = WinHeight;
     } return 0;
 
     case WM_PALETTECHANGED:
@@ -524,8 +524,13 @@ WindowMessageCallback(
 
 #if PLATFORM_WINDOW_IMPLEMENTATIONS
 b32
-OpenAndInitializeWindow( os *Os, platform *Plat, s32 VSyncFrames)
+OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 {
+  // @duplicate_screen_dim_init_code
+  v2i StartingWindowDim = V2i(1920, 1080);
+  if (Plat->ScreenDim.x > 0.f && Plat->ScreenDim.y > 0.f) { StartingWindowDim = V2i(Plat->ScreenDim); }
+  else                                                    { Plat->ScreenDim = V2(StartingWindowDim);  }
+
   WNDCLASS wndClass;
 
   HINSTANCE AppHandle = GetModuleHandle(0);
@@ -548,7 +553,7 @@ OpenAndInitializeWindow( os *Os, platform *Plat, s32 VSyncFrames)
   Os->Window = CreateWindow(
       className, className,
       WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
-      100, 100, 1920, 1080,
+      0, 0, StartingWindowDim.x, StartingWindowDim.y,
       NULL, NULL, AppHandle, NULL);
 
   Os->Display = GetDC(Os->Window);

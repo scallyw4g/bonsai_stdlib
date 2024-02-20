@@ -10,9 +10,14 @@
 typedef Colormap x_colormap;
 typedef XSetWindowAttributes x_set_window_attribs;
 
-b32
-OpenAndInitializeWindow(v2i ApplicationResolution, os *Os, platform *Plat, s32 VSyncFrames)
+link_internal b32
+OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 {
+  // @duplicate_screen_dim_init_code
+  v2i StartingWindowDim = V2i(1920, 1080);
+  if (Plat->ScreenDim.x > 0.f && Plat->ScreenDim.y > 0.f) { StartingWindowDim = V2i(Plat->ScreenDim); }
+  else                                                    { Plat->ScreenDim = V2(StartingWindowDim);  }
+
   GLint GlAttribs[] = {
     GLX_RGBA,
     GLX_DEPTH_SIZE, 24,
@@ -34,18 +39,13 @@ OpenAndInitializeWindow(v2i ApplicationResolution, os *Os, platform *Plat, s32 V
 
   x_colormap ColorInfo = XCreateColormap(Os->Display, RootWindow, VisualInfo->visual, AllocNone);
 
-  Plat->WindowWidth = ApplicationResolution.x;
-  Plat->WindowHeight = ApplicationResolution.y;
-
-  Assert(Plat->WindowWidth && Plat->WindowHeight);
-
   x_set_window_attribs WindowAttribs;
   WindowAttribs.colormap = ColorInfo;
   WindowAttribs.event_mask = WindowEventMasks;
 
   window xWindow = XCreateWindow( Os->Display, RootWindow,
                                   0, 0,
-                                  (u32)Plat->WindowWidth, (u32)Plat->WindowHeight,
+                                  WindowSize.x, WindowSize.y,
                                   0, VisualInfo->depth, InputOutput, VisualInfo->visual,
                                   CWColormap | CWEventMask, &WindowAttribs);
 

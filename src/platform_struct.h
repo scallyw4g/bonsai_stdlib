@@ -24,9 +24,7 @@ struct platform
 
   r32 dt;
 
-  // TODO(Jesse): Superscede these ffs
-  s32 WindowWidth;
-  s32 WindowHeight;
+  // TODO(Jesse): Rename this WindowDim, because that's what it is.
   v2 ScreenDim;
 
   input Input;
