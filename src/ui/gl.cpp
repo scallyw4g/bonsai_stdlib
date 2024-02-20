@@ -11,12 +11,6 @@ link_internal void
 DrawUiBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 *ScreenDim)
 {
   GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
-  AssertNoGlErrors;
-  /* SetViewport(*ScreenDim); */
-  /* GL.UseProgram(TextGroup->Text2DShader.ID); */
-  /* GL.ActiveTexture(GL_TEXTURE0); */
-  /* GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray->ID); */
-  /* GL.Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform */
 
   u32 AttributeIndex = 0;
   BufferVertsToCard( TextGroup->SolidUIVertexBuffer, Geo, &AttributeIndex);
@@ -88,11 +82,13 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   GL.ActiveTexture(GL_TEXTURE0);
   GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray.ID);
   GL.Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
+
   GL.Enable(GL_BLEND);
   GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     DrawUiBuffer(UiGroup->TextGroup, &UiGroup->TextGroup->Geo, ScreenDim);
-  /* UiGroup->TextGroup->Geo.At = 0; */
+
+  GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
   GL.Disable(GL_BLEND);
   GL.Enable(GL_CULL_FACE);

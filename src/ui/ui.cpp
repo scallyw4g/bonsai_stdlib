@@ -2791,11 +2791,13 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
             if (TypedCommand->TextureSlice < 0)
             {
+              Assert(TypedCommand->Texture->Slices == 1);
               BindUniform(Shader, "Texture", TypedCommand->Texture, 0);
             }
             else
             {
-              BindUniform(Shader, "TextureArray", TypedCommand->Texture, 1);
+              Assert(TypedCommand->Texture->Slices > 1);
+              BindUniform(Shader, "TextureArray", TypedCommand->Texture, 0);
             }
 
             BindUniform(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
@@ -2811,10 +2813,18 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             Group->TextGeoCountLastFrame  += Group->TextGroup->Geo.At;
 
 
+#if 1
             GL.Enable(GL_BLEND);
             GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
               DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
             GL.Disable(GL_BLEND);
+#else
+            Group->TextGroup->Geo.At = 0;
+#endif
+
+            /* GL.ActiveTexture(GL_TEXTURE0); */
+            GL.BindTexture(GL_TEXTURE_2D, 0);
+            GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
             AssertNoGlErrors;
           }

@@ -201,7 +201,6 @@ MakeTexture_RGBA(v2i Dim, u32 *Data, cs DebugName, u32 Slices = 1)
     }
   }
 
-/*   GL.BindTexture(TextureDimensionality, 0); */
   AssertNoGlErrors;
 
   return Result;
@@ -283,7 +282,6 @@ MakeDepthTexture(v2i Dim, cs DebugName)
   r32 BorderColors[4] = {1, 1, 1, 1};
   GL.TexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BorderColors);
 
-  /* GL.BindTexture(GL_TEXTURE_2D, 0); */
   Texture.IsDepthTexture = True;
 
   return Texture;

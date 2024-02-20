@@ -49,6 +49,7 @@ RenderQuad()
   GL.DisableVertexAttribArray(0);
 }
 
+#if 0
 void
 SetupToDrawTexturedQuad(shader *SimpleTextureShader, texture *Texture)
 {
@@ -71,4 +72,5 @@ SetupToDrawTexturedQuad(shader *SimpleTextureShader, texture *Texture)
   /* RenderQuad(); */
   /* AssertNoGlErrors; */
 }
+#endif
 

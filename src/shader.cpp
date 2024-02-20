@@ -466,10 +466,36 @@ BindShaderUniforms(shader *Shader)
   return;
 }
 
+link_internal void
+CleanupTextureBindings(shader *Shader)
+{
+  TIMED_FUNCTION();
+
+  shader_uniform *Uniform = Shader->FirstUniform;
+
+  u32 TextureUnit = 0;
+
+  while (Uniform)
+  {
+    switch(Uniform->Type)
+    {
+      case ShaderUniform_Texture:
+      {
+        GL.ActiveTexture(GL_TEXTURE0 + TextureUnit);
+        GL.BindTexture(GL_TEXTURE_2D, 0);
+        TextureUnit++;
+      } break;
+
+      default: { } break;
+    }
+
+    Uniform = Uniform->Next;
+  }
+}
+
 void
 UseShader(shader *Shader)
 {
   GL.UseProgram(Shader->ID);
   BindShaderUniforms(Shader);
-  return;
 }
