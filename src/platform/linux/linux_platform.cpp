@@ -34,7 +34,7 @@ OpenAndInitializeWindow(v2i ApplicationResolution, os *Os, platform *Plat, s32 V
 
   x_colormap ColorInfo = XCreateColormap(Os->Display, RootWindow, VisualInfo->visual, AllocNone);
 
-  Plat->WindowWidth = ApplicationResolution.x
+  Plat->WindowWidth = ApplicationResolution.x;
   Plat->WindowHeight = ApplicationResolution.y;
 
   Assert(Plat->WindowWidth && Plat->WindowHeight);
