@@ -12,7 +12,7 @@ SearchForProjectRoot(void)
   /* ChdirSuceeded = (_chdir("/home/scallywag/bonsai") == 0); */
   while (!Result && ChdirSuceeded && NotAtFilesystemRoot)
   {
-    ChdirSuceeded = (_chdir("..") == 0);
+    ChdirSuceeded = PlatformChangeDirectory("..");
     NotAtFilesystemRoot = (!IsFilesystemRoot(GetCwd()));
     Result = FileExists(".root_marker");
   }
