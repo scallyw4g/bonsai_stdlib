@@ -1,26 +1,31 @@
 // NOTE(Jesse): This is some omega-barf code I copied off of SO in a flurry of
 // needing to get shit done.
+//
 // https://stackoverflow.com/questions/6205981/windows-c-stack-trace-from-a-running-app
 
 /* I modified Jerry Coffin's code as you see below. Modifications: */
 
-/* A. I was always missing the most important frame of all: the line that actually triggered the exception. Turns out this was because the "do" loop was moving to the next frame at the top instead of at the bottom. */
+/* A. I was always missing the most important frame of all: the line that
+ * actually triggered the exception. Turns out this was because the "do" loop
+ * was moving to the next frame at the top instead of at the bottom. */
 
 /* B. I removed the threading stuff. */
 
 /* C. I simplified a few bits. */
 
-/* You should cut the "WinMain()" function at the bottom and instead put the __try .. __except stuff in your own 'main/WinMain' function. Also replace 'YourMessage' with your own function to display a message box or email it or whatever. */
+/* You should cut the "WinMain()" function at the bottom and instead put the
+ * __try .. __except stuff in your own 'main/WinMain' function. Also replace
+ * 'YourMessage' with your own function to display a message box or email it or
+ * whatever. */
 
-/* The symbolic information is stored inside a .pdb file, not the .exe. You need to give your users your .pdb file, and you need to ensure that their process can find it. See the string inside the code below - replace this with a folder that will work on the users' machine, or NULL - NULL means it will search in the process's current working directory. The .pdb file must have the exact same name on the users' computer as it had when you ran your compiler - to configure this to something different, see "Properties > Linker > Debugging > Generate Program Database File". */
-
-/* #include <windows.h> */
-#include <string>
-#include <sstream>
-#include <vector>
-#include <Psapi.h>
-#include <algorithm>
-#include <iterator>
+/* The symbolic information is stored inside a .pdb file, not the .exe. You
+ * need to give your users your .pdb file, and you need to ensure that their
+ * process can find it. See the string inside the code below - replace this
+ * with a folder that will work on the users' machine, or NULL - NULL means it
+ * will search in the process's current working directory. The .pdb file must
+ * have the exact same name on the users' computer as it had when you ran your
+ * compiler - to configure this to something different, see "Properties >
+ * Linker > Debugging > Generate Program Database File". */
 
 
 // Thanks, Jerry Coffin.
@@ -34,7 +39,8 @@
 #include <ImageHlp.h>
 #pragma pack( pop, before_imagehlp )
 
-struct module_data {
+struct module_data
+{
     std::string image_name;
     std::string module_name;
     void *base_address;

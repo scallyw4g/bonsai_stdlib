@@ -6,10 +6,6 @@
 
 #include <bonsai_stdlib/src/platform/wgl.h>
 
-#include <sys/stat.h>
-
-#include <direct.h> // Chdir
-
 #include <chrono> // Timer
 
 #define PLATFORM_RUNTIME_BREAK() __debugbreak()
@@ -258,6 +254,13 @@ inline b32
 CloseLibrary(shared_lib Lib)
 {
   b32 Result = (b32)FreeLibrary(Lib);
+  return Result;
+}
+
+link_internal b32
+PlatformChangeDirectory(const char *Dir)
+{
+  b32 Result = (SetCurrentDirectory(Dir) != 0);
   return Result;
 }
 

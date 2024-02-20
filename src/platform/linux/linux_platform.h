@@ -985,3 +985,11 @@ PlatformInitializeStdout(native_file *Stdout)
   Stdout->Handle = stdout;
   Stdout->Path = CSz("stdout");
 }
+
+link_internal b32
+PlatformChangeDirectory(const char *Dir)
+{
+  b32 Result = (_chdir("..") == 0);
+  return Result;
+}
+

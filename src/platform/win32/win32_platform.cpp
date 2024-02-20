@@ -1,6 +1,36 @@
 /* #include <bonsai_stdlib/platform/win32_etw.cpp> */
-#include "win32_stacktrace.cpp"
+
 #include "win32_file.cpp"
+
+#if 0
+// NOTE(Jesse): These includes are required for win32 stacktrace to work.
+// TODO(Jesse): Rewrite it
+//
+#include <string>
+#include <sstream>
+#include <vector>
+#include <Psapi.h>
+#include <algorithm>
+#include <iterator>
+#include "win32_stacktrace.cpp"
+#else
+link_internal void
+PlatformDebugStacktrace()
+{
+  // TODO(Jesse): Implement this.
+  //
+  // Helpful answer on how to get started
+  // https://stackoverflow.com/questions/26398064/counterpart-to-glibcs-backtrace-and-backtrace-symbols-on-windows
+  //
+  // using these APIs
+  //
+  // https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/bb204633(v=vs.85)?redirectedfrom=MSDN
+  // https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-symfromaddr?redirectedfrom=MSDN
+  //
+
+  Warn("Stack traces unavailable on windows.");
+}
+#endif
 
 global_variable HPALETTE global_hPalette;
 
@@ -722,24 +752,6 @@ PlatformGetLogicalCoreCount()
   return Result;
 }
 
-#if 0
-link_internal void
-PlatformDebugStacktrace()
-{
-  // TODO(Jesse): Implement this.
-  //
-  // Helpful answer on how to get started
-  // https://stackoverflow.com/questions/26398064/counterpart-to-glibcs-backtrace-and-backtrace-symbols-on-windows
-  //
-  // using these APIs
-  //
-  // https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/bb204633(v=vs.85)?redirectedfrom=MSDN
-  // https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-symfromaddr?redirectedfrom=MSDN
-  //
-
-  Warn("Stack traces unavailable on windows.");
-}
-#endif
 
 link_internal void
 Win32PrintLastError()
