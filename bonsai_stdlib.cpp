@@ -1,12 +1,4 @@
 
-// NOTE(Jesse): These have to match defines in the header.glsl file
-#define SCREEN_RATIO (1)
-#define SCR_WIDTH (3840/SCREEN_RATIO)
-#define SCR_HEIGHT (2160/SCREEN_RATIO)
-// #define SCR_WIDTH (1920)
-// #define SCR_HEIGHT (1080)
-
-
 #ifndef BONSAI_SHADER_PATH
 #define BONSAI_SHADER_PATH "shaders/"
 #endif

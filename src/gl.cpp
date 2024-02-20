@@ -11,6 +11,12 @@ Draw(u32 VertexCount)
 }
 
 inline void
+SetViewport(v2i Dim)
+{
+  GL.Viewport(0, 0, Dim.x, Dim.y);
+}
+
+inline void
 SetViewport(v2 Dim)
 {
   GL.Viewport(0, 0, (s32)Dim.x, (s32)Dim.y);

@@ -1,9 +1,9 @@
-#version 310 es
+/* #version 310 es */
 
 // NOTE(Jesse): Had to change this to get it to run in a VM with MESA.  Maybe
 // this was the problem Collin was running into on Arch?  The shaders were
 // silently failing to compile because the driver wasn't sending an error string.
-/* #version 330 core */
+#version 330 core
 
 #extension GL_NV_shader_buffer_load : enable
 
@@ -25,21 +25,9 @@ precision highp sampler3D;
 #define V2 vec2
 
 #define r32 float
+#define f32 float
 #define u32 unsigned int
 #define s32 int
-
-// Note(Jesse): Must match corresponding C++ define
-#define SCREEN_RATIO (1)
-#define SCR_WIDTH (3840/SCREEN_RATIO)
-#define SCR_HEIGHT (2160/SCREEN_RATIO)
-
-
-// Note(Jesse): Must match corresponding C++ define
-#define SHADOW_MAP_RESOLUTION_X ((16*1024)/SCREEN_RATIO)
-#define SHADOW_MAP_RESOLUTION_Y ((16*1024)/SCREEN_RATIO)
-
-// Note(Jesse): Must match corresponding C++ define
-#define DEBUG_TEXTURE_DIM 512
 
 #define PoissonDiskSize 16
 vec2 poissonDisk[PoissonDiskSize] = vec2[](

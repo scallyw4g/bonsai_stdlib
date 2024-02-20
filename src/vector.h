@@ -327,6 +327,13 @@ V3(v2 XY, f32 z)
 }
 
 inline v3
+V3(v2i XY, s32 z)
+{
+  v3 Result = {{ f32(XY.x), f32(XY.y), f32(z) }};
+  return Result;
+}
+
+inline v3
 V3(f32 x, f32 y, f32 z)
 {
   v3 Result = {};

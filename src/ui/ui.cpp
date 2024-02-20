@@ -1,6 +1,3 @@
-// Note(Jesse): Must match shader define in header.glsl
-#define DEBUG_TEXTURE_DIM 512
-
 #define u32_COUNT_PER_QUAD (6)
 
 

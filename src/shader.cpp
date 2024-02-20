@@ -144,6 +144,9 @@ poof(gen_shader_uniform_push(texture));
 poof(gen_shader_uniform_push(m4));
 #include <generated/gen_shader_uniform_push_m4.h>
 
+poof(gen_shader_uniform_push(v2));
+#include <generated/gen_shader_uniform_push_v2.h>
+
 poof(gen_shader_uniform_push(v3));
 #include <generated/gen_shader_uniform_push_v3.h>
 
@@ -426,6 +429,13 @@ BindShaderUniforms(shader *Shader)
       {
         TIMED_BLOCK("ShaderUniform_M4");
         GL.UniformMatrix4fv(Uniform->ID, 1, GL_FALSE, (r32*)Uniform->M4);
+        END_BLOCK();
+      } break;
+
+      case ShaderUniform_V2:
+      {
+        TIMED_BLOCK("ShaderUniform_V2");
+        GL.Uniform2fv(Uniform->ID, 1, (r32*)Uniform->V2);
         END_BLOCK();
       } break;
 
