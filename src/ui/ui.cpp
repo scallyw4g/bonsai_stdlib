@@ -2793,11 +2793,13 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             {
               Assert(TypedCommand->Texture->Slices == 1);
               BindUniform(Shader, "Texture", TypedCommand->Texture, 0);
+              GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
             }
             else
             {
               Assert(TypedCommand->Texture->Slices > 1);
               BindUniform(Shader, "TextureArray", TypedCommand->Texture, 0);
+              GL.BindTexture(GL_TEXTURE_2D, 0);
             }
 
             BindUniform(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
