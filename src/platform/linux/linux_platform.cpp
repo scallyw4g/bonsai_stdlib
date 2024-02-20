@@ -11,7 +11,7 @@ typedef Colormap x_colormap;
 typedef XSetWindowAttributes x_set_window_attribs;
 
 b32
-OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
+OpenAndInitializeWindow(v2i ApplicationResolution, os *Os, platform *Plat, s32 VSyncFrames)
 {
   GLint GlAttribs[] = {
     GLX_RGBA,
@@ -34,8 +34,8 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 
   x_colormap ColorInfo = XCreateColormap(Os->Display, RootWindow, VisualInfo->visual, AllocNone);
 
-  Plat->WindowWidth = SCR_WIDTH;
-  Plat->WindowHeight = SCR_HEIGHT;
+  Plat->WindowWidth = ApplicationResolution.x
+  Plat->WindowHeight = ApplicationResolution.y;
 
   Assert(Plat->WindowWidth && Plat->WindowHeight);
 
@@ -149,6 +149,14 @@ ProcessOsMessages(os *Os, platform *Plat)
         {
           Plat->Input.RMB.Clicked = True;
           Plat->Input.RMB.Pressed = True;
+        }
+        if (Event.xbutton.button == Button4) // Mousewheel Up
+        {
+          Plat->Input.MouseWheelDelta = 120;
+        }
+        if (Event.xbutton.button == Button5) // Mousewheel Down
+        {
+          Plat->Input.MouseWheelDelta = -120;
         }
       } break;
 
