@@ -300,7 +300,7 @@ BindUniform(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
     Warn("Couldn't retieve uniform %s", Name);
   }
 
-  if (Texture->Slices)
+  if (Texture->Slices > 1)
   {
     GL.BindTexture(GL_TEXTURE_2D_ARRAY, Texture->ID);
   }
@@ -308,6 +308,8 @@ BindUniform(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
   {
     GL.BindTexture(GL_TEXTURE_2D, Texture->ID);
   }
+
+  AssertNoGlErrors;
 }
 
 link_internal void

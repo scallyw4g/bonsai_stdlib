@@ -236,11 +236,6 @@ DumpGlErrorEnum(u32 ErrorNumber)
 {
   /* TIMED_FUNCTION(); */
 
-  if ( ErrorNumber != 0 )
-  {
-    SoftError("%d", ErrorNumber);
-  }
-
   switch (ErrorNumber)
   {
     case GL_INVALID_ENUM:
@@ -283,11 +278,13 @@ DumpGlErrorEnum(u32 ErrorNumber)
       // Happy days :D
     } break;
 
-    default :
+    default:
     {
-      SoftError("Some weird OpenGL shit happened.");
+      SoftError("An unknown OpenGL error occurred.");
     } break;
   }
+
+  /* if ( ErrorNumber != 0 ) { Assert(False); } */
 
   return;
 }

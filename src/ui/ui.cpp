@@ -881,7 +881,7 @@ PushTooltip(renderer_2d *Group, counted_string Text)
 link_internal void
 PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, v3 Tint = V3(1), quad_render_params Params = QuadRenderParam_Default )
 {
-  Assert(Texture->Slices > 0);
+  Assert(Texture->Slices > 1);
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
 
@@ -906,7 +906,7 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim,
 link_internal void
 PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, v3 Tint = V3(1), quad_render_params Params = QuadRenderParam_Default )
 {
-  Assert(Texture->Slices == 0);
+  Assert(Texture->Slices == 1);
   ui_render_command Command = {
     .Type = type_ui_render_command_textured_quad,
 
@@ -2810,10 +2810,13 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             Group->SolidGeoCountLastFrame += Group->Geo.At;
             Group->TextGeoCountLastFrame  += Group->TextGroup->Geo.At;
 
+
             GL.Enable(GL_BLEND);
             GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
               DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
             GL.Disable(GL_BLEND);
+
+            AssertNoGlErrors;
           }
           else
           {
@@ -2883,7 +2886,6 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
 
   Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
 
-  AssertNoGlErrors;
 
   if (Headless == False)
   {
@@ -2892,19 +2894,16 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
     GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
     GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
-    AssertNoGlErrors;
 
     TextGroup->Text2DShader = LoadShaders( CSz(STDLIB_SHADER_PATH "TextVertexShader.vertexshader"), CSz(STDLIB_SHADER_PATH "TextVertexShader.fragmentshader") );
-    AssertNoGlErrors;
 
     TextGroup->TextTextureUniform = GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
-    AssertNoGlErrors;
 
     Renderer->TextGroup->SolidUIShader = LoadShaders( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") );
-    AssertNoGlErrors;
 
     // Generic shader that gets reused to draw simple textured quads
     Renderer->TexturedQuadShader = MakeFullTextureShader(0, PermMemory);
+
     AssertNoGlErrors;
   }
 

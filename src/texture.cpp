@@ -2,6 +2,9 @@
 /* poof(block_array_c(texture, {8})) */
 /* #include <generated/block_array_c_texture_688856411.h> */
 
+poof(block_array_c(texture, {8}))
+#include <generated/block_array_c_texture_688856411.h>
+
 poof(block_array_c(texture_ptr, {8}))
 #include <generated/block_array_texture_ptr_688856411.h>
 
@@ -106,18 +109,25 @@ LoadDDS(const char * FilePath, memory_arena *Arena)
 #endif
 
 link_internal texture
-GenTexture(v2i Dim, cs DebugName, u32 TextureDimensionality = GL_TEXTURE_2D)
+GenTexture(v2i Dim, cs DebugName, u32 Channels, u32 Slices = 1, b32 IsDepthTexture = False)
 {
+  Assert(Slices);
+  if (IsDepthTexture) { Assert(Channels == 1); }
+
+  u32 TextureDimensionality = Slices > 1 ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+
   texture Result = {};
 
   Result.Dim = Dim;
   Result.DebugName = DebugName;
+  Result.Channels = Channels;
+  Result.Slices = Slices;
+  Result.IsDepthTexture = IsDepthTexture;
 
   GL.GenTextures(1, &Result.ID);
   GL.BindTexture(TextureDimensionality, Result.ID);
 
-  // @texture_block_array
-  /* if (GetStdlib) { Push(&GetStdlib()->AllTextures, &Result); } */
+  if (GetStdlib) { Push(&GetStdlib()->AllTextures, &Result); }
 
   // Note(Jesse): This is required to be set if mipmapping is off.  The default
   // behavior is to lerp between the two closest mipmap levels, and when there
@@ -138,28 +148,24 @@ GenTexture(v2i Dim, cs DebugName, u32 TextureDimensionality = GL_TEXTURE_2D)
 }
 
 link_internal texture
-MakeTexture_RGBA(v2i Dim, u32 *Data, cs DebugName, u32 MaxTextureSlices = 1)
+MakeTexture_RGBA(v2i Dim, u32 *Data, cs DebugName, u32 Slices = 1)
 {
-  Assert(MaxTextureSlices);
+  Assert(Slices);
 
-  b32 Multidimensional = MaxTextureSlices > 1;
-
-  u32 TextureDimensionality = Multidimensional ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
-  texture Result = GenTexture(Dim, DebugName, TextureDimensionality);
-  Result.Channels = 4;
+  u32 Channels = 4;
+  texture Result = GenTexture(Dim, DebugName, Channels, Slices);
 
   u32 InternalFormat = GL_RGBA8;
   u32 TextureFormat = GL_RGBA;
   u32 ElementType = GL_UNSIGNED_BYTE;
-  if (MaxTextureSlices == 1)
+  if (Slices == 1)
   {
-    Assert(Data == 0); // Unsupported
+    Assert(Data == 0); // Unsupported ..??  Shouldn't this just work ..?
     GL.TexImage2D(GL_TEXTURE_2D, 0, (s32)InternalFormat,
         Result.Dim.x, Result.Dim.y, 0, TextureFormat, ElementType, Data);
   }
   else
   {
-    Result.Slices = MaxTextureSlices;
     // TODO(Jesse, id: 137, tags: robustness, open_question): This _should_ be
     // able to be glTexImage3D, but the driver is throwing an error .. why?!
     //
@@ -168,16 +174,16 @@ MakeTexture_RGBA(v2i Dim, u32 *Data, cs DebugName, u32 MaxTextureSlices = 1)
         GL_TEXTURE_2D_ARRAY,
         0,
         s32(InternalFormat),
-        Result.Dim.x, Result.Dim.y, s32(MaxTextureSlices),
+        Result.Dim.x, Result.Dim.y, s32(Slices),
         0,
         TextureFormat,
         ElementType,
         0);
 #else
 
-    s32 Mips = 0; //(s32)MaxTextureSlices;
+    s32 Mips = 0; //(s32)Slices;
     GL.TexStorage3D(GL_TEXTURE_2D_ARRAY, Mips, InternalFormat,
-                    Dim.x, Dim.x, (s32)MaxTextureSlices);
+                    Dim.x, Dim.x, (s32)Slices);
 
 #endif
 
@@ -204,8 +210,8 @@ MakeTexture_RGBA(v2i Dim, u32 *Data, cs DebugName, u32 MaxTextureSlices = 1)
 link_internal texture
 MakeTexture_RGBA(v2i Dim, v4 *Data, cs DebugName)
 {
-  texture Texture = GenTexture(Dim, DebugName);
-  Texture.Channels = 4;
+  u32 Channels = 4;
+  texture Texture = GenTexture(Dim, DebugName, Channels);
 
   u32 TextureFormat = GL_RGBA;
   s32 InternalFormat = GL_RGBA32F;
@@ -219,10 +225,11 @@ MakeTexture_RGBA(v2i Dim, v4 *Data, cs DebugName)
 }
 
 link_internal texture
-MakeTexture_SingleChannel(v2i Dim, cs DebugName)
+MakeTexture_SingleChannel(v2i Dim, cs DebugName, b32 IsDepthTexture)
 {
-  texture Texture = GenTexture(Dim, DebugName);
-  Texture.Channels = 1;
+  u32 Channels = 1;
+  u32 Slices = 1;
+  texture Texture = GenTexture(Dim, DebugName, Channels, Slices, IsDepthTexture);
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, GL_R32F,
       Texture.Dim.x, Texture.Dim.y, 0,  GL_RED, GL_FLOAT, 0);
@@ -238,8 +245,8 @@ MakeTexture_SingleChannel(v2i Dim, cs DebugName)
 link_internal texture
 MakeTexture_RGB(v2i Dim, const v3 *Data, cs DebugName)
 {
-  texture Texture = GenTexture(Dim, DebugName);
-  Texture.Channels = 3;
+  u32 Channels = 3;
+  texture Texture = GenTexture(Dim, DebugName, Channels);
 
   /* TODO(Jesse, id: 138, tags: opengl, memory_consumption): 32F is only
    * necessary for reprojection of Position for calculating AO.  Consider
@@ -262,8 +269,10 @@ MakeTexture_RGB(v2i Dim, const v3 *Data, cs DebugName)
 link_internal texture
 MakeDepthTexture(v2i Dim, cs DebugName)
 {
-  texture Texture = GenTexture(Dim, DebugName);
-  Texture.Channels = 1;
+  u32 Channels = 1;
+  u32 Slices = 1;
+  b32 IsDepthTexture = True;
+  texture Texture = GenTexture(Dim, DebugName, Channels, Slices, IsDepthTexture);
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F,
     Texture.Dim.x, Texture.Dim.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
