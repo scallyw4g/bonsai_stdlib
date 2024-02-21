@@ -49,3 +49,10 @@ struct shader
   u32 ID;
   shader_uniform *FirstUniform;
 };
+
+enum shader_language_setting
+{
+  ShaderLanguageSetting_330core, // default
+  ShaderLanguageSetting_310es,   // web
+};
+

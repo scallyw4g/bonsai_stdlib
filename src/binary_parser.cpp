@@ -133,8 +133,7 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
       }
       else
       {
-        // NOTE(Jesse): Was file larger than 2gb ?  Ftell can't handle that..
-        SoftError("Error (%d) ftell-ing file (%s)", errno, SourceFile);
+        SoftError("PlatformGetFileSize failed on file (%s).", SourceFile);
       }
     }
     else

@@ -1,9 +1,6 @@
+// NOTE(Jesse): These get switched between at startup
 /* #version 310 es */
-
-// NOTE(Jesse): Had to change this to get it to run in a VM with MESA.  Maybe
-// this was the problem Collin was running into on Arch?  The shaders were
-// silently failing to compile because the driver wasn't sending an error string.
-#version 330 core
+/* #version 330 core */
 
 #extension GL_NV_shader_buffer_load : enable
 
@@ -12,6 +9,7 @@ precision highp float;
 precision highp sampler2DShadow;
 precision highp sampler2D;
 precision highp sampler3D;
+
 
 #define f32_MAX (1E+37f)
 #define f32_MIN (1E-37f)

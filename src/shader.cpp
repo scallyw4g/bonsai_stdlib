@@ -64,12 +64,45 @@ CheckShaderCompilationStatus(cs ShaderPath, u32 ShaderId)
 }
 #endif
 
-shader
-LoadShaders(counted_string VertShaderPath, counted_string FragShaderPath)
+global_variable ansi_stream Global_ShaderHeaderCode;
+
+link_internal cs
+ValueFromSetting(shader_language_setting ShaderLanguage)
+{
+  cs Result = CSz("## ERROR: Invalid ShaderLanguage setting ##");
+
+  switch (ShaderLanguage)
+  {
+    case ShaderLanguageSetting_310es:
+    {
+      Result = CSz("#version 310 es\n\n");
+    } break;
+
+    case ShaderLanguageSetting_330core:
+    {
+      Result = CSz("#version 330 core\n\n");
+    } break;
+  }
+
+  return Result;
+}
+
+link_internal void
+LoadGlobalShaderHeaderCode(shader_language_setting ShaderLanguage)
+{
+  cs ShaderVersion = ValueFromSetting(ShaderLanguage);
+  cs HeaderCode    = ReadEntireFileIntoString(CSz(STDLIB_SHADER_PATH "/header.glsl"), GetTranArena());
+  Global_ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
+}
+
+link_internal shader
+LoadShaders(cs VertShaderPath, cs FragShaderPath)
 {
   Info("Creating shader : %S | %S", VertShaderPath, FragShaderPath);
 
-  ansi_stream HeaderCode       = ReadEntireFileIntoAnsiStream(CSz(STDLIB_SHADER_PATH "/header.glsl"), GetTranArena());
+  if (Global_ShaderHeaderCode.Start == 0) { LoadGlobalShaderHeaderCode(ShaderLanguageSetting_330core); } // Default to 330 core if nobody did this already
+
+  ansi_stream HeaderCode       = Global_ShaderHeaderCode;
   ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
   ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(FragShaderPath, GetTranArena());
 
