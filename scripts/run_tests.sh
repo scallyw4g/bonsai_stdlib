@@ -1,17 +1,23 @@
 #! /bin/bash
 
-. scripts/preamble.sh
+# . ${basename BASH_SOURCE}/preamble.sh
+# echo "$(dirname ${BASH_SOURCE[0]})/preamble.sh"
+source "$(dirname ${BASH_SOURCE[0]})/preamble.sh"
 
 EXIT_CODE=0
 
+# echo "${BASH_SOURCE[0]}"
+# exit 0
+
 if [ "$Platform" == "Linux" ] ; then
-  exe_search_string='bin/tests/*';
+  exe_search_string='./bin/tests/*';
 elif [[ "$Platform" == "Windows" ]] ; then
   # TODO(Jesse): Do we actually need this since switching off VS?  Does clang
   # output pdb files there or something?
-  exe_search_string='bin/tests/*.exe';
+  exe_search_string='./bin/tests/*.exe';
 fi
 
+echo $(pwd)
 for test_executable in $(find $exe_search_string); do
   # echo "$test_executable"
   # echo "$COLORFLAG"
