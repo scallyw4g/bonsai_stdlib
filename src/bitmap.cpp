@@ -34,6 +34,9 @@ struct bitmap
 };
 #pragma pack(pop)
 
+poof(buffer(bitmap))
+#include <generated/buffer_bitmap.h>
+
 link_internal void
 SwizzleRedToBlueChannel(u32_cursor *PixelCursor)
 {

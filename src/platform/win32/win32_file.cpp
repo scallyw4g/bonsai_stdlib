@@ -6,7 +6,7 @@ IsFilesystemRoot(const char *Filepath)
 }
 
 link_internal maybe_file_traversal_node
-PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback, u64 UserData)
+PlatformTraverseDirectoryTreeUnordered(cs Dirname, directory_traversal_callback Callback, u64 UserData)
 {
   TIMED_FUNCTION();
 
@@ -41,7 +41,7 @@ PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback,
           // TODO(Jesse): This should use a string builder
           cs SubDir = Concat(Dirname, CSz("/"), GetTranArena());
              SubDir = Concat( SubDir, Filename, GetTranArena());
-          maybe_file_traversal_node MaybeNode = PlatformTraverseDirectoryTree(SubDir, Callback, UserData);
+          maybe_file_traversal_node MaybeNode = PlatformTraverseDirectoryTreeUnordered(SubDir, Callback, UserData);
           if (MaybeNode.Tag)
           {
             Result = MaybeNode;

@@ -325,7 +325,7 @@ LoadBitmap(file_traversal_node *Node, memory_arena *Arena)
 }
 
 link_internal maybe_file_traversal_node
-LoadBitmapFileHelper(file_traversal_node Node, u64 UserData)
+LoadBitmapFileTraversalHelper(file_traversal_node Node, u64 UserData)
 {
   if (Node.Type == FileTraversalType_File)
   {
@@ -340,13 +340,33 @@ LoadBitmapFileHelper(file_traversal_node Node, u64 UserData)
 }
 
 link_internal void
-LoadBitmapsFromFolder(cs FilePath, bitmap_block_array *Bitmaps)
+LoadBitmapsFromFolderUnordered(cs FilePath, bitmap_block_array *Bitmaps)
 {
-  PlatformTraverseDirectoryTree(FilePath, LoadBitmapFileHelper, u64(Bitmaps));
+  PlatformTraverseDirectoryTreeUnordered(FilePath, LoadBitmapFileTraversalHelper, u64(Bitmaps));
+}
+
+link_internal bitmap_buffer
+LoadBitmapsFromFolderOrdered(cs FilePath, memory_arena *BitmapMemory, memory_arena *DatastructureMemory)
+{
+  file_traversal_node_buffer FileNodeBuffer =
+    GetLexicographicallySortedListOfFilesInDirectory(FilePath, DatastructureMemory);
+
+  bitmap_buffer Result = BitmapBuffer(FileNodeBuffer.Count, DatastructureMemory);
+
+  // TODO(Jesse): Make a version of LoadBitmap that takes the dest such that we
+  // don't have to do this copy?  The copy's really not that big of a deal, but
+  // why waste cycles..
+  IterateOver(&FileNodeBuffer, FileNode, FileNodeIndex)
+  {
+    bitmap B = LoadBitmap(FileNode, BitmapMemory);
+    Result.Start[FileNodeIndex] = B;
+  }
+
+  return Result;
 }
 
 link_internal texture
-CreateTextureArrayFromBitmapArray(bitmap_block_array *Bitmaps, v2i TextureArrayXY)
+CreateTextureArrayFromBitmapBlockArray(bitmap_block_array *Bitmaps, v2i TextureArrayXY)
 {
   umm BitmapCount = TotalElements(Bitmaps);
   texture Result = MakeTexture_RGBA(TextureArrayXY, 0, CSz("TODO: DebugName"), u32(BitmapCount));
@@ -370,6 +390,49 @@ CreateTextureArrayFromBitmapArray(bitmap_block_array *Bitmaps, v2i TextureArrayX
                       TextureFormat,
                       ElementType,
                       Cast(void*, Bitmap->Pixels.Start) );
+  }
+
+  return Result;
+}
+
+link_internal texture
+CreateTextureArrayFromBitmapBufferArray(bitmap_buffer *BitmapBuffers, u32 BufferCount, v2i TextureArrayXY)
+{
+  umm BitmapCount = 0;
+  RangeIterator_t(u32, BufferIndex, BufferCount)
+  {
+    bitmap_buffer *Bitmaps = BitmapBuffers + BufferIndex;
+    BitmapCount += TotalElements(Bitmaps);
+  }
+
+
+  texture Result = MakeTexture_RGBA(TextureArrayXY, 0, CSz("TODO: DebugName"), u32(BitmapCount));
+
+  s32 zOffset = 0;
+  RangeIterator_t(u32, BufferIndex, BufferCount)
+  {
+    bitmap_buffer *Bitmaps = BitmapBuffers + BufferIndex;
+
+    s32 TextureDepth = 1;
+
+    u32 InternalFormat = GL_RGBA8;
+    u32 TextureFormat = GL_RGBA;
+    u32 ElementType = GL_UNSIGNED_BYTE;
+
+    IterateOver(Bitmaps, Bitmap, BitmapIndex)
+    {
+
+      s32 xOffset = (TextureArrayXY.x - Bitmap->Dim.x) / 2;
+      s32 yOffset = (TextureArrayXY.y - Bitmap->Dim.y) / 2;
+      GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
+                        xOffset, yOffset, zOffset,
+                        Bitmap->Dim.x, Bitmap->Dim.y,
+                        TextureDepth,
+                        TextureFormat,
+                        ElementType,
+                        Cast(void*, Bitmap->Pixels.Start) );
+      zOffset += 1;
+    }
   }
 
   return Result;

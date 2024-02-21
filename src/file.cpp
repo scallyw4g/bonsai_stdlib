@@ -1,5 +1,14 @@
 #define TMP_DIR_ROOT "tmp/"
 
+poof(buffer(file_traversal_node))
+#include <generated/buffer_file_traversal_node.h>
+
+poof(block_array(file_traversal_node, {32}))
+#include <generated/block_array_file_traversal_node_688853862.h>
+
+poof(flatten_block_array(file_traversal_node))
+#include <generated/flatten_block_array_file_traversal_node.h>
+
 // TODO(Jesse): The Create and Delete functions here are identical mirrors of
 // each other.. metaprogram them.
 link_internal b32
@@ -288,5 +297,30 @@ DeepCopy(heap_allocator *Memory, file_traversal_node *Node)
   Result.Dir = CopyString(Node->Dir, Memory);
   Result.Name = CopyString(Node->Name, Memory);
 
+  return Result;
+}
+
+link_internal maybe_file_traversal_node
+DirectoryListingHelper(file_traversal_node Node, u64 _FileNodes)
+{
+  file_traversal_node_block_array *FileNodes = Cast(file_traversal_node_block_array* , _FileNodes);
+  Push(FileNodes, &Node);
+  return {};
+}
+
+link_internal void
+LexicograpicSort(file_traversal_node_buffer *Buf)
+{
+  /* NotImplemented; */
+}
+
+link_internal file_traversal_node_buffer
+GetLexicographicallySortedListOfFilesInDirectory(cs Directory, memory_arena *Memory)
+{
+  file_traversal_node_block_array FileNodes = { .Memory = Memory };
+  PlatformTraverseDirectoryTreeUnordered(Directory, DirectoryListingHelper, u64(&FileNodes));
+
+  file_traversal_node_buffer Result = Flatten(&FileNodes, Memory);
+  LexicograpicSort(&Result);
   return Result;
 }

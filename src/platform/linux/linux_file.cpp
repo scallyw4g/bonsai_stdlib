@@ -213,7 +213,7 @@ LinuxDirectoryTraversalCallback(const char *FilePath, const struct stat *Stat, s
 }
 
 link_internal maybe_file_traversal_node
-PlatformTraverseDirectoryTree(cs Dirname, directory_traversal_callback Callback, u64 UserData)
+PlatformTraverseDirectoryTreeUnordered(cs Dirname, directory_traversal_callback Callback, u64 UserData)
 {
   // NOTE(Jesse): This function cannot run concurrently without some extra
   // leg-work because nftw doesn't give us a user-supplied parameter.
