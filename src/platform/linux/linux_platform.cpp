@@ -45,7 +45,7 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 
   window xWindow = XCreateWindow( Os->Display, RootWindow,
                                   0, 0,
-                                  WindowSize.x, WindowSize.y,
+                                  u32(StartingWindowDim.x), u32(StartingWindowDim.y),
                                   0, VisualInfo->depth, InputOutput, VisualInfo->visual,
                                   CWColormap | CWEventMask, &WindowAttribs);
 
@@ -123,8 +123,8 @@ ProcessOsMessages(os *Os, platform *Plat)
 
       case ConfigureNotify:
       {
-        Plat->WindowWidth = Event.xconfigure.width;
-        Plat->WindowHeight = Event.xconfigure.height;
+        Plat->ScreenDim.x = Event.xconfigure.width;
+        Plat->ScreenDim.y = Event.xconfigure.height;
       } break;
 
       case MotionNotify:
