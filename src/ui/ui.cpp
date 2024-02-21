@@ -1920,66 +1920,49 @@ GetWindowSortParams(ui_render_command_buffer *CommandBuffer)
   return Result;
 }
 
-link_internal void
-BubbleSort(sort_key_f* Keys, u32 Count)
-{
-  for (u32 Ignored = 0;
-      Ignored < Count;
-      ++Ignored)
+poof(
+  func bubble_sort(type_poof_symbol sort_key_type_list)
   {
-    b32 Sorted = True;
-
-    for (u32 Inner = 0;
-        Inner < (Count-1);
-        ++Inner)
+    sort_key_type_list.map(sort_key_t)
     {
-      auto* KeyA = Keys+Inner;
-      auto* KeyB = Keys+Inner+1;
-
-      if (KeyA->Value < KeyB->Value)
+      link_internal void
+      BubbleSort((sort_key_t.name) *Keys, u32 Count)
       {
-        auto Temp = *KeyA;
-        *KeyA = *KeyB;
-        *KeyB = Temp;
-        Sorted = False;
+        for (u32 Ignored = 0;
+            Ignored < Count;
+            ++Ignored)
+        {
+          b32 Sorted = True;
+
+          for (u32 Inner = 0;
+              Inner < (Count-1);
+              ++Inner)
+          {
+            auto* KeyA = Keys+Inner;
+            auto* KeyB = Keys+Inner+1;
+
+            if (KeyA->Value < KeyB->Value)
+            {
+              auto Temp = *KeyA;
+              *KeyA = *KeyB;
+              *KeyB = Temp;
+              Sorted = False;
+            }
+          }
+
+          if (Sorted) break;
+        }
+
+        return;
       }
     }
-
-    if (Sorted) break;
   }
+)
 
-  return;
-}
-link_internal void
-BubbleSort(sort_key* Keys, u32 Count)
-{
-  for (u32 Ignored = 0;
-      Ignored < Count;
-      ++Ignored)
-  {
-    b32 Sorted = True;
+poof(bubble_sort({sort_key sort_key_f sort_key_string}))
+#include <generated/bubble_sort_686708022.h>
 
-    for (u32 Inner = 0;
-        Inner < (Count-1);
-        ++Inner)
-    {
-      auto* KeyA = Keys+Inner;
-      auto* KeyB = Keys+Inner+1;
 
-      if (KeyA->Value < KeyB->Value)
-      {
-        auto Temp = *KeyA;
-        *KeyA = *KeyB;
-        *KeyB = Temp;
-        Sorted = False;
-      }
-    }
-
-    if (Sorted) break;
-  }
-
-  return;
-}
 
 link_internal void
 SetWindowZDepths(ui_render_command_buffer *CommandBuffer)

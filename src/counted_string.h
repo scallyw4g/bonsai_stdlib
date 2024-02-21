@@ -24,8 +24,31 @@ StringsMatch(const char *S1, const char *S2)
   return Result;
 }
 
+inline s32
+CompareStrings(cs* S1, cs* S2)
+{
+  s32 Result = True;
+
+  if (S1 && S2 && S1->Count == S2->Count)
+  {
+    for (u32 CharIndex = 0;
+             CharIndex < S1->Count;
+           ++CharIndex)
+    {
+      s32 Diff = s32(S1->Start[CharIndex]) - s32(S2->Start[CharIndex]);
+      if (Diff) { Result = Diff; break; }
+    }
+  }
+  else
+  {
+    Result = s32(S1->Count) - s32(S2->Count);
+  }
+
+  return Result;
+}
+
 inline b32
-StringsMatch(counted_string* S1, counted_string* S2)
+StringsMatch(cs* S1, cs* S2)
 {
   b32 Result = True;
 
@@ -47,21 +70,21 @@ StringsMatch(counted_string* S1, counted_string* S2)
 }
 
 inline b32
-StringsMatch(counted_string S1, counted_string* S2)
+StringsMatch(cs S1, cs* S2)
 {
   b32 Result = StringsMatch(&S1, S2);
   return Result;
 }
 
 inline b32
-StringsMatch(counted_string* S1, counted_string S2)
+StringsMatch(cs* S1, cs S2)
 {
   b32 Result = StringsMatch(S1, &S2);
   return Result;
 }
 
 inline b32
-StringsMatch(counted_string S1, counted_string S2)
+StringsMatch(cs S1, cs S2)
 {
   b32 Result = StringsMatch(&S1, &S2);
   return Result;

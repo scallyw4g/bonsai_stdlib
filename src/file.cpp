@@ -311,7 +311,9 @@ DirectoryListingHelper(file_traversal_node Node, u64 _FileNodes)
 link_internal void
 LexicograpicSort(file_traversal_node_buffer *Buf)
 {
-  /* NotImplemented; */
+  IterateOver(Buf, Node, NodeIndex)
+  {
+  }
 }
 
 link_internal file_traversal_node_buffer
