@@ -43,6 +43,7 @@
 #include <bonsai_stdlib/src/heap_allocator.h>
 #include <bonsai_stdlib/src/stream.h>
 #include <bonsai_stdlib/src/counted_string.h>
+#include <bonsai_stdlib/src/sort.h>
 #include <bonsai_stdlib/src/console_io.h>
 #include <bonsai_stdlib/src/line.h>
 #include <bonsai_stdlib/src/quaternion.h>

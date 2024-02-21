@@ -704,30 +704,6 @@ struct clip_result
   rect2 ClipRatio;
 };
 
-struct sort_key_string
-{
-  u64 Index;
-  cs Value;
-
-  b32 operator<(sort_key_string &Compare)
-  {
-    return CompareStrings(&this->Value, &Compare.Value) < 0;
-  }
-};
-
-
-struct sort_key_f
-{
-  u64 Index;
-  r64 Value;
-};
-
-struct sort_key
-{
-  u64 Index;
-  u64 Value;
-};
-
 struct window_sort_params
 {
   u32 Count;

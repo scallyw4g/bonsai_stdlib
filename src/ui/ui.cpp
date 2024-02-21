@@ -1920,48 +1920,6 @@ GetWindowSortParams(ui_render_command_buffer *CommandBuffer)
   return Result;
 }
 
-poof(
-  func bubble_sort(type_poof_symbol sort_key_type_list)
-  {
-    sort_key_type_list.map(sort_key_t)
-    {
-      link_internal void
-      BubbleSort((sort_key_t.name) *Keys, u32 Count)
-      {
-        for (u32 Ignored = 0;
-            Ignored < Count;
-            ++Ignored)
-        {
-          b32 Sorted = True;
-
-          for (u32 Inner = 0;
-              Inner < (Count-1);
-              ++Inner)
-          {
-            auto* KeyA = Keys+Inner;
-            auto* KeyB = Keys+Inner+1;
-
-            if (KeyA->Value < KeyB->Value)
-            {
-              auto Temp = *KeyA;
-              *KeyA = *KeyB;
-              *KeyB = Temp;
-              Sorted = False;
-            }
-          }
-
-          if (Sorted) break;
-        }
-
-        return;
-      }
-    }
-  }
-)
-
-poof(bubble_sort({sort_key sort_key_f sort_key_string}))
-#include <generated/bubble_sort_686708022.h>
-
 
 
 link_internal void

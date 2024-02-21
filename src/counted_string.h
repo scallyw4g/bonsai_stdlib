@@ -27,21 +27,20 @@ StringsMatch(const char *S1, const char *S2)
 inline s32
 CompareStrings(cs* S1, cs* S2)
 {
-  s32 Result = True;
+  s32 Result = 0;
 
-  if (S1 && S2 && S1->Count == S2->Count)
+  umm End = Min(S1->Count, S2->Count);
+  for (u32 CharIndex = 0;
+           CharIndex < End;
+         ++CharIndex)
   {
-    for (u32 CharIndex = 0;
-             CharIndex < S1->Count;
-           ++CharIndex)
-    {
-      s32 Diff = s32(S1->Start[CharIndex]) - s32(S2->Start[CharIndex]);
-      if (Diff) { Result = Diff; break; }
-    }
+    s32 Diff = s32(S2->Start[CharIndex]) - s32(S1->Start[CharIndex]);
+    if (Diff) { Result = Diff; break; }
   }
-  else
+
+  if (Result == 0 && (S1->Count != S2->Count))
   {
-    Result = s32(S1->Count) - s32(S2->Count);
+    Result = s32(S2->Count) - s32(S1->Count);
   }
 
   return Result;

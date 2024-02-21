@@ -345,24 +345,17 @@ LoadBitmapsFromFolderUnordered(cs FilePath, bitmap_block_array *Bitmaps)
   PlatformTraverseDirectoryTreeUnordered(FilePath, LoadBitmapFileTraversalHelper, u64(Bitmaps));
 }
 
-link_internal bitmap_buffer
-LoadBitmapsFromFolderOrdered(cs FilePath, memory_arena *BitmapMemory, memory_arena *DatastructureMemory)
+link_internal void
+LoadBitmapsFromFolderOrdered(cs FilePath, bitmap_block_array *Bitmaps, memory_arena *BitmapMemory, memory_arena *DatastructureMemory)
 {
-  file_traversal_node_buffer FileNodeBuffer =
+  file_traversal_node_block_array FileNodes =
     GetLexicographicallySortedListOfFilesInDirectory(FilePath, DatastructureMemory);
 
-  bitmap_buffer Result = BitmapBuffer(FileNodeBuffer.Count, DatastructureMemory);
-
-  // TODO(Jesse): Make a version of LoadBitmap that takes the dest such that we
-  // don't have to do this copy?  The copy's really not that big of a deal, but
-  // why waste cycles..
-  IterateOver(&FileNodeBuffer, FileNode, FileNodeIndex)
+  IterateOver(&FileNodes, FileNode, FileNodeIndex)
   {
     bitmap B = LoadBitmap(FileNode, BitmapMemory);
-    Result.Start[FileNodeIndex] = B;
+    Push(Bitmaps, &B);
   }
-
-  return Result;
 }
 
 link_internal texture

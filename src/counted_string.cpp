@@ -290,7 +290,7 @@ StripPrefixesUntilDoubleUnderscore(counted_string Source)
   {
     Prefix = {};
     Current = StripPrefix(Current, 0, &Prefix);
-  } while (Prefix && !StringsMatch(Prefix, CSz("_")));
+  } while (Prefix.Count && !StringsMatch(Prefix, CSz("_")));
 
   cs Result = Current;
   return Result;
