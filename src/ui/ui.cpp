@@ -489,10 +489,9 @@ BufferTexturedQuad( renderer_2d *Group,
   clip_result Result = ClipRect3AgainstRect2(MinP, Dim, Z, &UV, WindowClip);
   if (Result.ClipStatus != ClipStatus_FullyClipped)
   {
-    Result = ClipRect3AgainstRect2(MinP, Dim, Z, &UV, Clip);
-    if (ClipOptional)
+    Result = ClipRect3AgainstRect2(Result.ClippedMin, Result.ClippedMax - Result.ClippedMin, Z, &UV, Clip);
+    if (Result.ClipStatus != ClipStatus_FullyClipped && ClipOptional)
     {
-      clip_status PrevClipStatus = Result.ClipStatus;
       Result = ClipRect3AgainstRect2(Result.ClippedMin, Result.ClippedMax-Result.ClippedMin, Z, &UV, *ClipOptional);
     }
   }
