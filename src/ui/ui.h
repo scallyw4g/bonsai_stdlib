@@ -84,9 +84,10 @@ struct window_layout
   u32 MinimizeIndex;
 
   s32 Flags;
-  v2 Basis;
-  v2 MaxClip;
-  v2 Scroll;
+
+  v2 Basis;   // Absolute offset from (0,0)
+  v2 MaxClip; // Basis-relative maximum corner of the window
+  v2 Scroll;  // Basis-relative offset of the content within the window
 
   s32 CachedFlags;
   v2 CachedBasis;
