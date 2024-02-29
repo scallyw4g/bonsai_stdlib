@@ -60,19 +60,22 @@ struct render_buffers_2d
 
 enum window_layout_flags
 {
-  WindowLayoutFlag_None = 0,
+  WindowLayoutFlag_None                    = 0,
 
-  WindowLayoutFlag_DynamicSize         = (1 << 0),
+  WindowLayoutFlag_Size_Dynamic            = (1 << 0),
 
   WindowLayoutFlag_StartupSize_InferHeight = (1 << 1),
   WindowLayoutFlag_StartupSize_InferWidth  = (1 << 2),
   WindowLayoutFlag_StartupSize_Infer       = (WindowLayoutFlag_StartupSize_InferHeight|WindowLayoutFlag_StartupSize_InferWidth),
 
-  WindowLayoutFlag_StartupAlign_Right      = (1 << 3),
-  WindowLayoutFlag_StartupAlign_Bottom     = (1 << 4),
-  WindowLayoutFlag_StartupAlign_BottomRight = (WindowLayoutFlag_StartupAlign_Right|WindowLayoutFlag_StartupAlign_Bottom),
+  WindowLayoutFlag_Align_Right             = (1 << 3),
+  WindowLayoutFlag_Align_Bottom            = (1 << 4),
+  WindowLayoutFlag_Align_BottomRight       = (WindowLayoutFlag_Align_Right|WindowLayoutFlag_Align_Bottom),
 
-  WindowLayoutFlag_Default                  = (WindowLayoutFlag_DynamicSize|WindowLayoutFlag_StartupSize_Infer),
+  // NOTE(Jesse): Must have the infer flags such that the windows get bumped
+  // below the default window layout.  I don't love this implicit behavior,
+  // but it is what it is for now.
+  WindowLayoutFlag_Default                 = (WindowLayoutFlag_Size_Dynamic|WindowLayoutFlag_StartupSize_Infer),
 };
 
 struct window_layout

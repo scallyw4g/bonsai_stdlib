@@ -1246,7 +1246,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   else if (Pressed(Group, &TitleBarHandle))
   {
     Window->Basis -= *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
-    Window->Flags &= ~(WindowLayoutFlag_StartupAlign_Right|WindowLayoutFlag_StartupAlign_Bottom);
+    Window->Flags &= ~(WindowLayoutFlag_Align_BottomRight);
   }
   else if (!Window->Minimized && Clicked(Group, &MinimizeButtonHandle))
   {
@@ -1274,7 +1274,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     v2 WindowDim  = MinimizedTitleBarBounds.Max + V2(ResizeHandleDim.x, 0) + V2(20, 0);
     v2 WindowBasis = V2(Group->ScreenDim->x - WindowDim.x - WindowOffsetFromCornerOfScreen.x, (Window->MinimizeIndex * Global_TitleBarHeight) + WindowOffsetFromCornerOfScreen.y );
 
-    Window->Flags = WindowLayoutFlag_StartupAlign_Right;
+    Window->Flags = WindowLayoutFlag_Align_Right;
     Window->Basis = WindowBasis;
     Window->MaxClip = WindowDim;
   }
@@ -1288,7 +1288,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
   if (Pressed(Group, &ResizeHandle))
   {
-    Window->Flags &= ~(WindowLayoutFlag_DynamicSize|WindowLayoutFlag_StartupAlign_Right|WindowLayoutFlag_StartupAlign_Bottom);
+    Window->Flags &= ~(WindowLayoutFlag_Size_Dynamic|WindowLayoutFlag_Align_BottomRight);
 
     v2 AbsoluteTitleBounds = Window->Basis + TitleBounds;
     v2 TestMaxClip = *Group->MouseP - Window->Basis;
@@ -1312,11 +1312,9 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     }
   }
 
-  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 50);
 
-  f32 KeepOnTheScreenThreshold = 30.f;
-  Window->Basis = Max(V2(-(Window->MaxClip.x-KeepOnTheScreenThreshold), 0.f), Window->Basis);
-  Window->Basis = Min(*Group->ScreenDim-V2(KeepOnTheScreenThreshold), Window->Basis);
+  // Do not let window width get below a reasonable threshold
+  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 25);
 
   PushWindowStartInternal( Group,
                            Window,
@@ -2378,21 +2376,29 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           TypedCommand->Window->Basis.x = DefaultWindowSideOffset;
         }
 
-        if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupAlign_Right)
+        if (TypedCommand->Window->Flags & WindowLayoutFlag_Align_Right)
         {
-          TypedCommand->Window->Basis.x = Group->ScreenDim->x - TypedCommand->Window->MaxClip.x - DefaultWindowSideOffset;
+          // NOTE(Jesse): Here we take the minimum of either the draw bounds of
+          // the content in the window, or the actual window minimum corner,
+          // both clipped to the screen.  This is pretty weird, but it's
+          // necessary because if we just do one or the other we get visual
+          // artifacts when the size of the content in the window changes.
+          r32 ContentWindowMinCorner = Group->ScreenDim->x - RenderState->Layout->DrawBounds.Max.x - DefaultWindowSideOffset;
+          r32 ActualWindowMinCorner = Group->ScreenDim->x - TypedCommand->Window->MaxClip.x - DefaultWindowSideOffset;
+          TypedCommand->Window->Basis.x = Min(ContentWindowMinCorner, ActualWindowMinCorner);
         }
 
-        if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupAlign_Bottom)
+        if (TypedCommand->Window->Flags & WindowLayoutFlag_Align_Bottom)
         {
-          TypedCommand->Window->Basis.y = Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset;
+          TypedCommand->Window->Basis.y = Max(Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset, DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset);
         }
 
-        if (TypedCommand->Window->Flags & WindowLayoutFlag_DynamicSize)
+        if (TypedCommand->Window->Flags & WindowLayoutFlag_Size_Dynamic)
         {
-          TypedCommand->Window->MaxClip = RenderState->Layout->DrawBounds.Max;
+          v2 ClippedMaxCorner = (*Group->ScreenDim - TypedCommand->Window->Basis) - DefaultWindowSideOffset;
+          v2 WindowMaxCorner = RenderState->Layout->DrawBounds.Max;
+          TypedCommand->Window->MaxClip = Min(ClippedMaxCorner, WindowMaxCorner);
         }
-
 
         Assert(TypedCommand->Window == RenderState->Window);
         RenderState->Window = 0;
