@@ -2391,7 +2391,9 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_Size_Dynamic)
         {
-          TypedCommand->Window->MaxClip = Min(*Group->ScreenDim - TypedCommand->Window->Basis, RenderState->Layout->DrawBounds.Max);
+          v2 ClippedMaxCorner = (*Group->ScreenDim - TypedCommand->Window->Basis) - DefaultWindowSideOffset;
+          v2 WindowMaxCorner = RenderState->Layout->DrawBounds.Max;
+          TypedCommand->Window->MaxClip = Min(ClippedMaxCorner, WindowMaxCorner);
         }
 
         Assert(TypedCommand->Window == RenderState->Window);
