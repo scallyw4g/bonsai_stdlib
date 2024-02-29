@@ -1138,75 +1138,6 @@ PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowM
 }
 
 link_internal void
-PushWindowStartInternal( renderer_2d *Group,
-                         window_layout *Window,
-                         cs TitleText,
-                         cs MinimizedIcon,
-                         ui_id ResizeHandleInteractionId,
-                         ui_id MinimizeInteractionId,
-                         ui_id TitleBarInteractionId,
-                         v2 WindowResizeHandleMin,
-                         v2 WindowResizeHandleDim,
-                         v2 MinimizeButtonOffset,
-                         v2 WindowBasis,
-                         v2 WindowMaxClip,
-                         v2 WindowScroll )
-{
-  rect2 AbsWindowBounds = RectMinDim(WindowBasis, WindowMaxClip);
-  rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max);
-
-  ui_render_command Command = {
-    .Type = type_ui_render_command_window_start,
-
-    .ui_render_command_window_start = {
-      .Window = Window,
-      .ClipRect = ClipRect,
-      .Layout = {
-        .Basis = WindowBasis,
-        .DrawBounds = InvertedInfinityRectangle(),
-      }
-    }
-  };
-
-  PushUiRenderCommand(Group, &Command);
-
-  ui_style TitleBarStyle = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR);
-
-  // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
-  PushButtonStart(Group, ResizeHandleInteractionId);
-    PushUntexturedQuadAt(Group, WindowResizeHandleMin, WindowResizeHandleDim, zDepth_Border, &TitleBarStyle);
-  PushButtonEnd(Group);
-
-  PushForceAdvance(Group, V2(Global_TitleBarPadding));
-
-  Text(Group, TitleText, &DefaultStyle, TextRenderParam_DisableClipping );
-
-  if (!Window->Minimized)
-  {
-    PushButtonStart(Group, MinimizeInteractionId);
-      Text(Group, MinimizedIcon, &DefaultStyle, TextRenderParam_DisableClipping, MinimizeButtonOffset );
-    PushButtonEnd(Group);
-  }
-
-  PushButtonStart(Group, TitleBarInteractionId);
-    PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &TitleBarStyle);
-  PushButtonEnd(Group);
-
-  PushBorder(Group, AbsWindowBounds, TitleBarStyle.HoverColor, UI_WINDOW_BORDER_DEFAULT_WIDTH);
-
-  ui_style BackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
-  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &BackgroundStyle);
-  PushNewRow(Group);
-
-/*   PushResetDrawBounds(Group); */
-
-  PushForceUpdateBasis(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f);
-  PushForceUpdateBasis(Group, WindowScroll);
-
-  PushResetDrawBounds(Group);
-}
-
-link_internal void
 UnminimizeWindow(renderer_2d *Group, window_layout *Window)
 {
   Window->Minimized = False;
@@ -1219,6 +1150,21 @@ UnminimizeWindow(renderer_2d *Group, window_layout *Window)
   Window->MaxClip = Window->CachedMaxClip;
   Window->Scroll = Window->CachedScroll;
 }
+
+link_internal void
+PushWindowStartInternal( renderer_2d *Group,
+                         window_layout *Window,
+                         cs TitleText,
+                         cs MinimizedIcon,
+                         ui_id ResizeHandleInteractionId,
+                         ui_id MinimizeInteractionId,
+                         ui_id TitleBarInteractionId,
+                         v2 WindowResizeHandleMin,
+                         v2 WindowResizeHandleDim,
+                         v2 MinimizeButtonOffset,
+                         v2 WindowBasis,
+                         v2 WindowMaxClip,
+                         v2 WindowScroll );
 
 link_internal void
 PushWindowStart(renderer_2d *Group, window_layout *Window)
@@ -1329,6 +1275,75 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
                            Window->Basis,
                            Window->MaxClip,
                            Window->Scroll );
+}
+
+link_internal void
+PushWindowStartInternal( renderer_2d *Group,
+                         window_layout *Window,
+                         cs TitleText,
+                         cs MinimizedIcon,
+                         ui_id ResizeHandleInteractionId,
+                         ui_id MinimizeInteractionId,
+                         ui_id TitleBarInteractionId,
+                         v2 WindowResizeHandleMin,
+                         v2 WindowResizeHandleDim,
+                         v2 MinimizeButtonOffset,
+                         v2 WindowBasis,
+                         v2 WindowMaxClip,
+                         v2 WindowScroll )
+{
+  rect2 AbsWindowBounds = RectMinDim(WindowBasis, WindowMaxClip);
+  rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max);
+
+  ui_render_command Command = {
+    .Type = type_ui_render_command_window_start,
+
+    .ui_render_command_window_start = {
+      .Window = Window,
+      .ClipRect = ClipRect,
+      .Layout = {
+        .Basis = WindowBasis,
+        .DrawBounds = InvertedInfinityRectangle(),
+      }
+    }
+  };
+
+  PushUiRenderCommand(Group, &Command);
+
+  ui_style TitleBarStyle = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR);
+
+  // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
+  PushButtonStart(Group, ResizeHandleInteractionId);
+    PushUntexturedQuadAt(Group, WindowResizeHandleMin, WindowResizeHandleDim, zDepth_Border, &TitleBarStyle);
+  PushButtonEnd(Group);
+
+  PushForceAdvance(Group, V2(Global_TitleBarPadding));
+
+  Text(Group, TitleText, &DefaultStyle, TextRenderParam_DisableClipping );
+
+  if (!Window->Minimized)
+  {
+    PushButtonStart(Group, MinimizeInteractionId);
+      Text(Group, MinimizedIcon, &DefaultStyle, TextRenderParam_DisableClipping, MinimizeButtonOffset );
+    PushButtonEnd(Group);
+  }
+
+  PushButtonStart(Group, TitleBarInteractionId);
+    PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &TitleBarStyle);
+  PushButtonEnd(Group);
+
+  PushBorder(Group, AbsWindowBounds, TitleBarStyle.HoverColor, UI_WINDOW_BORDER_DEFAULT_WIDTH);
+
+  ui_style BackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
+  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &BackgroundStyle);
+  PushNewRow(Group);
+
+/*   PushResetDrawBounds(Group); */
+
+  PushForceUpdateBasis(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f);
+  PushForceUpdateBasis(Group, WindowScroll);
+
+  PushResetDrawBounds(Group);
 }
 
 
