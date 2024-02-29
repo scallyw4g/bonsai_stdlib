@@ -2380,17 +2380,18 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupAlign_Right)
         {
-          TypedCommand->Window->Basis.x = Group->ScreenDim->x - TypedCommand->Window->MaxClip.x - DefaultWindowSideOffset;
+          TypedCommand->Window->Basis.x = Max(Group->ScreenDim->x - TypedCommand->Window->MaxClip.x - DefaultWindowSideOffset, DefaultWindowSideOffset);
         }
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupAlign_Bottom)
         {
-          TypedCommand->Window->Basis.y = Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset;
+          TypedCommand->Window->Basis.y = Max(Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset, DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset);
         }
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_DynamicSize)
         {
-          TypedCommand->Window->MaxClip = RenderState->Layout->DrawBounds.Max;
+          TypedCommand->Window->MaxClip.x = Min(Group->ScreenDim->x - TypedCommand->Window->Basis.x, RenderState->Layout->DrawBounds.Max.x);
+          TypedCommand->Window->MaxClip.y = Min(Group->ScreenDim->y - TypedCommand->Window->Basis.y, RenderState->Layout->DrawBounds.Max.y);
         }
 
 
