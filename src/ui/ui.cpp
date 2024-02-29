@@ -2378,7 +2378,11 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_Align_Right)
         {
-          // NOTE(Jesse): This is computed in a bit of a weird way
+          // NOTE(Jesse): Here we take the minimum of either the draw bounds of
+          // the content in the window, or the actual window minimum corner,
+          // both clipped to the screen.  This is pretty weird, but it's
+          // necessary because if we just do one or the other we get visual
+          // artifacts when the size of the content in the window changes.
           r32 ContentWindowMinCorner = Group->ScreenDim->x - RenderState->Layout->DrawBounds.Max.x - DefaultWindowSideOffset;
           r32 ActualWindowMinCorner = Group->ScreenDim->x - TypedCommand->Window->MaxClip.x - DefaultWindowSideOffset;
           TypedCommand->Window->Basis.x = Min(ContentWindowMinCorner, ActualWindowMinCorner);
