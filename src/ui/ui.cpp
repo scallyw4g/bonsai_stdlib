@@ -1350,6 +1350,8 @@ PushWindowStartInternal( renderer_2d *Group,
 link_internal void
 PushWindowEnd(renderer_2d *Group, window_layout *Window)
 {
+  /* PushForceAdvance(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f); */
+
   ui_render_command EndCommand = {};
   EndCommand.Type = type_ui_render_command_window_end;
   EndCommand.ui_render_command_window_end.Window = Window;
@@ -2400,12 +2402,19 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           // artifacts when the size of the content in the window changes.
           r32 ContentWindowMinCorner = Group->ScreenDim->x - RenderState->Layout->DrawBounds.Max.x - DefaultWindowSideOffset;
           r32 ActualWindowMinCorner = Group->ScreenDim->x - TypedCommand->Window->MaxClip.x - DefaultWindowSideOffset;
-          TypedCommand->Window->Basis.x = Min(ContentWindowMinCorner, ActualWindowMinCorner);
+          r32 ClippedWindowMinCorner = Min(ContentWindowMinCorner, ActualWindowMinCorner);
+
+          TypedCommand->Window->Basis.x = ClippedWindowMinCorner;
         }
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_Align_Bottom)
         {
-          TypedCommand->Window->Basis.y = Max(Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset, DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset);
+          r32 ContentWindowMinCorner = Group->ScreenDim->y - RenderState->Layout->DrawBounds.Max.y - DefaultWindowSideOffset;
+          r32 ActualWindowMinCorner = Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset;
+          r32 ClippedWindowMinCorner = Min(ContentWindowMinCorner, ActualWindowMinCorner);
+
+          // NOTE(Jesse): This has an extra term & Max() to push the window below the default layout
+          TypedCommand->Window->Basis.y = Max( ClippedWindowMinCorner, DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset);
         }
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_Size_Dynamic)
