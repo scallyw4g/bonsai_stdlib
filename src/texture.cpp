@@ -233,8 +233,8 @@ MakeTexture_SingleChannel(v2i Dim, cs DebugName, b32 IsDepthTexture)
   GL.TexImage2D(GL_TEXTURE_2D, 0, GL_R32F,
       Texture.Dim.x, Texture.Dim.y, 0,  GL_RED, GL_FLOAT, 0);
 
-  GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
   GL.BindTexture(GL_TEXTURE_2D, 0);
 
@@ -255,8 +255,8 @@ MakeTexture_RGB(v2i Dim, const v3 *Data, cs DebugName)
   GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
       Texture.Dim.x, Texture.Dim.y, 0,  GL_RGB, GL_FLOAT, Data);
 
-  GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
   GL.BindTexture(GL_TEXTURE_2D, 0);
 
