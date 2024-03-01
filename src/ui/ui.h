@@ -315,9 +315,10 @@ enum column_render_params
 
 enum quad_render_params
 {
-  QuadRenderParam_NoAdvance     =  0,
-  QuadRenderParam_AdvanceLayout = (1 << 0),
-  QuadRenderParam_AdvanceClip   = (1 << 1),
+  QuadRenderParam_NoAdvance       = 0,
+  QuadRenderParam_AdvanceLayout   = (1 << 0),
+  QuadRenderParam_AdvanceClip     = (1 << 1),
+  QuadRenderParam_DisableClipping = (1 << 2),
 
   QuadRenderParam_Default = (QuadRenderParam_AdvanceLayout|QuadRenderParam_AdvanceClip),
 };
@@ -552,10 +553,11 @@ struct ui_render_command_untextured_quad
 
 struct ui_render_command_untextured_quad_at
 {
-  layout Layout;
-  ui_style Style;
   v2 QuadDim;
   z_depth zDepth;
+  quad_render_params Params;
+  ui_style Style;
+  layout Layout;
 };
 
 /* enum textured_quad_source */
@@ -830,7 +832,7 @@ UiStyleFromLightestColor(v3 Color, font *Font)
 
 global_variable v2 DefaultWindowSize = V2(1800, 800);
 global_variable f32 DefaultWindowTopOffset = 200.f;
-global_variable f32 DefaultWindowSideOffset = 20.f;
+global_variable f32 DefaultWindowSideOffset = 12.f;
 
 link_internal v2
 DefaultWindowBasis(v2 ScreenDim, v2 WindowDim = DefaultWindowSize)

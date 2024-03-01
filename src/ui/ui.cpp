@@ -936,7 +936,7 @@ PushTexturedQuadColumn(renderer_2d *Group, texture *Texture, s32 TextureSlice, v
 }
 
 link_internal void
-PushUntexturedQuadAt(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui_style *Style = 0 )
+PushUntexturedQuadAt(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui_style *Style = 0, quad_render_params Params = QuadRenderParam_Default)
 {
   ui_render_command Command =
   {
@@ -945,6 +945,7 @@ PushUntexturedQuadAt(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, 
     {
       .QuadDim = QuadDim,
       .zDepth  = zDepth,
+      .Params = Params,
       .Style = Style? *Style : DefaultStyle,
       .Layout  =
       {
@@ -1260,7 +1261,8 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
 
   // Do not let window width get below a reasonable threshold
-  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 25);
+  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 25.f);
+  Window->MaxClip.y = Max(Window->MaxClip.y, TitleRect.Max.y + ResizeHandleDim.y  + 6.f);
 
   PushWindowStartInternal( Group,
                            Window,
@@ -1314,7 +1316,7 @@ PushWindowStartInternal( renderer_2d *Group,
 
   // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
   PushButtonStart(Group, ResizeHandleInteractionId);
-    PushUntexturedQuadAt(Group, WindowResizeHandleMin, WindowResizeHandleDim, zDepth_Border, &TitleBarStyle);
+    PushUntexturedQuadAt(Group, WindowResizeHandleMin, WindowResizeHandleDim, zDepth_Border, &TitleBarStyle, QuadRenderParam_DisableClipping);
   PushButtonEnd(Group);
 
   PushForceAdvance(Group, V2(Global_TitleBarPadding));
@@ -1350,7 +1352,7 @@ PushWindowStartInternal( renderer_2d *Group,
 link_internal void
 PushWindowEnd(renderer_2d *Group, window_layout *Window)
 {
-  /* PushForceAdvance(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f); */
+  PushForceAdvance(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*4.f);
 
   ui_render_command EndCommand = {};
   EndCommand.Type = type_ui_render_command_window_end;
@@ -1839,7 +1841,7 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
 }
 
 link_internal void
-ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_quad_at *Command, render_state* RenderState, b32 DoBuffering = True)
+ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_quad_at *Command, render_state* RenderState)
 {
   rect2 Clip = RenderState->ClipRect; //GetAbsoluteClip(RenderState->Window);
   v2 MinP    = GetAbsoluteAt(&Command->Layout);
@@ -1847,10 +1849,14 @@ ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_qua
   v3 Color   = SelectColorState(RenderState, &Command->Style);
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
 
-  if (DoBuffering)
+  quad_render_params RenderParams = Command->Params;
+
+  if (RenderParams & QuadRenderParam_DisableClipping)
   {
-    BufferUntexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
+    Clip = DISABLE_CLIPPING;
   }
+
+  BufferUntexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
 
   UpdateDrawBounds(&Command->Layout, MinP);
   UpdateDrawBounds(&Command->Layout, MinP + Dim);
