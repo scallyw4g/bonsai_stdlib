@@ -1,17 +1,14 @@
-#define UI_FUNCTION_PROTO_NAMES relative_position Position,      \
-                                ui_element_reference RelativeTo, \
-                                v2 Offset,                       \
-                                ui_style *Style,                 \
-                                v4 Padding
+#define UI_FUNCTION_PROTO_NAMES  ui_render_params *Params
+#define UI_FUNCTION_PROTO_DEFAULTS ui_render_params *Params = &DefaultUiRenderParams
+#define UI_FUNCTION_INSTANCE_NAMES Params
 
-
-#define UI_FUNCTION_PROTO_DEFAULTS relative_position Position = Position_None, \
-                                   ui_element_reference RelativeTo = {},       \
-                                   v2 Offset = {},                             \
-                                   ui_style *Style = &DefaultStyle,            \
-                                   v4 Padding = {{5, 2, 5, 2}}
-
-#define UI_FUNCTION_INSTANCE_NAMES Position, RelativeTo, Offset, Style, Padding
+#define UNPACK_UI_RENDER_PARAMS(Params)                                    \
+     relative_position          Pos = Params->RelativePosition.Position;   \
+  ui_element_reference   RelativeTo = Params->RelativePosition.RelativeTo; \
+              ui_style       *Style = Params->Style;                       \
+                    v2       Offset = Params->Offset;                      \
+                    v4      Padding = Params->Padding;                     \
+  column_render_params ColumnParams = Params->ColumnParams;                \
 
 
 #define UI_WINDOW_BEZEL_DEFAULT_COLOR (V3(0.22f, 0.f, 0.20f)*1.2f)
@@ -450,6 +447,14 @@ debug_global ui_style Global_DefaultSuccessStyle = UiStyleFromLightestColor(V3(0
 debug_global ui_style Global_DefaultWarnStyle    = UiStyleFromLightestColor(V3(1.f, .5f, .2f));
 debug_global ui_style Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1.f, 0.25f, 0.f));
 
+global_variable ui_render_params DefaultUiRenderParams =
+{
+  {},
+  &DefaultStyle,
+  {},
+  {},
+  {}
+};
 
 link_internal r32
 CharHeights(u32 N)

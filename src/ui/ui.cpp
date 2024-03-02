@@ -799,6 +799,14 @@ Text(renderer_2d* Group, counted_string String, ui_style *Style = &DefaultStyle,
 }
 
 link_internal u32
+StartColumn(renderer_2d *Group, ui_render_params *Params)
+{
+  u32 Result = 0;
+  NotImplemented;
+  return Result;
+}
+
+link_internal u32
 StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_render_params Params = ColumnRenderParam_RightAlign)
 {
   ui_render_command Command = {
@@ -832,6 +840,12 @@ EndColumn(renderer_2d* Group, u32 StartCommandIndex)
   PushUiRenderCommand(Group, &Command);
 
   return;
+}
+
+link_internal void
+PushColumn(renderer_2d *Group, counted_string String, ui_render_params *Params)
+{
+  NotImplemented;
 }
 
 link_internal void
@@ -1009,6 +1023,14 @@ PushButtonStart(renderer_2d *Group, ui_id InteractionId, ui_style* Style = 0)
   };
 
   return Handle;
+}
+
+link_internal ui_element_reference
+PushTableStart(renderer_2d* Group, ui_render_params *Params)
+{
+  ui_element_reference Result = {};
+  NotImplemented;
+  return Result;
 }
 
 link_internal ui_element_reference
@@ -1413,6 +1435,14 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, ui_id InteractionId, window_
 }
 
 link_internal b32
+Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_render_params *Params)
+{
+  b32 Result = 0;
+  NotImplemented;
+  return Result;
+}
+
+link_internal b32
 Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
   // TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
@@ -1421,6 +1451,14 @@ Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* 
   PushButtonEnd(Group);
 
   b32 Result = Clicked(Group, &Button);
+  return Result;
+}
+
+link_internal b32
+ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_render_params *Params)
+{
+  b32 Result = 0;
+  NotImplemented;
   return Result;
 }
 
@@ -1567,6 +1605,8 @@ ToggleRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *Toggle
 link_internal ui_element_reference
 DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_FUNCTION_PROTO_NAMES)
 {
+  UNPACK_UI_RENDER_PARAMS(Params);
+
   renderer_2d *Ui = Group->Ui;
   ui_toggle_button_handle_buffer *ButtonBuffer = &Group->Buttons;
 
