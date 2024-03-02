@@ -871,7 +871,6 @@ link_internal void
 PushTooltip(renderer_2d *Group, counted_string Text)
 {
   PushTextAt(Group, Text, *Group->MouseP+V2(14, -7), DISABLE_CLIPPING);
-  return;
 }
 
 link_internal void

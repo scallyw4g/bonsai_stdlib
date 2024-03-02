@@ -147,6 +147,13 @@ GenTexture(v2i Dim, cs DebugName, u32 Channels, u32 Slices = 1, b32 IsDepthTextu
   return Result;
 }
 
+link_internal void
+DeleteTexture(texture *Texture)
+{
+  GL.DeleteTextures(1, &Texture->ID);
+  Clear(Texture);
+}
+
 link_internal texture
 MakeTexture_RGBA(v2i Dim, u32 *Data, cs DebugName, u32 Slices = 1)
 {
