@@ -799,14 +799,6 @@ Text(renderer_2d* Group, counted_string String, ui_style *Style = &DefaultStyle,
 }
 
 link_internal u32
-StartColumn(renderer_2d *Group, ui_render_params *Params)
-{
-  u32 Result = 0;
-  NotImplemented;
-  return Result;
-}
-
-link_internal u32
 StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_render_params Params = ColumnRenderParam_RightAlign)
 {
   ui_render_command Command = {
@@ -829,6 +821,16 @@ StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_
   return Result;
 }
 
+link_internal u32
+StartColumn(renderer_2d *Group, ui_render_params *Params)
+{
+  UNPACK_UI_RENDER_PARAMS(Params);
+
+  u32 Result = StartColumn(Group, Style, Padding, ColumnParams);
+  return Result;
+}
+
+
 link_internal void
 EndColumn(renderer_2d* Group, u32 StartCommandIndex)
 {
@@ -843,17 +845,18 @@ EndColumn(renderer_2d* Group, u32 StartCommandIndex)
 }
 
 link_internal void
-PushColumn(renderer_2d *Group, counted_string String, ui_render_params *Params)
-{
-  NotImplemented;
-}
-
-link_internal void
 PushColumn(renderer_2d *Group, counted_string String, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
 {
   u32 StartIndex = StartColumn(Group, Style, Padding, Params);
     Text(Group, String, Style);
   EndColumn(Group, StartIndex);
+}
+
+link_internal void
+PushColumn(renderer_2d *Group, counted_string String, ui_render_params *Params)
+{
+  UNPACK_UI_RENDER_PARAMS(Params);
+  PushColumn(Group, String, Style, Padding, ColumnParams);
 }
 
 link_internal void
@@ -1026,14 +1029,6 @@ PushButtonStart(renderer_2d *Group, ui_id InteractionId, ui_style* Style = 0)
 }
 
 link_internal ui_element_reference
-PushTableStart(renderer_2d* Group, ui_render_params *Params)
-{
-  ui_element_reference Result = {};
-  NotImplemented;
-  return Result;
-}
-
-link_internal ui_element_reference
 PushTableStart(renderer_2d* Group, relative_position Position = Position_None,  ui_element_reference RelativeTo = {}, v2 Offset = {}, ui_style *Style = &DefaultStyle, v4 Padding = {})
 {
   ui_render_command Command = {
@@ -1056,6 +1051,14 @@ PushTableStart(renderer_2d* Group, relative_position Position = Position_None,  
     .Index = ElementIndex,
   };
 
+  return Result;
+}
+
+link_internal ui_element_reference
+PushTableStart(renderer_2d* Group, ui_render_params *Params)
+{
+  UNPACK_UI_RENDER_PARAMS(Params);
+  ui_element_reference Result = PushTableStart( Group, Pos, RelativeTo, Offset, Style, Padding);
   return Result;
 }
 
@@ -1435,14 +1438,6 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, ui_id InteractionId, window_
 }
 
 link_internal b32
-Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_render_params *Params)
-{
-  b32 Result = 0;
-  NotImplemented;
-  return Result;
-}
-
-link_internal b32
 Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
   // TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
@@ -1455,12 +1450,13 @@ Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* 
 }
 
 link_internal b32
-ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_render_params *Params)
+Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_render_params *Params)
 {
-  b32 Result = 0;
-  NotImplemented;
+  UNPACK_UI_RENDER_PARAMS(Params);
+  b32 Result = Button( Group, ButtonName, ButtonId, Style, Padding, ColumnParams );
   return Result;
 }
+
 
 link_internal b32
 ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
@@ -1493,6 +1489,14 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id Intera
   };
   PushUiRenderCommand(Group, &EndCommand);
 
+  return Result;
+}
+
+link_internal b32
+ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_render_params *Params)
+{
+  UNPACK_UI_RENDER_PARAMS(Params);
+  b32 Result = ToggleButton(Group, ButtonNameOn, ButtonNameOff, InteractionId, Style, Padding, ColumnParams);
   return Result;
 }
 

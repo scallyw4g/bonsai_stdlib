@@ -1,14 +1,14 @@
 #define UI_FUNCTION_PROTO_NAMES  ui_render_params *Params
-#define UI_FUNCTION_PROTO_DEFAULTS ui_render_params *Params = &DefaultUiRenderParams
+#define UI_FUNCTION_PROTO_DEFAULTS ui_render_params *Params = &DefaultUiRenderParams_Generic
 #define UI_FUNCTION_INSTANCE_NAMES Params
 
-#define UNPACK_UI_RENDER_PARAMS(Params)                                    \
+#define UNPACK_UI_RENDER_PARAMS(Params)                                  \
      relative_position          Pos = Params->RelativePosition.Position;   \
   ui_element_reference   RelativeTo = Params->RelativePosition.RelativeTo; \
-              ui_style       *Style = Params->Style;                       \
-                    v2       Offset = Params->Offset;                      \
-                    v4      Padding = Params->Padding;                     \
-  column_render_params ColumnParams = Params->ColumnParams;                \
+              ui_style       *Style = Params->Style;                                       \
+                    v2       Offset = Params->Offset;                                            \
+                    v4      Padding = Params->Padding;                                          \
+  column_render_params ColumnParams = Params->ColumnParams;              \
 
 
 #define UI_WINDOW_BEZEL_DEFAULT_COLOR (V3(0.22f, 0.f, 0.20f)*1.2f)
@@ -432,8 +432,8 @@ link_internal ui_style FlatUiStyle(v3 Color, font *Font = &Global_Font);
 debug_global v4 DatastructureIndent = V4(Global_Font.Size.x*2, 0, 0, 0);
 debug_global v4 DefaultDatastructurePadding = V4(5, 5, 0, 0);
 
-debug_global v4 DefaultColumnPadding = V4(0, 0, 30, 8);
-debug_global v4 DefaultButtonPadding = DefaultColumnPadding;
+debug_global v4 DefaultColumnPadding = V4( 0, 0, 30, 8);
+debug_global v4 DefaultButtonPadding = V4(15, 0, 15, 8);
 /* debug_global v4 DefaultColumnPadding = V4(0); */
 /* debug_global v4 DefaultButtonPadding = V4(15); */
 /* debug_global v4 DefaultButtonPadding = V4(0); */
@@ -447,7 +447,25 @@ debug_global ui_style Global_DefaultSuccessStyle = UiStyleFromLightestColor(V3(0
 debug_global ui_style Global_DefaultWarnStyle    = UiStyleFromLightestColor(V3(1.f, .5f, .2f));
 debug_global ui_style Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1.f, 0.25f, 0.f));
 
-global_variable ui_render_params DefaultUiRenderParams =
+global_variable ui_render_params DefaultUiRenderParams_Button =
+{
+  {},
+  &DefaultStyle,
+  {},
+  DefaultButtonPadding,
+  {}
+};
+
+global_variable ui_render_params DefaultUiRenderParams_Column =
+{
+  {},
+  &DefaultStyle,
+  {},
+  DefaultColumnPadding,
+  ColumnRenderParam_RightAlign,
+};
+
+global_variable ui_render_params DefaultUiRenderParams_Generic =
 {
   {},
   &DefaultStyle,
