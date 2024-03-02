@@ -1,8 +1,3 @@
-
-#define UI_WINDOW_BEZEL_DEFAULT_COLOR (V3(0.22f, 0.f, 0.20f)*1.2f)
-#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR (V3(0.07f, 0.01f, 0.08f))
-#define UI_WINDOW_BORDER_DEFAULT_WIDTH (V4(2.f))
-
 #define UI_FUNCTION_PROTO_NAMES relative_position Position,      \
                                 ui_element_reference RelativeTo, \
                                 v2 Offset,                       \
@@ -14,10 +9,14 @@
                                    ui_element_reference RelativeTo = {},       \
                                    v2 Offset = {},                             \
                                    ui_style *Style = &DefaultStyle,            \
-                                   v4 Padding = {}
+                                   v4 Padding = {{5, 2, 5, 2}}
 
 #define UI_FUNCTION_INSTANCE_NAMES Position, RelativeTo, Offset, Style, Padding
 
+
+#define UI_WINDOW_BEZEL_DEFAULT_COLOR (V3(0.22f, 0.f, 0.20f)*1.2f)
+#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR (V3(0.07f, 0.01f, 0.08f))
+#define UI_WINDOW_BORDER_DEFAULT_WIDTH (V4(2.f))
 
 
 #define DEBUG_MAX_UI_WINDOW_SLICES 1024.0f
@@ -400,6 +399,12 @@ struct ui_element_reference
   u32 Index;
 };
 
+struct ui_relative_position_reference
+{
+     relative_position Position;
+  ui_element_reference RelativeTo;
+};
+
 struct ui_style
 {
   v3 Color;
@@ -407,13 +412,22 @@ struct ui_style
   v3 HoverColor;
   v3 PressedColor;
   v3 ClickedColor;
-  /* v3 ActiveColor; */
 
   font Font;
-
-  /* b32 IsActive; */
 };
 
+// NOTE(Jesse): This should eventually subsume ui_style ..?
+struct ui_render_params
+{
+  ui_relative_position_reference RelativePosition;
+
+  ui_style *Style;
+
+  v2 Offset;
+  v4 Padding;
+
+  column_render_params ColumnParams;
+};
 
 link_internal ui_style UiStyleFromLightestColor(v3 Color, font *Font = &Global_Font);
 link_internal ui_style FlatUiStyle(v3 Color, font *Font = &Global_Font);
