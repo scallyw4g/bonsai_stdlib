@@ -11,10 +11,6 @@
   column_render_params ColumnParams = Params->ColumnParams;              \
 
 
-#define UI_WINDOW_BEZEL_DEFAULT_COLOR (V3(0.22f, 0.f, 0.20f)*1.2f)
-#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR (V3(0.07f, 0.01f, 0.08f))
-#define UI_WINDOW_BORDER_DEFAULT_WIDTH (V4(2.f))
-
 
 #define DEBUG_MAX_UI_WINDOW_SLICES 1024.0f
 #define DISABLE_CLIPPING RectMinMax(V2(f32_MIN), V2(f32_MAX) )
@@ -432,20 +428,49 @@ link_internal ui_style FlatUiStyle(v3 Color, font *Font = &Global_Font);
 debug_global v4 DatastructureIndent = V4(Global_Font.Size.x*2, 0, 0, 0);
 debug_global v4 DefaultDatastructurePadding = V4(5, 5, 0, 0);
 
-debug_global v4 DefaultColumnPadding = V4( 0, 0, 30, 8);
-debug_global v4 DefaultButtonPadding = V4(15, 0, 15, 8);
+debug_global v4 DefaultColumnPadding  = V4( 0, 3, 30, 3);
+debug_global v4 DefaultButtonPadding  = V4(15, 3, 15, 3);
+debug_global v4 DefaultGenericPadding = V4(0, 3, 0, 3);
 /* debug_global v4 DefaultColumnPadding = V4(0); */
 /* debug_global v4 DefaultButtonPadding = V4(15); */
 /* debug_global v4 DefaultButtonPadding = V4(0); */
 
-debug_global ui_style DefaultStyle         = UiStyleFromLightestColor(V3(0.9f));
-debug_global ui_style DefaultSelectedStyle = UiStyleFromLightestColor(V3(.7f, 1.f, .7f));
-debug_global ui_style DefaultBlurredStyle  = UiStyleFromLightestColor(V3(.25f, .25f, .25f));
-debug_global ui_style DefaultDisabledStyle = UiStyleFromLightestColor(V3(.35f, .25f, .25f));
+#define UI_WINDOW_BORDER_DEFAULT_WIDTH     (V4(2.f))
 
-debug_global ui_style Global_DefaultSuccessStyle = UiStyleFromLightestColor(V3(0.f, 1.f, 0.f));;
-debug_global ui_style Global_DefaultWarnStyle    = UiStyleFromLightestColor(V3(1.f, .5f, .2f));
-debug_global ui_style Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1.f, 0.25f, 0.f));
+#define UI_SATURATE_FACTOR (1.7f)
+#define UI_MUTE_FACTOR (0.8f)
+
+#define UI_WINDOW_BEZEL_DEFAULT_COLOR      (V3(0.24f,  0.10f, 0.23f))
+#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR (V3(0.07f, 0.01f, 0.08f))
+#define UI_COLOR_DEFAULT_SELECTED          (V3( 0.7f,  1.0f, 0.7f ))
+
+#define UI_COLOR_DEFAULT_SELECTED_MUTED          (UI_MUTE_FACTOR*UI_COLOR_DEFAULT_SELECTED)
+#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR_MUTED (UI_MUTE_FACTOR*UI_WINDOW_BACKGROUND_DEFAULT_COLOR)
+#define UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED      (UI_MUTE_FACTOR*UI_WINDOW_BEZEL_DEFAULT_COLOR)
+
+#define UI_COLOR_DEFAULT_SELECTED_SATURATED          (UI_SATURATE_FACTOR*UI_COLOR_DEFAULT_SELECTED)
+#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR_SATURATED (UI_SATURATE_FACTOR*UI_WINDOW_BACKGROUND_DEFAULT_COLOR)
+#define UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED      (UI_SATURATE_FACTOR*UI_WINDOW_BEZEL_DEFAULT_COLOR)
+
+
+#define UI_COLOR_DEFAULT               (V3(0.9f))
+#define UI_COLOR_DEFAULT_BLURRED       (V3(0.25f))
+#define UI_COLOR_DEFAULT_DISABLED      (V3(0.3f, 0.2f, 0.2f))
+
+debug_global ui_style DefaultStyle         = UiStyleFromLightestColor(UI_COLOR_DEFAULT);
+debug_global ui_style DefaultSelectedStyle = UiStyleFromLightestColor(UI_COLOR_DEFAULT_SELECTED);
+debug_global ui_style DefaultBlurredStyle  = UiStyleFromLightestColor(UI_COLOR_DEFAULT_BLURRED);
+debug_global ui_style DefaultDisabledStyle = UiStyleFromLightestColor(UI_COLOR_DEFAULT_DISABLED);
+
+debug_global ui_style DefaultWindowBezelStyle      = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR);
+debug_global ui_style DefaultWindowBackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
+
+debug_global ui_style Global_DefaultCheckboxForeground = UiStyleFromLightestColor(UI_COLOR_DEFAULT_SELECTED_MUTED);
+debug_global ui_style Global_DefaultCheckboxBackground = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED);
+
+debug_global ui_style Global_DefaultSuccessStyle = UiStyleFromLightestColor(V3(0.1f, 0.9f, 0.1f));;
+debug_global ui_style Global_DefaultWarnStyle    = UiStyleFromLightestColor(V3(1.f,  0.5f, 0.2f));
+debug_global ui_style Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1.f,  0.2f, 0.1f));
 
 global_variable ui_render_params DefaultUiRenderParams_Button =
 {
@@ -470,8 +495,8 @@ global_variable ui_render_params DefaultUiRenderParams_Generic =
   {},
   &DefaultStyle,
   {},
+  DefaultGenericPadding,
   {},
-  {}
 };
 
 link_internal r32

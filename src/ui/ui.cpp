@@ -799,7 +799,7 @@ Text(renderer_2d* Group, counted_string String, ui_style *Style = &DefaultStyle,
 }
 
 link_internal u32
-StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_render_params Params = ColumnRenderParam_RightAlign)
+StartColumn(renderer_2d *Group, ui_style* Style, v4 Padding, column_render_params Params = ColumnRenderParam_RightAlign)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_column_start,
@@ -822,7 +822,7 @@ StartColumn(renderer_2d *Group, ui_style* Style = 0, v4 Padding = V4(0), column_
 }
 
 link_internal u32
-StartColumn(renderer_2d *Group, ui_render_params *Params)
+StartColumn(renderer_2d *Group, ui_render_params *Params = &DefaultUiRenderParams_Column)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
 
@@ -845,7 +845,7 @@ EndColumn(renderer_2d* Group, u32 StartCommandIndex)
 }
 
 link_internal void
-PushColumn(renderer_2d *Group, counted_string String, ui_style* Style = &DefaultStyle, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+PushColumn(renderer_2d *Group, counted_string String, ui_style* Style, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
 {
   u32 StartIndex = StartColumn(Group, Style, Padding, Params);
     Text(Group, String, Style);
@@ -853,7 +853,7 @@ PushColumn(renderer_2d *Group, counted_string String, ui_style* Style = &Default
 }
 
 link_internal void
-PushColumn(renderer_2d *Group, counted_string String, ui_render_params *Params)
+PushColumn(renderer_2d *Group, counted_string String, ui_render_params *Params = &DefaultUiRenderParams_Column)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
   PushColumn(Group, String, Style, Padding, ColumnParams);
@@ -1336,11 +1336,9 @@ PushWindowStartInternal( renderer_2d *Group,
 
   PushUiRenderCommand(Group, &Command);
 
-  ui_style TitleBarStyle = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR);
-
   // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
   PushButtonStart(Group, ResizeHandleInteractionId);
-    PushUntexturedQuadAt(Group, WindowResizeHandleMin, WindowResizeHandleDim, zDepth_Border, &TitleBarStyle, QuadRenderParam_DisableClipping);
+    PushUntexturedQuadAt(Group, WindowResizeHandleMin, WindowResizeHandleDim, zDepth_Border, &DefaultWindowBezelStyle, QuadRenderParam_DisableClipping);
   PushButtonEnd(Group);
 
   PushForceAdvance(Group, V2(Global_TitleBarPadding));
@@ -1355,13 +1353,12 @@ PushWindowStartInternal( renderer_2d *Group,
   }
 
   PushButtonStart(Group, TitleBarInteractionId);
-    PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &TitleBarStyle);
+    PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &DefaultWindowBezelStyle);
   PushButtonEnd(Group);
 
-  PushBorder(Group, AbsWindowBounds, TitleBarStyle.HoverColor, UI_WINDOW_BORDER_DEFAULT_WIDTH);
+  PushBorder(Group, AbsWindowBounds, DefaultWindowBezelStyle.HoverColor, UI_WINDOW_BORDER_DEFAULT_WIDTH);
 
-  ui_style BackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
-  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &BackgroundStyle);
+  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle);
   PushNewRow(Group);
 
 /*   PushResetDrawBounds(Group); */
@@ -1438,7 +1435,7 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, ui_id InteractionId, window_
 }
 
 link_internal b32
-Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
+Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* Style, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
   // TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
   interactable_handle Button = PushButtonStart(Group, ButtonId, Style);
@@ -1450,7 +1447,7 @@ Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* 
 }
 
 link_internal b32
-Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_render_params *Params)
+Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_render_params *Params = &DefaultUiRenderParams_Button)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
   b32 Result = Button( Group, ButtonName, ButtonId, Style, Padding, ColumnParams );
@@ -1514,7 +1511,7 @@ PushSliderBar(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor
   PercFilled = Clamp01(PercFilled);
 
   v2 BackgroundQuadDim = V2(BarWidth, *BarHeight);
-  v2 SliderQuadDim = V2(1.f, *BarHeight);
+  v2 SliderQuadDim = V2(2.f, *BarHeight);
 
   r32 SliderOffset = (BackgroundQuadDim.x*PercFilled) - BackgroundQuadDim.x - (SliderQuadDim.x/2.f);
 
