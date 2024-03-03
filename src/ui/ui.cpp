@@ -38,10 +38,10 @@ struct ui_toggle_button_group
 };
 
 link_internal ui_element_reference
-DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_FUNCTION_PROTO_DEFAULTS);
+DrawToggleButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params = &DefaultUiRenderParams_Generic);
 
 link_internal ui_toggle_button_group
-UiToggleButtonGroup(renderer_2d *Ui, ui_toggle_button_handle_buffer *Buttons, ui_toggle_button_group_flags Flags = ToggleButtonGroupFlags_None, UI_FUNCTION_PROTO_DEFAULTS)
+UiToggleButtonGroup(renderer_2d *Ui, ui_toggle_button_handle_buffer *Buttons, cs Name, ui_render_params *Params = &DefaultUiRenderParams_Generic,  ui_toggle_button_group_flags Flags = ToggleButtonGroupFlags_None)
 {
   ui_toggle_button_group Result = {};
   Result.Ui = Ui;
@@ -50,7 +50,7 @@ UiToggleButtonGroup(renderer_2d *Ui, ui_toggle_button_handle_buffer *Buttons, ui
 
   Assert(Buttons->Count < bitsof(Result.ToggleBits));
 
-  Result.UiRef = DrawToggleButtonGroup(&Result, UI_FUNCTION_INSTANCE_NAMES);
+  Result.UiRef = DrawToggleButtonGroup(&Result, Name, Params);
 
   return Result;
 }
@@ -1031,7 +1031,7 @@ PushButtonStart(renderer_2d *Group, ui_id InteractionId, ui_style* Style = 0)
 }
 
 link_internal ui_element_reference
-PushTableStart(renderer_2d* Group, relative_position Position = Position_None,  ui_element_reference RelativeTo = {}, v2 Offset = {}, ui_style *Style = &DefaultStyle, v4 Padding = {})
+PushTableStart(renderer_2d* Group, relative_position Position = Position_None, ui_element_reference RelativeTo = {}, v2 Offset = {}, ui_style *Style = &DefaultStyle, v4 Padding = {})
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_table_start,
@@ -1606,7 +1606,7 @@ ToggleRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *Toggle
 }
 
 link_internal ui_element_reference
-DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_FUNCTION_PROTO_NAMES)
+DrawToggleButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
 
@@ -1618,7 +1618,8 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, UI_FUNCTION_PROTO_NAMES)
   // TODO(Jesse): These aren't stored .. we should asesert this ..???
   Group->ToggleBits = 0;
 
-  ui_element_reference Result = PushTableStart(Ui, UI_FUNCTION_INSTANCE_NAMES);
+  ui_element_reference Result = PushTableStart(Ui, Params);
+    if (Name) { PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column); PushNewRow(Ui); }
     IterateOver(ButtonBuffer, UiButton, ButtonIndex)
     {
       interactable_handle ButtonHandle = {UiButton->Id};
