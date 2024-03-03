@@ -431,7 +431,8 @@ debug_global v4 DefaultDatastructurePadding = V4(5, 5, 0, 0);
 debug_global v4 DefaultColumnPadding   = V4( 0, 3, 30, 3);
 debug_global v4 DefaultButtonPadding   = V4(15, 3, 15, 3);
 debug_global v4 DefaultCheckboxPadding = V4(15, 3, 15, 3);
-debug_global v4 DefaultGenericPadding  = V4(0, 3, 0, 3);
+debug_global v4 DefaultGenericPadding  = V4( 0, 3, 0,  3);
+debug_global v4 DefaultZeroPadding     = V4( 0, 0, 0,  0);
 /* debug_global v4 DefaultColumnPadding = V4(0); */
 /* debug_global v4 DefaultButtonPadding = V4(15); */
 /* debug_global v4 DefaultButtonPadding = V4(0); */
@@ -506,6 +507,15 @@ global_variable ui_render_params DefaultUiRenderParams_Generic =
   &DefaultStyle,
   {},
   DefaultGenericPadding,
+  {},
+};
+
+global_variable ui_render_params DefaultUiRenderParams_Blank =
+{
+  {},
+  &DefaultStyle,
+  {},
+  DefaultZeroPadding,
   {},
 };
 
