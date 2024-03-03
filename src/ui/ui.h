@@ -279,8 +279,6 @@ struct render_state
 
 
 
-global_variable v4 DefaultToggleButtonPadding = V4(15,0,15,0);
-
 
 
 
@@ -428,9 +426,12 @@ link_internal ui_style FlatUiStyle(v3 Color, font *Font = &Global_Font);
 debug_global v4 DatastructureIndent = V4(Global_Font.Size.x*2, 0, 0, 0);
 debug_global v4 DefaultDatastructurePadding = V4(5, 5, 0, 0);
 
-debug_global v4 DefaultColumnPadding   = V4( 0, 3, 30, 3);
-debug_global v4 DefaultButtonPadding   = V4(15, 3, 15, 3);
-debug_global v4 DefaultCheckboxPadding = V4(15, 3, 15, 3);
+debug_global v4 DefaultColumnPadding       = V4( 0, 3, 30, 3);
+
+debug_global v4 DefaultButtonPadding       = V4(15, 3, 15, 3);
+debug_global v4 DefaultCheckboxPadding     = DefaultButtonPadding;
+debug_global v4 DefaultToggleButtonPadding = DefaultButtonPadding;
+
 debug_global v4 DefaultGenericPadding  = V4( 0, 3, 0,  3);
 debug_global v4 DefaultZeroPadding     = V4( 0, 0, 0,  0);
 /* debug_global v4 DefaultColumnPadding = V4(0); */
@@ -465,9 +466,10 @@ debug_global ui_style DefaultBlurredStyle  = UiStyleFromLightestColor(UI_COLOR_D
 debug_global ui_style DefaultDisabledStyle = UiStyleFromLightestColor(UI_COLOR_DEFAULT_DISABLED);
 
 debug_global ui_style DefaultWindowBezelStyle      = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR);
+debug_global ui_style SaturatedWindowBezelStyle      = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);
 debug_global ui_style DefaultWindowBackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
 
-debug_global ui_style Global_DefaultCheckboxForeground = UiStyleFromLightestColor(UI_COLOR_DEFAULT_SELECTED_MUTED);
+debug_global ui_style Global_DefaultCheckboxForeground = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);
 debug_global ui_style Global_DefaultCheckboxBackground = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED);
 
 debug_global ui_style Global_DefaultSuccessStyle = UiStyleFromLightestColor(V3(0.1f, 0.9f, 0.1f));;
@@ -578,6 +580,7 @@ struct ui_render_command_abs_border
   rect2 Bounds;
   v3 Color;
   v4 Thickness;
+  rect2 ClipRect;
 };
 
 struct ui_render_command_window_start

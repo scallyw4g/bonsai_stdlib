@@ -1089,13 +1089,14 @@ PushRelativeBorder(renderer_2d *Group, v2 Dim, v3 Color, v4 Thickness = V4(1))
   PushUiRenderCommand(Group, &Command);
 }
 link_internal void
-PushBorder(renderer_2d *Group, rect2 AbsoluteBounds, v3 Color, v4 Thickness = V4(1))
+PushBorder(renderer_2d *Group, rect2 AbsoluteBounds, v3 Color, v4 Thickness = V4(1), rect2 Clip = DISABLE_CLIPPING)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_abs_border,
     .ui_render_command_abs_border.Bounds = AbsoluteBounds,
     .ui_render_command_abs_border.Color = Color,
     .ui_render_command_abs_border.Thickness = Thickness,
+    .ui_render_command_abs_border.ClipRect = Clip,
   };
 
   PushUiRenderCommand(Group, &Command);
@@ -1290,38 +1291,23 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 25.f);
   Window->MaxClip.y = Max(Window->MaxClip.y, TitleRect.Max.y + ResizeHandleDim.y  + 6.f);
 
-  PushWindowStartInternal( Group,
-                           Window,
-                           TitleText,
-                           MinimizedIcon,
-                           ResizeHandleInteractionId,
-                           MinimizeInteractionId,
-                           TitleBarInteractionId,
-                           GetAbsoluteMaxClip(Window)-ResizeHandleDim,
-                           ResizeHandleDim,
-                           V2(Window->MaxClip.x-TitleRect.Max.x-50, 0),
-                           Window->Basis,
-                           Window->MaxClip,
-                           Window->Scroll );
-}
+  v2 ResizeHandleMin = GetAbsoluteMaxClip(Window)-ResizeHandleDim;
+  v2 MinimizeButtonOffset = V2(Window->MaxClip.x-TitleRect.Max.x-50, 0);
 
-link_internal void
-PushWindowStartInternal( renderer_2d *Group,
-                         window_layout *Window,
-                         cs TitleText,
-                         cs MinimizedIcon,
-                         ui_id ResizeHandleInteractionId,
-                         ui_id MinimizeInteractionId,
-                         ui_id TitleBarInteractionId,
-                         v2 WindowResizeHandleMin,
-                         v2 WindowResizeHandleDim,
-                         v2 MinimizeButtonOffset,
-                         v2 WindowBasis,
-                         v2 WindowMaxClip,
-                         v2 WindowScroll )
-{
+ v2 WindowBasis = Window->Basis;
+ v2 WindowMaxClip = Window->MaxClip;
+ v2 WindowScroll = Window->Scroll;
+
   rect2 AbsWindowBounds = RectMinDim(WindowBasis, WindowMaxClip);
   rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max);
+
+
+  //
+  //
+  // Start actual UI code
+  //
+  //
+
 
   ui_render_command Command = {
     .Type = type_ui_render_command_window_start,
@@ -1338,9 +1324,22 @@ PushWindowStartInternal( renderer_2d *Group,
 
   PushUiRenderCommand(Group, &Command);
 
+  /* rect2 MinimizedTitleBarBounds = RectMinDim({}, V2(TitleRect.Max.x, Global_TitleBarHeight)); */
+
+
+  {
+    rect2 BorderClip = AbsWindowBounds;
+    BorderClip.Min.y += Global_TitleBarHeight;
+    /* BorderClip.Min.y += UI_WINDOW_BORDER_DEFAULT_WIDTH.Top + 1.f; */
+    BorderClip.Max.x += UI_WINDOW_BORDER_DEFAULT_WIDTH.Right;
+    BorderClip.Max.y += UI_WINDOW_BORDER_DEFAULT_WIDTH.Bottom;
+
+    PushBorder(Group, AbsWindowBounds, UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, UI_WINDOW_BORDER_DEFAULT_WIDTH, BorderClip);
+  }
+
   // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
   PushButtonStart(Group, ResizeHandleInteractionId);
-    PushUntexturedQuadAt(Group, WindowResizeHandleMin, WindowResizeHandleDim, zDepth_Border, &DefaultWindowBezelStyle, QuadRenderParam_DisableClipping);
+    PushUntexturedQuadAt(Group, ResizeHandleMin, ResizeHandleDim, zDepth_Border, &SaturatedWindowBezelStyle, QuadRenderParam_DisableClipping);
   PushButtonEnd(Group);
 
   PushForceAdvance(Group, V2(Global_TitleBarPadding));
@@ -1357,8 +1356,6 @@ PushWindowStartInternal( renderer_2d *Group,
   PushButtonStart(Group, TitleBarInteractionId);
     PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &DefaultWindowBezelStyle);
   PushButtonEnd(Group);
-
-  PushBorder(Group, AbsWindowBounds, DefaultWindowBezelStyle.HoverColor, UI_WINDOW_BORDER_DEFAULT_WIDTH);
 
   PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle);
   PushNewRow(Group);
@@ -1619,7 +1616,7 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *
   Group->ToggleBits = 0;
 
   ui_element_reference Result = PushTableStart(Ui, Params);
-    if (Name) { PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column); PushNewRow(Ui); }
+    if (Name) { PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column); PushNewRow(Ui); PushNewRow(Ui); }
     IterateOver(ButtonBuffer, UiButton, ButtonIndex)
     {
       interactable_handle ButtonHandle = {UiButton->Id};
@@ -1631,8 +1628,8 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *
         UnsetAllTogglesExcluding(Group, ButtonIndex);
       }
 
-      ui_style *ThisStyle = ToggledOn(Ui, UiButton) ? &DefaultSelectedStyle : Style;
-      if (ToggleButton(Ui, UiButton->Text, UiButton->Text, UiButton->Id, ThisStyle, DefaultToggleButtonPadding))
+      /* ui_style *ThisStyle = ToggledOn(Ui, UiButton) ? &DefaultSelectedStyle : Style; */
+      if (ToggleButton(Ui, UiButton->Text, UiButton->Text, UiButton->Id, Params))
       {
         Group->ToggleBits |= (1 << ButtonIndex);
       }
@@ -2654,13 +2651,17 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         v2 PadOffset = V2(TypedCommand->Layout.Padding.Left, TypedCommand->Layout.Padding.Top);
 
+#if 0
+        b32 UpdateDrawBound = True;
+        b32 AdvanceLayoutStack = True;
+#else
         b32 UpdateDrawBound = TypedCommand->Params & QuadRenderParam_AdvanceClip;
         b32 AdvanceLayoutStack = TypedCommand->Params & QuadRenderParam_AdvanceLayout;
-
         if (UpdateDrawBound == False)
         {
           TypedCommand->Layout.Basis += PadOffset;
         }
+#endif
 
         PushLayout(&RenderState->Layout, &TypedCommand->Layout, UpdateDrawBound, AdvanceLayoutStack );
         ProcessUntexturedQuadPush(Group, TypedCommand, RenderState);
@@ -2721,7 +2722,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_abs_border:
       {
         ui_render_command_abs_border* Border = RenderCommandAs(abs_border, Command);
-        BufferBorder(Group, Border->Bounds, Border->Color, GetZ(zDepth_Border, RenderState->Window), DISABLE_CLIPPING, Border->Thickness);
+        BufferBorder(Group, Border->Bounds, Border->Color, GetZ(zDepth_Border, RenderState->Window), Border->ClipRect, Border->Thickness);
       } break;
 
       case type_ui_render_command_force_advance:
