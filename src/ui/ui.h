@@ -428,9 +428,10 @@ link_internal ui_style FlatUiStyle(v3 Color, font *Font = &Global_Font);
 debug_global v4 DatastructureIndent = V4(Global_Font.Size.x*2, 0, 0, 0);
 debug_global v4 DefaultDatastructurePadding = V4(5, 5, 0, 0);
 
-debug_global v4 DefaultColumnPadding  = V4( 0, 3, 30, 3);
-debug_global v4 DefaultButtonPadding  = V4(15, 3, 15, 3);
-debug_global v4 DefaultGenericPadding = V4(0, 3, 0, 3);
+debug_global v4 DefaultColumnPadding   = V4( 0, 3, 30, 3);
+debug_global v4 DefaultButtonPadding   = V4(15, 3, 15, 3);
+debug_global v4 DefaultCheckboxPadding = V4(15, 3, 15, 3);
+debug_global v4 DefaultGenericPadding  = V4(0, 3, 0, 3);
 /* debug_global v4 DefaultColumnPadding = V4(0); */
 /* debug_global v4 DefaultButtonPadding = V4(15); */
 /* debug_global v4 DefaultButtonPadding = V4(0); */
@@ -481,13 +482,22 @@ global_variable ui_render_params DefaultUiRenderParams_Button =
   {}
 };
 
+global_variable ui_render_params DefaultUiRenderParams_Checkbox =
+{
+  {},
+  &DefaultStyle,
+  {},
+  DefaultCheckboxPadding,
+  {}
+};
+
 global_variable ui_render_params DefaultUiRenderParams_Column =
 {
   {},
   &DefaultStyle,
   {},
   DefaultColumnPadding,
-  ColumnRenderParam_RightAlign,
+  ColumnRenderParam_LeftAlign,
 };
 
 global_variable ui_render_params DefaultUiRenderParams_Generic =

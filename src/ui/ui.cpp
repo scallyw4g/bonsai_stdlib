@@ -1013,6 +1013,8 @@ PushButtonEnd(renderer_2d *Group)
 link_internal interactable_handle
 PushButtonStart(renderer_2d *Group, ui_id InteractionId, ui_style* Style = 0)
 {
+  Assert(IsValid(&InteractionId));
+
   ui_render_command Command = {
     .Type = type_ui_render_command_button_start,
     .ui_render_command_button_start.ID = InteractionId,
@@ -1705,38 +1707,41 @@ DrawFileNodes(renderer_2d *Ui,  file_traversal_node Node, filtered_file_traversa
 
 
 link_internal void
-PushLayout(layout** Dest, layout* Layout)
+PushLayout(layout** Dest, layout* Layout, b32 DoUpdateDrawBounds = True, b32 DoAdvanceLayoutStack = True)
 {
-  /* Layout->DrawBounds = InvertedInfinityRectangle(); */
-
   Assert(!Layout->Prev);
   Layout->Prev = *Dest;
   *Dest = Layout;
 
-/*   if (Layout != &GlobalLightPosition */
-  /* Assert(Layout->At == V2(0)); */
-  /* Info("%f %f", double(Layout->At.x), r64(Layout->At.y)); */
-
   // NOTE(Jesse): We have to do this such that the padding we're about to advance
   // by gets accounted for (or, rather, the basis we're starting at is accurate).
   // If we do not, the padding space does not get included in the final draw bounds
-  UpdateDrawBounds(Layout);
+  if (DoUpdateDrawBounds) { UpdateDrawBounds(Layout); }
 
-  v2 Pad = V2(Layout->Padding.Left, Layout->Padding.Top);
-  AdvanceLayoutStackBy(Pad, Layout);
+  if (DoAdvanceLayoutStack)
+  {
+    v2 Pad = V2(Layout->Padding.Left, Layout->Padding.Top);
+    AdvanceLayoutStackBy(Pad, Layout);
+  }
 }
 
 link_internal layout*
-PopLayout(layout** Layout)
+PopLayout(layout** Layout, b32 DoUpdateDrawBounds = True, b32 DoAdvanceLayoutStack = True)
 {
   layout* PoppedLayout = *Layout;
 
   v4 Padding = PoppedLayout->Padding;
-  v2 ClipTest = PoppedLayout->DrawBounds.Max + V2(0, Padding.Bottom);
-  UpdateDrawBounds(PoppedLayout, ClipTest);
+  if (DoUpdateDrawBounds)
+  {
+    v2 ClipTest = PoppedLayout->DrawBounds.Max + V2(0, Padding.Bottom);
+    UpdateDrawBounds(PoppedLayout, ClipTest);
+  }
 
-  v2 Advance = V2(Padding.Right, -Padding.Top);
-  AdvanceLayoutStackBy(Advance, PoppedLayout);
+  if (DoAdvanceLayoutStack)
+  {
+    v2 Advance = V2(Padding.Right, -Padding.Top);
+    AdvanceLayoutStackBy(Advance, PoppedLayout);
+  }
 
   layout* PrevLayout = PoppedLayout->Prev;
   PoppedLayout->Prev = 0;
@@ -2646,9 +2651,19 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         ui_render_command_untextured_quad* TypedCommand = RenderCommandAs(untextured_quad, Command);
         TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState->Layout);
 
-        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
+        v2 PadOffset = V2(TypedCommand->Layout.Padding.Left, TypedCommand->Layout.Padding.Top);
+
+        b32 UpdateDrawBound = TypedCommand->Params & QuadRenderParam_AdvanceClip;
+        b32 AdvanceLayoutStack = TypedCommand->Params & QuadRenderParam_AdvanceLayout;
+
+        if (UpdateDrawBound == False)
+        {
+          TypedCommand->Layout.Basis += PadOffset;
+        }
+
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout, UpdateDrawBound, AdvanceLayoutStack );
         ProcessUntexturedQuadPush(Group, TypedCommand, RenderState);
-        PopLayout(&RenderState->Layout);
+        PopLayout(&RenderState->Layout, UpdateDrawBound, AdvanceLayoutStack);
       } break;
 
       case type_ui_render_command_untextured_quad_at:
