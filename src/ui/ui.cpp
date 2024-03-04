@@ -1178,26 +1178,12 @@ UnminimizeWindow(renderer_2d *Group, window_layout *Window)
 }
 
 link_internal void
-PushWindowStartInternal( renderer_2d *Group,
-                         window_layout *Window,
-                         cs TitleText,
-                         cs MinimizedIcon,
-                         ui_id ResizeHandleInteractionId,
-                         ui_id MinimizeInteractionId,
-                         ui_id TitleBarInteractionId,
-                         v2 WindowResizeHandleMin,
-                         v2 WindowResizeHandleDim,
-                         v2 MinimizeButtonOffset,
-                         v2 WindowBasis,
-                         v2 WindowMaxClip,
-                         v2 WindowScroll );
-
-link_internal void
 PushWindowStart(renderer_2d *Group, window_layout *Window)
 {
   TIMED_FUNCTION();
 
-  v2 ResizeHandleDim = V2(20);
+  v2 ResizeHandleDim = Global_ResizeHandleDim;
+
   /* counted_string TitleText = FCS(CSz("%S (%u) (%.1f, %.1f)"), Window->Title, Window->InteractionStackIndex, double(Window->Scroll.x), double(Window->Scroll.y) ); */
   counted_string TitleText = Window->Title;
   counted_string MinimizedIcon = CSz(" _ ");
@@ -1370,6 +1356,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 link_internal void
 PushWindowEnd(renderer_2d *Group, window_layout *Window)
 {
+  /* PushForceAdvance(Group, Global_ResizeHandleDim+V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*4.f); */
   PushForceAdvance(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*4.f);
 
   ui_render_command EndCommand = {};
@@ -2467,7 +2454,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         if (TypedCommand->Window->Flags & WindowLayoutFlag_Size_Dynamic)
         {
           v2 ClippedMaxCorner = (*Group->ScreenDim - TypedCommand->Window->Basis) - DefaultWindowSideOffset;
-          v2 WindowMaxCorner = RenderState->Layout->DrawBounds.Max;
+          v2 WindowMaxCorner = RenderState->Layout->DrawBounds.Max + Global_ResizeHandleDim;
           TypedCommand->Window->MaxClip = Min(ClippedMaxCorner, WindowMaxCorner);
         }
 
