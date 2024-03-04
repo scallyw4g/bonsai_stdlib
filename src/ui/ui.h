@@ -441,7 +441,7 @@ debug_global v4 DefaultZeroPadding     = V4( 0, 0, 0,  0);
 /* debug_global v4 DefaultButtonPadding = V4(0); */
 
 
-global_variable v2 Global_ResizeHandleDim = V2(20);
+global_variable v2 Global_ResizeHandleDim = V2(15);
 
 #define UI_WINDOW_BORDER_DEFAULT_WIDTH     (V4(2.f))
 
