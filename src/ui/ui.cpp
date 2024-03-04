@@ -143,7 +143,7 @@ UpdateDrawBounds(layout *Layout)
 link_internal void
 AdvanceSpaces(u32 N, layout *Layout, v2 FontSize)
 {
-  Layout->At.x += (N*FontSize.x);
+  Layout->At.x += (N*(FontSize.x-Global_FontKerningTweak));
   UpdateDrawBounds(Layout);
   return;
 }
@@ -587,15 +587,6 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, v3 Color, r32 Z, r
                       MinP, FontSize, UV, Color, Z, ClipWindow, ClipOptional);
 }
 
-#if 0
-link_internal void
-BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, u32 Color, r32 Z, rect2 ClipWindow, rect2 *ClipOptional)
-{
-  v3 ColorVector = GetColorData(Color);
-  BufferChar(Group, Char, MinP, FontSize, ColorVector, Z, ClipWindow, ClipOptional);
-}
-#endif
-
 link_internal void
 BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip, v4 Thickness = V4(1))
 {
@@ -651,7 +642,7 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
       BufferChar(Group, (u8)Text.Start[CharIndex], AbsMinP, Style->Font.Size, Color, Z, ClipWindow, ClipOptional);
     }
 
-    xDelta += Style->Font.Size.x;
+    xDelta += Style->Font.Size.x + Global_FontKerningTweak;
   }
 
   if ( (Params & TextRenderParam_NoAdvanceLayout) == False)
@@ -721,7 +712,7 @@ BufferTextAt(renderer_2d *Group, v2 BasisP, counted_string Text, v2 FontSize, v3
         CharIndex < Text.Count;
         CharIndex++ )
     {
-      v2 MinP = BasisP + V2(FontSize.x*CharIndex, 0);
+      v2 MinP = BasisP + V2((FontSize.x+Global_FontKerningTweak)*CharIndex, 0);
       BufferChar(Group, (u8)Text.Start[CharIndex], MinP, FontSize, Color, Z, Clip, 0);
     }
   }
@@ -1135,10 +1126,17 @@ PushForceAdvance(renderer_2d *Group, v2 Offset)
 }
 
 link_internal rect2
+GetDrawBounds(counted_string String, font *Font)
+{
+  r32 xMax = (String.Count * (Font->Size.x+Global_FontKerningTweak));
+  rect2 Result =  RectMinMax(V2(0.f, 0.f), V2(xMax, Font->Size.y));
+  return Result;
+}
+
+link_internal rect2
 GetDrawBounds(counted_string String, ui_style *Style)
 {
-  r32 xMax = (String.Count * Style->Font.Size.x);
-  rect2 Result =  RectMinMax(V2(0.f, 0.f), V2(xMax, Style->Font.Size.y));
+  rect2 Result = GetDrawBounds(String, &Style->Font);
   return Result;
 }
 
@@ -1257,7 +1255,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   ui_id ResizeHandleInteractionId = UiId(Window, Cast(void*, "WindowResizeWidget"), Window);
   interactable_handle ResizeHandle = { .Id = ResizeHandleInteractionId };
 
-  v2 TitleBounds = V2(Window->Title.Count*Global_Font.Size.x, Global_Font.Size.y);
+  v2 TitleBounds = V2(GetDrawBounds(Window->Title, &Global_Font).Max.x, Global_Font.Size.y);
   Window->MaxClip = Max(TitleBounds, Window->MaxClip);
 
   if (Pressed(Group, &ResizeHandle))

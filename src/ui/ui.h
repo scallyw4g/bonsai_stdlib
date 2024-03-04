@@ -368,7 +368,7 @@ MakeFont(v2 Size)
 /* debug_global f32 Global_DefaultFontScale = 0.75f; */
 /* debug_global f32 Global_DefaultFontScale = 0.6f; */
 /* debug_global f32 Global_DefaultFontScale = 0.5f; */
-debug_global f32 Global_DefaultFontScale = 0.4f;
+debug_global f32 Global_DefaultFontScale = 0.45f;
 
 debug_global v2 Global_DefaultFontSize = V2(26, 34);
 
@@ -376,6 +376,8 @@ debug_global v2 Global_DefaultFontSize = V2(26, 34);
 debug_global font Global_Font = {
   .Size = Global_DefaultFontSize * Global_DefaultFontScale,
 };
+
+debug_global r32 Global_FontKerningTweak = -2.5f;
 
 // TODO(Jesse, tags: font, cleanup): Axe this!
 debug_global font Global_SmallFont =  {
