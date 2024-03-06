@@ -338,11 +338,11 @@ Contains(rect3i Rect, v3i P)
 link_internal b32
 Contains(aabb AABB, v3 P)
 {
-  v3 AABBCenter = GetCenter(&AABB);
-  v3 AABBRadius = GetRadius(&AABB);
-  v3 Min = AABBCenter-AABBRadius;
-  v3 Max = AABBCenter+AABBRadius;
-  b32 Result = (P >= Min && P < Max);
+  /* v3 AABBCenter = GetCenter(&AABB); */
+  /* v3 AABBRadius = GetRadius(&AABB); */
+  /* v3 Min = AABBCenter-AABBRadius; */
+  /* v3 Max = AABBCenter+AABBRadius; */
+  b32 Result = (P >= AABB.Min && P < AABB.Max);
   return Result;
 }
 
