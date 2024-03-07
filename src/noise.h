@@ -131,13 +131,14 @@ IQ_ValueNoise_AnalyticNormals(f32 xin, f32 yin, f32 zin, v3 *Normal)
 //
 //
 // NOTE(Jesse): Squareness == 0 (not square), Squareness == 1 (very square)
+// NOTE(Jesse): MaskChance == 0 (not masked), MaskChance == 1 (Always Masked)
 link_internal f32
 VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f, r32 MaskChance = 0.f)
 {
   v3 baseCell = Floor(Basis);
 
   random_series BaseCellEntropy = RandomSeriesFromV3(baseCell);
-  if (RandomUnilateral(&BaseCellEntropy) > MaskChance)
+  if (RandomUnilateral(&BaseCellEntropy) < MaskChance)
   {
     return 0;
   }
