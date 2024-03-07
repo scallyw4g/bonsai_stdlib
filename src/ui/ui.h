@@ -152,10 +152,19 @@ UiId(window_layout *Window, const char *Interaction, void *Element)
   return UiId(Window, Cast(void*, Interaction), Element);
 }
 
+// TODO(Jesse): This should probably just take a ui_id directly?  The usage
+// code for this function isn't exactly obvious
 link_internal ui_toggle_button_handle
-UiToggle(cs Text, window_layout *Window, const char*Interaction, void* Element)
+UiToggle(cs Text, window_layout *Window, const char *Interaction, void* Element)
 {
   ui_toggle_button_handle Result = { Text, UiId(Window, Interaction, Element) };
+  return Result;
+}
+
+link_internal ui_toggle_button_handle
+UiToggle(cs Text, ui_id Id)
+{
+  ui_toggle_button_handle Result = { Text, Id };
   return Result;
 }
 
@@ -430,7 +439,7 @@ debug_global v4 DefaultDatastructurePadding = V4(5, 5, 0, 0);
 
 debug_global v4 DefaultColumnPadding       = V4( 0, 3, 30, 3);
 
-debug_global v4 DefaultButtonPadding       = V4(15, 3, 15, 3);
+debug_global v4 DefaultButtonPadding       = V4(10, 3, 10, 3);
 debug_global v4 DefaultCheckboxPadding     = DefaultButtonPadding;
 debug_global v4 DefaultToggleButtonPadding = DefaultButtonPadding;
 

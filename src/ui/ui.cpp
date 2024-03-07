@@ -1601,7 +1601,15 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *
   Group->ToggleBits = 0;
 
   ui_element_reference Result = PushTableStart(Ui, Params);
-    if (Name) { PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column); PushNewRow(Ui); PushNewRow(Ui); }
+    if (Name)
+    {
+      PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column);
+      if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
+      {
+        PushNewRow(Ui);
+        PushNewRow(Ui);
+      }
+    }
     IterateOver(ButtonBuffer, UiButton, ButtonIndex)
     {
       interactable_handle ButtonHandle = {UiButton->Id};
