@@ -443,7 +443,7 @@ debug_global v4 DefaultButtonPadding       = V4(10, 3, 10, 3);
 debug_global v4 DefaultCheckboxPadding     = DefaultButtonPadding;
 debug_global v4 DefaultToggleButtonPadding = DefaultButtonPadding;
 
-debug_global v4 DefaultGenericPadding  = V4( 0, 3, 0,  3);
+debug_global v4 DefaultGenericPadding  = V4( 3, 3, 3,  3);
 debug_global v4 DefaultZeroPadding     = V4( 0, 0, 0,  0);
 /* debug_global v4 DefaultColumnPadding = V4(0); */
 /* debug_global v4 DefaultButtonPadding = V4(15); */
