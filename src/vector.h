@@ -1049,3 +1049,11 @@ GetPosition(s32 Index, chunk_dimension Dim)
   return Result;
 }
 
+
+struct maybe_v3
+{
+  maybe_tag Tag;
+  v3 V3;
+};
+
+
