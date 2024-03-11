@@ -1,6 +1,3 @@
-// TODO(Jesse): Remove this??  Probably worth it.
-#include <math.h>
-
 link_internal umm
 SafeDecrement(umm *N)
 {
