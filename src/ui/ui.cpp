@@ -1647,7 +1647,13 @@ DrawFileNodes(renderer_2d *Ui,  file_traversal_node Node, filtered_file_traversa
 {
   maybe_file_traversal_node Result = {};
 
-  if (Params->FilterFunction(&Node))
+  // NOTE(Jesse): Do it in this kinda tortured way because evaluation order of
+  // checks inside if clauses is undefined if they are function calls.  ie. the
+  // compiler could generate code that calls FilterFunction before the null check.
+  b32 DrawNode = True;
+  if (Params->FilterFunction) { DrawNode = Params->FilterFunction(&Node); }
+
+  if (DrawNode)
   {
     v4 Pad = V4(10, 0, 10, 0);
     switch (Node.Type)
