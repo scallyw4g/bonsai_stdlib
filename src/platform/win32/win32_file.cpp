@@ -102,6 +102,7 @@ link_internal native_file
 PlatformOpenFile(const char *Filepath, file_permission Permissions)
 {
   native_file Result = {};
+  Result.Path = CS(Filepath);
 
   DWORD CreationBehavior = 0;
   if (Permissions & FilePermission_Read)
@@ -145,7 +146,6 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
   }
   else
   {
-    Result.Path = CS(Filepath);
     Result.Handle = hFile;
 
     if (Permissions & FilePermission_Write)
@@ -212,7 +212,7 @@ PlatformWriteToFile(native_file *File, u8* Bytes, umm Count)
 
   if (TotalBytesWritten != Count)
   {
-    SoftError("Wrote (%llu)/(%llu) bytes to file (%s)", TotalBytesWritten, Count, File->Path.Start);
+    SoftError("Wrote (%llu)/(%llu) bytes to file (%s)", u64(TotalBytesWritten), u64(Count), File->Path.Start);
   }
 
   return Result;

@@ -421,6 +421,8 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
         case 'l':
         {
           CursorAt = Advance(FormatCursor);
+          if (CursorAt == 'l') { CursorAt = Advance(FormatCursor); }
+
           if (CursorAt == 'u')
           {
             u64 Value = va_arg(Args, u64);

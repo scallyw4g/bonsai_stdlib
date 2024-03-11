@@ -579,6 +579,14 @@ Write(u8_stream *Dest, u8 *Src, umm Count)
 link_internal b32
 Write(u8_cursor_block_array *Dest, u8 *Src, umm Count)
 {
+  if (Dest->Memory == 0)
+  {
+    Dest->BlockSize = Megabytes(32);
+    Dest->Memory = AllocateArena(Dest->BlockSize);
+    u8_cursor First = U8Cursor(Dest->BlockSize, Dest->Memory);
+    Ensure( Push(Dest, &First) );
+  }
+
   u8_cursor *Last = GetPtr(Dest, LastIndex(Dest));
 
   b32 Result = False;
