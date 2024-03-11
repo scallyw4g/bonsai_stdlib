@@ -20,6 +20,8 @@
 
 #include <time.h> // nanosleep
 
+// TODO(Jesse)(math): Remove this.
+#include <math.h>
 
 #define PLATFORM_RUNTIME_BREAK() do { PlatformDebugStacktrace(); raise(SIGTRAP); } while (false)
 
