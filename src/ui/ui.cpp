@@ -1440,7 +1440,7 @@ Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_render_
 
 
 link_internal b32
-ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
+ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_LeftAlign)
 {
   interactable_handle Handle = {
     .Id = InteractionId
