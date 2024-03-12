@@ -1612,7 +1612,10 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *
   // TODO(Jesse): These aren't stored .. we should asesert this ..???
   Group->ToggleBits = 0;
 
-  ui_element_reference Result = PushTableStart(Ui, Params);
+  ui_render_params TableParams = *Params;
+  TableParams.Padding = {};
+  TableParams.Offset = {};
+  ui_element_reference Result = PushTableStart(Ui, &TableParams);
     if (Name)
     {
       PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column);
@@ -2510,9 +2513,14 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           {
             case Position_None:
             {
+              // NOTE(Jesse): This fixes the bug at @enum_button_group_aligns_poorly_after_toggle_button
+#if 1
+              TypedCommand->Layout.Basis = GetAbsoluteAt(RenderState->Layout);
+#else
               r32 BasisX = RenderState->Layout->Basis.x;
               r32 BasisY = GetAbsoluteAt(RenderState->Layout).y;
               TypedCommand->Layout.Basis = V2(BasisX, BasisY);
+#endif
             } break;
 
             // NOTE(Jesse): Not Implemented
