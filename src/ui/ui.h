@@ -16,6 +16,9 @@
 #define DISABLE_CLIPPING RectMinMax(V2(f32_MIN), V2(f32_MAX) )
 #define DISABLE_CLIPPING_MAX V2(f32_MAX)
 
+#define OPEN_INDENT_FOR_TOGGLEABLE_REGION() (PushForceUpdateBasis(Ui, V2(20.f, 0.f)))
+#define CLOSE_INDENT_FOR_TOGGLEABLE_REGION() (PushForceUpdateBasis(Ui, V2(-20.f, 0.f)))
+
 
 
 struct ui_debug
