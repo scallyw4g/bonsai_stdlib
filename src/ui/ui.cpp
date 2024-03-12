@@ -1554,19 +1554,31 @@ UnsetAllTogglesExcluding(ui_toggle_button_group *Group, umm ExcludeIndex)
 }
 
 link_internal void
-SetRadioButton(ui_toggle_button_group *Group, maybe_ui_toggle_ptr MaybeToggle, ui_toggle_button_handle *ToggleHandle, b32 Value)
+SetToggleButton(renderer_2d *Ui, maybe_ui_toggle_ptr MaybeToggle, ui_id UiId, b32 Value)
 {
-  UnsetAllTogglesExcluding(Group, umm_MAX);
-
   if (MaybeToggle.Tag)
   {
     MaybeToggle.Value->ToggledOn = Value;
   }
   else
   {
-    ui_toggle E = {ToggleHandle->Id, True};
-    Insert(E, &Group->Ui->ToggleTable, &Group->Ui->UiToggleArena);
+    ui_toggle E = {UiId, True};
+    Insert(E, &Ui->ToggleTable, &Ui->UiToggleArena);
   }
+}
+
+link_internal void
+SetToggleButton(renderer_2d *Ui, ui_id UiId, b32 Value)
+{
+  maybe_ui_toggle_ptr MaybeInputToggle = GetPtrById(&Ui->ToggleTable, UiId);
+  SetToggleButton(Ui, MaybeInputToggle, UiId, Value);
+}
+
+link_internal void
+SetRadioButton(ui_toggle_button_group *Group, maybe_ui_toggle_ptr MaybeToggle, ui_toggle_button_handle *ToggleHandle, b32 Value)
+{
+  UnsetAllTogglesExcluding(Group, umm_MAX);
+  SetToggleButton(Group->Ui, MaybeToggle, ToggleHandle->Id, Value);
 }
 
 link_internal void
