@@ -1509,6 +1509,41 @@ poof(
   func generate_string_table(EnumType)
   {
     link_internal counted_string
+    ToStringPrefixless((EnumType.name) Type)
+    {
+      counted_string Result = {};
+      switch (Type)
+      {
+        EnumType.map_values (EnumValue)
+        {
+          case EnumValue.name: { Result = CSz("EnumValue.name.strip_all_prefix"); } break;
+        }
+
+        EnumType.has_tag(bitfield)?
+        {
+          // TODO(Jesse): This is pretty barf and we could do it in a single allocation,
+          // but the metaprogram might have to be a bit fancier..
+          default:
+          {
+            u32 CurrentFlags = u32(Type);
+
+            u32 FirstValue = UnsetLeastSignificantSetBit(&CurrentFlags);
+            Result = ToStringPrefixless((EnumType.name)(FirstValue));
+
+            while (CurrentFlags)
+            {
+              u32 Value = UnsetLeastSignificantSetBit(&CurrentFlags);
+              cs Next = ToStringPrefixless((EnumType.name)(Value));
+              Result = FSz("%S | %S", Result, Next);
+            }
+          } break;
+        }
+      }
+      /* if (Result.Start == 0) { Info("Could not convert value(%d) to (EnumType.name)", Type); } */
+      return Result;
+    }
+
+    link_internal counted_string
     ToString((EnumType.name) Type)
     {
       counted_string Result = {};
@@ -1539,6 +1574,7 @@ poof(
           } break;
         }
       }
+      /* if (Result.Start == 0) { Info("Could not convert value(%d) to (EnumType.name)", Type); } */
       return Result;
     }
   }
