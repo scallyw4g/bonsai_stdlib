@@ -440,7 +440,7 @@ link_internal ui_style FlatUiStyle(v3 Color, font *Font = &Global_Font);
 debug_global v4 DatastructureIndent = V4(Global_Font.Size.x*2, 0, 0, 0);
 debug_global v4 DefaultDatastructurePadding = V4(5, 5, 0, 0);
 
-debug_global v4 DefaultColumnPadding       = V4( 0, 3, 30, 3);
+debug_global v4 DefaultColumnPadding       = V4( 3, 3, 30, 3);
 
 debug_global v4 DefaultButtonPadding       = V4(10, 3, 10, 3);
 debug_global v4 DefaultCheckboxPadding     = DefaultButtonPadding;
