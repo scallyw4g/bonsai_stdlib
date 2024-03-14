@@ -856,6 +856,18 @@ SafeDivide0(v3 Dividend, r32 Divisor)
   return Result;
 }
 
+inline v3
+SafeDivide0(v3 Dividend, v3 Divisor)
+{
+  v3 Result = {};
+
+  if (Divisor.E[0] != 0.0f) { Result.E[0] = Dividend.E[0]/Divisor.E[0]; }
+  if (Divisor.E[1] != 0.0f) { Result.E[1] = Dividend.E[1]/Divisor.E[1]; }
+  if (Divisor.E[2] != 0.0f) { Result.E[2] = Dividend.E[2]/Divisor.E[2]; }
+
+  return Result;
+}
+
 b32
 PointsAreWithinDistance(v3 P1, v3 P2, f32 Thresh)
 {

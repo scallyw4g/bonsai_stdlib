@@ -192,6 +192,12 @@ PerlinNoise(f32 x, f32 y, f32 z)
   return res;
 }
 
+link_internal f32
+PerlinNoise(v3 P)
+{
+  return PerlinNoise(P.x, P.y, P.z);
+}
+
 link_internal void
 PerlinNoise_8x(f32 *xIn, f32 yIn, f32 zIn, f32 *Result)
 {

@@ -69,9 +69,6 @@ DefaultThreadLocalState(s32 ThreadId)
   DEBUG_REGISTER_ARENA(Thread.TempMemory, ThreadId);
   DEBUG_REGISTER_ARENA(Thread.PermMemory, ThreadId);
 
-  /* Thread.PerlinNoise = Allocate(perlin_noise, Thread.PermMemory, 1); */
-  /* InitPerlinNoise(Thread.PerlinNoise); */
-
   return Thread;
 }
 

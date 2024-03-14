@@ -116,13 +116,15 @@ struct ui_toggle_button_handle
 {
   cs Text;
   ui_id Id;
+  u32 Value; // NOTE(Jesse): This is typically the associated enum value
 };
 
 /* // 0x3FFFFF == 22 set bits == 4,194,303 in decimal */
 /* CAssert(0x3FFFFF == 0b1111111111111111111111); */
 /* #define UiId(window, base, mod) u64( (u64(base)&0x3FFFFF) | ( (u64(mod)&0x3FFFFF) << 22 | (u64(window)&0x3FFFFF) << 44)) */
 
-#define UiMaskAndCastPointer(p) u32(u64(p)&0xffffffff)
+// NOTE(Jesse): Shift down by 3 bits because the bottom 3 bits (2 on 32bit) must be zero due to pointer alignment
+#define UiMaskAndCastPointer(p) u32((u64(p)>>3)&0xffffffff)
 
 link_internal ui_id
 UiId(window_layout *Window, void *Interaction, void *Element)
@@ -155,19 +157,10 @@ UiId(window_layout *Window, const char *Interaction, void *Element)
   return UiId(Window, Cast(void*, Interaction), Element);
 }
 
-// TODO(Jesse): This should probably just take a ui_id directly?  The usage
-// code for this function isn't exactly obvious
 link_internal ui_toggle_button_handle
-UiToggle(cs Text, window_layout *Window, const char *Interaction, void* Element)
+UiToggle(cs Text, ui_id Id, u32 Value)
 {
-  ui_toggle_button_handle Result = { Text, UiId(Window, Interaction, Element) };
-  return Result;
-}
-
-link_internal ui_toggle_button_handle
-UiToggle(cs Text, ui_id Id)
-{
-  ui_toggle_button_handle Result = { Text, Id };
+  ui_toggle_button_handle Result = { Text, Id, Value };
   return Result;
 }
 

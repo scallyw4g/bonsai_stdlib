@@ -107,7 +107,6 @@ ReleaseFutex(bonsai_futex *Futex)
 
 
 
-struct perlin_noise;
 struct engine_resources;
 struct memory_arena;
 
@@ -118,12 +117,8 @@ struct thread_local_state
 
   char *TempStdoutFormatStringBuffer;
 
-  // TODO(Jesse): ?
-  /* engine_resources *EngineResources; */
-  perlin_noise *PerlinNoise;
-
   s32 Index;
-  s32 Pad0[5];
+  s32 Pad0[7];
 
   void *UserData;
 };

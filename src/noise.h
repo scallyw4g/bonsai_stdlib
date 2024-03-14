@@ -461,3 +461,10 @@ VoronoiNoise3D_8x(f32 *Results, f32 *xMapped, v2 yzMapped, r32 Squreness = 0.f, 
     }
   }
 }
+
+link_internal v3
+MapWorldPositionToNoiseInputValue(v3 NoiseBasis, v3 Offset, v3 Period)
+{
+  v3 NoiseInput = SafeDivide0(NoiseBasis+Offset, Period);
+  return NoiseInput;
+}

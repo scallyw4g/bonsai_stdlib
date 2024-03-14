@@ -1638,35 +1638,25 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
     {
       interactable_handle ButtonHandle = {UiButton->Id};
 
-#if 0
-      // Unset toggle bits and unset all the currently set toggle fields in the toggle table
-      if ( BitfieldIsSet(Group->Flags, ToggleButtonGroupFlags_RadioButtons)
-           && Clicked(Ui, &ButtonHandle) )
-      {
-        UnsetAllTogglesExcluding(Group, ButtonIndex);
-      }
-#endif
-
-      u32 BitFlagValue = (1<<ButtonIndex);
       ui_style *ThisStyle = Style;
       if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
       {
-        ThisStyle = (*Group->EnumValue == u32(ButtonIndex)) ? &DefaultSelectedStyle : ThisStyle;
+        ThisStyle = (*Group->EnumValue == UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
       }
       else
       { Assert(Group->Flags & ToggleButtonGroupFlags_MultiSelectButtons);
-        ThisStyle = (*Group->EnumValue & BitFlagValue) ? &DefaultSelectedStyle : ThisStyle;
+        ThisStyle = (*Group->EnumValue & UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
       }
 
       if (Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, Params->Padding, Params->ColumnParams))
       {
         if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
         {
-          *Group->EnumValue = u32(ButtonIndex);
+          *Group->EnumValue = UiButton->Value;
         }
         else
         { Assert(Group->Flags & ToggleButtonGroupFlags_MultiSelectButtons);
-          ToggleBitfieldValue(*Group->EnumValue, BitFlagValue);;
+          ToggleBitfieldValue(*Group->EnumValue, UiButton->Value);
         }
       }
 
