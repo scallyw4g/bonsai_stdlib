@@ -458,10 +458,12 @@ global_variable v2 Global_ResizeHandleDim = V2(15);
 
 #define UI_WINDOW_BORDER_DEFAULT_WIDTH     (V4(2.f))
 
-#define UI_SATURATE_FACTOR (1.7f)
+#define UI_SATURATE_FACTOR (1.8f)
 #define UI_MUTE_FACTOR (0.8f)
 
-#define UI_WINDOW_BEZEL_DEFAULT_COLOR      (V3(0.24f,  0.10f, 0.23f))
+/* #define UI_WINDOW_BEZEL_DEFAULT_COLOR      (V3(0.25f,  0.07f, 0.25f)) */
+/* #define UI_WINDOW_BEZEL_DEFAULT_COLOR      (V3(93.f,  51.f, 107.f)/255.f) */
+#define UI_WINDOW_BEZEL_DEFAULT_COLOR      (V3(42.f,  24.f, 48.f)/255.f)
 #define UI_WINDOW_BACKGROUND_DEFAULT_COLOR (V3(0.07f, 0.01f, 0.08f))
 #define UI_COLOR_DEFAULT_SELECTED          (V3( 0.7f,  1.0f, 0.7f ))
 
@@ -483,8 +485,8 @@ debug_global ui_style DefaultSelectedStyle = UiStyleFromLightestColor(UI_COLOR_D
 debug_global ui_style DefaultBlurredStyle  = UiStyleFromLightestColor(UI_COLOR_DEFAULT_BLURRED);
 debug_global ui_style DefaultDisabledStyle = UiStyleFromLightestColor(UI_COLOR_DEFAULT_DISABLED);
 
-debug_global ui_style DefaultWindowBezelStyle      = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR);
-debug_global ui_style SaturatedWindowBezelStyle      = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);
+debug_global ui_style DefaultWindowBezelStyle      = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);
+debug_global ui_style SaturatedWindowBezelStyle    = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);
 debug_global ui_style DefaultWindowBackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
 
 debug_global ui_style Global_DefaultCheckboxForeground = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);

@@ -16,9 +16,13 @@ poof(hashtable_get_ptr(ui_toggle, {ui_id}, {Id}))
 
 enum ui_toggle_button_group_flags
 {
-  ToggleButtonGroupFlags_None = 0,
-  ToggleButtonGroupFlags_RadioButtons = (1 << 0),
-  ToggleButtonGroupFlags_DrawVertical = (1 << 1),
+  ToggleButtonGroupFlags_None               = 0,
+
+  // NOTE(Jesse): One and only one of these two must be set
+  ToggleButtonGroupFlags_RadioButtons       = (1 << 0),
+  ToggleButtonGroupFlags_MultiSelectButtons = (1 << 1),
+
+  ToggleButtonGroupFlags_DrawVertical       = (1 << 2),
 };
 
 struct ui_toggle_button_group
@@ -32,25 +36,32 @@ struct ui_toggle_button_group
 
   // This is a bitfield which indicates which enum values are toggled on.  Each
   // bit corresponds to the enum value index.
-  u64 ToggleBits;
+  /* u64 ToggleBits; */
+  u32 *EnumValue;
 
   b32 AnyElementClicked;
 };
 
 link_internal ui_element_reference
-DrawToggleButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params = &DefaultUiRenderParams_Generic);
+DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params = &DefaultUiRenderParams_Generic);
 
 link_internal ui_toggle_button_group
-UiToggleButtonGroup(renderer_2d *Ui, ui_toggle_button_handle_buffer *Buttons, cs Name, ui_render_params *Params = &DefaultUiRenderParams_Generic,  ui_toggle_button_group_flags Flags = ToggleButtonGroupFlags_None)
+DrawButtonGroupForEnum( renderer_2d *Ui,
+     ui_toggle_button_handle_buffer *Buttons,
+                                 cs  Name,
+                                u32 *EnumValue,
+                   ui_render_params *Params = &DefaultUiRenderParams_Generic,
+       ui_toggle_button_group_flags  Flags  = ToggleButtonGroupFlags_None )
 {
   ui_toggle_button_group Result = {};
   Result.Ui = Ui;
   Result.Flags = Flags;
   Result.Buttons = *Buttons;
+  Result.EnumValue = EnumValue;
 
-  Assert(Buttons->Count < bitsof(Result.ToggleBits));
+  Assert(Buttons->Count < bitsof(EnumValue));
 
-  Result.UiRef = DrawToggleButtonGroup(&Result, Name, Params);
+  Result.UiRef = DrawButtonGroup(&Result, Name, Params);
 
   return Result;
 }
@@ -1544,7 +1555,6 @@ Clicked(ui_toggle_button_group *Group, cs ButtonName)
 link_internal void
 UnsetAllTogglesExcluding(ui_toggle_button_group *Group, umm ExcludeIndex)
 {
-  Group->ToggleBits = 0;
   IterateOver(&Group->Buttons, InnerButton, InnerButtonIndex)
   {
     if (InnerButtonIndex == ExcludeIndex) continue;
@@ -1600,21 +1610,20 @@ ToggleRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *Toggle
 }
 
 link_internal ui_element_reference
-DrawToggleButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params)
+DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
 
   renderer_2d *Ui = Group->Ui;
   ui_toggle_button_handle_buffer *ButtonBuffer = &Group->Buttons;
 
-  // Reset this every frame; it's ephermeral.
-  //
-  // TODO(Jesse): These aren't stored .. we should asesert this ..???
-  Group->ToggleBits = 0;
-
   ui_render_params TableParams = *Params;
   TableParams.Padding = {};
   TableParams.Offset = {};
+
+  // Clear out the enum value ?
+  /* *Group->EnumValue = 0; */
+
   ui_element_reference Result = PushTableStart(Ui, &TableParams);
     if (Name)
     {
@@ -1629,17 +1638,36 @@ DrawToggleButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *
     {
       interactable_handle ButtonHandle = {UiButton->Id};
 
+#if 0
       // Unset toggle bits and unset all the currently set toggle fields in the toggle table
       if ( BitfieldIsSet(Group->Flags, ToggleButtonGroupFlags_RadioButtons)
            && Clicked(Ui, &ButtonHandle) )
       {
         UnsetAllTogglesExcluding(Group, ButtonIndex);
       }
+#endif
 
-      /* ui_style *ThisStyle = ToggledOn(Ui, UiButton) ? &DefaultSelectedStyle : Style; */
-      if (ToggleButton(Ui, UiButton->Text, UiButton->Text, UiButton->Id, Params))
+      u32 BitFlagValue = (1<<ButtonIndex);
+      ui_style *ThisStyle = Style;
+      if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
       {
-        Group->ToggleBits |= (1 << ButtonIndex);
+        ThisStyle = (*Group->EnumValue == u32(ButtonIndex)) ? &DefaultSelectedStyle : ThisStyle;
+      }
+      else
+      { Assert(Group->Flags & ToggleButtonGroupFlags_MultiSelectButtons);
+        ThisStyle = (*Group->EnumValue & BitFlagValue) ? &DefaultSelectedStyle : ThisStyle;
+      }
+
+      if (Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, Params->Padding, Params->ColumnParams))
+      {
+        if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
+        {
+          *Group->EnumValue = u32(ButtonIndex);
+        }
+        else
+        { Assert(Group->Flags & ToggleButtonGroupFlags_MultiSelectButtons);
+          ToggleBitfieldValue(*Group->EnumValue, BitFlagValue);;
+        }
       }
 
       if (Clicked(Ui, &ButtonHandle))

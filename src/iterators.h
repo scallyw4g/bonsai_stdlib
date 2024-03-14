@@ -92,6 +92,7 @@
   (Dest) = (type)((Dest) & ~(Value));         \
 } while (false)
 
+// TODO(Jesse): Should we make this branchless?
 #define ToggleBitfieldValue(Dest, Value) \
       (Dest) = (Dest) & (Value) ?  ((u32)(Dest) & ~(u32)(Value)) : ((u32)(Dest) | (u32)(Value))
 
