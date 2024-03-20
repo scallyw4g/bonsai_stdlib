@@ -402,6 +402,12 @@ Chunk_Dimension(s32 x, s32 y, s32 z)
   return Result;
 }
 
+link_internal void
+Truncate(v3 *Input)
+{
+  *Input = V3(V3i(*Input));
+}
+
 v3
 Truncate(v3 Input)
 {
