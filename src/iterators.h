@@ -22,6 +22,11 @@
 #define RangeIteratorReverse( ArgName, RangeMax ) \
   for (s32 ArgName = ((RangeMax)-1); ArgName >= 0; --ArgName)
 
+
+#define RangeIteratorReverseRange( ArgName, RangeMax, RangeMin ) \
+  for (s32 ArgName = ((RangeMax)-1); ArgName >= RangeMin; --ArgName)
+
+
 #define CursorIterator( ArgName, Cursor ) \
   for (umm ArgName = 0; ArgName < CurrentCount(Cursor); ++ArgName)
 
