@@ -84,6 +84,15 @@ poof(
       return Result;
     }
 
+    link_internal rect.name
+    RectCenterRad((vector.name) Center, vector.name Rad)
+    {
+      auto Min = Center-Rad;
+      auto Max = Center+Rad;
+      rect.name Result = RectMinMax(Min, Max);
+      return Result;
+    }
+
     link_internal b32
     IsInside((vector.name) P, rect.name Rect)
     {
@@ -218,15 +227,6 @@ Rect3iCenterRad(v3i Center, v3i Rad)
   auto Min = Center-Rad;
   auto Max = Center+Rad;
   rect3i Result = Rect3iMinMax(Min, Max);
-  return Result;
-}
-
-link_internal rect3
-RectCenterRad(v3 Center, v3 Rad)
-{
-  auto Min = Center-Rad;
-  auto Max = Center+Rad;
-  rect3 Result = RectMinMax(Min, Max);
   return Result;
 }
 
