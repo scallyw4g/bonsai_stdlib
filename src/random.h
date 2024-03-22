@@ -103,6 +103,7 @@ RandomSeries(u64 Seed = DEFAULT_ENTROPY_SEED)
   return Result;
 }
 
+#if 0
 inline u32
 RandomU32(random_series *Entropy)
 {
@@ -121,6 +122,30 @@ RandomU32(random_series *Entropy)
   u32 Result = (u32)(Entropy->Seed >> 31);
   return Result;
 }
+#else
+
+// When I added white noise as an option to brushes in bonsai, I had a quick and
+// easy way to visualize this RNG.  Turns out, Mr. Wellons over here did good, again.
+//
+// https://nullprogram.com/blog/2018/07/31/
+//
+inline u32
+RandomU32(random_series *Entropy)
+{
+  u32 x = u32(Entropy->Seed);
+
+  x ^= x >> 17;
+  x *= 0xed5ad4bbU;
+  x ^= x >> 11;
+  x *= 0xac4c1b51U;
+  x ^= x >> 15;
+  x *= 0x31848babU;
+  x ^= x >> 14;
+
+  Entropy->Seed = u64(x);
+  return x;
+}
+#endif
 
 inline u32
 RandomPositiveS32(random_series *Entropy)
