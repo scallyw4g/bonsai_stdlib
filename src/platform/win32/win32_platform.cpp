@@ -407,53 +407,22 @@ WindowMessageCallback(
     {
       switch ((int)wParam)
       {
-        BindKeyupToInput(0x41, A);
-        BindKeyupToInput(0x42, B);
-        BindKeyupToInput(0x43, C);
-        BindKeyupToInput(0x44, D);
-        BindKeyupToInput(0x45, E);
-        BindKeyupToInput(0x46, F);
-        BindKeyupToInput(0x47, G);
-        BindKeyupToInput(0x48, H);
-        BindKeyupToInput(0x49, I);
-        BindKeyupToInput(0x4A, J);
-        BindKeyupToInput(0x4B, K);
-        BindKeyupToInput(0x4C, L);
-        BindKeyupToInput(0x4D, M);
-        BindKeyupToInput(0x4E, N);
-        BindKeyupToInput(0x4F, O);
-        BindKeyupToInput(0x50, P);
-        BindKeyupToInput(0x51, Q);
-        BindKeyupToInput(0x52, R);
-        BindKeyupToInput(0x53, S);
-        BindKeyupToInput(0x54, T);
-        BindKeyupToInput(0x55, U);
-        BindKeyupToInput(0x56, V);
-        BindKeyupToInput(0x57, W);
-        BindKeyupToInput(0x58, X);
-        BindKeyupToInput(0x59, Y);
-        BindKeyupToInput(0x5A, Z);
+        poof(
+          func (input input_t)
+          {
+            input_t.map(member)
+            {
+              member.has_tag(win32_keycode)?
+              {
+                BindKeyupToInput( member.tag_value(win32_keycode), (member.name));
+              }
+            }
+          }
+        )
+#include <generated/anonymous_input_5Nt8cwGP.h>
 
-        BindKeyupToInput(VK_F12, F12);
-        BindKeyupToInput(VK_F11, F11);
-        BindKeyupToInput(VK_F10, F10);
-        BindKeyupToInput(VK_F9, F9);
-        BindKeyupToInput(VK_F8, F8);
-        BindKeyupToInput(VK_F7, F7);
-        BindKeyupToInput(VK_F6, F6);
-        BindKeyupToInput(VK_F5, F5);
-        BindKeyupToInput(VK_F4, F4);
-        BindKeyupToInput(VK_F3, F3);
-        BindKeyupToInput(VK_F2, F2);
-        BindKeyupToInput(VK_F1, F1);
-
-        BindKeyupToInput(VK_SHIFT, Shift);
-        BindKeyupToInput(VK_MENU, Alt);
-        BindKeyupToInput(VK_CONTROL, Ctrl);
-        BindKeyupToInput(VK_SPACE, Space);
-        BindKeyupToInput(VK_RETURN, Enter);
-        BindKeyupToInput(VK_ESCAPE, Escape);
-        BindKeyupToInput(VK_DELETE, Delete);
+        BindKeyupToInput(VK_DECIMAL, Dot);
+        BindKeyupToInput(VK_DIVIDE,  FSlash);
         default: { /* Ignore all other keypresses */ } break;
       }
     } break;
@@ -464,53 +433,22 @@ WindowMessageCallback(
     {
       switch ((int)wParam)
       {
-        BindKeydownToInput(0x41, A);
-        BindKeydownToInput(0x42, B);
-        BindKeydownToInput(0x43, C);
-        BindKeydownToInput(0x44, D);
-        BindKeydownToInput(0x45, E);
-        BindKeydownToInput(0x46, F);
-        BindKeydownToInput(0x47, G);
-        BindKeydownToInput(0x48, H);
-        BindKeydownToInput(0x49, I);
-        BindKeydownToInput(0x4A, J);
-        BindKeydownToInput(0x4B, K);
-        BindKeydownToInput(0x4C, L);
-        BindKeydownToInput(0x4D, M);
-        BindKeydownToInput(0x4E, N);
-        BindKeydownToInput(0x4F, O);
-        BindKeydownToInput(0x50, P);
-        BindKeydownToInput(0x51, Q);
-        BindKeydownToInput(0x52, R);
-        BindKeydownToInput(0x53, S);
-        BindKeydownToInput(0x54, T);
-        BindKeydownToInput(0x55, U);
-        BindKeydownToInput(0x56, V);
-        BindKeydownToInput(0x57, W);
-        BindKeydownToInput(0x58, X);
-        BindKeydownToInput(0x59, Y);
-        BindKeydownToInput(0x5A, Z);
+        poof(
+          func (input input_t)
+          {
+            input_t.map(member)
+            {
+              member.has_tag(win32_keycode)?
+              {
+                BindKeydownToInput( member.tag_value(win32_keycode), (member.name));
+              }
+            }
+          }
+        )
+#include <generated/anonymous_input_nPw6miGy.h>
 
-        BindKeydownToInput(VK_F12, F12);
-        BindKeydownToInput(VK_F11, F11);
-        BindKeydownToInput(VK_F10, F10);
-        BindKeydownToInput(VK_F9, F9);
-        BindKeydownToInput(VK_F8, F8);
-        BindKeydownToInput(VK_F7, F7);
-        BindKeydownToInput(VK_F6, F6);
-        BindKeydownToInput(VK_F5, F5);
-        BindKeydownToInput(VK_F4, F4);
-        BindKeydownToInput(VK_F3, F3);
-        BindKeydownToInput(VK_F2, F2);
-        BindKeydownToInput(VK_F1, F1);
-
-        BindKeydownToInput(VK_SHIFT, Shift);
-        BindKeydownToInput(VK_MENU, Alt);
-        BindKeydownToInput(VK_CONTROL, Ctrl);
-        BindKeydownToInput(VK_SPACE, Space);
-        BindKeydownToInput(VK_RETURN, Enter);
-        BindKeydownToInput(VK_ESCAPE, Escape);
-        BindKeydownToInput(VK_DELETE, Delete);
+        BindKeydownToInput(VK_DECIMAL, Dot);
+        BindKeydownToInput(VK_DIVIDE,  FSlash);
         default: { /* Ignore all other keypresses */ } break;
 
       } break;
