@@ -16,6 +16,8 @@
 #define RangeIterator_t(type, ArgName, RangeMax ) \
   for (type ArgName = 0; ArgName < RangeMax; ++ArgName)
 
+
+
 #define RangeIterator( ArgName, RangeMax ) \
   for (s32 ArgName = 0; ArgName < RangeMax; ++ArgName)
 
@@ -23,8 +25,12 @@
   for (s32 ArgName = ((RangeMax)-1); ArgName >= 0; --ArgName)
 
 
+#define RangeIteratorRange( ArgName, RangeMax, RangeMin ) \
+  for (s32 ArgName = RangeMin; ArgName < RangeMax; ++ArgName)
+
 #define RangeIteratorReverseRange( ArgName, RangeMax, RangeMin ) \
   for (s32 ArgName = ((RangeMax)-1); ArgName >= RangeMin; --ArgName)
+
 
 
 #define CursorIterator( ArgName, Cursor ) \
