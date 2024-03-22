@@ -130,8 +130,7 @@ link_internal void
 BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
 {
 
-  if (Input->Shift.Pressed)
-  {
+  if (Input->Shift.Pressed) {
     if (Input->Minus.Clicked)
     {
       Input->Minus = {};

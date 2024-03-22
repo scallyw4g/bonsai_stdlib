@@ -181,7 +181,7 @@ struct counted_string
   umm Count;
   const char* Start; // TODO(Jesse, id: 94, tags: cleanup, open_question): Make this non-const?
                      //
-#if 1
+#if 0
   // NOTE(Jesse): This implicit conversion fucks me over often enough that I'm taking it out
   operator bool()
   {

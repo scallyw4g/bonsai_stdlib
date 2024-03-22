@@ -1157,6 +1157,13 @@ poof(
     }
 
     link_inline count_type.name
+    LastIndex((Type.name)_buffer *Buf)
+    {
+      count_type.name Result = Buf->Count > 0? Buf->Count-1 : 0;
+      return Result;
+    }
+
+    link_inline count_type.name
     ZerothIndex((Type.name)_buffer *Buf)
     {
       count_type.name Result = 0;

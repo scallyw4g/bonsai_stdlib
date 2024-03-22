@@ -1513,6 +1513,8 @@ link_internal void
 TextBox(renderer_2d* Group, cs Name, cs Text, u32 TextBufferLen, ui_id ButtonId, ui_render_params *Params = &DefaultUiRenderParams_Button)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
+  if (Name.Count) { PushColumn(Group, Name); }
+
   if (Button( Group, Text, ButtonId, Style, Padding, ColumnParams ))
   {
     BeginTextEdit(Group, Cast(char*, Text.Start), TextBufferLen, ButtonId);
@@ -1652,7 +1654,7 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
   /* *Group->EnumValue = 0; */
 
   ui_element_reference Result = PushTableStart(Ui, &TableParams);
-    if (Name)
+    if (Name.Count)
     {
       PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column);
       if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)

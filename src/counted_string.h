@@ -376,15 +376,15 @@ StartsWith(counted_string S1, counted_string S2)
 }
 
 link_internal b32
-EndsWith(cs S1, cs S2)
+EndsWith(cs Src, cs Query)
 {
-  b32 Result = S2.Count <= S1.Count;
+  b32 Result = Query.Count <= Src.Count;
 
   if (Result)
   {
-    umm Offset = S1.Count - S2.Count;
-    Assert(Offset+S2.Count == S1.Count);
-    Result = StringsMatch(CS(S1.Start+Offset, S2.Count), S2);
+    umm Offset = Src.Count - Query.Count;
+    Assert(Offset+Query.Count == Src.Count);
+    Result = StringsMatch(CS(Src.Start+Offset, Query.Count), Query);
   }
 
   return Result;
@@ -575,14 +575,14 @@ Trim(counted_string String)
   return Result;
 }
 
-counted_string
-Split(counted_string* String, char SplitTarget)
+link_internal cs
+Split(cs* String, char SplitTarget)
 {
   counted_string Result = {};
 
   for (u32 CharIndex = 0;
-      CharIndex < String->Count;
-      ++CharIndex)
+           CharIndex < String->Count;
+         ++CharIndex)
   {
     if (String->Start[CharIndex] == SplitTarget)
     {
@@ -767,6 +767,13 @@ ToU64(counted_string S)
   return Result;
 }
 
+link_internal s64
+ToS64(cs S)
+{
+  s64 Result = s64(ToU64(S));
+  return Result;
+}
+
 link_internal s32
 ToS32(counted_string S)
 {
@@ -795,6 +802,39 @@ ToU32(counted_string *S)
   u32 Result = ToU32(*S);
   return Result;
 }
+
+poof(
+  func parse_integer(type_poof_symbol type_list)
+  {
+    type_list.map(type)
+    {
+      link_internal b32
+      ParseInteger(cs String, type.name *Out)
+      {
+        b32 Result = True;
+
+        RangeIterator_t(umm, Index, String.Count)
+        {
+          if (IsNumeric(String.Start[Index]) == False)
+          {
+            Result = False;
+            break;
+          }
+        }
+
+        if (Result)
+        {
+          *Out = To(type.name.to_capital_case)(String);
+        }
+
+        return Result;
+      }
+    }
+  }
+)
+
+poof(parse_integer({u32 u64 s32 s64}))
+#include <generated/parse_integer_136174807.h>
 
 link_internal char
 Peek(char_cursor* BufferCursor)
