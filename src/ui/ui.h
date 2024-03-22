@@ -192,6 +192,13 @@ poof(hashtable_struct(ui_toggle))
 #include <generated/hashtable_struct_ui_toggle.h>
 
 
+struct text_box_edit_state
+{
+  ui_id Id;
+  char *Text;
+  umm   TextBufferLen;
+};
+
 
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
@@ -220,6 +227,8 @@ struct renderer_2d
   interactable Clicked;
   interactable Pressed;
   b32 RequestedForceCapture;
+
+  text_box_edit_state TextEdit;
 
   untextured_2d_geometry_buffer Geo;
   shader TexturedQuadShader;
@@ -459,13 +468,13 @@ global_variable v2 Global_ResizeHandleDim = V2(15);
 #define UI_WINDOW_BACKGROUND_DEFAULT_COLOR (V3(0.07f, 0.01f, 0.08f))
 #define UI_COLOR_DEFAULT_SELECTED          (V3( 0.7f,  1.0f, 0.7f ))
 
-#define UI_COLOR_DEFAULT_SELECTED_MUTED          (UI_MUTE_FACTOR*UI_COLOR_DEFAULT_SELECTED)
-#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR_MUTED (UI_MUTE_FACTOR*UI_WINDOW_BACKGROUND_DEFAULT_COLOR)
 #define UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED      (UI_MUTE_FACTOR*UI_WINDOW_BEZEL_DEFAULT_COLOR)
+#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR_MUTED (UI_MUTE_FACTOR*UI_WINDOW_BACKGROUND_DEFAULT_COLOR)
+#define UI_COLOR_DEFAULT_SELECTED_MUTED          (UI_MUTE_FACTOR*UI_COLOR_DEFAULT_SELECTED)
 
-#define UI_COLOR_DEFAULT_SELECTED_SATURATED          (UI_SATURATE_FACTOR*UI_COLOR_DEFAULT_SELECTED)
-#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR_SATURATED (UI_SATURATE_FACTOR*UI_WINDOW_BACKGROUND_DEFAULT_COLOR)
 #define UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED      (UI_SATURATE_FACTOR*UI_WINDOW_BEZEL_DEFAULT_COLOR)
+#define UI_WINDOW_BACKGROUND_DEFAULT_COLOR_SATURATED (UI_SATURATE_FACTOR*UI_WINDOW_BACKGROUND_DEFAULT_COLOR)
+#define UI_COLOR_DEFAULT_SELECTED_SATURATED          (UI_SATURATE_FACTOR*UI_COLOR_DEFAULT_SELECTED)
 
 
 #define UI_COLOR_DEFAULT               (V3(0.9f))

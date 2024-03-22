@@ -1432,13 +1432,13 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, ui_id InteractionId, window_
 link_internal b32
 Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* Style, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
 {
-  // TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
-  interactable_handle Button = PushButtonStart(Group, ButtonId, Style);
-    PushColumn(Group, ButtonName, Style, Padding, ColumnParams);
-  PushButtonEnd(Group);
+// TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
+interactable_handle Button = PushButtonStart(Group, ButtonId, Style);
+  PushColumn(Group, ButtonName, Style, Padding, ColumnParams);
+PushButtonEnd(Group);
 
-  b32 Result = Clicked(Group, &Button);
-  return Result;
+b32 Result = Clicked(Group, &Button);
+return Result;
 }
 
 link_internal b32
@@ -1490,6 +1490,33 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id Intera
   UNPACK_UI_RENDER_PARAMS(Params);
   b32 Result = ToggleButton(Group, ButtonNameOn, ButtonNameOff, InteractionId, Style, Padding, ColumnParams);
   return Result;
+}
+
+
+
+/*********************************           *********************************/
+/*********************************  TextBox  *********************************/
+/*********************************           *********************************/
+
+
+link_internal void
+BeginTextEdit(renderer_2d *Group, char *Text, umm TextBufferLen, ui_id InteractionId)
+{
+  ZeroMemory(Cast(void*, Text), TextBufferLen);
+
+  Group->TextEdit.Id = InteractionId;
+  Group->TextEdit.Text = Text;
+  Group->TextEdit.TextBufferLen = TextBufferLen;
+}
+
+link_internal void
+TextBox(renderer_2d* Group, cs Name, cs Text, u32 TextBufferLen, ui_id ButtonId, ui_render_params *Params = &DefaultUiRenderParams_Button)
+{
+  UNPACK_UI_RENDER_PARAMS(Params);
+  if (Button( Group, Text, ButtonId, Style, Padding, ColumnParams ))
+  {
+    BeginTextEdit(Group, Cast(char*, Text.Start), TextBufferLen, ButtonId);
+  }
 }
 
 
@@ -2749,6 +2776,19 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
             }
           }
         }
+
+        if (ButtonResult.Hover)
+        {
+          BufferUntexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
+              UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
+        }
+
+        if (ButtonStart->ID == Group->TextEdit.Id)
+        {
+          BufferUntexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
+              UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
+        }
+
       } break;
 
       case type_ui_render_command_rel_border:
@@ -3011,6 +3051,13 @@ UiFrameBegin(renderer_2d *Ui)
 {
   Ui->RequestedForceCapture = False;
 
+  // Ui eats all input events if there's a text edit active
+  if (IsValid(&Ui->TextEdit.Id))
+  {
+    Ui->RequestedForceCapture = True;
+  }
+
+
   Assert(Ui->Input);
   Assert(Ui->MouseP);
   Assert(Ui->MouseDP);
@@ -3065,6 +3112,52 @@ UiInteractionWasViewport(renderer_2d *Ui)
 }
 
 link_internal void
+DoTextEditInteraction(renderer_2d *Ui)
+{
+  input *Input = Ui->Input;
+  if (IsValid(&Ui->TextEdit.Id))
+  {
+    if (Input->Enter.Clicked)
+    {
+      Ui->TextEdit.Id = {};
+    }
+
+    cs Text = CS(Ui->TextEdit.Text);
+    if (Input->Backspace.Clicked)
+    {
+      Text.Count--;
+      Cast(char*, Text.Start)[Text.Count] = 0;
+    }
+
+    poof(
+      func (input input_t)
+      {
+        input_t.map(member)
+        {
+          member.has_tag(glyph)?
+          {
+            if (Input->(member.name).Clicked)
+            {
+              if (Input->Shift.Pressed)
+              {
+                Cast(char*, Text.Start)[Text.Count] = ToUpper('member.tag_value(glyph)');
+              }
+              else
+              {
+                Cast(char*, Text.Start)[Text.Count] = 'member.tag_value(glyph)';
+              }
+              Text.Count++;
+            }
+          }
+        }
+      }
+    )
+#include <generated/anonymous_input_Lwen2qoF.h>
+  }
+
+}
+
+link_internal void
 UiFrameEnd(renderer_2d *Ui)
 {
   input *Input = Ui->Input;
@@ -3082,6 +3175,8 @@ UiFrameEnd(renderer_2d *Ui)
       Ui->HighestWindow->Scroll.y += Input->MouseWheelDelta;
     }
   }
+
+  DoTextEditInteraction(Ui);
 
   DrawUi(Ui, Ui->CommandBuffer);
 
