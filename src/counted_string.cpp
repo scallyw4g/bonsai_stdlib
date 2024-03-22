@@ -19,6 +19,8 @@ GetTempFmtBuffer()
 poof(buffer(counted_string))
 #include <generated/buffer_counted_string.h>
 
+typedef counted_string_buffer cs_buffer;
+
 poof(index_of(counted_string))
 #include <generated/index_of_counted_string.h>
 
@@ -783,6 +785,34 @@ ToF64(counted_string* String)
 {
   const char* Temp = GetNullTerminated(*String, GetTranArena());
   r32 Result = (r32)atof(Temp);
+  return Result;
+}
+
+link_internal cs_buffer
+Split(cs String, char SplitTarget, memory_arena *Memory)
+{
+  u32 Splits = 0;
+  RangeIterator_t(umm, Index, String.Count)
+  {
+    if (String.Start[Index] == SplitTarget)
+    {
+      ++Splits;
+    }
+  }
+
+  cs_buffer Result = CountedStringBuffer(1+Splits, Memory);
+
+  cs Current = String;
+  RangeIterator_t(umm, Index, Splits)
+  {
+    cs SecondHalf = Split(&Current, SplitTarget);
+
+    Result.Start[Index] = Current;
+    Current = SecondHalf;
+  }
+
+  Result.Start[LastIndex(&Result)] = Current;
+
   return Result;
 }
 
