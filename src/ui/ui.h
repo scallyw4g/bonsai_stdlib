@@ -2,13 +2,14 @@
 #define UI_FUNCTION_PROTO_DEFAULTS ui_render_params *Params = &DefaultUiRenderParams_Generic
 #define UI_FUNCTION_INSTANCE_NAMES Params
 
-#define UNPACK_UI_RENDER_PARAMS(Params)                                  \
+#define UNPACK_UI_RENDER_PARAMS(Params)                                    \
      relative_position          Pos = Params->RelativePosition.Position;   \
   ui_element_reference   RelativeTo = Params->RelativePosition.RelativeTo; \
-              ui_style       *Style = Params->Style;                                       \
-                    v2       Offset = Params->Offset;                                            \
-                    v4      Padding = Params->Padding;                                          \
-  column_render_params ColumnParams = Params->ColumnParams;              \
+              ui_style       *Style = Params->Style;                       \
+                    v2       Offset = Params->Offset;                      \
+                    v4      Padding = Params->Padding;                     \
+  auto   AlignFlags = Params->AlignFlags;                  \
+  auto   LayoutFlags = Params->LayoutFlags;                  \
 
 
 
@@ -310,28 +311,28 @@ enum debug_texture_array_slice
   DebugTextureArraySlice_Count,
 };
 
-enum column_render_params
+enum ui_element_alignment_flags
 {
-  ColumnRenderParam_LeftAlign  = 0,
-  ColumnRenderParam_RightAlign = (1 << 0),
+  UiElementAlignmentFlag_LeftAlign  = 0,
+  UiElementAlignmentFlag_RightAlign = (1 << 0),
 };
 
-enum quad_render_params
+enum ui_element_layout_flags
 {
-  QuadRenderParam_NoAdvance       = 0,
-  QuadRenderParam_AdvanceLayout   = (1 << 0),
-  QuadRenderParam_AdvanceClip     = (1 << 1),
-  QuadRenderParam_DisableClipping = (1 << 2),
+  UiElementLayoutFlag_NoAdvance       = 0,
+  UiElementLayoutFlag_AdvanceLayout   = (1 << 0),
+  UiElementLayoutFlag_AdvanceClip     = (1 << 1),
+  UiElementLayoutFlag_DisableClipping = (1 << 2),
 
-  QuadRenderParam_Default = (QuadRenderParam_AdvanceLayout|QuadRenderParam_AdvanceClip),
+  UiElementLayoutFlag_Default = (UiElementLayoutFlag_AdvanceLayout|UiElementLayoutFlag_AdvanceClip),
 };
 
-enum text_render_params
-{
-  TextRenderParam_Default         = 0,
-  TextRenderParam_NoAdvanceLayout = (1 << 0),
-  TextRenderParam_DisableClipping = (1 << 1),
-};
+/* enum ui_element_layout_flags */
+/* { */
+/*   TextRenderParam_Default         = 0, */
+/*   TextRenderParam_NoAdvanceLayout = (1 << 0), */
+/*   TextRenderParam_DisableClipping = (1 << 1), */
+/* }; */
 
 
 enum button_params
@@ -432,7 +433,8 @@ struct ui_render_params
   v2 Offset;
   v4 Padding;
 
-  column_render_params ColumnParams;
+  ui_element_alignment_flags      AlignFlags;
+  ui_element_layout_flags LayoutFlags;
 };
 
 link_internal ui_style UiStyleFromLightestColor(v3 Color, font *Font = &Global_Font);
@@ -503,7 +505,8 @@ global_variable ui_render_params DefaultUiRenderParams_Button =
   &DefaultStyle,
   {},
   DefaultButtonPadding,
-  {}
+  {},
+  UiElementLayoutFlag_Default,
 };
 
 global_variable ui_render_params DefaultUiRenderParams_Checkbox =
@@ -512,7 +515,8 @@ global_variable ui_render_params DefaultUiRenderParams_Checkbox =
   &DefaultStyle,
   {},
   DefaultCheckboxPadding,
-  {}
+  {},
+  UiElementLayoutFlag_Default,
 };
 
 global_variable ui_render_params DefaultUiRenderParams_Column =
@@ -521,7 +525,8 @@ global_variable ui_render_params DefaultUiRenderParams_Column =
   &DefaultStyle,
   {},
   DefaultColumnPadding,
-  ColumnRenderParam_LeftAlign,
+  UiElementAlignmentFlag_LeftAlign,
+  UiElementLayoutFlag_Default,
 };
 
 global_variable ui_render_params DefaultUiRenderParams_Generic =
@@ -531,6 +536,7 @@ global_variable ui_render_params DefaultUiRenderParams_Generic =
   {},
   DefaultGenericPadding,
   {},
+  UiElementLayoutFlag_Default,
 };
 
 global_variable ui_render_params DefaultUiRenderParams_GenericHorizontal =
@@ -540,6 +546,7 @@ global_variable ui_render_params DefaultUiRenderParams_GenericHorizontal =
   {},
   DefaultGenericHorizontalPadding,
   {},
+  UiElementLayoutFlag_Default,
 };
 
 
@@ -550,6 +557,7 @@ global_variable ui_render_params DefaultUiRenderParams_Blank =
   {},
   DefaultZeroPadding,
   {},
+  UiElementLayoutFlag_Default,
 };
 
 link_internal r32
@@ -632,7 +640,8 @@ struct ui_render_command_column_start
   ui_style Style;
   r32 Width;
   r32 MaxWidth;
-  column_render_params Params;
+  ui_element_alignment_flags      AlignFlags;
+  /* ui_element_layout_flags LayoutFlags; */ // NOTE(Jesse): Asking for a column that doesn't advance the layout is kinda just nonsense ..?
 };
 
 struct ui_render_command_column_end
@@ -647,7 +656,7 @@ struct ui_render_command_text
   counted_string String;
   v2 Offset;
   rect2 Clip;
-  text_render_params Params;
+  ui_element_layout_flags Params;
 };
 
 struct ui_render_command_text_at
@@ -664,14 +673,14 @@ struct ui_render_command_untextured_quad
   ui_style Style;
   v2 QuadDim;
   z_depth zDepth;
-  quad_render_params Params;
+  ui_element_layout_flags Params;
 };
 
 struct ui_render_command_untextured_quad_at
 {
   v2 QuadDim;
   z_depth zDepth;
-  quad_render_params Params;
+  ui_element_layout_flags Params;
   ui_style Style;
   layout Layout;
 };
@@ -688,7 +697,7 @@ struct ui_render_command_untextured_quad_at
 
 struct ui_render_command_textured_quad
 {
-  quad_render_params Params;
+  ui_element_layout_flags Params;
 
   s32 TextureSlice;
   texture *Texture;

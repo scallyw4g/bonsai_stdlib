@@ -637,7 +637,7 @@ AdvanceLayoutStackBy(v2 Delta, layout* Layout)
 }
 
 link_internal void
-BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v3 Color, ui_style* Style, r32 Z, rect2 ClipWindow, rect2 *ClipOptional, text_render_params Params, b32 DoBuffering = True)
+BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v3 Color, ui_style* Style, r32 Z, rect2 ClipWindow, rect2 *ClipOptional, ui_element_layout_flags Params, b32 DoBuffering = True)
 {
   r32 xDelta = 0;
   /* v2 MinP = GetAbsoluteAt(Layout) + V2(xDelta, 0); */
@@ -656,7 +656,8 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
     xDelta += Style->Font.Size.x + Global_FontKerningTweak;
   }
 
-  if ( (Params & TextRenderParam_NoAdvanceLayout) == False)
+  // TODO(Jesse)(nopush): Respect AdvanceLayout & AdvanceClip independantly
+  if ( (Params&UiElementLayoutFlag_AdvanceLayout) || (Params&UiElementLayoutFlag_AdvanceClip) )
   {
     AdvanceLayoutStackBy(V2(xDelta, 0), Layout);
     v2 MaxP = Layout->At + V2(0, Style->Font.Size.y);
@@ -681,7 +682,7 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
 }
 
 link_internal void
-BufferValue(counted_string Text, renderer_2d *Group, render_state* RenderState, ui_style* Style, rect2 ClipOptional, text_render_params RenderParams, b32 DoBuffering = True)
+BufferValue(counted_string Text, renderer_2d *Group, render_state* RenderState, ui_style* Style, rect2 ClipOptional, ui_element_layout_flags RenderParams, b32 DoBuffering = True)
 {
   layout* Layout = RenderState->Layout;
 
@@ -697,15 +698,7 @@ BufferValue(counted_string Text, renderer_2d *Group, render_state* RenderState, 
     ClipOptionalPtr = &ClipOptional;
   }
 
-
-  // NOTE(Jesse): This is weird, but it's how I wanted the phrasing on the API
-  // side, so we have this double-negative check here.
-  /* if ((RenderParams & TextRenderParam_NoScroll) == 0) */
-  {
-    /* AbsAt -= Scroll; */
-  }
-
-  if (RenderParams & TextRenderParam_DisableClipping)
+  if (RenderParams & UiElementLayoutFlag_DisableClipping)
   {
     Clip = DISABLE_CLIPPING;
     ClipOptionalPtr = 0;
@@ -781,7 +774,7 @@ PushNewRow(renderer_2d *Group)
 }
 
 link_internal void
-Text(renderer_2d* Group, counted_string String, ui_style *Style = &DefaultStyle, text_render_params RenderParams = TextRenderParam_Default, v2 Offset = {}, rect2 Clip = {})
+Text(renderer_2d* Group, counted_string String, ui_style *Style = &DefaultStyle, ui_element_layout_flags RenderParams = UiElementLayoutFlag_Default, v2 Offset = {}, rect2 Clip = {})
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_text,
@@ -801,7 +794,10 @@ Text(renderer_2d* Group, counted_string String, ui_style *Style = &DefaultStyle,
 }
 
 link_internal u32
-StartColumn(renderer_2d *Group, ui_style* Style, v4 Padding, column_render_params Params = ColumnRenderParam_RightAlign)
+StartColumn(          renderer_2d *Group,
+                         ui_style *Style,
+                               v4  Padding,
+       ui_element_alignment_flags  AlignFlags  = UiElementAlignmentFlag_RightAlign )
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_column_start,
@@ -810,7 +806,8 @@ StartColumn(renderer_2d *Group, ui_style* Style, v4 Padding, column_render_param
       .Style  = Style? *Style : DefaultStyle,
       .Width = 0.f,
       .MaxWidth = 0.f,
-      .Params = Params,
+      .AlignFlags = AlignFlags,
+      /* .LayoutFlags = LayoutFlags, */
     }
   };
 
@@ -828,7 +825,7 @@ StartColumn(renderer_2d *Group, ui_render_params *Params = &DefaultUiRenderParam
 {
   UNPACK_UI_RENDER_PARAMS(Params);
 
-  u32 Result = StartColumn(Group, Style, Padding, ColumnParams);
+  u32 Result = StartColumn(Group, Style, Padding, AlignFlags);
   return Result;
 }
 
@@ -847,9 +844,13 @@ EndColumn(renderer_2d* Group, u32 StartCommandIndex)
 }
 
 link_internal void
-PushColumn(renderer_2d *Group, counted_string String, ui_style* Style, v4 Padding = DefaultColumnPadding, column_render_params Params = ColumnRenderParam_RightAlign)
+PushColumn(           renderer_2d *Group,
+                               cs  String,
+                         ui_style *Style,
+                               v4  Padding     = DefaultColumnPadding,
+       ui_element_alignment_flags  AlignParams = UiElementAlignmentFlag_RightAlign )
 {
-  u32 StartIndex = StartColumn(Group, Style, Padding, Params);
+  u32 StartIndex = StartColumn(Group, Style, Padding, AlignParams);
     Text(Group, String, Style);
   EndColumn(Group, StartIndex);
 }
@@ -858,11 +859,11 @@ link_internal void
 PushColumn(renderer_2d *Group, counted_string String, ui_render_params *Params = &DefaultUiRenderParams_Column)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  PushColumn(Group, String, Style, Padding, ColumnParams);
+  PushColumn(Group, String, Style, Padding, AlignFlags);
 }
 
 link_internal void
-PushColumn(renderer_2d *Group, counted_string String, column_render_params Params)
+PushColumn(renderer_2d *Group, counted_string String, ui_element_alignment_flags Params)
 {
   u32 StartIndex = StartColumn(Group, &DefaultStyle, DefaultColumnPadding, Params);
     Text(Group, String, &DefaultStyle);
@@ -893,7 +894,7 @@ PushTooltip(renderer_2d *Group, counted_string Text)
 }
 
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, v3 Tint = V3(1), quad_render_params Params = QuadRenderParam_Default )
+PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, v3 Tint = V3(1), ui_element_layout_flags Params = UiElementLayoutFlag_Default )
 {
   Assert(Texture->Slices > 1);
   ui_render_command Command = {
@@ -918,7 +919,7 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim,
 
 #if 1
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, v3 Tint = V3(1), quad_render_params Params = QuadRenderParam_Default )
+PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, v3 Tint = V3(1), ui_element_layout_flags Params = UiElementLayoutFlag_Default )
 {
   Assert(Texture->Slices == 1);
   ui_render_command Command = {
@@ -945,16 +946,26 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, v
 #endif
 
 link_internal void
-PushTexturedQuadColumn(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, v3 Tint = V3(1), quad_render_params Params = QuadRenderParam_Default )
+PushTexturedQuadColumn( renderer_2d *Group,
+                            texture *Texture,
+                                s32  TextureSlice,
+                                 v2  Dim,
+                            z_depth  zDepth,
+                                 v3  Tint = V3(1),
+    ui_element_layout_flags  LayoutFlags = UiElementLayoutFlag_Default )
 {
   Assert(TextureSlice >= 0);
-  u32 Start = StartColumn(Group);
-    PushTexturedQuad(Group, Texture, TextureSlice, Dim, zDepth, Tint, Params);
+
+  ui_render_params Params = DefaultUiRenderParams_Column;
+  Params.LayoutFlags = LayoutFlags;
+
+  u32 Start = StartColumn(Group, &Params);
+    PushTexturedQuad(Group, Texture, TextureSlice, Dim, zDepth, Tint, LayoutFlags);
   EndColumn(Group, Start);
 }
 
 link_internal void
-PushUntexturedQuadAt(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui_style *Style = 0, quad_render_params Params = QuadRenderParam_Default)
+PushUntexturedQuadAt(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui_style *Style = 0, ui_element_layout_flags Params = UiElementLayoutFlag_Default)
 {
   ui_render_command Command =
   {
@@ -977,7 +988,7 @@ PushUntexturedQuadAt(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, 
 }
 
 link_internal void
-PushUntexturedQuad(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui_style *Style = 0, v4 Padding = V4(0), quad_render_params Params = QuadRenderParam_Default )
+PushUntexturedQuad(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui_style *Style = 0, v4 Padding = V4(0), ui_element_layout_flags Params = UiElementLayoutFlag_Default )
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_untextured_quad,
@@ -1334,17 +1345,17 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
   // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
   PushButtonStart(Group, ResizeHandleInteractionId);
-    PushUntexturedQuadAt(Group, ResizeHandleMin, ResizeHandleDim, zDepth_Border, &SaturatedWindowBezelStyle, QuadRenderParam_DisableClipping);
+    PushUntexturedQuadAt(Group, ResizeHandleMin, ResizeHandleDim, zDepth_Border, &SaturatedWindowBezelStyle, UiElementLayoutFlag_DisableClipping);
   PushButtonEnd(Group);
 
   PushForceAdvance(Group, V2(Global_TitleBarPadding));
 
-  Text(Group, TitleText, &DefaultStyle, TextRenderParam_DisableClipping );
+  Text(Group, TitleText, &DefaultStyle, UiElementLayoutFlag_DisableClipping );
 
   if (!Window->Minimized)
   {
     PushButtonStart(Group, MinimizeInteractionId);
-      Text(Group, MinimizedIcon, &DefaultStyle, TextRenderParam_DisableClipping, MinimizeButtonOffset );
+      Text(Group, MinimizedIcon, &DefaultStyle, UiElementLayoutFlag_DisableClipping, MinimizeButtonOffset );
     PushButtonEnd(Group);
   }
 
@@ -1430,28 +1441,28 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, ui_id InteractionId, window_
 }
 
 link_internal b32
-Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* Style, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_RightAlign)
+Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* Style, v4 Padding = DefaultButtonPadding, ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_RightAlign)
 {
-// TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
-interactable_handle Button = PushButtonStart(Group, ButtonId, Style);
-  PushColumn(Group, ButtonName, Style, Padding, ColumnParams);
-PushButtonEnd(Group);
+  // TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
+  interactable_handle Button = PushButtonStart(Group, ButtonId, Style);
+    PushColumn(Group, ButtonName, Style, Padding, AlignFlags);
+  PushButtonEnd(Group);
 
-b32 Result = Clicked(Group, &Button);
-return Result;
+  b32 Result = Clicked(Group, &Button);
+  return Result;
 }
 
 link_internal b32
 Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_render_params *Params = &DefaultUiRenderParams_Button)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  b32 Result = Button( Group, ButtonName, ButtonId, Style, Padding, ColumnParams );
+  b32 Result = Button( Group, ButtonName, ButtonId, Style, Padding, AlignFlags );
   return Result;
 }
 
 
 link_internal b32
-ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, column_render_params ColumnParams = ColumnRenderParam_LeftAlign)
+ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_LeftAlign)
 {
   interactable_handle Handle = {
     .Id = InteractionId
@@ -1474,7 +1485,7 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id Intera
   PushUiRenderCommand(Group, &StartCommand);
 
   cs NameToUse = Result ? ButtonNameOn : ButtonNameOff;
-  PushColumn(Group, NameToUse, Style, Padding, ColumnParams);
+  PushColumn(Group, NameToUse, Style, Padding, AlignFlags);
 
   ui_render_command EndCommand = {
     .Type = type_ui_render_command_button_end,
@@ -1488,7 +1499,7 @@ link_internal b32
 ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_render_params *Params)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  b32 Result = ToggleButton(Group, ButtonNameOn, ButtonNameOff, InteractionId, Style, Padding, ColumnParams);
+  b32 Result = ToggleButton(Group, ButtonNameOn, ButtonNameOff, InteractionId, Style, Padding, AlignFlags);
   return Result;
 }
 
@@ -1515,7 +1526,7 @@ TextBox(renderer_2d* Group, cs Name, cs Text, u32 TextBufferLen, ui_id ButtonId,
   UNPACK_UI_RENDER_PARAMS(Params);
   if (Name.Count) { PushColumn(Group, Name); }
 
-  if (Button( Group, Text, ButtonId, Style, Padding, ColumnParams ))
+  if (Button( Group, Text, ButtonId, Style, Padding, AlignFlags ))
   {
     BeginTextEdit(Group, Cast(char*, Text.Start), TextBufferLen, ButtonId);
   }
@@ -1543,7 +1554,7 @@ PushSliderBar(debug_ui_render_group *Group, r32 PercFilled, v3 FColor, v3 BColor
   PushUntexturedQuad(Group, V2(0), BackgroundQuadDim, zDepth_TitleBar, &Style);
 
   Style = UiStyleFromLightestColor(FColor);
-  PushUntexturedQuad(Group, V2(SliderOffset, 0.f), SliderQuadDim, zDepth_TitleBar, &Style, V4(0), QuadRenderParam_NoAdvance);
+  PushUntexturedQuad(Group, V2(SliderOffset, 0.f), SliderQuadDim, zDepth_TitleBar, &Style, V4(0), UiElementLayoutFlag_NoAdvance);
 }
 
 link_internal void
@@ -1677,7 +1688,7 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
         ThisStyle = (*Group->EnumValue & UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
       }
 
-      if (Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, Params->Padding, Params->ColumnParams))
+      if (Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, Params->Padding, Params->AlignFlags))
       {
         if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
         {
@@ -1766,8 +1777,11 @@ DrawFileNodes(renderer_2d *Ui,  file_traversal_node Node, filtered_file_traversa
 
 
 link_internal void
-PushLayout(layout** Dest, layout* Layout, b32 DoUpdateDrawBounds = True, b32 DoAdvanceLayoutStack = True)
+PushLayout(layout** Dest, layout* Layout, ui_element_layout_flags Flags = UiElementLayoutFlag_Default)
 {
+  b32 DoUpdateDrawBounds   = Flags & UiElementLayoutFlag_AdvanceClip;
+  b32 DoAdvanceLayoutStack = Flags & UiElementLayoutFlag_AdvanceLayout;
+
   Assert(!Layout->Prev);
   Layout->Prev = *Dest;
   *Dest = Layout;
@@ -1930,15 +1944,15 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
   Command->Clip = Clip;
   Command->Z = Z;
 
-  if (Command->Texture == 0) { BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, TextRenderParam_NoAdvanceLayout); }
+  if (Command->Texture == 0) { BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, UiElementLayoutFlag_NoAdvance); }
 
-  if (Command->Params & QuadRenderParam_AdvanceClip)
+  if (Command->Params & UiElementLayoutFlag_AdvanceClip)
   {
     UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At);
     UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At + Dim);
   }
 
-  if (Command->Params & QuadRenderParam_AdvanceLayout)
+  if (Command->Params & UiElementLayoutFlag_AdvanceLayout)
   {
     AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
   }
@@ -1953,9 +1967,9 @@ ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_qua
   v3 Color   = SelectColorState(RenderState, &Command->Style);
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
 
-  quad_render_params RenderParams = Command->Params;
+  ui_element_layout_flags RenderParams = Command->Params;
 
-  if (RenderParams & QuadRenderParam_DisableClipping)
+  if (RenderParams & UiElementLayoutFlag_DisableClipping)
   {
     Clip = DISABLE_CLIPPING;
   }
@@ -1979,13 +1993,13 @@ ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad 
 
   BufferUntexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
 
-  if (Command->Params & QuadRenderParam_AdvanceClip)
+  if (Command->Params & UiElementLayoutFlag_AdvanceClip)
   {
     UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At);
     UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At + Dim);
   }
 
-  if (Command->Params & QuadRenderParam_AdvanceLayout)
+  if (Command->Params & UiElementLayoutFlag_AdvanceLayout)
   {
     AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
   }
@@ -2258,7 +2272,7 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
             }
 
             ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
-            CurrentWidth = &TypedCommand->Width;
+             CurrentWidth = &TypedCommand->Width;
             *CurrentWidth += TypedCommand->Layout.Padding.Left + TypedCommand->Layout.Padding.Right;
           } break;
 
@@ -2647,7 +2661,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         PushLayout(&RenderState->Layout, &TypedCommand->Layout);
 
         v2 Advance = {};
-        if (TypedCommand->Params & ColumnRenderParam_RightAlign)
+        if (TypedCommand->AlignFlags&UiElementAlignmentFlag_RightAlign)
         {
           Advance = V2(TypedCommand->MaxWidth - TypedCommand->Width, 0);
           AdvanceLayoutStackBy(Advance, RenderState->Layout);
@@ -2662,7 +2676,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         ui_render_command_column_start *StartCommand = RenderCommandAs(column_start, StartCommandBase);
 
         v2 Advance = {};
-        if (StartCommand->Params == ColumnRenderParam_LeftAlign)
+        if (StartCommand->AlignFlags == UiElementAlignmentFlag_LeftAlign)
         {
           Advance = V2(StartCommand->MaxWidth - StartCommand->Width, 0);
           AdvanceLayoutStackBy(Advance, RenderState->Layout);
@@ -2721,15 +2735,15 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         b32 UpdateDrawBound = True;
         b32 AdvanceLayoutStack = True;
 #else
-        b32 UpdateDrawBound = TypedCommand->Params & QuadRenderParam_AdvanceClip;
-        b32 AdvanceLayoutStack = TypedCommand->Params & QuadRenderParam_AdvanceLayout;
+        b32 UpdateDrawBound = TypedCommand->Params & UiElementLayoutFlag_AdvanceClip;
+        b32 AdvanceLayoutStack = TypedCommand->Params & UiElementLayoutFlag_AdvanceLayout;
         if (UpdateDrawBound == False)
         {
           TypedCommand->Layout.Basis += PadOffset;
         }
 #endif
 
-        PushLayout(&RenderState->Layout, &TypedCommand->Layout, UpdateDrawBound, AdvanceLayoutStack );
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout, TypedCommand->Params);
         ProcessUntexturedQuadPush(Group, TypedCommand, RenderState);
         PopLayout(&RenderState->Layout, UpdateDrawBound, AdvanceLayoutStack);
       } break;
