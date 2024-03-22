@@ -459,7 +459,7 @@ global_variable v2 Global_ResizeHandleDim = V2(15);
 
 #define UI_WINDOW_BORDER_DEFAULT_WIDTH     (V4(2.f))
 
-#define UI_SATURATE_FACTOR (1.8f)
+#define UI_SATURATE_FACTOR (1.95f)
 #define UI_MUTE_FACTOR (0.8f)
 
 /* #define UI_WINDOW_BEZEL_DEFAULT_COLOR      (V3(0.25f,  0.07f, 0.25f)) */
