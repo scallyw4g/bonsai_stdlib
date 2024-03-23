@@ -3156,11 +3156,11 @@ DoTextEditInteraction(renderer_2d *Ui)
             {
               if (Input->Shift.Pressed)
               {
-                Cast(char*, Text.Start)[Text.Count] = ToUpper('member.tag_value(glyph)');
+                Cast(char*, Text.Start)[Text.Count] = ToUpper((member.tag_value(glyph)));
               }
               else
               {
-                Cast(char*, Text.Start)[Text.Count] = 'member.tag_value(glyph)';
+                Cast(char*, Text.Start)[Text.Count] = member.tag_value(glyph);
               }
               Text.Count++;
             }

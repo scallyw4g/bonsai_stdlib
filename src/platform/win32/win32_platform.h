@@ -3,6 +3,7 @@
 #include <windowsx.h> // Macros to retrieve mouse coordinates
 #include <WinBase.h>
 #include <wingdi.h>
+/* #include <Winuser.h> */
 
 #include <bonsai_stdlib/src/platform/wgl.h>
 
