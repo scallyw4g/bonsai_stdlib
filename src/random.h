@@ -103,7 +103,7 @@ RandomSeries(u64 Seed = DEFAULT_ENTROPY_SEED)
   return Result;
 }
 
-#if 0
+#if 1
 inline u32
 RandomU32(random_series *Entropy)
 {
@@ -126,6 +126,10 @@ RandomU32(random_series *Entropy)
 
 // When I added white noise as an option to brushes in bonsai, I had a quick and
 // easy way to visualize this RNG.  Turns out, Mr. Wellons over here did good, again.
+//
+// Unfortunately, this is a 32-bit hash, and some of the engine relies on 64 bits
+// of entropy.  In particular, the RandomSeriesFromV3 function seeds the top bits
+// with the z coordinate.  So, this is not a general replacement for RandomU32.
 //
 // https://nullprogram.com/blog/2018/07/31/
 //

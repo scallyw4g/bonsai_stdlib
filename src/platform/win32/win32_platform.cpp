@@ -467,13 +467,13 @@ WindowMessageCallback(
       return (LRESULT)1;
     } break;
 
-    /* case WM_NCHITTEST:     { Info("WM_NCHITTEST     (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
-    /* case WM_SYSCOMMAND:    { Info("WM_SYSCOMMAND    (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
-    /* case WM_ENTERMENULOOP: { return 0; Info("WM_ENTERMENULOOP (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
-    /* case WM_SETCURSOR:     { Info("WM_SETCURSOR     (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
-    /* case WM_ENTERIDLE:     { return 0; Info("WM_ENTERIDLE     (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
-    /* case WM_INITMENU:      { return 0; Info("WM_INITMENU      (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
-    /* case WM_MENUSELECT:    { return 0; Info("WM_MENUSELECT    (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
+/*     case WM_NCHITTEST:     { Info("WM_NCHITTEST     (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
+/*     case WM_SYSCOMMAND:    { Info("WM_SYSCOMMAND    (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
+/*     case WM_ENTERMENULOOP: { Info("WM_ENTERMENULOOP (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
+/*     case WM_SETCURSOR:     { Info("WM_SETCURSOR     (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
+/*     case WM_ENTERIDLE:     { Info("WM_ENTERIDLE     (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
+/*     case WM_INITMENU:      { Info("WM_INITMENU      (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
+/*     case WM_MENUSELECT:    { Info("WM_MENUSELECT    (%d)(0x%x) wParam(%d)(%x)", message, message, wParam, wParam); } break; */
 
     default:
     {

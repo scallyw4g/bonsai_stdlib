@@ -692,6 +692,16 @@ operator^(v3 P1, v3 P2)
 }
 
 inline v3
+operator%(v3 A, v3 i)
+{
+  v3 Result;
+  Result.x = fmodf(A.x, i.x);
+  Result.y = fmodf(A.y, i.y);
+  Result.z = fmodf(A.z, i.z);
+  return Result;
+}
+
+inline v3
 operator%(v3 A, s32 i)
 {
   v3 Result;

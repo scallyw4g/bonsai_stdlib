@@ -126,6 +126,13 @@ IQ_ValueNoise_AnalyticNormals(f32 xin, f32 yin, f32 zin, v3 *Normal)
 }
 
 
+link_internal v3
+NoiseMod(v3 LHS, v3 RHS)
+{
+  v3 positiveLHS = (LHS % RHS) + RHS;
+  return positiveLHS % RHS;
+}
+
 // Based on code found here:
 // https://www.ronja-tutorials.com/post/028-voronoi-noise/
 //
@@ -133,9 +140,18 @@ IQ_ValueNoise_AnalyticNormals(f32 xin, f32 yin, f32 zin, v3 *Normal)
 // NOTE(Jesse): Squareness == 0 (not square), Squareness == 1 (very square)
 // NOTE(Jesse): MaskChance == 0 (not masked), MaskChance == 1 (Always Masked)
 link_internal f32
-VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f, r32 MaskChance = 0.f)
+VoronoiNoise3D(v3 Texel, r32 Squreness = 0.f, r32 MaskChance = 0.f, v3 Repeat = V3(4))
 {
-  v3 baseCell = Floor(Basis);
+  // NOTE(Jesse): This function assumes the user has computed bounds within the
+  // texture repeat
+
+  /* Texel = NoiseMod(Texel, Repeat); */
+  /* v3 baseCell = Floor(Texel); */
+  v3 baseCell = Floor(Texel);
+
+  Assert(Texel < Repeat);
+  Assert(baseCell < Repeat);
+
 
   random_series BaseCellEntropy = RandomSeriesFromV3(baseCell);
   if (RandomUnilateral(&BaseCellEntropy) < MaskChance)
@@ -149,8 +165,7 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f, r32 MaskChance = 0.f)
     // first pass to find the closest cell
     //
     f32 minDistToCellSq = 100;
-    v3 toClosestCell;
-    v3 closestCell;
+    v3 toClosestCell; v3 closestCell;
     s32 CellIndex = 0;
     for( s32 x1 = -1;
              x1 <= 1;
@@ -164,12 +179,13 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f, r32 MaskChance = 0.f)
                  z1 <= 1;
                ++z1 )
         {
-          v3 cell = baseCell + V3(x1, y1, z1);
-          v3 offset = Clamp01(RandomV3FromV3(cell) - Squreness);
-          CellOffsets[CellIndex++] = offset;
-
+          /* v3 cell = (baseCell + V3(x1, y1, z1)); */
+          v3 tiledCell = NoiseMod(baseCell + V3(x1, y1, z1), Repeat);
+          v3 offset    = Clamp01(RandomV3FromV3(tiledCell) - Squreness);
+          v3 cell      =  baseCell + V3(x1, y1, z1);
           v3 cellPosition = cell + offset;
-          v3 toCell = cellPosition - Basis;
+
+          v3 toCell = cellPosition - Texel;
           f32 distToCellSq = LengthSq(toCell);
           if(distToCellSq < minDistToCellSq)
           {
@@ -177,6 +193,8 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f, r32 MaskChance = 0.f)
             closestCell = cell;
             toClosestCell = toCell;
           }
+
+          CellOffsets[CellIndex++] = offset;
         }
       }
     }
@@ -201,11 +219,12 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f, r32 MaskChance = 0.f)
                  z2 <= 1;
                ++z2 )
         {
+          /* v3 cell = (baseCell + V3(x2, y2, z2)); */
           v3 cell = baseCell + V3(x2, y2, z2);
           v3 offset = CellOffsets[CellIndex++];
 
           v3 cellPosition = cell + offset;
-          v3 toCell = cellPosition - Basis;
+          v3 toCell = cellPosition - Texel;
 
           v3 diffToClosestCell = Abs(closestCell - cell);
           b32 isClosestCell = diffToClosestCell.x + diffToClosestCell.y + diffToClosestCell.z < 0.1f;
@@ -221,6 +240,8 @@ VoronoiNoise3D(v3 Basis, r32 Squreness = 0.f, r32 MaskChance = 0.f)
     }
     Assert(CellIndex == 27);
     return minEdgeDistance;
+    /* return SquareRoot(minDistToCellSq); */
+    /* return closestCell; */
   }
 
   /* f32 random = rand3dTo1d(closestCell); */
@@ -345,6 +366,7 @@ VoronoiNoise3D_8x_Masked(f32 *Results, r32 BaseMask, r32 *MaskChances, f32 *xMap
     }
   }
 }
+
 link_internal void
 VoronoiNoise3D_8x(f32 *Results, f32 *xMapped, v2 yzMapped, r32 Squreness = 0.f, r32 MaskChance = 0.9f)
 {
