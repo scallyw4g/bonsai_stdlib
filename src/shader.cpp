@@ -418,85 +418,92 @@ BindShaderUniforms(shader *Shader)
 
   while (Uniform)
   {
-    switch(Uniform->Type)
+    if (Uniform->ID >= 0)
     {
-      case ShaderUniform_Texture:
+      switch(Uniform->Type)
       {
-        TIMED_BLOCK("ShaderUniform_Texture");
-        if (TextureUnit > 8)
+        case ShaderUniform_Texture:
         {
-          Warn("TODO(Jesse): TextureUnit > 8, query available texture units"); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
-        }
-        /* Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures? */
+          TIMED_BLOCK("ShaderUniform_Texture");
+          if (TextureUnit > 8)
+          {
+            Warn("TODO(Jesse): TextureUnit > 8, query available texture units"); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
+          }
+          /* Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures? */
 
-        GL.ActiveTexture(GL_TEXTURE0 + TextureUnit);
-        GL.Uniform1i(Uniform->ID, (s32)TextureUnit);
-        GL.BindTexture(GL_TEXTURE_2D, Uniform->Texture->ID);
+          GL.ActiveTexture(GL_TEXTURE0 + TextureUnit);
+          GL.Uniform1i(Uniform->ID, (s32)TextureUnit);
+          GL.BindTexture(GL_TEXTURE_2D, Uniform->Texture->ID);
 
-        TextureUnit++;
-        END_BLOCK();
-      } break;
+          TextureUnit++;
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_U32:
-      {
-        TIMED_BLOCK("ShaderUniform_U32");
-        GL.Uniform1ui(Uniform->ID, *Uniform->U32);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_U32:
+        {
+          TIMED_BLOCK("ShaderUniform_U32");
+          GL.Uniform1ui(Uniform->ID, *Uniform->U32);
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_R32:
-      {
-        TIMED_BLOCK("ShaderUniform_R32");
-        GL.Uniform1f(Uniform->ID, *Uniform->R32);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_R32:
+        {
+          TIMED_BLOCK("ShaderUniform_R32");
+          GL.Uniform1f(Uniform->ID, *Uniform->R32);
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_S32:
-      {
-        TIMED_BLOCK("ShaderUniform_S32");
-        GL.Uniform1i(Uniform->ID, *Uniform->S32);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_S32:
+        {
+          TIMED_BLOCK("ShaderUniform_S32");
+          GL.Uniform1i(Uniform->ID, *Uniform->S32);
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_M4:
-      {
-        TIMED_BLOCK("ShaderUniform_M4");
-        GL.UniformMatrix4fv(Uniform->ID, 1, GL_FALSE, (r32*)Uniform->M4);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_M4:
+        {
+          TIMED_BLOCK("ShaderUniform_M4");
+          GL.UniformMatrix4fv(Uniform->ID, 1, GL_FALSE, (r32*)Uniform->M4);
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_V2:
-      {
-        TIMED_BLOCK("ShaderUniform_V2");
-        GL.Uniform2fv(Uniform->ID, 1, (r32*)Uniform->V2);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_V2:
+        {
+          TIMED_BLOCK("ShaderUniform_V2");
+          GL.Uniform2fv(Uniform->ID, 1, (r32*)Uniform->V2);
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_V3:
-      {
-        TIMED_BLOCK("ShaderUniform_V3");
-        GL.Uniform3fv(Uniform->ID, 1, (r32*)Uniform->V3);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_V3:
+        {
+          TIMED_BLOCK("ShaderUniform_V3");
+          GL.Uniform3fv(Uniform->ID, 1, (r32*)Uniform->V3);
+          END_BLOCK();
+        } break;
 
-      default:
-      {
+        default:
+        {
 #if BONSAI_ENGINE
-        // NOTE(Jesse): If this fails, we changed the name of BindEngineUniform
-        // without updating this callsite
-        Assert(BindEngineUniform);
+          // NOTE(Jesse): If this fails, we changed the name of BindEngineUniform
+          // without updating this callsite
+          Assert(BindEngineUniform);
 #endif
 
-        // @use_shader_bind_engine_uniform_callsite
-        if (BindEngineUniform)
-        {
-          BindEngineUniform(Uniform);
-        }
-        else
-        {
-          SoftError("Attempted to bind an engine uniform, but the engine bind function was not found!");
+          // @use_shader_bind_engine_uniform_callsite
+          if (BindEngineUniform)
+          {
+            BindEngineUniform(Uniform);
+          }
+          else
+          {
+            SoftError("Attempted to bind an engine uniform, but the engine bind function was not found!");
+          }
         }
       }
+    }
+    else
+    {
+      /* SoftError("Attempted to bind a uniform (%s) with an invalid id (%d)", Uniform->Name, Uniform->ID); */
     }
 
     TIMED_BLOCK("AssertNoGlErrors");

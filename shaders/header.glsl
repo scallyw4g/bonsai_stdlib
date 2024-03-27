@@ -92,3 +92,21 @@ float Linearize(float zDepth, float Far, float Near)
   float Result = ((2.0 * Near) / (Far + Near - zDepth * (Far - Near)));
   return Result;
 }
+
+v3 WorldPositionFromNonlinearDepth(float NonlinearDepth, v2 ScreenUV, mat4 InverseProjectionMatrix, mat4 InverseViewMatrix)
+{
+  v4 WorldP = V4(0,0,0,0);
+  /* if (NonlinearDepth < 0.01f) */
+  {
+    f32 ClipZ = (NonlinearDepth*2.f) - 1.f;
+    v2 ClipXY = (ScreenUV*2.f)-1.f;
+
+    v4 ClipP = V4(ClipXY.x, ClipXY.y, ClipZ, 1.f); // Correct
+    v4 ViewP = InverseProjectionMatrix * ClipP;
+
+    ViewP /= ViewP.w;
+
+    WorldP = InverseViewMatrix * ViewP;
+  }
+  return WorldP.xyz;
+}

@@ -1,12 +1,12 @@
 //
 // Wrapper so assertions give us file/line numbers
 
-/* #define AssertNoGlErrors */
+#define AssertNoGlErrors
 
-#define AssertNoGlErrors do { \
-    u32 glErrorNo = GL.GetError();         \
-    DumpGlErrorEnum(glErrorNo);            \
-  } while (0)
+/* #define AssertNoGlErrors do { \ */
+/*     u32 glErrorNo = GL.GetError();         \ */
+/*     DumpGlErrorEnum(glErrorNo);            \ */
+/*   } while (0) */
 
 #define GL_NO_ERROR                       0
 
