@@ -155,14 +155,18 @@ DeleteTexture(texture *Texture)
 }
 
 link_internal texture
-MakeTexture_RGBA(v2i Dim, u32 *Data, cs DebugName, u32 Slices = 1)
+MakeTexture_RGBA(    v2i  Dim,
+                     u32 *Data,
+                      cs  DebugName,
+                     u32  Slices = 1,
+  texture_storage_format  StorageFormat = TextureStorageFormat_RGBA8)
 {
   Assert(Slices);
 
   u32 Channels = 4;
   texture Result = GenTexture(Dim, DebugName, Channels, Slices);
 
-  u32 InternalFormat = GL_RGBA8;
+  u32 InternalFormat = TextureStorageFormat_RGBA8;
   u32 TextureFormat = GL_RGBA;
   u32 ElementType = GL_UNSIGNED_BYTE;
   if (Slices == 1)
@@ -214,13 +218,16 @@ MakeTexture_RGBA(v2i Dim, u32 *Data, cs DebugName, u32 Slices = 1)
 }
 
 link_internal texture
-MakeTexture_RGBA(v2i Dim, v4 *Data, cs DebugName)
+MakeTexture_RGBA(    v2i  Dim,
+                      v4 *Data,
+                      cs  DebugName,
+  texture_storage_format  StorageFormat = TextureStorageFormat_RGBA32F)
 {
   u32 Channels = 4;
   texture Texture = GenTexture(Dim, DebugName, Channels);
 
+  s32 InternalFormat = StorageFormat;
   u32 TextureFormat = GL_RGBA;
-  s32 InternalFormat = GL_RGBA32F;
   u32 ElementType = GL_FLOAT;
   GL.TexImage2D(GL_TEXTURE_2D, 0, InternalFormat,
       Texture.Dim.x, Texture.Dim.y, 0,  TextureFormat, ElementType, Data);
@@ -231,13 +238,16 @@ MakeTexture_RGBA(v2i Dim, v4 *Data, cs DebugName)
 }
 
 link_internal texture
-MakeTexture_SingleChannel(v2i Dim, cs DebugName, b32 IsDepthTexture)
+MakeTexture_SingleChannel( v2i  Dim,
+                            cs  DebugName,
+                           b32  IsDepthTexture, 
+        texture_storage_format  StorageFormat = TextureStorageFormat_R32F)
 {
   u32 Channels = 1;
   u32 Slices = 1;
   texture Texture = GenTexture(Dim, DebugName, Channels, Slices, IsDepthTexture);
 
-  GL.TexImage2D(GL_TEXTURE_2D, 0, GL_R32F,
+  GL.TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
       Texture.Dim.x, Texture.Dim.y, 0,  GL_RED, GL_FLOAT, 0);
 
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -249,7 +259,10 @@ MakeTexture_SingleChannel(v2i Dim, cs DebugName, b32 IsDepthTexture)
 }
 
 link_internal texture
-MakeTexture_RGB(v2i Dim, const v3 *Data, cs DebugName)
+MakeTexture_RGB(     v2i  Dim,
+                const v3 *Data,
+                      cs  DebugName,
+  texture_storage_format  StorageFormat = TextureStorageFormat_RGB32F)
 {
   u32 Channels = 3;
   texture Texture = GenTexture(Dim, DebugName, Channels);
@@ -259,7 +272,7 @@ MakeTexture_RGB(v2i Dim, const v3 *Data, cs DebugName)
    * passing this in when creating a Texture?
    */
 
-  GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
+  GL.TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
       Texture.Dim.x, Texture.Dim.y, 0,  GL_RGB, GL_FLOAT, Data);
 
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
