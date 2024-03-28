@@ -139,8 +139,11 @@ NoiseMod(v3 LHS, v3 RHS)
 //
 // NOTE(Jesse): Squareness == 0 (not square), Squareness == 1 (very square)
 // NOTE(Jesse): MaskChance == 0 (not masked), MaskChance == 1 (Always Masked)
+//
+// TODO(Jesse): Make this primal and the untiled a thunk .. or remove it entirely?
+//
 link_internal f32
-VoronoiNoise3D(v3 Texel, r32 Squreness = 0.f, r32 MaskChance = 0.f, v3 Repeat = V3(4))
+VoronoiNoise3D_Tiled(v3 Texel, v3 Repeat, r32 Squreness = 0.f, r32 MaskChance = 0.f)
 {
   // NOTE(Jesse): This function assumes the user has computed bounds within the
   // texture repeat
@@ -179,10 +182,111 @@ VoronoiNoise3D(v3 Texel, r32 Squreness = 0.f, r32 MaskChance = 0.f, v3 Repeat = 
                  z1 <= 1;
                ++z1 )
         {
-          /* v3 cell = (baseCell + V3(x1, y1, z1)); */
-          v3 tiledCell = NoiseMod(baseCell + V3(x1, y1, z1), Repeat);
-          v3 offset    = Clamp01(RandomV3FromV3(tiledCell) - Squreness);
           v3 cell      =  baseCell + V3(x1, y1, z1);
+          v3 offset    = Clamp01(RandomV3FromV3(cell) - Squreness);
+          v3 cellPosition = cell + offset;
+
+          v3 toCell = cellPosition - Texel;
+          f32 distToCellSq = LengthSq(toCell);
+          if(distToCellSq < minDistToCellSq)
+          {
+            minDistToCellSq = distToCellSq;
+            closestCell = cell;
+            toClosestCell = toCell;
+          }
+
+          CellOffsets[CellIndex++] = offset;
+        }
+      }
+    }
+    Assert(CellIndex == 27);
+
+    // TODO(Jesse): This seems like you'd just want to do it in-line in the first
+    // loop ..?
+    //
+    // second pass to find the distance to the closest edge
+    //
+    f32 minEdgeDistance = 10;
+    CellIndex = 0;
+    for( s32 x2 = -1;
+             x2 <= 1;
+           ++x2 )
+    {
+      for(s32 y2 = -1;
+              y2 <= 1;
+            ++y2 )
+      {
+        for( s32 z2 = -1;
+                 z2 <= 1;
+               ++z2 )
+        {
+          /* v3 cell = (baseCell + V3(x2, y2, z2)); */
+          v3 cell = baseCell + V3(x2, y2, z2);
+          v3 offset = CellOffsets[CellIndex++];
+
+          v3 cellPosition = cell + offset;
+          v3 toCell = cellPosition - Texel;
+
+          v3 diffToClosestCell = Abs(closestCell - cell);
+          b32 isClosestCell = diffToClosestCell.x + diffToClosestCell.y + diffToClosestCell.z < 0.1f;
+          if(isClosestCell == False)
+          {
+            v3 toCenter = (toClosestCell + toCell) * 0.5;
+            v3 cellDifference = Normalize(toCell - toClosestCell);
+            f32 edgeDistance = Dot(toCenter, cellDifference);
+            minEdgeDistance = Min(minEdgeDistance, edgeDistance);
+          }
+        }
+      }
+    }
+    Assert(CellIndex == 27);
+    return minEdgeDistance;
+    /* return SquareRoot(minDistToCellSq); */
+    /* return closestCell; */
+  }
+
+  /* f32 random = rand3dTo1d(closestCell); */
+  /* return V3(minDistToCellSq, random, minEdgeDistance); */
+  /* return SquareRoot(minDistToCellSq); */
+}
+
+
+// NOTE(Jesse): Squareness == 0 (not square), Squareness == 1 (very square)
+// NOTE(Jesse): MaskChance == 0 (not masked), MaskChance == 1 (Always Masked)
+//
+link_internal f32
+VoronoiNoise3D(v3 Texel, r32 Squreness = 0.f, r32 MaskChance = 0.f)
+{
+  v3 baseCell = Floor(Texel);
+
+  random_series BaseCellEntropy = RandomSeriesFromV3(baseCell);
+  if (RandomUnilateral(&BaseCellEntropy) < MaskChance)
+  {
+    return 0;
+  }
+  else
+  {
+    v3 CellOffsets[27];
+
+    // first pass to find the closest cell
+    //
+    f32 minDistToCellSq = 100;
+    v3 toClosestCell; v3 closestCell;
+    s32 CellIndex = 0;
+    for( s32 x1 = -1;
+             x1 <= 1;
+           ++x1 )
+    {
+      for(s32 y1 = -1;
+              y1 <= 1;
+            ++y1 )
+      {
+        for( s32 z1 = -1;
+                 z1 <= 1;
+               ++z1 )
+        {
+          v3 cell      =  baseCell + V3(x1, y1, z1);
+          v3 offset    = Clamp01(RandomV3FromV3(cell) - Squreness);
           v3 cellPosition = cell + offset;
 
           v3 toCell = cellPosition - Texel;
