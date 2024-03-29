@@ -120,13 +120,6 @@ Pow(r32 N, int Exp)
 
 
 inline r32
-Sin(r32 Theta)
-{
-  r32 Result = (r32)sin((double)Theta);
-  return Result;
-}
-
-inline r32
 ArcCos(r32 CosTheta)
 {
   r32 Theta = (r32)acos((double)CosTheta);
@@ -150,19 +143,27 @@ Cos(r32 Theta)
   return Result;
 }
 #else
-
+// https://github.com/AZHenley/cosine/blob/master/cosine.c
 link_inline f32
 Cos(f32 x)
 {
-    x = Abs(x);
-    x = Mod(x, 2.f*PI32);
-    f32 i = x * 1000.f;
-    s32 index = s32(i);
-    r32 Result = Lerp(i - index,
-                      costable_0_001[index],
-                      costable_0_001[index + 1] );
+  x = Abs(x);
+  x = Mod(x, 2.f*PI32);
+  f32 i = x * 1000.f;
+  s32 index = s32(i);
+  r32 Result = Lerp(i - index,
+                    costable_0_001[index],
+                    costable_0_001[index + 1] );
 
-    return Result;
+  return Result;
+}
+
+// TODO(Jesse): Is this accurate enough?  Probably..
+inline r32
+Sin(r32 Theta)
+{
+  r32 Result = Cos(Theta-(PI32/2.f));
+  return Result;
 }
 #endif
 
