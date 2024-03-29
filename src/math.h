@@ -30,28 +30,6 @@ SaturatingSub(u64 N)
   return N;
 }
 
-#if 0
-// TODO(Jesse, id: 102, tags: math, improvement): Write actual/working fModf!
-r32
-myFmodf( r32 F, r32 mod )
-{
-  int intF = (int)F;
-  int intMod = (int)mod;
-
-  int mask = (0x0FFFFFFF << 3) | 0xFF;
-  int invMask = ~mask;
-
-  int Fmantissa = (intF & mask);
-  int ModMantissa = (intMod & mask);
-
-  int ResultMantissa = Fmantissa % ModMantissa;
-
-  r32 Result = ResultMantissa | ( intF & invMask );
-
-  return Result;
-}
-#endif
-
 inline umm
 RoundUp(umm N, umm Thresh)
 {
@@ -468,3 +446,18 @@ GetSign( r32 f )
 
   return Result;
 }
+
+link_internal r32
+Truncate(r32 Input)
+{
+  s32 Truncated = (s32)Input;
+  r32 Result = (r32)Truncated;
+  return Result;
+}
+
+link_internal f32
+Mod(f32 Dividend, f32 Divisor)
+{
+  return Dividend - Truncate(Dividend / Divisor) * Divisor;
+}
+

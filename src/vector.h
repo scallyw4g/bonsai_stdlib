@@ -415,14 +415,6 @@ Truncate(v3 Input)
   return Result;
 }
 
-r32
-Truncate(r32 Input)
-{
-  s32 Truncated = (s32)Input;
-  r32 Result = (r32)Truncated;
-  return Result;
-}
-
 
 
 inline s32

@@ -110,6 +110,9 @@ CXX_OPTIONS="
   -Wno-gnu-zero-variadic-macro-arguments
 
   -Wno-atomic-implicit-seq-cst
+
+  -Wno-nonportable-system-include-path
+  -Wno-nonportable-include-path
 "
 
 function SetOutputBinaryPathBasename()
