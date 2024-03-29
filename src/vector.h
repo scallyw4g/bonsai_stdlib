@@ -687,9 +687,9 @@ inline v3
 operator%(v3 A, v3 i)
 {
   v3 Result;
-  Result.x = fmodf(A.x, i.x);
-  Result.y = fmodf(A.y, i.y);
-  Result.z = fmodf(A.z, i.z);
+  Result.x = Mod(A.x, i.x);
+  Result.y = Mod(A.y, i.y);
+  Result.z = Mod(A.z, i.z);
   return Result;
 }
 
@@ -718,9 +718,6 @@ poof(gen_vector_infix_operator(v3i, {^}))
 
 poof(gen_vector_infix_operator(v3i, {&}))
 #include <generated/gen_vector_infix_operator_v3i_688856393.h>
-
-poof(vector_interpolation_functions(f32))
-#include <generated/gen_lerp_f32.h>
 
 poof(vector_interpolation_functions(v2))
 #include <generated/gen_lerp_v2.h>

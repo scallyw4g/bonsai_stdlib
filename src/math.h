@@ -1,3 +1,54 @@
+
+link_inline f32 Cos(f32 x);
+
+poof(vector_interpolation_functions(f32))
+#include <generated/gen_lerp_f32.h>
+
+inline u64
+Abs(s64 Int)
+{
+  u64 Result = (u64)(Int < 0 ? -Int : Int);
+  return Result;
+}
+
+inline u32
+Abs(s32 Int)
+{
+  u32 Result = (u32)(Int < 0 ? -Int : Int);
+  return Result;
+}
+
+inline r64
+Abs(r64 F)
+{
+  r64 Result = F;
+  Result = Result < 0 ? -Result : Result;
+  return Result;
+}
+
+inline r32
+Abs(r32 F)
+{
+  r32 Result = F;
+  Result = Result < 0 ? -Result : Result;
+  return Result;
+}
+
+
+link_internal r32
+Truncate(r32 Input)
+{
+  s32 Truncated = (s32)Input;
+  r32 Result = (r32)Truncated;
+  return Result;
+}
+
+link_internal f32
+Mod(f32 Dividend, f32 Divisor)
+{
+  return Dividend - Truncate(Dividend / Divisor) * Divisor;
+}
+
 link_internal umm
 SafeDecrement(umm *N)
 {
@@ -91,12 +142,29 @@ ArcCos(r32 CosTheta)
 //
 // Another source, which seems plausibly easier to follow, and apparently 4x faster than math.h
 // https://web.archive.org/web/20210513043002/http://web.eecs.utk.edu/~azh/blog/cosine.html
+#if 0
 inline r32
 Cos(r32 Theta)
 {
   r32 Result = (r32)cos(double(Theta));
   return Result;
 }
+#else
+
+link_inline f32
+Cos(f32 x)
+{
+    x = Abs(x);
+    x = Mod(x, 2.f*PI32);
+    f32 i = x * 1000.f;
+    s32 index = s32(i);
+    r32 Result = Lerp(i - index,
+                      costable_0_001[index],
+                      costable_0_001[index + 1] );
+
+    return Result;
+}
+#endif
 
 inline r64
 SafeDivide0(u64 Dividend, u64 Divisor)
@@ -207,36 +275,6 @@ inline s32
 Max(s32 A, s32 B)
 {
   s32 Result = A > B ? A : B;
-  return Result;
-}
-
-inline u64
-Abs(s64 Int)
-{
-  u64 Result = (u64)(Int < 0 ? -Int : Int);
-  return Result;
-}
-
-inline u32
-Abs(s32 Int)
-{
-  u32 Result = (u32)(Int < 0 ? -Int : Int);
-  return Result;
-}
-
-inline r64
-Abs(r64 F)
-{
-  r64 Result = F;
-  Result = Result < 0 ? -Result : Result;
-  return Result;
-}
-
-inline r32
-Abs(r32 F)
-{
-  r32 Result = F;
-  Result = Result < 0 ? -Result : Result;
   return Result;
 }
 
@@ -446,18 +484,3 @@ GetSign( r32 f )
 
   return Result;
 }
-
-link_internal r32
-Truncate(r32 Input)
-{
-  s32 Truncated = (s32)Input;
-  r32 Result = (r32)Truncated;
-  return Result;
-}
-
-link_internal f32
-Mod(f32 Dividend, f32 Divisor)
-{
-  return Dividend - Truncate(Dividend / Divisor) * Divisor;
-}
-
