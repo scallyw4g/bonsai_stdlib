@@ -147,24 +147,29 @@ Pow(r32 N, int Exp)
 
 
 // https://github.com/AZHenley/cosine/blob/master/cosine.c
+//
 link_inline f32
 Cos(f32 x)
 {
 #if BONSAI_FAST_MATH__COS
+  // NOTE(Jesse): Sub one because there's a duplicate max value.  This is so we
+  // don't have to predicate the index+1 value (to lerp).
+  //
+  // Sub two because xMapped can be 1.f, which will map to TableSize
+  s32 TableSize = s32(ArrayCount(costable_0_0001))-2;
 
-#if 0
-  return _mm_cvtss_f32(_mm_cos_ps(_mm_set_ps1(x)));
-#endif
-
-#if 1
   f32 xAbs = Abs(x);
-  f32 xMod = Mod(xAbs, 2.f*PI32);
-  f32 i = xMod * 1000.f;
+  f32 xMapped = Mod(xAbs, 2.f*PI32)/(2.f*PI32);
+  Assert(xMapped >= 0.f);
+  Assert(xMapped <= 1.f);
+
+  f32 i = xMapped * TableSize;
   s32 index = s32(i);
+  Assert(u64(index) < ArrayCount(costable_0_0001));
+
   r32 Result = Lerp(i - index,
-                    costable_0_001[index],
-                    costable_0_001[index + 1] );
-#endif
+                    costable_0_0001[index],
+                    costable_0_0001[index + 1] );
 
 #else  // BONSAI_FAST_MATH__COS
   r32 Result = (r32)cos(double(x));
@@ -476,31 +481,25 @@ SquareRoot(r32 F)
 inline r32
 ArcCos(r32 x)
 {
+  Assert(x >= -1.f && x <= 1.f);
+
 #if BONSAI_FAST_MATH__ARCCOS
+  // NOTE(Jesse): Sub one because there's a duplicate max value.  This is so we
+  // don't have to predicate the index+1 value (to lerp).
+  //
+  // Sub two because xMapped can be 1.f, which will map to TableSize
+  s32 TableSize = s32(ArrayCount(arccostable_0_0001))-2;
 
-#if 0
-   return (-0.69813170079773212f * x * x - 0.87266462599716477f) * x + 1.5707963267948966f;
-#endif
+  f32 xMapped = (x + 1.f)/2.f; // Put into 0.f-1.f
+  f32 i = xMapped * f32(TableSize);
 
-#if 1
-  float negate = float(x < 0);
-  x = abs(x);
-  float ret = -0.0187293f;
-  ret = ret * x;
-  ret = ret + 0.0742610f;
-  ret = ret * x;
-  ret = ret - 0.2121144f;
-  ret = ret * x;
-  ret = ret + 1.5707288f;
-  ret = ret * SquareRoot(1.f-x);
-  ret = ret - 2.f * negate * ret;
-  return negate * PI32 + ret;
-#endif
+  s32 index = s32(i);
+  Assert(u64(index+1) < ArrayCount(arccostable_0_0001)); // just to be safe.
+  r32 Result = Lerp(i - index,
+                    arccostable_0_0001[index],
+                    arccostable_0_0001[index + 1] );
 
-#if 0
-  return _mm_cvtss_f32(_mm_acos_ps(_mm_set_ps1(x)));
-#endif
-
+  return Result;
 #else
   r32 Theta = (r32)acos((double)x);
   return Theta;

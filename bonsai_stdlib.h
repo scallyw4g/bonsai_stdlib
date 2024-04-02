@@ -17,12 +17,14 @@
 #include <bonsai_stdlib/src/bit_tricks.h>
 #include <bonsai_stdlib/src/atomic.h>
 #include <bonsai_stdlib/src/thread.h>
+
 #include <bonsai_stdlib/src/costable.h>
+#include <bonsai_stdlib/src/arccostable.h>
 
 #include <immintrin.h>
 #include <xmmintrin.h>
 
-#include <bonsai_stdlib/src/math.h>
+#include <bonsai_stdlib/src/maff.h>
 #include <bonsai_stdlib/src/memory_arena.h>
 #include <bonsai_stdlib/src/primitive_containers.h>
 #include <bonsai_stdlib/src/file.h>
