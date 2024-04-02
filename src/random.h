@@ -16,27 +16,18 @@ v3 Floor(v3 v)
   return v;
 }
 
-f32 Fract(f32 v)
-{
-  double intval;
-  f32 Result = f32(modf((double)v, &intval));
-  return Result;
-}
-
 v2 Fract(v2 v)
 {
-  double intval;
-  v.x = f32(modf((double)v.x, &intval));
-  v.y = f32(modf((double)v.y, &intval));
+  v.x = Mod(v.x, 1.f);
+  v.y = Mod(v.y, 1.f);
   return v;
 }
 
 v3 Fract(v3 v)
 {
-  double intval;
-  v.x = f32(modf((double)v.x, &intval));
-  v.y = f32(modf((double)v.y, &intval));
-  v.z = f32(modf((double)v.z, &intval));
+  v.x = Mod(v.x, 1.f);
+  v.y = Mod(v.y, 1.f);
+  v.z = Mod(v.z, 1.f);
   return v;
 }
 

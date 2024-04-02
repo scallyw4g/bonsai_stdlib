@@ -1,3 +1,9 @@
+#define BONSAI_FAST_MATH__INVSQRT (1)
+#define BONSAI_FAST_MATH__SQRT (1)
+#define BONSAI_FAST_MATH__ARCCOS (1)
+#define BONSAI_FAST_MATH__COS (1)
+#define BONSAI_FAST_MATH__FLOORF (1)
+#define BONSAI_FAST_MATH__CEILF (1)
 
 link_inline f32 Cos(f32 x);
 
@@ -35,11 +41,13 @@ Abs(r32 F)
 }
 
 
+// TODO(Jesse): Can we do this without converting to integer to avoid overflow?
+// And/or do we care?
 link_internal r32
 Truncate(r32 Input)
 {
-  s32 Truncated = (s32)Input;
-  r32 Result = (r32)Truncated;
+  s32 Truncated = s32(Input);
+  r32 Result = r32(Truncated);
   return Result;
 }
 
@@ -92,10 +100,29 @@ RoundUp(umm N, umm Thresh)
   return Result;
 }
 
+f32 Fract(f32 v)
+{
+  f32 Result = v - Truncate(v);
+  return Result;
+}
+
 inline r32
 Round(r32 N)
 {
-  r32 Result = roundf(N);
+  r32 Result;
+
+  // TODO(Jesse): Make sure this is more-or-less correct
+  NotImplemented;
+
+  f32 NFract = Fract(N);
+  if (NFract > 0.5f)
+  {
+    Result = N + (1.f-NFract);
+  }
+  else
+  {
+    Result = N - NFract;
+  }
   return Result;
 }
 
@@ -119,41 +146,29 @@ Pow(r32 N, int Exp)
 }
 
 
-inline r32
-ArcCos(r32 CosTheta)
-{
-  r32 Theta = (r32)acos((double)CosTheta);
-  return Theta;
-}
-
-// TODO(Jesse)(crt): Get this going in here so we can one day (hopefully soon
-// after) remove the CRT.
-// https://github.com/ifduyue/musl/blob/master/src/math/cos.c
-// https://github.com/ifduyue/musl/blob/master/src/math/__cos.c
-// https://github.com/ifduyue/musl/blob/master/src/math/__rem_pio2.c
-// https://github.com/ifduyue/musl/blob/master/src/math/__rem_pio2_large.c
-//
-// Another source, which seems plausibly easier to follow, and apparently 4x faster than math.h
-// https://web.archive.org/web/20210513043002/http://web.eecs.utk.edu/~azh/blog/cosine.html
-#if 0
-inline r32
-Cos(r32 Theta)
-{
-  r32 Result = (r32)cos(double(Theta));
-  return Result;
-}
-#else
 // https://github.com/AZHenley/cosine/blob/master/cosine.c
 link_inline f32
 Cos(f32 x)
 {
-  x = Abs(x);
-  x = Mod(x, 2.f*PI32);
-  f32 i = x * 1000.f;
+#if BONSAI_FAST_MATH__COS
+
+#if 0
+  return _mm_cvtss_f32(_mm_cos_ps(_mm_set_ps1(x)));
+#endif
+
+#if 1
+  f32 xAbs = Abs(x);
+  f32 xMod = Mod(xAbs, 2.f*PI32);
+  f32 i = xMod * 1000.f;
   s32 index = s32(i);
   r32 Result = Lerp(i - index,
                     costable_0_001[index],
                     costable_0_001[index + 1] );
+#endif
+
+#else  // BONSAI_FAST_MATH__COS
+  r32 Result = (r32)cos(double(x));
+#endif // BONSAI_FAST_MATH__COS
 
   return Result;
 }
@@ -165,7 +180,6 @@ Sin(r32 Theta)
   r32 Result = Cos(Theta-(PI32/2.f));
   return Result;
 }
-#endif
 
 inline r64
 SafeDivide0(u64 Dividend, u64 Divisor)
@@ -195,19 +209,6 @@ SafeDivide0(r32 Dividend, r32 Divisor)
 
   return Result;
 }
-
-#if 0
-inline v3
-SafeDivide0(v3 Dividend, r32 Divisor)
-{
-  v3 Result = V3(0);
-
-  if (Divisor != 0.0f)
-    Result = Dividend/Divisor;
-
-  return Result;
-}
-#endif
 
 inline r64
 Min(r64 A, r64 B)
@@ -378,13 +379,21 @@ Floorfu(r32 f)
   u32 Result = u32(f);
   return Result;
 }
+
 r32
 Floorf(r32 f)
 {
-#if 1
-  if (f < 0) { f -= 1.f; }
-  s32 i = s32(f);
-  r32 Result = r32(i);
+#if BONSAI_FAST_MATH__FLOORF
+  f32 Result;
+  if (f < 0.f)
+  {
+    Result = Truncate(f) -1.f;
+  }
+  else
+  {
+    Result = Truncate(f);
+  }
+
   return Result;
 #else
   f32 Result = f32(floor(double(f)));
@@ -393,10 +402,26 @@ Floorf(r32 f)
 }
 
 r32
-Ceilf(r32 F)
+Ceilf(r32 f)
 {
-  r32 Result = (r32)ceil(double(F));
+#if BONSAI_FAST_MATH__CEILF
+
+  f32 Result;
+  if (f < 0.f)
+  {
+    Result = Truncate(f);
+  }
+  else
+  {
+    Result = Truncate(f) + 1.f;
+  }
+
+
   return Result;
+#else
+  r32 Result = (r32)ceil(double(f));
+  return Result;
+#endif
 }
 
 s32
@@ -427,12 +452,61 @@ Square( r32 f )
   return Result;
 }
 
+link_inline  f32
+InverseSquareRoot(f32 x)
+{
+#if BONSAI_FAST_MATH__INVSQRT 
+  return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ps1(x)));
+#else
+  NotImplemented;
+#endif
+}
+
 link_inline r32
 SquareRoot(r32 F)
 {
-  r32 Result = r32(sqrt(r64(F)));
+#if BONSAI_FAST_MATH__SQRT 
+  r32 Result = InverseSquareRoot(F) * F;
   return Result;
+#else
+  NotImplemented;
+#endif
 }
+
+inline r32
+ArcCos(r32 x)
+{
+#if BONSAI_FAST_MATH__ARCCOS
+
+#if 0
+   return (-0.69813170079773212f * x * x - 0.87266462599716477f) * x + 1.5707963267948966f;
+#endif
+
+#if 1
+  float negate = float(x < 0);
+  x = abs(x);
+  float ret = -0.0187293f;
+  ret = ret * x;
+  ret = ret + 0.0742610f;
+  ret = ret * x;
+  ret = ret - 0.2121144f;
+  ret = ret * x;
+  ret = ret + 1.5707288f;
+  ret = ret * SquareRoot(1.f-x);
+  ret = ret - 2.f * negate * ret;
+  return negate * PI32 + ret;
+#endif
+
+#if 0
+  return _mm_cvtss_f32(_mm_acos_ps(_mm_set_ps1(x)));
+#endif
+
+#else
+  r32 Theta = (r32)acos((double)x);
+  return Theta;
+#endif
+}
+
 
 enum sign { Negative = -1, Zero = 0, Positive = 1 };
 
