@@ -156,7 +156,7 @@ Cos(f32 x)
   // don't have to predicate the index+1 value (to lerp).
   //
   // Sub two because xMapped can be 1.f, which will map to TableSize
-  s32 TableSize = s32(ArrayCount(costable_0_0001))-2;
+  s32 TableSize = s32(ArrayCount(CosineTable))-2;
 
   f32 xAbs = Abs(x);
   f32 xMapped = Mod(xAbs, 2.f*PI32)/(2.f*PI32);
@@ -165,11 +165,11 @@ Cos(f32 x)
 
   f32 i = xMapped * TableSize;
   s32 index = s32(i);
-  Assert(u64(index) < ArrayCount(costable_0_0001));
+  Assert(u64(index) < ArrayCount(CosineTable));
 
   r32 Result = Lerp(i - index,
-                    costable_0_0001[index],
-                    costable_0_0001[index + 1] );
+                    CosineTable[index],
+                    CosineTable[index + 1] );
 
 #else  // BONSAI_FAST_MATH__COS
   r32 Result = (r32)cos(double(x));
@@ -488,16 +488,16 @@ ArcCos(r32 x)
   // don't have to predicate the index+1 value (to lerp).
   //
   // Sub two because xMapped can be 1.f, which will map to TableSize
-  s32 TableSize = s32(ArrayCount(arccostable_0_0001))-2;
+  s32 TableSize = s32(ArrayCount(ArcCosineTable))-2;
 
   f32 xMapped = (x + 1.f)/2.f; // Put into 0.f-1.f
   f32 i = xMapped * f32(TableSize);
 
   s32 index = s32(i);
-  Assert(u64(index+1) < ArrayCount(arccostable_0_0001)); // just to be safe.
+  Assert(u64(index+1) < ArrayCount(ArcCosineTable)); // just to be safe.
   r32 Result = Lerp(i - index,
-                    arccostable_0_0001[index],
-                    arccostable_0_0001[index + 1] );
+                    ArcCosineTable[index],
+                    ArcCosineTable[index + 1] );
 
   return Result;
 #else
