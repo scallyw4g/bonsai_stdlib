@@ -9,6 +9,6 @@ GetPaletteData(v3_cursor *Palette, u32 ColorIndex)
 inline v3
 GetColorData(v3_cursor *Palette, u32 ColorIndex)
 {
-  v3 Result = GetPaletteData(Palette, ColorIndex) / 255.f;
+  v3 Result = GetPaletteData(Palette, ColorIndex);
   return Result;
 }

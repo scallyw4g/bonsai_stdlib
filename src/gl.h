@@ -1,12 +1,12 @@
 //
 // Wrapper so assertions give us file/line numbers
 
-#define AssertNoGlErrors
+/* #define AssertNoGlErrors */
 
-/* #define AssertNoGlErrors do { \ */
-/*     u32 glErrorNo = GL.GetError();         \ */
-/*     DumpGlErrorEnum(glErrorNo);            \ */
-/*   } while (0) */
+#define AssertNoGlErrors do { \
+    u32 glErrorNo = GL.GetError();         \
+    DumpGlErrorEnum(glErrorNo);            \
+  } while (0)
 
 #define GL_NO_ERROR                       0
 
@@ -308,6 +308,7 @@ typedef void            (*OpenglPixelStorei)               (GLenum pname, GLint 
 typedef void            (*OpenglEnableVertexAttribArray)   (GLuint index);
 typedef void            (*OpenglDisableVertexAttribArray)  (GLuint index);
 typedef void            (*OpenglVertexAttribPointer)       (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
+typedef void            (*OpenglVertexAttribIPointer)       (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
 typedef void            (*OpenglBindFramebuffer)           (GLenum target, GLuint framebuffer);
 typedef void            (*OpenglDeleteFramebuffers)        (GLsizei n, const GLuint *framebuffers);
 typedef void            (*OpenglGenFramebuffers)           (GLsizei n, GLuint *framebuffers);
@@ -415,6 +416,7 @@ struct opengl
   OpenglEnableVertexAttribArray EnableVertexAttribArray;
   OpenglDisableVertexAttribArray DisableVertexAttribArray;
   OpenglVertexAttribPointer VertexAttribPointer;
+  OpenglVertexAttribIPointer VertexAttribIPointer;
   OpenglBindFramebuffer BindFramebuffer;
   OpenglDeleteFramebuffers DeleteFramebuffers;
   OpenglGenFramebuffers GenFramebuffers;

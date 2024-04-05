@@ -1,9 +1,25 @@
 struct vertex_material
 {
-  v3 Color;
-  f32 Transparency;
-  f32 Emission;
+  u16 ColorIndex;
+  u8 Transparency;
+  u8 Emission;
 };
+CAssert(sizeof(vertex_material) == 4);
+CAssert(OffsetOf(ColorIndex, vertex_material) == 0);
+CAssert(OffsetOf(Transparency, vertex_material) == 2);
+CAssert(OffsetOf(Emission, vertex_material) == 3);
+
+link_internal vertex_material
+VertexMaterial( u16 ColorIndex , f32 Transparency , f32 Emission  )
+{
+  vertex_material Reuslt = {
+    .ColorIndex = ColorIndex,
+    .Transparency = u8(Transparency),
+    .Emission = u8(Emission)
+  };
+  return Reuslt;
+}
+
 
 typedef vertex_material matl;
 

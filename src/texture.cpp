@@ -150,6 +150,8 @@ GenTexture(v2i Dim, cs DebugName, u32 Channels, u32 Slices = 1, b32 IsDepthTextu
 link_internal void
 DeleteTexture(texture *Texture)
 {
+  /* if (GetStdlib) { RemoveUnordered(&GetStdlib()->AllTextures, Texture); } */
+
   GL.DeleteTextures(1, &Texture->ID);
   Clear(Texture);
 }

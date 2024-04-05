@@ -10,6 +10,10 @@ precision highp sampler2DShadow;
 precision highp sampler2D;
 precision highp sampler3D;
 
+// NOTE(Jesse): Must match defines in render.h
+#define VERTEX_POSITION_LAYOUT_LOCATION 0
+#define VERTEX_NORMAL_LAYOUT_LOCATION 1
+#define VERTEX_MATERIAL_LAYOUT_LOCATION 2
 
 #define f32_MAX (1E+37f)
 #define f32_MIN (1E-37f)

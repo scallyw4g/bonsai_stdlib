@@ -162,6 +162,10 @@ InitializeOpenglFunctions()
       GL.VertexAttribPointer      = (OpenglVertexAttribPointer)PlatformGetGlFunction("glVertexAttribPointer");
       GL.Initialized              &= GL.VertexAttribPointer != 0;
 
+      GL.VertexAttribIPointer      = (OpenglVertexAttribIPointer)PlatformGetGlFunction("glVertexAttribIPointer");
+      GL.Initialized              &= GL.VertexAttribPointer != 0;
+
+
       GL.BindFramebuffer          = (OpenglBindFramebuffer)PlatformGetGlFunction("glBindFramebuffer");
       GL.Initialized              &= GL.BindFramebuffer != 0;
 
@@ -434,16 +438,17 @@ HandleGlDebugMessage(GLenum Source, GLenum Type, GLuint Id, GLenum Severity,
 }
 
 inline void
-BufferDataToCard(u32 BufferId, u32 Stride, u32 ByteCount, void *Data, u32 *AttributeIndex)
+BufferFloatDataToCard(u32 BufferId, u32 Stride, u32 ByteCount, void *Data, u32 *AttributeIndex)
 {
 #if BONSAI_DEBUG_SYSTEM_API
   debug_state *DebugState = GetDebugState();
   DebugState->BytesBufferedToCard += ByteCount;
 #endif
 
-  GL.EnableVertexAttribArray(*AttributeIndex);
   GL.BindBuffer(GL_ARRAY_BUFFER, BufferId);
   GL.BufferData(GL_ARRAY_BUFFER, ByteCount, Data, GL_STATIC_DRAW);
+
+  GL.EnableVertexAttribArray(*AttributeIndex);
   GL.VertexAttribPointer(*AttributeIndex, (s32)Stride, GL_FLOAT, GL_FALSE, 0, (void*)0);
   *AttributeIndex += 1;
   AssertNoGlErrors;
@@ -458,11 +463,12 @@ BufferVertsToCard(u32 BufferId, T *Mesh, u32 *AttributeIndex)
   u32 ByteCount = Mesh->At*sizeof(*Mesh->Verts);
   u32 Stride = sizeof(*Mesh->Verts)/sizeof(Mesh->Verts[0].E[0]);
 
-  BufferDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Verts, AttributeIndex);
+  BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Verts, AttributeIndex);
 
   return;
 }
 
+#if 1
 template <typename T> inline void
 BufferColorsToCard(u32 BufferId, T *Mesh, u32* AttributeIndex)
 {
@@ -470,10 +476,11 @@ BufferColorsToCard(u32 BufferId, T *Mesh, u32* AttributeIndex)
   u32 Stride = sizeof(*Mesh->Colors)/sizeof(Mesh->Colors[0].E[0]);
   u32 ByteCount = Mesh->At*sizeof(*Mesh->Colors);
 
-  BufferDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Colors, AttributeIndex);
+  BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Colors, AttributeIndex);
 
   return;
 }
+#endif
 
 template <typename T> inline void
 BufferNormalsToCard(u32 BufferId, T *Mesh, u32 *AttributeIndex)
@@ -482,7 +489,7 @@ BufferNormalsToCard(u32 BufferId, T *Mesh, u32 *AttributeIndex)
   u32 Stride = sizeof(*Mesh->Normals)/sizeof(Mesh->Normals[0].E[0]);
   u32 ByteCount = Mesh->At*sizeof(*Mesh->Normals);
 
-  BufferDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Normals, AttributeIndex);
+  BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Normals, AttributeIndex);
 
   return;
 }
@@ -494,7 +501,7 @@ BufferUVsToCard(u32 BufferId, T *Mesh, u32 *AttributeIndex)
   u32 ByteCount = Mesh->At*sizeof(*Mesh->UVs);
   u32 Stride = sizeof(*Mesh->UVs)/sizeof(Mesh->UVs[0].x);
 
-  BufferDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->UVs, AttributeIndex);
+  BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->UVs, AttributeIndex);
 
   return;
 }
