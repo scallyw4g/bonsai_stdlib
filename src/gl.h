@@ -170,6 +170,7 @@
 #define GL_ONE_MINUS_DST_COLOR            0x0307
 #define GL_SRC_ALPHA_SATURATE             0x0308
 
+#define GL_MAX_VERTEX_ATTRIBS             0x8869
 
 typedef void GLvoid;
 typedef unsigned int GLenum;
@@ -251,7 +252,7 @@ DumpGlErrorEnum(u32 ErrorNumber)
     } break;
   }
 
-  /* if ( ErrorNumber != 0 ) { Assert(False); } */
+  if ( ErrorNumber != 0 ) { Assert(False); }
 
   return;
 }
@@ -308,7 +309,7 @@ typedef void            (*OpenglPixelStorei)               (GLenum pname, GLint 
 typedef void            (*OpenglEnableVertexAttribArray)   (GLuint index);
 typedef void            (*OpenglDisableVertexAttribArray)  (GLuint index);
 typedef void            (*OpenglVertexAttribPointer)       (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
-typedef void            (*OpenglVertexAttribIPointer)       (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
+typedef void            (*OpenglVertexAttribIPointer)      (GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
 typedef void            (*OpenglBindFramebuffer)           (GLenum target, GLuint framebuffer);
 typedef void            (*OpenglDeleteFramebuffers)        (GLsizei n, const GLuint *framebuffers);
 typedef void            (*OpenglGenFramebuffers)           (GLsizei n, GLuint *framebuffers);
