@@ -13,7 +13,11 @@ precision highp sampler3D;
 // NOTE(Jesse): Must match defines in render.h
 #define VERTEX_POSITION_LAYOUT_LOCATION 0
 #define VERTEX_NORMAL_LAYOUT_LOCATION 1
-#define VERTEX_MATERIAL_LAYOUT_LOCATION 2
+#define VERTEX_COLOR_LAYOUT_LOCATION 2
+#define VERTEX_TRANS_EMISS_LAYOUT_LOCATION 3
+
+// NOTE(Jesse): Must match defines in render.h
+#define RENDERER_MAX_LIGHT_EMISSION_VALUE (5.f)
 
 #define f32_MAX (1E+37f)
 #define f32_MIN (1E-37f)

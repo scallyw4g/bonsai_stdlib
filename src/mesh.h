@@ -1,6 +1,9 @@
 struct vertex_material
 {
   u16 ColorIndex;
+
+  // NOTE(Jesse): Must come before Emission because the VertexAttribIPointer is set up with this members' offset
+  // @vertex_attrib_I_pointer_transparency_offsetof
   u8 Transparency;
   u8 Emission;
 };
@@ -9,13 +12,19 @@ CAssert(OffsetOf(ColorIndex, vertex_material) == 0);
 CAssert(OffsetOf(Transparency, vertex_material) == 2);
 CAssert(OffsetOf(Emission, vertex_material) == 3);
 
+// NOTE(Jesse): Must match defines in header.glsl
+#define RENDERER_MAX_LIGHT_EMISSION_VALUE (5.f)
+
 link_internal vertex_material
 VertexMaterial( u16 ColorIndex , f32 Transparency , f32 Emission  )
 {
+  Transparency = Clamp01(Transparency);
+  Emission = Clamp(0.f, Emission, RENDERER_MAX_LIGHT_EMISSION_VALUE);
+
   vertex_material Reuslt = {
     .ColorIndex = ColorIndex,
-    .Transparency = u8(Transparency),
-    .Emission = u8(Emission)
+    .Transparency = u8(Transparency*255.f),
+    .Emission = u8(Emission*(255.f/RENDERER_MAX_LIGHT_EMISSION_VALUE))
   };
   return Reuslt;
 }
