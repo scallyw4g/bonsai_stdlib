@@ -29,6 +29,20 @@ poof(
       Uniform->ID = GetShaderUniform(Shader, Name);
       return Uniform;
     }
+
+    shader_uniform
+    ShaderUniform(shader *Shader, uniform_t.name *Value, const char *Name)
+    {
+      shader_uniform Uniform = {};
+
+      Uniform.Type = ShaderUniform_(uniform_t.name.to_capital_case);
+      Uniform.uniform_t.name.to_capital_case = Value;
+      Uniform.Name = Name;
+
+      Uniform.ID = GetShaderUniform(Shader, Name);
+
+      return Uniform;
+    }
   }
 );
 

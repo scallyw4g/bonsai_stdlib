@@ -1,4 +1,66 @@
 
+poof(
+  func shader_magic(shader_struct)
+  {
+    link_internal void
+    Initialize(shader_struct.name.to_capital_case)( shader_struct.name *Struct )
+    {
+      shader_struct.has_tag(vert_source_file)?
+      {
+        shader_struct.has_tag(frag_source_file)?
+        {
+          Struct->Program = LoadShaders(CSz((shader_struct.tag_value(vert_source_file))), CSz((shader_struct.tag_value(frag_source_file))));
+
+          u32 UniformIndex = 0;
+
+          shader_struct.map(member)
+          {
+            member.has_tag(uniform)?
+            {
+              Struct->Uniforms[UniformIndex] = ShaderUniform(&Struct->Program, &Struct->member.name, "member.name");
+              ++UniformIndex;
+            }
+          }
+
+          if (UniformIndex != shader_struct.member(1, (Uniforms) { Uniforms.array }) )
+          {
+            Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots!");
+          }
+        }
+        {
+          poof_error { Poof func shader_magic requires tag @frag_source_file }
+        }
+      }
+      {
+        poof_error { Poof func shader_magic requires tag @vert_source_file }
+      }
+    }
+
+    link_internal void
+    UseShader( shader_struct.name *Struct )
+    {
+      GL.UseProgram(Struct->Program.ID);
+
+      s32 TextureUnit = 0;
+      s32 UniformIndex = 0;
+      shader_struct.map(member)
+      {
+        member.has_tag(uniform)?
+        {
+          BindShaderUniform(Struct->Uniforms+UniformIndex, &TextureUnit);
+          ++UniformIndex;
+        }
+      }
+
+      if (UniformIndex != shader_struct.member(1, (Uniforms) { Uniforms.array }) )
+      {
+        Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots!");
+      }
+    }
+  }
+)
+
+
 // NOTE(Jesse): These are the basic types you could imagine passing to a shader
 // There are extended types in the engine 
 enum shader_uniform_type
@@ -23,6 +85,8 @@ struct light;
 struct camera;
 
 // TODO(Jesse, id: 83, tags: metaprogramming, immediate): d_union-ify this
+// TODO(Jesse): Convert all shaders to use poof func shader_magic and remove
+// the next pointer.
 struct shader_uniform
 {
   shader_uniform_type Type;

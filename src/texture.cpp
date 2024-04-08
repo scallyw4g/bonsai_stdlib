@@ -230,9 +230,8 @@ MakeTexture_RGBA(    v2i  Dim,
 
   s32 InternalFormat = StorageFormat;
   u32 TextureFormat = GL_RGBA;
-  u32 ElementType = GL_FLOAT;
   GL.TexImage2D(GL_TEXTURE_2D, 0, InternalFormat,
-      Texture.Dim.x, Texture.Dim.y, 0,  TextureFormat, ElementType, Data);
+      Texture.Dim.x, Texture.Dim.y, 0,  TextureFormat, GL_FLOAT, Data);
 
   GL.BindTexture(GL_TEXTURE_2D, 0);
 
@@ -268,11 +267,6 @@ MakeTexture_RGB(     v2i  Dim,
 {
   u32 Channels = 3;
   texture Texture = GenTexture(Dim, DebugName, Channels);
-
-  /* TODO(Jesse, id: 138, tags: opengl, memory_consumption): 32F is only
-   * necessary for reprojection of Position for calculating AO.  Consider
-   * passing this in when creating a Texture?
-   */
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
       Texture.Dim.x, Texture.Dim.y, 0,  GL_RGB, GL_FLOAT, Data);
