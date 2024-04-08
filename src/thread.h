@@ -4,6 +4,7 @@
 
 typedef THREAD_MAIN_RETURN (*thread_main_callback_type)(void*);
 
+
 #define INVALID_THREAD_LOCAL_THREAD_INDEX (-1)
 #define FUTEX_UNSIGNALLED_VALUE (u32_MAX) // The signal value is the thread holding the futex so we have to use the max
 

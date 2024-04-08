@@ -85,7 +85,7 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 
   Os->Window = xWindow;
 
-  InitializeOpenglFunctions();
+  /* InitializeOpenglFunctions(); */
   SetVSync(Os, VSyncFrames);
 
   return True;

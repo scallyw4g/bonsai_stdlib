@@ -107,8 +107,8 @@ PlatformLockMutex(mutex *Mutex)
   return;
 }
 
-u32
-PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, s32 ThreadIndex )
+link_internal u32
+PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 ThreadIndex )
 {
   DWORD flags = 0;
   unsigned long ThreadId;
@@ -116,7 +116,7 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_param
     0,
     0,
     (LPTHREAD_START_ROUTINE)ThreadMain,
-    (void *)Params,
+    Params,
     flags,
     &ThreadId
   );
@@ -525,20 +525,22 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 
   global_hPalette = setupPalette(Os->Display);
 
+
   HGLRC TempCtx = wglCreateContext(Os->Display);
   wglMakeCurrent(Os->Display, TempCtx);
 
-int attribs[] =
+  int attribs[] =
   {
     WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-    WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+    WGL_CONTEXT_MINOR_VERSION_ARB, 0, // TODO(Jesse): Make this a 3.3 ctx?!?
     WGL_CONTEXT_FLAGS_ARB, 0,
     0
   };
 
-  auto foo = wglGetProcAddress("wglCreateContextAttribsARB");
-  PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = ReinterpretCast(PFNWGLCREATECONTEXTATTRIBSARBPROC, foo);
+  auto wglCreateContextAttribsARBProc = wglGetProcAddress("wglCreateContextAttribsARB");
+  PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = ReinterpretCast(PFNWGLCREATECONTEXTATTRIBSARBPROC, wglCreateContextAttribsARBProc);
   Os->GlContext = wglCreateContextAttribsARB(Os->Display, 0, attribs);
+  Assert(Os->GlContext);
 
   wglMakeCurrent(NULL, NULL);
   wglDeleteContext(TempCtx);
@@ -550,8 +552,6 @@ int attribs[] =
 
   ShowWindow(Os->Window, SW_SHOW);
   UpdateWindow(Os->Window);
-
-  /* SetVSync(Os, 0); */
 
   timeBeginPeriod(1);
 

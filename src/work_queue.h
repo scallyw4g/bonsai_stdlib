@@ -121,9 +121,10 @@ struct thread_startup_params
   volatile s32 ThreadIndex;
 };
 
+struct thread_main_callback_type_buffer;
 
 link_weak void PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry);
-link_weak void LaunchWorkerThreads(platform *Plat, application_api *AppApi);
+link_weak void LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbacks);
 
 link_weak void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
 link_weak void WorkerThread_BeforeSleep();

@@ -27,7 +27,7 @@ DrainQueue(work_queue* Queue, thread_local_state* Thread, application_api *GameA
 }
 
 link_internal THREAD_MAIN_RETURN
-ThreadMain(void *Input)
+DefaultWorkerThread(void *Input)
 {
   thread_startup_params *ThreadParams = (thread_startup_params *)Input;
   WorkerThread_BeforeJobStart(ThreadParams);
@@ -135,39 +135,35 @@ ThreadMain(void *Input)
 }
 
 link_weak void
-LaunchWorkerThreads(platform *Plat, application_api *AppApi)
+LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbackProcs)
 {
   s32 TotalThreadCount  = (s32)GetTotalThreadCount();
-
-#if 0
-  Global_ThreadStates = AllocateAligned(thread_local_state, EngineResources->Plat->Memory, TotalThreadCount, CACHE_LINE_SIZE);
-
-  for ( s32 ThreadIndex = 0; ThreadIndex < TotalThreadCount; ++ThreadIndex )
-  {
-    Global_ThreadStates[ThreadIndex] = DefaultThreadLocalState(EngineResources, ThreadIndex);
-  }
-#endif
 
   // This loop is for worker threads; it's skipping thread index 0, the main thread
   for ( s32 ThreadIndex = 1; ThreadIndex < TotalThreadCount; ++ThreadIndex )
   {
-    /* thread_local_state *TLS = GetThreadLocalState(ThreadIndex); */
-    /* Tls->Index = ThreadIndex; */
-
     thread_startup_params *Params = &Plat->Threads[ThreadIndex];
-    Params->ThreadIndex = ThreadIndex;
-    Params->HighPriority = &Plat->HighPriority;
-    Params->LowPriority = &Plat->LowPriority;
 
-    Params->AppApi = AppApi;
-
-    Params->HighPriorityWorkerCount = &Plat->HighPriorityWorkerCount;
-
-    Params->HighPriorityModeFutex = &Plat->HighPriorityModeFutex;
+    Params->ThreadIndex               = ThreadIndex;
+    Params->AppApi                    = AppApi;
+    Params->HighPriority              = &Plat->HighPriority;
+    Params->LowPriority               = &Plat->LowPriority;
+    Params->HighPriorityWorkerCount   = &Plat->HighPriorityWorkerCount;
+    Params->HighPriorityModeFutex     = &Plat->HighPriorityModeFutex;
     Params->WorkerThreadsSuspendFutex = &Plat->WorkerThreadsSuspendFutex;
-    Params->WorkerThreadsExitFutex = &Plat->WorkerThreadsExitFutex;
+    Params->WorkerThreadsExitFutex    = &Plat->WorkerThreadsExitFutex;
 
-    PlatformCreateThread( ThreadMain, Params, ThreadIndex );
+    if (WorkerThreadCallbackProcs)
+    {
+      if (umm(ThreadIndex-1) < WorkerThreadCallbackProcs->Count)
+      {
+        PlatformCreateThread( WorkerThreadCallbackProcs->Start[ThreadIndex-1], (void*)Params, ThreadIndex );
+      }
+    }
+    else
+    {
+      PlatformCreateThread( DefaultWorkerThread, (void*)Params, ThreadIndex );
+    }
   }
 
   return;

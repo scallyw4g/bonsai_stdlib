@@ -1,3 +1,6 @@
+poof(buffer(thread_main_callback_type))
+#include <generated/buffer_thread_main_callback_type.h>
+
 #define DEBUG_THREAD_COUNT_BIAS (0)
 
 link_internal u32

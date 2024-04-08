@@ -264,4 +264,3 @@ PlatformChangeDirectory(const char *Dir)
   b32 Result = (SetCurrentDirectory(Dir) != 0);
   return Result;
 }
-

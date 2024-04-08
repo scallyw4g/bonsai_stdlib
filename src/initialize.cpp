@@ -13,7 +13,8 @@ link_internal b32
 InitializeBonsaiStdlib( bonsai_init_flags  Flags,
                           application_api *AppApi,
                             bonsai_stdlib *Stdlib,
-                             memory_arena *Memory )
+                             memory_arena *Memory,
+         thread_main_callback_type_buffer *WorkerThreadCallbackProcs = 0)
 {
   Info("Initializing Bonsai");
 
@@ -60,8 +61,8 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
-    if (AppApi->WorkerInit) { AppApi->WorkerInit (Global_ThreadStates, 0); }
-    LaunchWorkerThreads(Plat, AppApi);
+    if (AppApi->WorkerInit) { AppApi->WorkerInit(Global_ThreadStates, 0); }
+    LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
   }
 
   if (Flags & BonsaiInit_OpenWindow)
@@ -70,9 +71,6 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     s32 VSyncFrames = 0;
 
     if (!OpenAndInitializeWindow(Os, Plat, VSyncFrames)) { Error("Initializing Window :( "); return False; }
-    Assert(Os->GlContext);
-
-    Ensure( InitializeOpenglFunctions() );
 #else
     Error("Asked to open a window when window implementations were not compiled in!");
 #endif
