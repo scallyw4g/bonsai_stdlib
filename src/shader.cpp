@@ -294,7 +294,7 @@ link_weak void BindEngineUniform(shader_uniform*);
 
 // TODO(Jesse): We should generate the set of these?
 link_internal void
-BindUniform(shader *Shader, const char *Name, s32 Value)
+BindUniformByName(shader *Shader, const char *Name, s32 Value)
 {
   s32 Uniform = GL.GetUniformLocation(Shader->ID, Name); 
   if (Uniform != INVALID_SHADER_UNIFORM)
@@ -308,7 +308,7 @@ BindUniform(shader *Shader, const char *Name, s32 Value)
 }
 
 link_internal void
-BindUniform(shader *Shader, const char *Name, b32 Value)
+BindUniformByName(shader *Shader, const char *Name, b32 Value)
 {
   s32 Uniform = GL.GetUniformLocation(Shader->ID, Name); 
   if (Uniform != INVALID_SHADER_UNIFORM)
@@ -323,7 +323,7 @@ BindUniform(shader *Shader, const char *Name, b32 Value)
 
 
 link_internal void
-BindUniform(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
+BindUniformByName(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
 {
   GL.ActiveTexture(GL_TEXTURE0 + TextureUnit);
   s32 Uniform = GL.GetUniformLocation(Shader->ID, Name);
@@ -349,7 +349,7 @@ BindUniform(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
 }
 
 link_internal void
-BindUniform(shader *Shader, const char *Name, r32 Value)
+BindUniformByName(shader *Shader, const char *Name, r32 Value)
 {
   s32 Uniform = GL.GetUniformLocation(Shader->ID, Name);
   if (Uniform != INVALID_SHADER_UNIFORM)
@@ -360,6 +360,19 @@ BindUniform(shader *Shader, const char *Name, r32 Value)
   {
     Warn("Couldn't retieve uniform %s", Name);
   }
+}
+
+link_internal b32
+TryBindUniform(shader *Shader, const char *Name, v2 *V)
+{
+  b32 Result = False;
+  s32 Uniform = GL.GetUniformLocation(Shader->ID, Name);
+  if (Uniform != INVALID_SHADER_UNIFORM)
+  {
+    GL.Uniform2fv(Uniform, 1, (r32*)V);
+    Result = True;
+  }
+  return Result;
 }
 
 link_internal b32
@@ -376,7 +389,16 @@ TryBindUniform(shader *Shader, const char *Name, v3 *V)
 }
 
 link_internal void
-BindUniform(shader *Shader, const char *Name, v3 *V)
+BindUniformByName(shader *Shader, const char *Name, v2 *V)
+{
+  if (TryBindUniform(Shader, Name, V) == False)
+  {
+    Warn("Couldn't retieve uniform %s", Name);
+  }
+}
+
+link_internal void
+BindUniformByName(shader *Shader, const char *Name, v3 *V)
 {
   if (TryBindUniform(Shader, Name, V) == False)
   {
@@ -399,7 +421,7 @@ TryBindUniform(shader *Shader, const char *Name, m4 *Matrix)
 
 
 link_internal void
-BindUniform(shader *Shader, const char *Name, m4 *Matrix)
+BindUniformByName(shader *Shader, const char *Name, m4 *Matrix)
 {
   if (TryBindUniform(Shader, Name, Matrix) == False)
   {
@@ -408,7 +430,7 @@ BindUniform(shader *Shader, const char *Name, m4 *Matrix)
 }
 
 link_internal void
-BindShaderUniform(shader_uniform *Uniform, s32 *TextureUnit)
+BindUnifromById(shader_uniform *Uniform, s32 *TextureUnit)
 {
   if (Uniform->ID >= 0)
   {
@@ -510,7 +532,7 @@ BindShaderUniforms(shader *Shader)
 
   while (Uniform)
   {
-    BindShaderUniform(Uniform, &TextureUnit);
+    BindUnifromById(Uniform, &TextureUnit);
     Uniform = Uniform->Next;
     AssertNoGlErrors;
   }

@@ -2915,20 +2915,20 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             if (TypedCommand->TextureSlice < 0)
             {
               Assert(TypedCommand->Texture->Slices == 1);
-              BindUniform(Shader, "Texture", TypedCommand->Texture, 0);
+              BindUniformByName(Shader, "Texture", TypedCommand->Texture, 0);
               GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
             }
             else
             {
               Assert(TypedCommand->Texture->Slices > 1);
-              BindUniform(Shader, "TextureArray", TypedCommand->Texture, 0);
+              BindUniformByName(Shader, "TextureArray", TypedCommand->Texture, 0);
               GL.BindTexture(GL_TEXTURE_2D, 0);
             }
 
-            BindUniform(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
-            BindUniform(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel );
-            BindUniform(Shader, "TextureSlice",    TypedCommand->TextureSlice   );
-            BindUniform(Shader, "Tint",            &TypedCommand->Tint   );
+            BindUniformByName(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
+            BindUniformByName(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel );
+            BindUniformByName(Shader, "TextureSlice",    TypedCommand->TextureSlice   );
+            BindUniformByName(Shader, "Tint",            &TypedCommand->Tint   );
 
             // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
             // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
