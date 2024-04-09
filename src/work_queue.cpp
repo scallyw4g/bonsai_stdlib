@@ -153,12 +153,9 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callbac
     Params->WorkerThreadsSuspendFutex = &Plat->WorkerThreadsSuspendFutex;
     Params->WorkerThreadsExitFutex    = &Plat->WorkerThreadsExitFutex;
 
-    if (WorkerThreadCallbackProcs)
+    if (WorkerThreadCallbackProcs && umm(ThreadIndex-1) < WorkerThreadCallbackProcs->Count)
     {
-      if (umm(ThreadIndex-1) < WorkerThreadCallbackProcs->Count)
-      {
-        PlatformCreateThread( WorkerThreadCallbackProcs->Start[ThreadIndex-1], (void*)Params, ThreadIndex );
-      }
+      PlatformCreateThread( WorkerThreadCallbackProcs->Start[ThreadIndex-1], (void*)Params, ThreadIndex );
     }
     else
     {
