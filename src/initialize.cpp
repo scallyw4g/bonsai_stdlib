@@ -58,22 +58,21 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 #endif
   }
 
-
-  if (Flags & BonsaiInit_LaunchThreadPool)
-  {
-    if (AppApi->WorkerInit) { AppApi->WorkerInit(Global_ThreadStates, 0); }
-    LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
-  }
-
   if (Flags & BonsaiInit_OpenWindow)
   {
 #if PLATFORM_WINDOW_IMPLEMENTATIONS
     s32 VSyncFrames = 0;
-
     if (!OpenAndInitializeWindow(Os, Plat, VSyncFrames)) { Error("Initializing Window :( "); return False; }
 #else
     Error("Asked to open a window when window implementations were not compiled in!");
 #endif
+  }
+
+  // Intentionally last such that the render thread has a window to make the render context current on.
+  if (Flags & BonsaiInit_LaunchThreadPool)
+  {
+    if (AppApi->WorkerInit) { AppApi->WorkerInit(Global_ThreadStates, 0); }
+    LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
   }
 
   return True;

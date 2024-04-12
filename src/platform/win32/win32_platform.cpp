@@ -545,8 +545,6 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
   wglMakeCurrent(NULL, NULL);
   wglDeleteContext(TempCtx);
 
-  wglMakeCurrent(Os->Display, Os->GlContext);
-
   SetWindowLongPtr(Os->Window, 0, (LONG_PTR)Os);
   SetWindowLongPtr(Os->Window, sizeof(Os), (LONG_PTR)Plat);
 
@@ -605,6 +603,12 @@ ProcessOsMessages(os *Os, platform *Plat)
   }
 
   return Result;
+}
+
+link_internal void
+PlatformMakeRenderContextCurrent(os *Os)
+{
+  wglMakeCurrent(Os->Display, Os->GlContext);
 }
 
 inline void
