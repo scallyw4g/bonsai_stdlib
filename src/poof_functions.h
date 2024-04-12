@@ -119,7 +119,7 @@ poof(
   func gen_constructor(Type)
   {
     link_internal Type.name
-    Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.name.to_capital_case } )
+    Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.is_pointer?{*} M.name.to_capital_case } )
     {
       Type.name Reuslt = {
         Type.map_members(M).sep(,) {
@@ -1976,6 +1976,8 @@ poof(
       memory_arena *Memory; poof(@no_serialize)
       extra_members
     };
+
+    typedef (type.name)_block_array (type.name)_paged_list;
 
     link_internal (type.name)_block_array_index
     operator++((type.name)_block_array_index &I0)
