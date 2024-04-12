@@ -349,8 +349,8 @@ InitializeOpenglFunctions()
       GL.DebugMessageCallback     = (OpenglDebugMessageCallback)PlatformGetGlFunction("glDebugMessageCallback");
       GL.Initialized              &= GL.DebugMessageCallback != 0;
 
-      // NOTE(Jesse): Depends GetIntegerv
-      QueryOpenglVersion(&GLMajor, &GLMinor);
+      GL.GetIntegerv(GL_MAJOR_VERSION, &GLMajor);
+      GL.GetIntegerv(GL_MINOR_VERSION, &GLMinor);
 
       if (GLMajor >= 4)
       {

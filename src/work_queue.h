@@ -123,7 +123,8 @@ struct thread_startup_params
 
 struct thread_main_callback_type_buffer;
 
-link_weak void PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry);
+    link_weak             void  PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry);
+link_internal work_queue_entry*  PopWorkQueueEntry(work_queue* Queue);
 link_weak void LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbacks);
 
 link_weak void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);

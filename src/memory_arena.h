@@ -237,9 +237,7 @@ Fill(T *Struct, u8 ByteValue)
 #if 1
   memset((void*)Struct, 0, sizeof(T));
 #else
-  for ( umm Byte = 0;
-      Byte < sizeof(T);
-      ++Byte)
+  for ( umm Byte = 0; Byte < sizeof(T); ++Byte)
   {
     *(((u8*)Struct) + Byte) = ByteValue;
   }

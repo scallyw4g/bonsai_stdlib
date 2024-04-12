@@ -1,3 +1,33 @@
+link_internal work_queue_entry *
+PopWorkQueueEntry(work_queue* Queue)
+{
+  TIMED_FUNCTION();
+
+  work_queue_entry *Result = {};
+  for (;;)
+  {
+    WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
+
+    // NOTE(Jesse): Must read and comared DequeueIndex instead of calling QueueIsEmpty
+    u32 DequeueIndex = Queue->DequeueIndex;
+    if (DequeueIndex == Queue->EnqueueIndex)
+    {
+      break;
+    }
+
+    b32 Exchanged = AtomicCompareExchange( &Queue->DequeueIndex,
+                                           GetNextQueueIndex(DequeueIndex),
+                                           DequeueIndex );
+    if ( Exchanged )
+    {
+      Result = (work_queue_entry*)(Queue->Entries + DequeueIndex);
+      break;
+    }
+  }
+
+  return Result;
+}
+
 link_internal void
 DrainQueue(work_queue* Queue, thread_local_state* Thread, application_api *GameApi)
 {
@@ -128,7 +158,7 @@ DefaultWorkerThread(void *Input)
     }
   }
 
-  Info("Exiting Thread (%d)", ThreadParams->ThreadIndex);
+  Info("Exiting Worker Thread (%d)", ThreadParams->ThreadIndex);
   WaitOnFutex(ThreadParams->WorkerThreadsExitFutex);
 
   return 0;

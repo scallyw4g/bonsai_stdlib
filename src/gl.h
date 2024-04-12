@@ -486,13 +486,6 @@ global_variable opengl GL = {};
 
 link_internal b32 InitializeOpenglFunctions();
 
-link_internal void
-QueryOpenglVersion(s32 *Major, s32 *Minor)
-{
-  GL.GetIntegerv(GL_MAJOR_VERSION, Major);
-  GL.GetIntegerv(GL_MINOR_VERSION, Minor);
-}
-
 link_internal b32
 CheckOpenglVersion(s32 Major, s32 Minor)
 {

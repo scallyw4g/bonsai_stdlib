@@ -56,6 +56,7 @@ struct gpu_element_buffer_handles
   u32    MatHandle;
 
   u32 ElementCount;
+  b32 Mapped;
 };
 
 // This is a buffer we ask for and directly copy into
