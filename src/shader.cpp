@@ -114,7 +114,8 @@ LoadShaders(cs VertShaderPath, cs FragShaderPath)
   u32 FragmentShaderID = CompileShader(HeaderCode, FragShaderCode, GL_FRAGMENT_SHADER);
   /* CheckShaderCompilationStatus(FragShaderPath, FragmentShaderID); */
 
-  shader Shader = { INVALID_SHADER, 0 };
+  memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
+  shader Shader = { INVALID_SHADER, 0, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory) };
   /* if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER) */
   {
     // Link the program

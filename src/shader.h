@@ -113,6 +113,9 @@ struct shader
 {
   u32 ID;
   shader_uniform *FirstUniform;
+
+  cs VertexSourceFilename;
+  cs FragSourceFilename;
 };
 
 enum shader_language_setting
