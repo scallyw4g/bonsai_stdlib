@@ -2852,15 +2852,6 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 {
   TIMED_FUNCTION();
 
-  layout DefaultLayout = {};
-  DefaultLayout.DrawBounds = InvertedInfinityRectangle();
-
-  render_state RenderState = { .Layout = &DefaultLayout, .ClipRect = DISABLE_CLIPPING };
-
-  SetWindowZDepths(CommandBuffer);
-
-  FlushCommandBuffer(Group, &RenderState, CommandBuffer, &DefaultLayout);
-
   Group->SolidGeoCountLastFrame = Group->Geo.At;
   Group->TextGeoCountLastFrame = Group->TextGroup->Geo.At;
   DrawUiBuffers(Group, Group->ScreenDim); // Draws text and solid UI buffers
