@@ -7,7 +7,7 @@
 
 #include <bonsai_stdlib/src/platform/wgl.h>
 
-#include <chrono> // Timer
+#include <stdio.h>
 
 #define PLATFORM_RUNTIME_BREAK() __debugbreak()
 
@@ -214,16 +214,30 @@ PlatformGetGlFunction(const char* Name)
   return Result;
 }
 
-// TODO(Jesse)(omfg gross): OMFG GROSS
+
+// NOTE(Jesse): The win32 api GetSystemTimePreciseAsFileTime returns a result
+// measured in 100ns intervals
+#define _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(FT) u64((((FT).dwHighDateTime << 31) | ((FT).dwLowDateTime)))
+
 inline r64
 GetHighPrecisionClock()
 {
-  global_variable auto FirstTime = std::chrono::high_resolution_clock::now();
-  // cout << "FirstTime Time : " << chrono::time_point_cast<chrono::nanoseconds>(FirstTime).time_since_epoch().count() << " ns \n";
+  local_persist u64 BaseNS = {};
 
-  r64 ResultMs = (r64)(std::chrono::high_resolution_clock::now() - FirstTime).count()/1000000.0;;
-  // cout << "Time/iter, clock: " << chrono::duration_cast<chrono::nanoseconds>(Result).count() << " ns \n";
+  if (BaseNS == 0)
+  {
+    _FILETIME BaseTime = {};
+    GetSystemTimePreciseAsFileTime(&BaseTime);
+    BaseNS = _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(BaseTime);
+  }
 
+  _FILETIME Time = {};
+  GetSystemTimePreciseAsFileTime(&Time);
+  u64 ThisNS = _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(Time);
+
+  u64 RelNs = (ThisNS - BaseNS)*100;
+
+  r64 ResultMs = (RelNs / 1000000.0);
   return ResultMs;
 }
 
