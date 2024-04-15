@@ -433,7 +433,7 @@ poof(
         inline r32
         Length( vec_t.name Vec )
         {
-          r32 Result = (r32)sqrt((r64)LengthSq(Vec));
+          r32 Result = (r32)SquareRoot(LengthSq(Vec));
           return Result;
         }
 

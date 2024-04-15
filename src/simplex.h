@@ -143,7 +143,7 @@ void mainImage( out v4 fragColor, in v2 fragCoord )
   h = b*b - c;
   if( h>0.0 )
   {
-    h = -b - sqrt(h);
+    h = -b - SquareRoot(h);
     if( h<tmin ) 
     { 
       tmin=h; 

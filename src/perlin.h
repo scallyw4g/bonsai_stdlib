@@ -342,7 +342,7 @@ hash_u8(u8 x, u8 y, u8 z)
 //    perm: a value between 0 and 255
 //    float x, float y, float z: coordinates of vector from cell corner to shaded point
 //
-float gradientDotV( uint8_t perm, float x, float y, float z)
+float gradientDotV( u8 perm, float x, float y, float z)
 {
   switch (perm & 15)
   {

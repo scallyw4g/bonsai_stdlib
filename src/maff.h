@@ -1,9 +1,21 @@
 #define BONSAI_FAST_MATH__INVSQRT (1)
-#define BONSAI_FAST_MATH__SQRT (1)
-#define BONSAI_FAST_MATH__ARCCOS (1)
-#define BONSAI_FAST_MATH__COS (1)
-#define BONSAI_FAST_MATH__FLOORF (1)
-#define BONSAI_FAST_MATH__CEILF (1)
+#define BONSAI_FAST_MATH__SQRT    (1)
+#define BONSAI_FAST_MATH__ARCCOS  (1)
+#define BONSAI_FAST_MATH__COS     (1)
+#define BONSAI_FAST_MATH__TAN     (1)
+#define BONSAI_FAST_MATH__FLOORF  (1)
+#define BONSAI_FAST_MATH__CEILF   (1)
+
+// Include math.h if we're not using all the bonsai implementations
+#if !BONSAI_FAST_MATH__INVSQRT || \
+    !BONSAI_FAST_MATH__SQRT    || \
+    !BONSAI_FAST_MATH__ARCCOS  || \
+    !BONSAI_FAST_MATH__COS     || \
+    !BONSAI_FAST_MATH__TAN     || \
+    !BONSAI_FAST_MATH__FLOORF  || \
+    !BONSAI_FAST_MATH__CEILF
+#include <math.h>
+#endif
 
 link_inline f32 Cos(f32 x);
 
@@ -40,6 +52,34 @@ Abs(r32 F)
   return Result;
 }
 
+inline r64
+SafeDivide0(u64 Dividend, u64 Divisor)
+{
+  r64 Result = 0.0;
+  if (Divisor != 0)
+    Result = (r64)Dividend/(r64)Divisor;
+  return Result;
+}
+
+inline r64
+SafeDivide0(r64 Dividend, r64 Divisor)
+{
+  r64 Result = 0.0;
+  if (Divisor != 0.0)
+    Result = Dividend/Divisor;
+  return Result;
+}
+
+inline r32
+SafeDivide0(r32 Dividend, r32 Divisor)
+{
+  r32 Result = 0.0f;
+
+  if (Divisor != 0.0f)
+    Result = Dividend/Divisor;
+
+  return Result;
+}
 
 // TODO(Jesse): Can we do this without converting to integer to avoid overflow?
 // And/or do we care?
@@ -186,34 +226,18 @@ Sin(r32 Theta)
   return Result;
 }
 
-inline r64
-SafeDivide0(u64 Dividend, u64 Divisor)
+link_inline f32
+Tan(f32 x)
 {
-  r64 Result = 0.0;
-  if (Divisor != 0)
-    Result = (r64)Dividend/(r64)Divisor;
+#if BONSAI_FAST_MATH__TAN
+  r32 Result = SafeDivide0(Sin(x), Cos(x));
+#else  // BONSAI_FAST_MATH__TAN
+  r32 Result = (r32)tan(double(x));
+#endif // BONSAI_FAST_MATH__TAN
+
   return Result;
 }
 
-inline r64
-SafeDivide0(r64 Dividend, r64 Divisor)
-{
-  r64 Result = 0.0;
-  if (Divisor != 0.0)
-    Result = Dividend/Divisor;
-  return Result;
-}
-
-inline r32
-SafeDivide0(r32 Dividend, r32 Divisor)
-{
-  r32 Result = 0.0f;
-
-  if (Divisor != 0.0f)
-    Result = Dividend/Divisor;
-
-  return Result;
-}
 
 inline r64
 Min(r64 A, r64 B)
@@ -460,11 +484,13 @@ Square( r32 f )
 link_inline  f32
 InverseSquareRoot(f32 x)
 {
+  if (x == 0) return 0.f;
 #if BONSAI_FAST_MATH__INVSQRT 
-  return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ps1(x)));
+  r32 Result = _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ps1(x)));
 #else
-  NotImplemented;
+  r32 Result = 1.f/r32(sqrt(double(x)));
 #endif
+  return Result;
 }
 
 link_inline r32
@@ -472,10 +498,11 @@ SquareRoot(r32 F)
 {
 #if BONSAI_FAST_MATH__SQRT 
   r32 Result = InverseSquareRoot(F) * F;
-  return Result;
 #else
-  NotImplemented;
+  r32 Result = r32(sqrt(double(F)));
 #endif
+  /* Assert(!isnan(Result)); */
+  return Result;
 }
 
 inline r32

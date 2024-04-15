@@ -159,7 +159,7 @@ link_internal void
 Normalize( Quaternion *Q )
 {
   f32 LenSq = Q->w*Q->w + Q->x*Q->x + Q->y*Q->y + Q->z*Q->z;
-  f32 Len = f32(sqrt(r64(LenSq)));
+  f32 Len = SquareRoot(LenSq);
 
   Q->x /= Len;
   Q->y /= Len;
@@ -171,7 +171,7 @@ link_internal Quaternion
 Normalize( Quaternion Q )
 {
   f32 LenSq = Q.w*Q.w + Q.x*Q.x + Q.y*Q.y + Q.z*Q.z;
-  f32 Len = f32(sqrt(r64(LenSq)));
+  f32 Len = SquareRoot(LenSq);
 
   r32 x = Q.x/Len;
   r32 y = Q.y/Len;
