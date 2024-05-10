@@ -59,11 +59,20 @@ struct gpu_element_buffer_handles
   b32 Mapped;
 };
 
-// This is a buffer we ask for and directly copy into
-struct gpu_mapped_element_buffer
+//{ This is a buffer we ask for and directly copy into
+  struct gpu_mapped_element_buffer
+  {
+    gpu_element_buffer_handles    Handles;
+    untextured_3d_geometry_buffer Buffer;
+  };
+  // TODO(Jesse): Remove this typedef by changing the name everywhere.
+  typedef gpu_mapped_element_buffer gpu_mapped_untextured_3d_geometry_buffer;
+// }
+
+struct gpu_mapped_world_chunk_geometry_buffer
 {
-  gpu_element_buffer_handles    Handles;
-  untextured_3d_geometry_buffer Buffer;
+  gpu_element_buffer_handles  Handles;
+  world_chunk_geometry_buffer Buffer;
 };
 
 struct framebuffer

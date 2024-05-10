@@ -117,6 +117,16 @@ Conjugate( Quaternion q )
 }
 
 
+inline v3_u8
+Rotate(v3_u8 P, Quaternion Rotation)
+{
+  // TODO(Jesse): make sure this works
+  NotImplemented;
+
+  v3 Result = ((Rotation * Quaternion(V3(P),0)) * Conjugate(Rotation)).xyz;
+  return V3U8(Result);
+}
+
 inline v3
 Rotate(v3 P, Quaternion Rotation)
 {

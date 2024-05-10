@@ -36,6 +36,13 @@ union v3i
   };
 };
 
+union v3_u8
+{
+  u8 E[3];
+  union { u8 x; u8 y; u8 z; };
+  union { u8 r; u8 g; u8 b; };
+};
+
 union v3
 {
   r32 E[3];
@@ -195,6 +202,7 @@ Voxel_Position(v3 Offset)
 }
 
 
+
 poof(gen_vector_operators(v2))
 #include <generated/gen_vector_operators_v2.h>
 
@@ -206,6 +214,9 @@ poof(gen_vector_operators(v3))
 
 poof(gen_vector_operators(v3i))
 #include <generated/gen_vector_operators_v3i.h>
+
+poof(gen_vector_operators(v3_u8))
+#include <generated/gen_vector_operators_v3_u8.h>
 
 poof(gen_vector_operators(v4))
 #include <generated/gen_vector_operators_v4.h>
@@ -221,6 +232,27 @@ poof(gen_hetero_vector_operators(v3, v3i))
 
 poof(gen_hetero_vector_operators(v3i, v3))
 #include <generated/gen_hetero_vector_operators_v3i_v3.h>
+
+poof(gen_hetero_vector_operators(v3_u8, v3i))
+#include <generated/gen_hetero_vector_operators_v3_u8_v3i.h>
+
+poof(gen_hetero_vector_operators(v3_u8, v3))
+#include <generated/gen_hetero_vector_operators_v3_u8_v3.h>
+
+
+inline v3_u8
+V3U8(v3 V)
+{
+  v3_u8 Result = {{ u8(V.x), u8(V.y), u8(V.z) }};
+  return Result;
+}
+
+inline v3_u8
+V3U8(v3i V)
+{
+  v3_u8 Result = {{ u8(V.x), u8(V.y), u8(V.z) }};
+  return Result;
+}
 
 
 
@@ -275,6 +307,18 @@ V3i(s32 X, s32 Y, s32 Z)
 {
   v3i Result = {{ X, Y, Z }};
   return Result;
+}
+
+inline v3
+V3(v3 I)
+{
+  return I;
+}
+
+inline v3
+V3(v3_u8 V)
+{
+  return {{f32(V.x), f32(V.y), f32(V.z)}};
 }
 
 inline v3

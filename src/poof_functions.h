@@ -141,12 +141,12 @@ poof(
         inline t1.name
         operator(Operator)( t1.name P1, t2.name P2 )
         {
-          t1.name Result = {
+          t1.name Result = {{
           E.map_array(Index)
           {
-            .(E.name)[Index] = P1.(E.name)[Index] Operator E.type( P2.(E.name)[Index] ),
+            Cast((E.type), P1.(E.name)[Index] Operator E.type( P2.(E.name)[Index] )),
           }
-          };
+          }};
           return Result;
         }
       }
@@ -183,36 +183,36 @@ poof(
     inline Type.name
     operator(Operator)( Type.name P1, Type.name P2 )
     {
-      Type.name Result = {
+      Type.name Result = {{
       E.map_array(Index)
       {
-        .(E.name)[Index] = P1.(E.name)[Index] Operator P2.(E.name)[Index],
+        Cast((E.type), P1.(E.name)[Index] Operator P2.(E.name)[Index]),
       }
-      };
+      }};
       return Result;
     }
 
     inline Type.name
     operator(Operator)( Type.name P1, E.type Scalar )
     {
-      Type.name Result = {
+      Type.name Result = {{
       E.map_array(Index)
       {
-        .(E.name)[Index] = P1.(E.name)[Index] Operator Scalar,
+        Cast((E.type), P1.(E.name)[Index] Operator Scalar),
       }
-      };
+      }};
       return Result;
     }
 
     inline Type.name
     operator(Operator)( E.type Scalar, Type.name P1 )
     {
-      Type.name Result = {
+      Type.name Result = {{
       E.map_array(Index)
       {
-        .(E.name)[Index] = Scalar Operator P1.(E.name)[Index],
+        Cast((E.type), Scalar Operator P1.(E.name)[Index]),
       }
-      };
+      }};
       return Result;
     }
 

@@ -41,13 +41,37 @@ FillArray(vertex_material Color, vertex_material *Dest, s32 Count)
   for (s32 Index = 0; Index < Count; ++Index) { Dest[Index] = Color; }
 }
 
+struct world_chunk_geometry_buffer
+{
+  void *Next; poof(@ui_skip @no_serialize)
+
+  // NOTE(Jesse): Added this @mesh_allocate tag such that poof can generate
+  // code to allocate meshes without having to do weird macro fuckery
+  v3_u8 *Verts;         poof(@mesh_allocate)
+  v3    *Normals;       poof(@mesh_allocate)
+  vertex_material *Mat; poof(@mesh_allocate)
+
+  // NOTE(Jesse): We're never going to have more than 4bln vertices, so these
+  // can be 32 bits.  They can realistaiclly probably be 24 bits, but that's
+  // definitely a waste of time right now.
+  u32 End;
+  u32 At;
+
+  // NOTE(Jesse): This keeps track of what buffer the current reservation buffer came from.
+  world_chunk_geometry_buffer *Parent; poof(@no_serialize)
+  u32 BufferNeedsToGrow;               poof(@no_serialize)
+  u64 Timestamp;                       poof(@no_serialize)
+};
+
 struct untextured_3d_geometry_buffer
 {
   void *Next; poof(@ui_skip @no_serialize)
 
-  v3 *Verts;
-  v3 *Normals;
-  vertex_material *Mat;
+  // NOTE(Jesse): Added this @mesh_allocate tag such that poof can generate
+  // code to allocate meshes without having to do weird macro fuckery
+  v3    *Verts;         poof(@mesh_allocate)
+  v3    *Normals;       poof(@mesh_allocate)
+  vertex_material *Mat; poof(@mesh_allocate)
 
   // NOTE(Jesse): We're never going to have more than 4bln vertices, so these
   // can be 32 bits.  They can realistaiclly probably be 24 bits, but that's
@@ -113,6 +137,28 @@ ReserveBufferSpace(untextured_3d_geometry_buffer *Src, u32 ElementsToReserve)
   }
 
   return Result;
+}
+
+link_internal void
+DeepCopy(world_chunk_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest)
+{
+  NotImplemented;
+}
+
+link_internal void
+DeepCopy(world_chunk_geometry_buffer *Src, world_chunk_geometry_buffer *Dest)
+{
+  umm Count = Src->At;
+  Assert(Dest->End >= Count);
+
+  CopyMemory((u8*)Src->Verts,   (u8*)Dest->Verts,   Count*sizeof(v3_u8));
+  CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3));
+  CopyMemory((u8*)Src->Mat,     (u8*)Dest->Mat,     Count*sizeof(vertex_material));
+  /* CopyMemory((u8*)Src->Colors,  (u8*)Dest->Colors,  Count*sizeof(v3)); */
+  /* CopyMemory((u8*)Src->TransEmiss, (u8*)Dest->TransEmiss, Count*sizeof(v2)); */
+
+  Dest->At = u32(Count);
+  Dest->Timestamp = Src->Timestamp;
 }
 
 link_internal void

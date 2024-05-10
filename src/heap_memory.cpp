@@ -115,6 +115,9 @@ GetDataSize(heap_allocation_block* Block)
 
 
 
+// TODO(Jesse): Support alignment
+#define HeapAlloc(type, heap, count, ...) \
+  (type*)HeapAllocate( (heap), sizeof(type)*count )
 
 // Returns pointer to valid bytes to write to.
 link_internal u8*
