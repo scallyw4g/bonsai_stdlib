@@ -172,11 +172,17 @@
 
 #define GL_MAX_VERTEX_ATTRIBS             0x8869
 
+#define GL_QUERY_RESULT                   0x8866
+#define GL_QUERY_RESULT_AVAILABLE         0x8867
+#define GL_TIME_ELAPSED                   0x88BF
+
 typedef void GLvoid;
 typedef unsigned int GLenum;
 typedef float GLfloat;
 typedef int GLint;
 typedef int GLsizei;
+typedef s64 GLint64;
+typedef u64 GLuint64;
 typedef unsigned int GLbitfield;
 typedef double GLdouble;
 typedef unsigned int GLuint;
@@ -370,6 +376,21 @@ typedef void*           (*OpenglMapBufferRange)            (GLenum target, GLint
 typedef GLboolean       (*OpenglUnmapBuffer)               (GLenum target);
 typedef void            (*OpenglDrawBuffers)               (GLsizei n, const GLenum *bufs);
 typedef void            (*OpenglGetIntegerv)               (GLenum pname, GLint * data);
+typedef void            (*OpenglFinish)                    (void);
+
+
+typedef void (*OpenglGenQueries)(GLsizei n, GLuint * ids);
+typedef void (*OpenglBeginQuery)(GLenum target, GLuint id);
+typedef void (*OpenglEndQuery)(GLenum target);
+
+typedef void (*OpenglGetQueryObjectiv)(GLuint id, GLenum pname, GLint * params);
+typedef void (*OpenglGetQueryObjectuiv)(GLuint id, GLenum pname, GLuint * params);
+typedef void (*OpenglGetQueryObjecti64v)(GLuint id, GLenum pname, GLint64 * params);
+typedef void (*OpenglGetQueryObjectui64v)(GLuint id, GLenum pname, GLuint64 * params);
+typedef void (*OpenglGetQueryBufferObjectiv)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+typedef void (*OpenglGetQueryBufferObjectuiv)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+typedef void (*OpenglGetQueryBufferObjecti64v)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+typedef void (*OpenglGetQueryBufferObjectui64v)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
 
 
 
@@ -478,6 +499,21 @@ struct opengl
   OpenglUnmapBuffer UnmapBuffer;
   OpenglDrawBuffers DrawBuffers;
   OpenglGetIntegerv GetIntegerv;
+  OpenglFinish Finish;
+
+  OpenglGenQueries GenQueries;
+  OpenglBeginQuery BeginQuery;
+  OpenglEndQuery EndQuery;
+
+  OpenglGetQueryObjectiv GetQueryObjectiv;
+  OpenglGetQueryObjectuiv GetQueryObjectuiv;
+  OpenglGetQueryObjecti64v GetQueryObjecti64v;
+  OpenglGetQueryObjectui64v GetQueryObjectui64v;
+  OpenglGetQueryBufferObjectiv GetQueryBufferObjectiv;
+  OpenglGetQueryBufferObjectuiv GetQueryBufferObjectuiv;
+  OpenglGetQueryBufferObjecti64v GetQueryBufferObjecti64v;
+  OpenglGetQueryBufferObjectui64v GetQueryBufferObjectui64v;
+
   // Platform specific (wgl / glX)
   /* OpenglSwapInterval SwapInterval; */
 };

@@ -349,6 +349,45 @@ InitializeOpenglFunctions()
       GL.DebugMessageCallback     = (OpenglDebugMessageCallback)PlatformGetGlFunction("glDebugMessageCallback");
       GL.Initialized              &= GL.DebugMessageCallback != 0;
 
+      GL.Finish                = (OpenglFinish)PlatformGetGlFunction("glFinish");
+      GL.Initialized &= GL.Finish != 0;
+
+
+      GL.GenQueries                = (OpenglGenQueries)PlatformGetGlFunction("glGenQueries");
+      GL.Initialized &= GL.GenQueries != 0;
+
+      GL.BeginQuery                = (OpenglBeginQuery)PlatformGetGlFunction("glBeginQuery");
+      GL.Initialized &= GL.BeginQuery != 0;
+
+      GL.EndQuery                  = (OpenglEndQuery)PlatformGetGlFunction("glEndQuery");
+      GL.Initialized &= GL.EndQuery != 0;
+
+      GL.GetQueryObjectiv          = (OpenglGetQueryObjectiv)PlatformGetGlFunction("glGetQueryObjectiv");
+      GL.Initialized &= GL.GetQueryObjectiv != 0;
+
+      GL.GetQueryObjectuiv         = (OpenglGetQueryObjectuiv)PlatformGetGlFunction("glGetQueryObjectuiv");
+      GL.Initialized &= GL.GetQueryObjectuiv != 0;
+
+      GL.GetQueryObjecti64v        = (OpenglGetQueryObjecti64v)PlatformGetGlFunction("glGetQueryObjecti64v");
+      GL.Initialized &= GL.GetQueryObjecti64v != 0;
+
+      GL.GetQueryObjectui64v       = (OpenglGetQueryObjectui64v)PlatformGetGlFunction("glGetQueryObjectui64v");
+      GL.Initialized &= GL.GetQueryObjectui64v != 0;
+
+      GL.GetQueryBufferObjectiv    = (OpenglGetQueryBufferObjectiv)PlatformGetGlFunction("glGetQueryBufferObjectiv");
+      GL.Initialized &= GL.GetQueryBufferObjectiv != 0;
+
+      GL.GetQueryBufferObjectuiv   = (OpenglGetQueryBufferObjectuiv)PlatformGetGlFunction("glGetQueryBufferObjectuiv");
+      GL.Initialized &= GL.GetQueryBufferObjectuiv != 0;
+
+      GL.GetQueryBufferObjecti64v  = (OpenglGetQueryBufferObjecti64v)PlatformGetGlFunction("glGetQueryBufferObjecti64v");
+      GL.Initialized &= GL.GetQueryBufferObjecti64v != 0;
+
+      GL.GetQueryBufferObjectui64v = (OpenglGetQueryBufferObjectui64v)PlatformGetGlFunction("glGetQueryBufferObjectui64v");
+      GL.Initialized &= GL.GetQueryBufferObjectui64v != 0;
+
+
+
       GL.GetIntegerv(GL_MAJOR_VERSION, &GLMajor);
       GL.GetIntegerv(GL_MINOR_VERSION, &GLMinor);
 

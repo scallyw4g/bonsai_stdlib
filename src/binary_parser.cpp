@@ -23,8 +23,11 @@ typedef u32_cursor* u32_cursor_ptr;
 poof(buffer(u64))
 #include <generated/buffer_u64.h>
 
-poof(stream_and_cursor(u64))
-#include <generated/stream_and_cursor_u64.h>
+poof(generate_cursor_functions(u64))
+#include <generated/generate_cursor_functions_u64.h>
+
+poof(generate_stream(u64))
+#include <generated/generate_stream_u64.h>
 
 poof(generate_stream_compact(u64))
 #include <generated/generate_stream_compact_u64.h>

@@ -103,6 +103,7 @@ struct render_entity_to_texture_group
 #include <bonsai_stdlib/src/quaternion.h>
 #include <bonsai_stdlib/src/string_builder.h>
 #include <bonsai_stdlib/src/ansi_stream.h>
+#include <bonsai_stdlib/src/binary_parser.h>
 #include <bonsai_stdlib/src/rect.h>
 #include <bonsai_stdlib/src/xml.h>
 #include <bonsai_stdlib/src/geometry_buffer.h>
