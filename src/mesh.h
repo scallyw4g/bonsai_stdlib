@@ -43,6 +43,8 @@ FillArray(vertex_material Color, vertex_material *Dest, s32 Count)
 
 struct world_chunk_geometry_buffer
 {
+  // NOTE(Jesse): Has to have this here because the freelist needs to put the
+  // pointer somewhere.  We don't free the Verts/Normals/Mat buffers.
   void *Next; poof(@ui_skip @no_serialize)
 
   // NOTE(Jesse): Added this @mesh_allocate tag such that poof can generate

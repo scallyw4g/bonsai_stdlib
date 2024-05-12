@@ -39,9 +39,10 @@ union v3i
 union v3_u8
 {
   u8 E[3];
-  union { u8 x; u8 y; u8 z; };
-  union { u8 r; u8 g; u8 b; };
+  struct { u8 x; u8 y; u8 z; };
+  struct { u8 r; u8 g; u8 b; };
 };
+CAssert(sizeof(v3_u8) == 3);
 
 union v3
 {

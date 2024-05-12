@@ -141,12 +141,11 @@ poof(
         inline t1.name
         operator(Operator)( t1.name P1, t2.name P2 )
         {
-          t1.name Result = {{
+          t1.name Result;
           E.map_array(Index)
           {
-            Cast((E.type), P1.(E.name)[Index] Operator E.type( P2.(E.name)[Index] )),
+            Result.(E.name)[Index] = Cast((E.type), P1.(E.name)[Index] Operator Cast((E.type), P2.(E.name)[Index]));
           }
-          }};
           return Result;
         }
       }
