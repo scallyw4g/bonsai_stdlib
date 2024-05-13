@@ -50,7 +50,7 @@ struct world_chunk_geometry_buffer
   // NOTE(Jesse): Added this @mesh_allocate tag such that poof can generate
   // code to allocate meshes without having to do weird macro fuckery
   v3_u8 *Verts;         poof(@mesh_allocate)
-  v3    *Normals;       poof(@mesh_allocate)
+  v3_u8 *Normals;       poof(@mesh_allocate)
   vertex_material *Mat; poof(@mesh_allocate)
 
   // NOTE(Jesse): We're never going to have more than 4bln vertices, so these
