@@ -117,11 +117,23 @@ struct camera;
 
 #include <bonsai_stdlib/src/debug_ui.h>
 
+struct bonsai_stdlib;
+struct debug_state;
+
+link_weak bonsai_stdlib *GetStdlib();
+link_internal debug_state *GetDebugState();
+
 #if BONSAI_DEBUG_SYSTEM_API
+  /* #define GetDebugState() ( Global_EngineResources ? &Global_EngineResources->Stdlib.DebugState : 0 ) */
+
   #include <bonsai_debug/debug.h>
   #include <bonsai_debug/src/api.h>
 #else
-  struct bonsai_debug_system {};
+#if 1 // TODO(Jesse): Pretty sure this should all just be packed up in debug.h..
+  struct debug_state {};
+
+  /* #define GetDebugState(...) */
+
   #define TIMED_FUNCTION(...)
   #define TIMED_NAMED_BLOCK(...)
   #define HISTOGRAM_FUNCTION(...)
@@ -146,6 +158,7 @@ struct camera;
   #define DEBUG_CLEAR_META_RECORDS_FOR(...)
   #define DEBUG_TRACK_DRAW_CALL(...)
 #endif
+#endif
 
 #define UNPACK_STDLIB(Stdlib) \
   os *Os         = &(Stdlib)->Os; \
@@ -162,10 +175,9 @@ struct bonsai_stdlib
   // Debug
   //
 
+  // TODO(Jesse): Move into debug_state?
   texture_block_array AllTextures;
 
-  bonsai_debug_system DebugSystem;
+  debug_state DebugState;
 };
-
-link_weak bonsai_stdlib *GetStdlib();
 

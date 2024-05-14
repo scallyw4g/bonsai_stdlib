@@ -182,6 +182,7 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callbac
     Params->HighPriorityModeFutex     = &Plat->HighPriorityModeFutex;
     Params->WorkerThreadsSuspendFutex = &Plat->WorkerThreadsSuspendFutex;
     Params->WorkerThreadsExitFutex    = &Plat->WorkerThreadsExitFutex;
+    Params->EngineResources           = GetEngineResources();
 
     if (WorkerThreadCallbackProcs && umm(ThreadIndex-1) < WorkerThreadCallbackProcs->Count)
     {

@@ -40,19 +40,19 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
   if (Flags & BonsaiInit_InitDebugSystem)
   {
-#if BONSAI_DEBUG_SYSTEM_API && BONSAI_DEBUG_SYSTEM_LOADER_API
-    auto DebugSystem = &Stdlib->DebugSystem;
-    {
-      DebugSystem->Lib = OpenLibrary("./bin/lib_debug_system_loadable" PLATFORM_RUNTIME_LIB_EXTENSION);
-      if (!DebugSystem->Lib) { Error("Loading DebugLib :( "); return 1; }
+#if BONSAI_DEBUG_SYSTEM_API
+    /* auto DebugSystem = &Stdlib->DebugSystem; */
+    /* { */
+      /* DebugSystem->Lib = OpenLibrary("./bin/lib_debug_system_loadable" PLATFORM_RUNTIME_LIB_EXTENSION); */
+      /* if (!DebugSystem->Lib) { Error("Loading DebugLib :( "); return 1; } */
 
-      if (!InitializeBootstrapDebugApi(DebugSystem->Lib, &DebugSystem->Api)) { Error("Initializing Debug Bootstrap Api :( "); return 1; }
-    }
+      /* if (!InitBonsaiDebug(DebugSystem->Lib, &DebugSystem->Api, &DebugSystem->DebugState)) { Error("Initializing Debug Bootstrap Api :( "); return 1; } */
+    /* } */
 
-    DebugSystem->Api.BonsaiDebug_OnLoad(GetDebugState(), Global_ThreadStates, BONSAI_INTERNAL);
-    Ensure( DebugSystem->Api.InitDebugState(Global_DebugStatePointer) );
+    /* BonsaiDebug_OnLoad(GetDebugState(), Global_ThreadStates, BONSAI_INTERNAL); */
+    Ensure( InitDebugState(&Stdlib->DebugState) );
 
-    MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(GetDt());
+    MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(0.0f);
 #else
     Error("Asked to init debug system when BONSAI_DEBUG_SYSTEM_API was not compiled in!");
 #endif

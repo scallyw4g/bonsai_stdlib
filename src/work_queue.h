@@ -119,6 +119,10 @@ struct thread_startup_params
   work_queue *HighPriority;
 
   volatile s32 ThreadIndex;
+
+  // NOTE(Jesse): Optionally set in the engine code
+  void *EngineResources;
+  void *ThreadStates;
 };
 
 struct thread_main_callback_type_buffer;

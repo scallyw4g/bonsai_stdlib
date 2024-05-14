@@ -720,6 +720,7 @@ PlatformGetLogicalCoreCount()
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);
     Result = (u32)sysinfo.dwNumberOfProcessors;
+    Assert(Result > 0);
   }
   return Result;
 }

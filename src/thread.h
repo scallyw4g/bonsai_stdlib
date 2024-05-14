@@ -125,6 +125,7 @@ struct thread_local_state
 };
 CAssert(sizeof(thread_local_state) == CACHE_LINE_SIZE);
 
+// TODO(Jesse): Remove this asap.
 global_variable
 thread_local_state *Global_ThreadStates;
 

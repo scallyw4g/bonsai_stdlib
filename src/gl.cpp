@@ -1,10 +1,25 @@
 
+#define Draw(VertexCount) Draw_(VertexCount, __FUNCTION__)
+
+
+
+link_internal debug_state *GetDebugState();
+
 link_internal void
-Draw(u32 VertexCount)
+Draw_(u32 VertexCount, const char *Caller)
 {
   TIMED_FUNCTION();
   Assert(VertexCount);
-  /* GetEngineDebug()->Render.DrawCallsLastFrame++; */
+
+  // NOTE(Jesse): This is hella slow, so I'm just going to do a quick-n-dirty
+  // version for the moment
+  /* DEBUG_TRACK_DRAW_CALL(Caller, VertexCount); */
+
+#if BONSAI_DEBUG_SYSTEM_API
+  GetDebugState()->DrawCallCountLastFrame ++;
+  GetDebugState()->VertexCountLastFrame += VertexCount;;
+#endif
+
   AssertNoGlErrors;
   GL.DrawArrays(GL_TRIANGLES, 0, s32(VertexCount) );
   AssertNoGlErrors;
