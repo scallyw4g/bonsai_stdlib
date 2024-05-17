@@ -217,27 +217,38 @@ PlatformGetGlFunction(const char* Name)
 
 // NOTE(Jesse): The win32 api GetSystemTimePreciseAsFileTime returns a result
 // measured in 100ns intervals
-#define _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(FT) u64((((FT).dwHighDateTime << 31) | ((FT).dwLowDateTime)))
+/* #define _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(FT) u64((((FT).dwHighDateTime << 31) | ((FT).dwLowDateTime))) */
 
 inline r64
 GetHighPrecisionClock()
 {
   local_persist u64 BaseNS = {};
 
+  ULARGE_INTEGER LargeInt;
+
   if (BaseNS == 0)
   {
     _FILETIME BaseTime = {};
     GetSystemTimePreciseAsFileTime(&BaseTime);
-    BaseNS = _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(BaseTime);
+    LargeInt.LowPart = BaseTime.dwLowDateTime;
+    LargeInt.HighPart = BaseTime.dwHighDateTime;
+    BaseNS = LargeInt.QuadPart;
+    /* BaseNS = _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(BaseTime); */
   }
 
   _FILETIME Time = {};
   GetSystemTimePreciseAsFileTime(&Time);
-  u64 ThisNS = _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(Time);
+  LargeInt.LowPart = Time.dwLowDateTime;
+  LargeInt.HighPart = Time.dwHighDateTime;
+  u64 ThisNS = LargeInt.QuadPart;
+  /* u64 ThisNS = _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(Time); */
 
   u64 RelNs = (ThisNS - BaseNS)*100;
 
+
   r64 ResultMs = (RelNs / 1000000.0);
+
+  Info("BaseNS (%llu) ThisNS (%llu) RelNs (%llu) Result(%f)", BaseNS, ThisNS, RelNs, ResultMs);
   return ResultMs;
 }
 
