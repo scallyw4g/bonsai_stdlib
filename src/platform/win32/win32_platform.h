@@ -244,11 +244,8 @@ GetHighPrecisionClock()
   /* u64 ThisNS = _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(Time); */
 
   u64 RelNs = (ThisNS - BaseNS)*100;
-
-
   r64 ResultMs = (RelNs / 1000000.0);
-
-  Info("BaseNS (%llu) ThisNS (%llu) RelNs (%llu) Result(%f)", BaseNS, ThisNS, RelNs, ResultMs);
+  /* Info("BaseNS (%llu) ThisNS (%llu) RelNs (%llu) Result(%f)", BaseNS, ThisNS, RelNs, ResultMs); */
   return ResultMs;
 }
 
