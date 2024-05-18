@@ -24,15 +24,15 @@ PlatformCloseFile(native_file* File)
   return Result;
 }
 
-global_variable random_series TempFileEntropy = {3215432};
-
 link_internal b32
 PlatformRenameFile(cs CurrentFilePath, cs NewFilePath)
 {
   cs TmpFilename = {};
   if (FileExists(NewFilePath))
   {
-    TmpFilename = GetTmpFilename(&TempFileEntropy, GetTranArena());
+    local_persist random_series _TempFileEntropy = {3215432};
+
+    TmpFilename = GetTmpFilename(&_TempFileEntropy, GetTranArena());
     Rename(NewFilePath, TmpFilename);
   }
 
