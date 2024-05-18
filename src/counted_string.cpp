@@ -144,36 +144,48 @@ CopyString(counted_string S, heap_allocator* Memory)
   return Result;
 }
 
-link_internal cs
-Concat(cs S1, cs S2, memory_arena* Memory, umm ExtraChars = 0)
-{
-  umm TotalLength = S1.Count + S2.Count;
-  counted_string Result = {
-    .Count = TotalLength + ExtraChars,
-    .Start = AllocateProtection(char, Memory, TotalLength, False),
-  };
+poof(
+  func string_concat(type_poof_index arg_count)
+  {
+    link_internal counted_string
+    Concat( (arg_count.map(N) {cs S(N), }) memory_arena* Memory, umm ExtraChars = 0)
+    {
+      umm TotalLength = arg_count.map(n) { S(n).Count + } 0;
+      counted_string Result = {
+        .Count = TotalLength + ExtraChars,
+        .Start = AllocateProtection(char, Memory, TotalLength, False),
+      };
 
-  MemCopy((u8*)S1.Start, (u8*)Result.Start, S1.Count);
-  MemCopy((u8*)S2.Start, (u8*)Result.Start+S1.Count, S2.Count);
+      u64 At = 0;
+      arg_count.map(n)
+      {
+        MemCopy((u8*)S(n).Start, (u8*)Result.Start+At, S(n).Count);
+        At += S(n).Count;
+      }
 
-  return Result;
-}
+      return Result;
+    }
+  }
+)
 
-link_internal counted_string
-Concat(cs S1, cs S2, cs S3, memory_arena* Memory, umm ExtraChars = 0)
-{
-  umm TotalLength = S1.Count + S2.Count + S3.Count;
-  counted_string Result = {
-    .Count = TotalLength + ExtraChars,
-    .Start = AllocateProtection(char, Memory, TotalLength, False),
-  };
-
-  MemCopy((u8*)S1.Start, (u8*)Result.Start                  , S1.Count);
-  MemCopy((u8*)S2.Start, (u8*)Result.Start+S1.Count         , S2.Count);
-  MemCopy((u8*)S3.Start, (u8*)Result.Start+S1.Count+S2.Count, S3.Count);
-
-  return Result;
-}
+poof(string_concat(2))
+#include <generated/string_concat_2.h>
+poof(string_concat(3))
+#include <generated/string_concat_3.h>
+poof(string_concat(4))
+#include <generated/string_concat_4.h>
+poof(string_concat(5))
+#include <generated/string_concat_5.h>
+poof(string_concat(6))
+#include <generated/string_concat_6.h>
+poof(string_concat(7))
+#include <generated/string_concat_7.h>
+poof(string_concat(8))
+#include <generated/string_concat_8.h>
+poof(string_concat(9))
+#include <generated/string_concat_9.h>
+poof(string_concat(10))
+#include <generated/string_concat_10.h>
 
 link_internal const char*
 ConcatZ(cs S1, cs S2, memory_arena* Memory)
