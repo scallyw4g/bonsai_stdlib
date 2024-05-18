@@ -216,7 +216,15 @@ StripBookends(counted_string S, char First, char Last)
 link_internal counted_string
 StripQuotes(counted_string S)
 {
-  counted_string Result = StripBookends(S, '"', '"');
+  cs Result = S;
+  if (S.Start[0] == '"')
+  {
+    Result = StripBookends(S, '"', '"');
+  }
+  else if (S.Start[0] == '\'')
+  {
+    Result = StripBookends(S, '\'', '\'');
+  }
   return Result;
 }
 
