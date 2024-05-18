@@ -299,6 +299,45 @@ StripPrefixesUntilDoubleUnderscore(counted_string Source)
 }
 
 link_internal counted_string
+ToSnakeCase(counted_string Source, memory_arena* Memory)
+{
+  u32 ResultLength = Cast(u32, Source.Count);
+  for (u32 CharIndex = 0;
+      CharIndex < Source.Count;
+      ++CharIndex)
+  {
+    if (IsUpper(Source.Start[CharIndex]))
+    {
+      ++ResultLength;
+    }
+  }
+
+  counted_string Result = CountedString(ResultLength, Memory);
+
+  b32 NextCharToUpper = True;
+  u32 SourceIndex = 0;
+  u32 ResultIndex = 0;
+  for (;
+      ResultIndex < Result.Count;
+      ++ResultIndex)
+  {
+    char At = Source.Start[SourceIndex];
+    if (IsUpper(At))
+    {
+      Cast(char*, &Result.Start[ResultIndex])[0] = '_';
+      ++ResultIndex;
+      At = ToLower(At);
+    }
+
+    Cast(char*, &Result.Start[ResultIndex])[0] = At;
+  }
+
+  Assert(ResultIndex == ResultLength);
+
+  return Result;
+}
+
+link_internal counted_string
 ToCapitalCase(counted_string Source, memory_arena* Memory)
 {
   u32 ResultLength = 0;
