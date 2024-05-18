@@ -191,3 +191,14 @@ ResetInputForFrameStart(input *Input, hotkeys *Hotkeys)
   if (Hotkeys) { Clear(Hotkeys); }
 }
 
+global_variable r64 Global_LastDebugTime = 0;
+r32 GetDt()
+{
+  /* // Remove this function */
+  /* NotImplemented; */
+
+  r64 ThisTime = GetHighPrecisionClock();
+  r64 Result = ThisTime - Global_LastDebugTime;
+  Global_LastDebugTime = ThisTime;
+  return r32(Result);
+}
