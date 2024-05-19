@@ -320,7 +320,10 @@ ToSnakeCase(counted_string Source, memory_arena* Memory)
   {
     if (IsUpper(Source.Start[CharIndex]))
     {
-      ++ResultLength;
+      if (CharIndex > 0)
+      {
+        ++ResultLength;
+      }
     }
   }
 
@@ -333,15 +336,19 @@ ToSnakeCase(counted_string Source, memory_arena* Memory)
       ResultIndex < Result.Count;
       ++ResultIndex)
   {
-    char At = Source.Start[SourceIndex];
-    if (IsUpper(At))
+    char AtChar = Source.Start[SourceIndex];
+    if (IsUpper(AtChar))
     {
-      Cast(char*, &Result.Start[ResultIndex])[0] = '_';
-      ++ResultIndex;
-      At = ToLower(At);
+      if (ResultIndex > 0)
+      {
+        Cast(char*, &Result.Start[ResultIndex])[0] = '_';
+        ++ResultIndex;
+      }
+      AtChar = ToLower(AtChar);
     }
 
-    Cast(char*, &Result.Start[ResultIndex])[0] = At;
+    Cast(char*, &Result.Start[ResultIndex])[0] = AtChar;
+    ++SourceIndex;
   }
 
   Assert(ResultIndex == ResultLength);
