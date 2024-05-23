@@ -757,6 +757,8 @@ poof(
 poof(
   func hashtable_impl(Type)
   {
+    link_internal b32 AreEqual((Type.name)_linked_list_node *Node1, (Type.name)_linked_list_node *Node2 );
+
     link_internal (Type.name)_linked_list_node *
     Allocate_(Type.name)_linked_list_node(memory_arena *Memory)
     {
@@ -803,7 +805,11 @@ poof(
       Assert(Table->Size);
       umm HashValue = Hash(&Node->Element) % Table->Size;
       (Type.name)_linked_list_node **Bucket = Table->Elements + HashValue;
-      while (*Bucket) Bucket = &(*Bucket)->Next;
+      while (*Bucket)
+      {
+        /* Assert(!AreEqual(*Bucket, Node)); */
+        Bucket = &(*Bucket)->Next;
+      }
       *Bucket = Node;
       return &Bucket[0]->Element;
     }

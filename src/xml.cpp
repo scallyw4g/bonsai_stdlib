@@ -1,3 +1,9 @@
+poof(are_equal(xml_token))
+#include <generated/are_equal_xml_token.h>
+
+poof(are_equal(xml_property))
+#include <generated/are_equal_xml_property.h>
+
 poof(are_equal(xml_tag))
 #include <generated/are_equal_xml_tag.h>
 

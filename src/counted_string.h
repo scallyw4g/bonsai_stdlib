@@ -89,19 +89,29 @@ StringsMatch(cs S1, cs S2)
   return Result;
 }
 
-inline b32
+#if 1
+link_internal b32
 AreEqual(cs *S1, cs *S2)
 {
   b32 Result = StringsMatch(S1, S2);
   return Result;
 }
 
-inline b32
+link_internal b32
 AreEqual(cs S1, cs S2)
 {
-  b32 Result = StringsMatch(&S1, &S2);
+  b32 Result = StringsMatch(S1, S2);
   return Result;
 }
+
+link_internal b32
+AreEqual(const char *S1, const char *S2)
+{
+  b32 Result = StringsMatch(S1, S2);
+  return Result;
+}
+
+#endif
 
 poof(stream_and_cursor(counted_string))
 #include <generated/stream_and_cursor_counted_string.h>

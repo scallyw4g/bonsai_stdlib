@@ -15,7 +15,6 @@ GetTempFmtBuffer()
     return Thread->TempStdoutFormatStringBuffer;
   }
 }
-
 poof(buffer(counted_string))
 #include <generated/buffer_counted_string.h>
 
