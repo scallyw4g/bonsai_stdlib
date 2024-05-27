@@ -38,7 +38,10 @@ poof(
     link_internal cs
     ToString((type.name) *Element)
     {
-      cs Result = FSz("type.map(m) {(m.name)(%S) }", type.map(m).sep(,) { ToString( m.is_pointer?{}{&}Element->m.name) });
+      cs Result = FSz("type.map(m) {(m.name)(%S) }", type.map(m).sep(,)
+        {
+          ToString( m.is_pointer?{}{ m.is_enum?{}{&} }Element->m.name)
+        });
       return Result;
     }
   }
@@ -55,6 +58,9 @@ poof(to_string_primitive({s8 u8 s16 u16 s32 u32 s64 u64 f32 f64}))
 
 poof(to_string_vector({v2 v2i}))
 #include <generated/to_string_vector_240271411.h>
+
+poof(string_and_value_tables(texture_storage_format))
+#include <generated/string_and_value_tables_texture_storage_format.h>
 
 poof(to_string(texture))
 #include <generated/to_string_texture.h>

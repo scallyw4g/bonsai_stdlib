@@ -11,6 +11,8 @@ enum texture_storage_format
   TextureStorageFormat_RGBA8   = GL_RGBA8,
   TextureStorageFormat_RGBA16F = GL_RGBA16F,
   TextureStorageFormat_RGBA32F = GL_RGBA32F,
+
+  TextureStorageFormat_Depth32 = GL_DEPTH_COMPONENT32F,
 };
 
 
@@ -21,10 +23,15 @@ struct texture
   v2i Dim;
   u32 Slices;
 
+  // TODO(Jesse): Channels is implicitly defined in the texture_storage_format.
+  // Should we remove this?
   u32 Channels;
   b32 IsDepthTexture;
 
+  texture_storage_format Format;
+
   cs DebugName;
+  b32 Queued;
 };
 
 

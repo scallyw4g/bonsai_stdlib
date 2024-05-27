@@ -109,13 +109,8 @@ LoadDDS(const char * FilePath, memory_arena *Arena)
 #endif
 
 link_internal texture
-GenTexture(v2i Dim, cs DebugName, u32 Channels, u32 Slices = 1, b32 IsDepthTexture = False)
+InitTexture(v2i Dim, cs DebugName, texture_storage_format Format, u32 Channels, u32 Slices, b32 IsDepthTexture )
 {
-  Assert(Slices);
-  if (IsDepthTexture) { Assert(Channels == 1); }
-
-  u32 TextureDimensionality = Slices > 1 ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
-
   texture Result = {};
 
   Result.Dim = Dim;
@@ -123,6 +118,20 @@ GenTexture(v2i Dim, cs DebugName, u32 Channels, u32 Slices = 1, b32 IsDepthTextu
   Result.Channels = Channels;
   Result.Slices = Slices;
   Result.IsDepthTexture = IsDepthTexture;
+  Result.Format = Format;
+
+  return Result;
+}
+
+link_internal texture
+GenTexture(v2i Dim, cs DebugName, texture_storage_format StorageFormat, u32 Channels, u32 Slices, b32 IsDepthTexture = False)
+{
+  Assert(Slices);
+  if (IsDepthTexture) { Assert(Channels == 1); }
+
+  u32 TextureDimensionality = Slices > 1 ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+
+  texture Result = InitTexture(Dim, DebugName, StorageFormat, Channels, Slices, IsDepthTexture);
 
   GL.GenTextures(1, &Result.ID);
   GL.BindTexture(TextureDimensionality, Result.ID);
@@ -166,7 +175,7 @@ MakeTexture_RGBA(    v2i  Dim,
   Assert(Slices);
 
   u32 Channels = 4;
-  texture Result = GenTexture(Dim, DebugName, Channels, Slices);
+  texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices);
 
   u32 InternalFormat = TextureStorageFormat_RGBA8;
   u32 TextureFormat = GL_RGBA;
@@ -226,16 +235,17 @@ MakeTexture_RGBA(    v2i  Dim,
   texture_storage_format  StorageFormat = TextureStorageFormat_RGBA32F)
 {
   u32 Channels = 4;
-  texture Texture = GenTexture(Dim, DebugName, Channels);
+  u32 Slices = 1;
+  texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices);
 
   s32 InternalFormat = StorageFormat;
   u32 TextureFormat = GL_RGBA;
   GL.TexImage2D(GL_TEXTURE_2D, 0, InternalFormat,
-      Texture.Dim.x, Texture.Dim.y, 0,  TextureFormat, GL_FLOAT, Data);
+      Result.Dim.x, Result.Dim.y, 0,  TextureFormat, GL_FLOAT, Data);
 
   GL.BindTexture(GL_TEXTURE_2D, 0);
 
-  return Texture;
+  return Result;
 }
 
 link_internal texture
@@ -246,17 +256,17 @@ MakeTexture_SingleChannel( v2i  Dim,
 {
   u32 Channels = 1;
   u32 Slices = 1;
-  texture Texture = GenTexture(Dim, DebugName, Channels, Slices, IsDepthTexture);
+  texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices, IsDepthTexture);
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
-      Texture.Dim.x, Texture.Dim.y, 0,  GL_RED, GL_FLOAT, 0);
+      Result.Dim.x, Result.Dim.y, 0,  GL_RED, GL_FLOAT, 0);
 
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
   GL.BindTexture(GL_TEXTURE_2D, 0);
 
-  return Texture;
+  return Result;
 }
 
 link_internal texture
@@ -266,10 +276,11 @@ MakeTexture_RGB(     v2i  Dim,
   texture_storage_format  StorageFormat = TextureStorageFormat_RGB32F)
 {
   u32 Channels = 3;
-  texture Texture = GenTexture(Dim, DebugName, Channels);
+  u32 Slices = 1;
+  texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices);
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
-      Texture.Dim.x, Texture.Dim.y, 0,  GL_RGB, GL_FLOAT, Data);
+      Result.Dim.x, Result.Dim.y, 0,  GL_RGB, GL_FLOAT, Data);
 
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -278,7 +289,7 @@ MakeTexture_RGB(     v2i  Dim,
 
   AssertNoGlErrors;
 
-  return Texture;
+  return Result;
 }
 
 link_internal texture
@@ -287,10 +298,11 @@ MakeDepthTexture(v2i Dim, cs DebugName)
   u32 Channels = 1;
   u32 Slices = 1;
   b32 IsDepthTexture = True;
-  texture Texture = GenTexture(Dim, DebugName, Channels, Slices, IsDepthTexture);
+  texture_storage_format StorageFormat = TextureStorageFormat_Depth32;
+  texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices, IsDepthTexture);
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F,
-    Texture.Dim.x, Texture.Dim.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    Result.Dim.x, Result.Dim.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
   GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -298,10 +310,27 @@ MakeDepthTexture(v2i Dim, cs DebugName)
   r32 BorderColors[4] = {1, 1, 1, 1};
   GL.TexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BorderColors);
 
-  Texture.IsDepthTexture = True;
+  Result.IsDepthTexture = True;
 
-  return Texture;
+  return Result;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 link_internal void
 FramebufferDepthTexture(texture *Tex)
