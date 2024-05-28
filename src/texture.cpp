@@ -219,7 +219,7 @@ MakeTexture_RGBA(    v2i  Dim,
       GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
                         xOffset, yOffset, zOffset,
                         Result.Dim.x, Result.Dim.y, TextureDepth,
-                        TextureFormat, ElementType, Data );
+                        TextureFormat, ElementType, Data);
     }
   }
 
@@ -232,10 +232,13 @@ link_internal texture
 MakeTexture_RGBA(    v2i  Dim,
                       v4 *Data,
                       cs  DebugName,
+                     u32  Slices = 1,
   texture_storage_format  StorageFormat = TextureStorageFormat_RGBA32F)
 {
+  // @only_support_one_slice_allocate_texture
+  Assert(Slices == 1);
+
   u32 Channels = 4;
-  u32 Slices = 1;
   texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices);
 
   s32 InternalFormat = StorageFormat;
@@ -273,10 +276,14 @@ link_internal texture
 MakeTexture_RGB(     v2i  Dim,
                 const v3 *Data,
                       cs  DebugName,
+                     u32  Slices = 1,
   texture_storage_format  StorageFormat = TextureStorageFormat_RGB32F)
 {
+  // NOTE(Jesse): Only support a single slice through this path at the moment
+  // @only_support_one_slice_allocate_texture
+  Assert(Slices == 1);
+
   u32 Channels = 3;
-  u32 Slices = 1;
   texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices);
 
   GL.TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
@@ -407,7 +414,7 @@ link_internal texture
 CreateTextureArrayFromBitmapBlockArray(bitmap_block_array *Bitmaps, v2i TextureArrayXY)
 {
   umm BitmapCount = TotalElements(Bitmaps);
-  texture Result = MakeTexture_RGBA(TextureArrayXY, 0, CSz("TODO: DebugName"), u32(BitmapCount));
+  texture Result = MakeTexture_RGBA(TextureArrayXY, Cast(u32*, 0), CSz("TODO: DebugName"), u32(BitmapCount));
 
   s32 TextureDepth = 1;
 
@@ -444,7 +451,7 @@ CreateTextureArrayFromBitmapBufferArray(bitmap_buffer *BitmapBuffers, u32 Buffer
   }
 
 
-  texture Result = MakeTexture_RGBA(TextureArrayXY, 0, CSz("TODO: DebugName"), u32(BitmapCount));
+  texture Result = MakeTexture_RGBA(TextureArrayXY, Cast(u32*, 0), CSz("TODO: DebugName"), u32(BitmapCount));
 
   s32 zOffset = 0;
   RangeIterator_t(u32, BufferIndex, BufferCount)
