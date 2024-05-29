@@ -151,9 +151,6 @@ Round(r32 N)
 {
   r32 Result;
 
-  // TODO(Jesse): Make sure this is more-or-less correct
-  NotImplemented;
-
   f32 NFract = Fract(N);
   if (NFract > 0.5f)
   {
