@@ -66,6 +66,7 @@ CXX_OPTIONS="
   -Weverything
 
   -Wno-reserved-identifier
+  -Wno-reserved-id-macro
 
   -Wno-unknown-warning-option
   -Wno-unsafe-buffer-usage

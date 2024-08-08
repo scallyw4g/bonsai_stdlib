@@ -4,7 +4,7 @@
 
 #include "linux_file.cpp"
 
-#if PLATFORM_WINDOW_IMPLEMENTATIONS
+/* #if PLATFORM_WINDOW_IMPLEMENTATIONS */
 
 // TODO(Jesse id: 267): Unnecessary .. I just added these as a hack get parsing to work
 typedef Colormap x_colormap;
@@ -299,7 +299,14 @@ BonsaiSwapBuffers(os *Os)
   TIMED_FUNCTION();
   glXSwapBuffers(Os->Display, Os->Window);
 }
-#endif
+
+link_internal void
+PlatformMakeRenderContextCurrent(os *Os)
+{
+  glXMakeCurrent(Os->Display, Os->Window, Os->GlContext);
+}
+
+/* #endif */
 
 // TODO(Jesse): This has different semantics than the Windows one .. do we care?
 // (This one you can change the values of the pointed-to memory, and the env var updates)

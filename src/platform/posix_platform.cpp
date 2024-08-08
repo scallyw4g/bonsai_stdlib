@@ -217,7 +217,7 @@ CreateSemaphore(void)
 typedef pthread_attr_t thread_attributes; // TODO(Jesse id: 266): Unnecessary .. I just added it as a hack get parsing to work
 
 u32
-PlatformCreateThread( thread_main_callback_type ThreadMain, thread_startup_params *Params, s32 ThreadId)
+PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 ThreadId)
 {
   thread_attributes Attribs;
   pthread_attr_init(&Attribs);

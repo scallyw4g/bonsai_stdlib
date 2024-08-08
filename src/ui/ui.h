@@ -505,7 +505,7 @@ global_variable ui_render_params DefaultUiRenderParams_Button =
   &DefaultStyle,
   {},
   DefaultButtonPadding,
-  {},
+  UiElementAlignmentFlag_LeftAlign,
   UiElementLayoutFlag_Default,
 };
 
@@ -515,7 +515,7 @@ global_variable ui_render_params DefaultUiRenderParams_Checkbox =
   &DefaultStyle,
   {},
   DefaultCheckboxPadding,
-  {},
+  UiElementAlignmentFlag_LeftAlign,
   UiElementLayoutFlag_Default,
 };
 
@@ -535,7 +535,7 @@ global_variable ui_render_params DefaultUiRenderParams_Generic =
   &DefaultStyle,
   {},
   DefaultGenericPadding,
-  {},
+  UiElementAlignmentFlag_LeftAlign,
   UiElementLayoutFlag_Default,
 };
 
