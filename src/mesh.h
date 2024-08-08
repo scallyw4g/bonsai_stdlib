@@ -154,7 +154,7 @@ DeepCopy(world_chunk_geometry_buffer *Src, world_chunk_geometry_buffer *Dest)
   Assert(Dest->End >= Count);
 
   CopyMemory((u8*)Src->Verts,   (u8*)Dest->Verts,   Count*sizeof(v3_u8));
-  CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3));
+  CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3_u8));
   CopyMemory((u8*)Src->Mat,     (u8*)Dest->Mat,     Count*sizeof(vertex_material));
   /* CopyMemory((u8*)Src->Colors,  (u8*)Dest->Colors,  Count*sizeof(v3)); */
   /* CopyMemory((u8*)Src->TransEmiss, (u8*)Dest->TransEmiss, Count*sizeof(v2)); */
