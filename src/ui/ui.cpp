@@ -825,7 +825,7 @@ StartColumn(renderer_2d *Group, ui_render_params *Params = &DefaultUiRenderParam
 {
   UNPACK_UI_RENDER_PARAMS(Params);
 
-  u32 Result = StartColumn(Group, Style, Padding, AlignFlags);
+  u32 Result = StartColumn(Group, FStyle, Padding, AlignFlags);
   return Result;
 }
 
@@ -846,12 +846,12 @@ EndColumn(renderer_2d* Group, u32 StartCommandIndex)
 link_internal void
 PushColumn(           renderer_2d *Group,
                                cs  String,
-                         ui_style *Style,
+                         ui_style *FStyle,
                                v4  Padding     = DefaultColumnPadding,
        ui_element_alignment_flags  AlignParams = UiElementAlignmentFlag_RightAlign )
 {
-  u32 StartIndex = StartColumn(Group, Style, Padding, AlignParams);
-    Text(Group, String, Style);
+  u32 StartIndex = StartColumn(Group, FStyle, Padding, AlignParams);
+    Text(Group, String, FStyle);
   EndColumn(Group, StartIndex);
 }
 
@@ -859,7 +859,7 @@ link_internal void
 PushColumn(renderer_2d *Group, counted_string String, ui_render_params *Params = &DefaultUiRenderParams_Column)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  PushColumn(Group, String, Style, Padding, AlignFlags);
+  PushColumn(Group, String, FStyle, Padding, AlignFlags);
 }
 
 link_internal void
@@ -1024,14 +1024,14 @@ PushButtonEnd(renderer_2d *Group)
 }
 
 link_internal interactable_handle
-PushButtonStart(renderer_2d *Group, ui_id InteractionId, ui_style* Style = 0)
+PushButtonStart(renderer_2d *Group, ui_id InteractionId, ui_style* BStyle = 0)
 {
   Assert(IsValid(&InteractionId));
 
   ui_render_command Command = {
     .Type = type_ui_render_command_button_start,
     .ui_render_command_button_start.ID = InteractionId,
-    .ui_render_command_button_start.Style = Style ? *Style : DefaultStyle,
+    .ui_render_command_button_start.BStyle = BStyle ? *BStyle : DefaultButtonBackgroundStyle,
   };
 
   PushUiRenderCommand(Group, &Command);
@@ -1073,7 +1073,7 @@ link_internal ui_element_reference
 PushTableStart(renderer_2d* Group, ui_render_params *Params)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  ui_element_reference Result = PushTableStart( Group, Pos, RelativeTo, Offset, Style, Padding);
+  ui_element_reference Result = PushTableStart( Group, Pos, RelativeTo, Offset, FStyle, Padding);
   return Result;
 }
 
@@ -1441,11 +1441,15 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, ui_id InteractionId, window_
 }
 
 link_internal b32
-Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* Style, v4 Padding = DefaultButtonPadding, ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_RightAlign)
+Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_style* FStyle, ui_style* BStyle = &DefaultButtonBackgroundStyle, v4 Padding = DefaultButtonPadding, ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_RightAlign)
 {
   // TODO(Jesse, id: 108, tags: cleanup, potential_bug): Do we have to pass the style to both of these functions, and is that a good idea?
-  interactable_handle Button = PushButtonStart(Group, ButtonId, Style);
-    PushColumn(Group, ButtonName, Style, Padding, AlignFlags);
+  // NOTE(Jesse): This is actually probably causing problems now because the
+  // style that gets passed to PushButtonStart is indicitive of the button
+  // background styling whereas the column styling is .. well .. the column
+  // styling.
+  interactable_handle Button = PushButtonStart(Group, ButtonId, BStyle);
+    PushColumn(Group, ButtonName, FStyle, Padding, AlignFlags);
   PushButtonEnd(Group);
 
   b32 Result = Clicked(Group, &Button);
@@ -1456,13 +1460,13 @@ link_internal b32
 Button(renderer_2d* Group, counted_string ButtonName, ui_id ButtonId, ui_render_params *Params = &DefaultUiRenderParams_Button)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  b32 Result = Button( Group, ButtonName, ButtonId, Style, Padding, AlignFlags );
+  b32 Result = Button( Group, ButtonName, ButtonId, FStyle, BStyle, Padding, AlignFlags );
   return Result;
 }
 
 
 link_internal b32
-ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* Style = &DefaultStyle, v4 Padding = DefaultButtonPadding, ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_LeftAlign)
+ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* FStyle = &DefaultStyle, ui_style* BStyle = &DefaultBackgroundStyle, v4 Padding = DefaultButtonPadding, ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_LeftAlign)
 {
   interactable_handle Handle = {
     .Id = InteractionId
@@ -1470,22 +1474,22 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id Intera
 
   b32 Result = ToggledOn(Group, &Handle);
 
-  if (Result && Style == &DefaultStyle)
+  if (Result && FStyle == &DefaultStyle)
   {
-    Style = &DefaultSelectedStyle;
+    FStyle = &DefaultSelectedStyle;
   }
 
   ui_render_command StartCommand = {
     .Type = type_ui_render_command_button_start,
     .ui_render_command_button_start.ID = InteractionId,
-    .ui_render_command_button_start.Style = Style ? *Style : DefaultStyle,
+    .ui_render_command_button_start.BStyle = BStyle ? *BStyle : DefaultBackgroundStyle,
     .ui_render_command_button_start.Params = ButtonParam_ToggleButton,
   };
 
   PushUiRenderCommand(Group, &StartCommand);
 
   cs NameToUse = Result ? ButtonNameOn : ButtonNameOff;
-  PushColumn(Group, NameToUse, Style, Padding, AlignFlags);
+  PushColumn(Group, NameToUse, FStyle, Padding, AlignFlags);
 
   ui_render_command EndCommand = {
     .Type = type_ui_render_command_button_end,
@@ -1499,7 +1503,7 @@ link_internal b32
 ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_render_params *Params)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  b32 Result = ToggleButton(Group, ButtonNameOn, ButtonNameOff, InteractionId, Style, Padding, AlignFlags);
+  b32 Result = ToggleButton(Group, ButtonNameOn, ButtonNameOff, InteractionId, FStyle, BStyle, Padding, AlignFlags);
   return Result;
 }
 
@@ -1526,7 +1530,7 @@ TextBox(renderer_2d* Group, cs Name, cs Text, u32 TextBufferLen, ui_id ButtonId,
   UNPACK_UI_RENDER_PARAMS(Params);
   if (Name.Count) { PushColumn(Group, Name); }
 
-  if (Button( Group, Text, ButtonId, Style, Padding, AlignFlags ))
+  if (Button( Group, Text, ButtonId, FStyle, BStyle, Padding, AlignFlags ))
   {
     BeginTextEdit(Group, Cast(char*, Text.Start), TextBufferLen, ButtonId);
   }
@@ -1678,7 +1682,7 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
     {
       interactable_handle ButtonHandle = {UiButton->Id};
 
-      ui_style *ThisStyle = Style;
+      ui_style *ThisStyle = FStyle;
       if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
       {
         ThisStyle = (*Group->EnumValue == UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
@@ -1688,7 +1692,7 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
         ThisStyle = (*Group->EnumValue & UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
       }
 
-      if (Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, Params->Padding, Params->AlignFlags))
+      if (Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, BStyle, Params->Padding, Params->AlignFlags))
       {
         if (Group->Flags & ToggleButtonGroupFlags_RadioButtons)
         {
@@ -2773,7 +2777,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         ui_render_command *ButtonCmd = CommandBuffer->Commands+ButtonStartIndex;
         ui_render_command_button_start* ButtonStart = RenderCommandAs(button_start, ButtonCmd);
 
-        button_interaction_result ButtonResult = ProcessButtonEnd(Group, ButtonStart->ID, RenderState, AbsDrawBounds, &ButtonStart->Style);
+        button_interaction_result ButtonResult = ProcessButtonEnd(Group, ButtonStart->ID, RenderState, AbsDrawBounds, &ButtonStart->BStyle);
 
         if (ButtonStart->Params & ButtonParam_ToggleButton)
         {
@@ -2793,10 +2797,10 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           }
         }
 
-        if (ButtonResult.Hover && ButtonStart->Style.HoverColor != UI_HOVER_HIGHLIGHT_DISABLED)
+        if (ButtonResult.Hover && ButtonStart->BStyle.HoverColor != UI_HOVER_HIGHLIGHT_DISABLED)
         {
           BufferUntexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
-              ButtonStart->Style.HoverColor, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
+              ButtonStart->BStyle.HoverColor, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
         }
 
         if (ButtonStart->ID == Group->TextEdit.Id)

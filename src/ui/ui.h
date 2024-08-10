@@ -5,11 +5,12 @@
 #define UNPACK_UI_RENDER_PARAMS(Params)                                    \
      relative_position          Pos = Params->RelativePosition.Position;   \
   ui_element_reference   RelativeTo = Params->RelativePosition.RelativeTo; \
-              ui_style       *Style = Params->Style;                       \
+              ui_style      *FStyle = Params->FStyle;                      \
+              ui_style      *BStyle = Params->BStyle;                      \
                     v2       Offset = Params->Offset;                      \
                     v4      Padding = Params->Padding;                     \
-  auto   AlignFlags = Params->AlignFlags;                  \
-  auto   LayoutFlags = Params->LayoutFlags;                  \
+  auto   AlignFlags = Params->AlignFlags;                                  \
+  auto   LayoutFlags = Params->LayoutFlags;                                \
 
 
 
@@ -420,15 +421,15 @@ struct ui_style
   v3 PressedColor;
   v3 ClickedColor;
 
-  font Font;
+  font Font; // TODO(Jesse): Move into ui_render_params
 };
 
-// NOTE(Jesse): This should eventually subsume ui_style ..?
 struct ui_render_params
 {
   ui_relative_position_reference RelativePosition;
 
-  ui_style *Style;
+  ui_style *FStyle; // foreground
+  ui_style *BStyle; // background
 
   v2 Offset;
   v4 Padding;
@@ -483,16 +484,19 @@ global_variable v2 Global_ResizeHandleDim = V2(15);
 #define UI_COLOR_DEFAULT_BLURRED       (V3(0.25f))
 #define UI_COLOR_DEFAULT_DISABLED      (V3(0.3f, 0.2f, 0.2f))
 
-#define UI_HOVER_HIGHLIGHT_DISABLED    (V3(-1.f, -1.f, -1.f))
+#define UI_HOVER_HIGHLIGHT_DISABLED    (V3(-1.f))
 
 debug_global ui_style DefaultStyle         = UiStyleFromLightestColor(UI_COLOR_DEFAULT);
 debug_global ui_style DefaultSelectedStyle = UiStyleFromLightestColor(UI_COLOR_DEFAULT_SELECTED);
 debug_global ui_style DefaultBlurredStyle  = UiStyleFromLightestColor(UI_COLOR_DEFAULT_BLURRED);
 debug_global ui_style DefaultDisabledStyle = UiStyleFromLightestColor(UI_COLOR_DEFAULT_DISABLED);
 
+
+debug_global ui_style DefaultBackgroundStyle       = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
 debug_global ui_style DefaultWindowBezelStyle      = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);
 debug_global ui_style SaturatedWindowBezelStyle    = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);
 debug_global ui_style DefaultWindowBackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);
+debug_global ui_style DefaultButtonBackgroundStyle = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR_SATURATED);
 
 debug_global ui_style Global_DefaultCheckboxForeground = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);
 debug_global ui_style Global_DefaultCheckboxBackground = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED);
@@ -505,6 +509,7 @@ global_variable ui_render_params DefaultUiRenderParams_Button =
 {
   {},
   &DefaultStyle,
+  &DefaultButtonBackgroundStyle,
   {},
   DefaultButtonPadding,
   UiElementAlignmentFlag_LeftAlign,
@@ -515,6 +520,7 @@ global_variable ui_render_params DefaultUiRenderParams_Checkbox =
 {
   {},
   &DefaultStyle,
+  &DefaultButtonBackgroundStyle,
   {},
   DefaultCheckboxPadding,
   UiElementAlignmentFlag_LeftAlign,
@@ -525,6 +531,7 @@ global_variable ui_render_params DefaultUiRenderParams_Column =
 {
   {},
   &DefaultStyle,
+  &DefaultBackgroundStyle,
   {},
   DefaultColumnPadding,
   UiElementAlignmentFlag_LeftAlign,
@@ -535,6 +542,7 @@ global_variable ui_render_params DefaultUiRenderParams_Generic =
 {
   {},
   &DefaultStyle,
+  &DefaultBackgroundStyle,
   {},
   DefaultGenericPadding,
   UiElementAlignmentFlag_LeftAlign,
@@ -545,6 +553,7 @@ global_variable ui_render_params DefaultUiRenderParams_GenericHorizontal =
 {
   {},
   &DefaultStyle,
+  &DefaultBackgroundStyle,
   {},
   DefaultGenericHorizontalPadding,
   {},
@@ -556,6 +565,7 @@ global_variable ui_render_params DefaultUiRenderParams_Blank =
 {
   {},
   &DefaultStyle,
+  &DefaultBackgroundStyle,
   {},
   DefaultZeroPadding,
   {},
@@ -724,7 +734,7 @@ struct ui_render_command_textured_quad
 struct ui_render_command_button_start
 {
   ui_id ID;
-  ui_style Style;
+  ui_style BStyle;
   button_params Params;
 };
 
