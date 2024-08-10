@@ -1553,14 +1553,21 @@ poof(
           {
             u32 CurrentFlags = u32(Type);
 
-            u32 FirstValue = UnsetLeastSignificantSetBit(&CurrentFlags);
-            Result = ToStringPrefixless((EnumType.name)(FirstValue));
-
-            while (CurrentFlags)
+            if (CountBitsSet_Kernighan(CurrentFlags) == 1)
             {
-              u32 Value = UnsetLeastSignificantSetBit(&CurrentFlags);
-              cs Next = ToStringPrefixless((EnumType.name)(Value));
-              Result = FSz("%S | %S", Result, Next);
+              Result = FSz("(invalid value for (EnumType.name) (%d))", CurrentFlags);
+            }
+            else
+            {
+              u32 FirstValue = UnsetLeastSignificantSetBit(&CurrentFlags);
+              Result = ToStringPrefixless((EnumType.name)(FirstValue));
+
+              while (CurrentFlags)
+              {
+                u32 Value = UnsetLeastSignificantSetBit(&CurrentFlags);
+                cs Next = ToStringPrefixless((EnumType.name)(Value));
+                Result = FSz("%S | %S", Result, Next);
+              }
             }
           } break;
         }
