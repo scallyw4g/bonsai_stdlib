@@ -485,14 +485,14 @@ BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
 
 link_internal clip_result
 BufferTexturedQuad( renderer_2d *Group,
-                    s32 TextureSlice,
-                    v2 MinP,
-                    v2 Dim,
-                    rect2 UV,
-                    v3 Color,
-                    r32 Z,
-                    rect2  Clip,
-                    rect2 *ClipOptional )
+                            s32  TextureSlice,
+                             v2  MinP,
+                             v2  Dim,
+                          rect2  UV,
+                             v3  Color,
+                            r32  Z,
+                          rect2  Clip,
+                          rect2 *ClipOptional )
 {
   textured_2d_geometry_buffer* Geo = &Group->TextGroup->Geo;
 
@@ -2793,10 +2793,10 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           }
         }
 
-        if (ButtonResult.Hover)
+        if (ButtonResult.Hover && ButtonStart->Style.HoverColor != UI_HOVER_HIGHLIGHT_DISABLED)
         {
           BufferUntexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
-              UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
+              ButtonStart->Style.HoverColor, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
         }
 
         if (ButtonStart->ID == Group->TextEdit.Id)

@@ -433,8 +433,8 @@ struct ui_render_params
   v2 Offset;
   v4 Padding;
 
-  ui_element_alignment_flags      AlignFlags;
-  ui_element_layout_flags LayoutFlags;
+  ui_element_alignment_flags  AlignFlags;
+  ui_element_layout_flags     LayoutFlags;
 };
 
 link_internal ui_style UiStyleFromLightestColor(v3 Color, font *Font = &Global_Font);
@@ -482,6 +482,8 @@ global_variable v2 Global_ResizeHandleDim = V2(15);
 #define UI_COLOR_DEFAULT               (V3(0.9f))
 #define UI_COLOR_DEFAULT_BLURRED       (V3(0.25f))
 #define UI_COLOR_DEFAULT_DISABLED      (V3(0.3f, 0.2f, 0.2f))
+
+#define UI_HOVER_HIGHLIGHT_DISABLED    (V3(-1.f, -1.f, -1.f))
 
 debug_global ui_style DefaultStyle         = UiStyleFromLightestColor(UI_COLOR_DEFAULT);
 debug_global ui_style DefaultSelectedStyle = UiStyleFromLightestColor(UI_COLOR_DEFAULT_SELECTED);
@@ -909,17 +911,6 @@ GetZ(z_depth zDepth, window_layout* Window)
       InvalidDefaultCase;
     }
   }
-
-  return Result;
-}
-
-link_internal ui_style
-StandardStyling(v3 StartingColor, v3 HoverMultiplier = V3(1.3f), v3 ClickMultiplier = V3(1.2f))
-{
-  ui_style Result = {};
-  Result.Color = StartingColor;
-  Result.HoverColor = StartingColor*HoverMultiplier;
-  Result.ClickedColor = StartingColor*ClickMultiplier;
 
   return Result;
 }
