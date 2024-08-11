@@ -601,20 +601,34 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, v3 Color, r32 Z, r
 link_internal void
 BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip, v4 Thickness = V4(1))
 {
+  // Ensure we can pass inverted coordinates into this and everything still works
+  // (so the border goes backwards or upwards)
+  MinMax(&Rect);
+
   v2 TopLeft     = Rect.Min;
   v2 BottomRight = Rect.Max;
   v2 TopRight    = V2(Rect.Max.x, Rect.Min.y);
   v2 BottomLeft  = V2(Rect.Min.x, Rect.Max.y);
 
-  rect2 TopRect    = RectMinMax(TopLeft ,    TopRight    + V2(0, Thickness.Top));
-  rect2 BottomRect = RectMinMax(BottomLeft,  BottomRight - V2(0, Thickness.Bottom));
-  rect2 LeftRect   = RectMinMax(TopLeft ,    BottomLeft  + V2(Thickness.Left, 0));
-  rect2 RightRect  = RectMinMax(TopRight,    BottomRight - V2(Thickness.Right, 0));
+  rect2 TopRect    = RectMinMax(TopLeft ,    TopRight    - V2(0, Thickness.Top));
+  rect2 BottomRect = RectMinMax(BottomLeft,  BottomRight + V2(0, Thickness.Bottom));
+  rect2 LeftRect   = RectMinMax(TopLeft-Thickness.Left ,    BottomLeft);
+  rect2 RightRect  = RectMinMax(TopRight,    BottomRight + V2(Thickness.Right, 0));
 
   BufferUntexturedQuad(Group, &Group->Geo, TopRect,    Color, Z, Clip);
   BufferUntexturedQuad(Group, &Group->Geo, LeftRect,   Color, Z, Clip);
   BufferUntexturedQuad(Group, &Group->Geo, RightRect,  Color, Z, Clip);
   BufferUntexturedQuad(Group, &Group->Geo, BottomRect, Color, Z, Clip);
+
+  rect2 TopRightCorner    = RectMinMax(TopRight,    TopRight    + V2( Thickness.Right, -Thickness.Top));
+  rect2 TopLeftCorner     = RectMinMax(TopLeft,     TopLeft     + V2(-Thickness.Left,  -Thickness.Top));
+  rect2 BottomRightCorner = RectMinMax(BottomRight, BottomRight + V2( Thickness.Right,  Thickness.Bottom));
+  rect2 BottomLeftCorner  = RectMinMax(BottomLeft,  BottomLeft  + V2(-Thickness.Left,   Thickness.Bottom));
+
+  BufferUntexturedQuad(Group, &Group->Geo, TopRightCorner,    Color, Z, Clip);
+  BufferUntexturedQuad(Group, &Group->Geo, TopLeftCorner,     Color, Z, Clip);
+  BufferUntexturedQuad(Group, &Group->Geo, BottomRightCorner, Color, Z, Clip);
+  BufferUntexturedQuad(Group, &Group->Geo, BottomLeftCorner,  Color, Z, Clip);
 }
 
 link_internal void
@@ -1090,13 +1104,14 @@ PushTableEnd(renderer_2d *Group)
 }
 
 link_internal void
-PushRelativeBorder(renderer_2d *Group, v2 Dim, v3 Color, v4 Thickness = V4(1))
+PushRelativeBorder(renderer_2d *Group, v2 Dim, v3 Color, v4 Thickness = V4(1), z_depth zDepth = zDepth_Border)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_rel_border,
     .ui_render_command_rel_border.Dim = Dim,
     .ui_render_command_rel_border.Color = Color,
     .ui_render_command_rel_border.Thickness = Thickness,
+    .ui_render_command_rel_border.zDepth = zDepth,
   };
 
   PushUiRenderCommand(Group, &Command);
@@ -2814,7 +2829,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_rel_border:
       {
         ui_render_command_rel_border* Border = RenderCommandAs(rel_border, Command);
-        BufferBorder(Group, RectMinDim(GetAbsoluteAt(RenderState->Layout), Border->Dim), Border->Color, GetZ(zDepth_Border, RenderState->Window), DISABLE_CLIPPING, Border->Thickness);
+        BufferBorder(Group, RectMinDim(GetAbsoluteAt(RenderState->Layout), Border->Dim), Border->Color, GetZ(Border->zDepth, RenderState->Window), RenderState->ClipRect, Border->Thickness);
       } break;
       case type_ui_render_command_abs_border:
       {
@@ -2925,7 +2940,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             BindUniformByName(Shader, "TextureSlice",    TypedCommand->TextureSlice   );
             BindUniformByName(Shader, "Tint",            &TypedCommand->Tint   );
 
-            // NOTE(Jesse):  We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
+            // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
             // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
             BufferTexturedQuad(Group, TypedCommand->TextureSlice, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
 

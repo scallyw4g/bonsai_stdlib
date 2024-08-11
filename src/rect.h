@@ -147,6 +147,15 @@ Rect3i(rect3 *Rect)
   return Result;
 }
 
+link_internal void
+MinMax(rect2 *Rect)
+{
+  v2 Mn = Min(Rect->Min, Rect->Max);
+  v2 Mx = Max(Rect->Min, Rect->Max);
+
+  *Rect = RectMinMax(Mn, Mx);
+}
+
 struct sphere
 {
   v3 P;

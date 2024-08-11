@@ -623,6 +623,7 @@ struct ui_render_command_rel_border
   v2 Dim;
   v3 Color;
   v4 Thickness;
+  z_depth zDepth;
 };
 
 struct ui_render_command_abs_border
