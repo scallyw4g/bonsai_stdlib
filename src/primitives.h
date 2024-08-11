@@ -22,9 +22,6 @@
 
 #endif
 
-#define True  (1)
-#define False (0)
-
 #define ArrayCount(a) (sizeof(a)/sizeof(a[0]))
 
 // 8 Bit types
@@ -169,6 +166,12 @@ CAssert(u16_MAX == UINT16_MAX);
 CAssert(u32_MAX == UINT32_MAX);
 CAssert(u64_MAX == UINT64_MAX);
 #endif
+
+#define True  (1)
+#define False (0)
+
+global_variable u32 Global_False = 0;
+global_variable u32 Global_True = 1;
 
 enum maybe_tag
 {

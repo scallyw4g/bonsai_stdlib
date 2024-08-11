@@ -440,6 +440,8 @@ BindUnifromById(shader_uniform *Uniform, s32 *TextureUnit)
       case ShaderUniform_Texture:
       {
         TIMED_BLOCK("ShaderUniform_Texture");
+        Assert(*TextureUnit > -1);
+
         if (*TextureUnit > 8)
         {
           Warn("TODO(Jesse): TextureUnit > 8, query available texture units"); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
@@ -518,7 +520,26 @@ BindUnifromById(shader_uniform *Uniform, s32 *TextureUnit)
   }
   else
   {
-    /* SoftError("Attempted to bind a uniform (%s) with an invalid id (%d)", Uniform->Name, Uniform->ID); */
+    // TODO(Jesse): This used to be commented out .. document why this would
+    // happen and why we should handle it gracefully.
+    SoftError("Attempted to bind a uniform (%s) with an invalid id (%d)", Uniform->Name, Uniform->ID);
+  }
+}
+
+link_internal void
+BindUniformByName(shader *Shader, shader_uniform *Uniform, s32 *TextureUnit)
+{
+  if (Uniform->ID >= 0)
+  {
+    Perf("Bound shader uniform (%s) by name when it had a valid ID (%d)", Uniform->Name, Uniform->ID);
+  }
+  else
+  {
+    Uniform->ID = GL.GetUniformLocation(Shader->ID, Uniform->Name);
+    if (Uniform->ID != INVALID_SHADER_UNIFORM)
+    {
+      BindUnifromById(Uniform, TextureUnit);
+    }
   }
 }
 
