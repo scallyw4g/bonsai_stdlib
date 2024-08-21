@@ -47,6 +47,10 @@
 #include <bonsai_stdlib/src/work_queue.h>
 #include <bonsai_stdlib/src/mesh.h>
 
+enum gpu_element_buffer_flags
+{
+  GpuHandles_UpdatePending  = 1 << 0, // Set if the handles are queued to be updated in some way
+};
 
 struct gpu_element_buffer_handles
 {
@@ -57,7 +61,10 @@ struct gpu_element_buffer_handles
   u32    MatHandle;
 
   u32 ElementCount;
-  b32 Mapped;
+
+  b8  Mapped;
+  b8  Pad;
+  u16 Flags; // (gpu_element_buffer_flags)
 };
 
 //{ This is a buffer we ask for and directly copy into

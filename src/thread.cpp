@@ -69,8 +69,8 @@ DefaultThreadLocalState(s32 ThreadId)
   // constructing the debug arena stats, so we can't ever free memory allocated
   // on debug registered arenas on threads outside the main one.
   //
-  DEBUG_REGISTER_ARENA(Thread.TempMemory, ThreadId);
-  DEBUG_REGISTER_ARENA(Thread.PermMemory, ThreadId);
+  DEBUG_REGISTER_NAMED_ARENA(Thread.TempMemory, ThreadId, FormatCountedString(Thread.PermMemory, CSz("Thread (%d) Temp Memory"), ThreadId).Start);
+  DEBUG_REGISTER_NAMED_ARENA(Thread.PermMemory, ThreadId, FormatCountedString(Thread.PermMemory, CSz("Thread (%d) Perm Memory"), ThreadId).Start);
 
   return Thread;
 }

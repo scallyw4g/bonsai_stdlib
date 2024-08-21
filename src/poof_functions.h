@@ -119,13 +119,29 @@ poof(
   func gen_constructor(Type)
   {
     link_internal Type.name
-    Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.is_pointer?{*} M.name.to_capital_case } )
+    Type.name.to_capital_case( Type.map_members(M).sep(,) { M.type M.is_pointer?{*}M.is_array?{*}  M.name.to_capital_case } )
     {
       Type.name Reuslt = {
         Type.map_members(M).sep(,) {
-          .M.name = M.name.to_capital_case
+          M.is_array?
+          {
+          }
+          {
+            .M.name = M.name.to_capital_case
+          }
         }
       };
+
+        Type.map_members(M)
+        {
+          M.is_array?
+          {
+            RangeIterator(Index, s32((M.tag_value(array_length))))
+            {
+              Reuslt.M.name[Index] = M.name.to_capital_case[Index];
+            }
+          }
+        }
       return Reuslt;
     }
   }

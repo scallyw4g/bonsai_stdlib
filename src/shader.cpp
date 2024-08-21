@@ -520,9 +520,8 @@ BindUnifromById(shader_uniform *Uniform, s32 *TextureUnit)
   }
   else
   {
-    // TODO(Jesse): This used to be commented out .. document why this would
-    // happen and why we should handle it gracefully.
-    SoftError("Attempted to bind a uniform (%s) with an invalid id (%d)", Uniform->Name, Uniform->ID);
+    // NOTE(Jesse): Uniforms that get optimized out hit this path and it spams the console like crazy
+    /* SoftError("Attempted to bind a uniform (%s) with an invalid id (%d)", Uniform->Name, Uniform->ID); */
   }
 }
 
