@@ -78,7 +78,7 @@ CopyZString(const char* Start, memory_arena* Memory)
 
   umm Count = Length(Start);
 
-  char *Result =  Allocate(char, Memory, Count);
+  char *Result =  Allocate(char, Memory, Count+1);
   MemCopy((u8*)Start, (u8*)Result, Count);
 
   return Cast(const char*, Result);
