@@ -38,7 +38,7 @@
 #else // Release Build
 
 #define Ensure(condition) condition
-#define Assert(...)
+#define Assert(condition)  do { if (!(condition)) { PrintToStdout(CSz(" ! FAILED -   " #condition) ); } } while (0)
 #define InvalidCodePath(...)
 #define RuntimeBreak(...)
 
