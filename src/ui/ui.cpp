@@ -14,6 +14,14 @@ poof(hashtable_get_ptr(ui_toggle, {ui_id}, {Id}))
 #include <generated/hashtable_get_ptr_ui_toggle_31501_688856534.h>
 
 
+poof(hashtable_impl(window_layout))
+#include <generated/hashtable_impl_window_layout.h>
+
+poof(hashtable_get(window_layout, {ui_id}, {HashtableKey}))
+#include <generated/hashtable_get_window_layout_705671517_599498827.h>
+poof(hashtable_get_ptr(window_layout, {ui_id}, {HashtableKey}))
+#include <generated/hashtable_get_ptr_window_layout_705671517_599498827.h>
+
 enum ui_toggle_button_group_flags
 {
   ToggleButtonGroupFlags_None               = 0,
@@ -979,7 +987,7 @@ PushTexturedQuadColumn( renderer_2d *Group,
 }
 
 link_internal void
-PushUntexturedQuadAt(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui_style *Style = 0, ui_element_layout_flags Params = UiElementLayoutFlag_Default)
+PushUntexturedQuadAt(renderer_2d* Group, v2 AbsoluteP, v2 QuadDim, z_depth zDepth, ui_style *Style = 0, ui_element_layout_flags Params = UiElementLayoutFlag_Default)
 {
   ui_render_command Command =
   {
@@ -992,7 +1000,7 @@ PushUntexturedQuadAt(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, 
       .Style = Style? *Style : DefaultStyle,
       .Layout  =
       {
-        .At         = Offset,
+        .At         = AbsoluteP,
         .DrawBounds = InvertedInfinityRectangle(),
       }
     }
@@ -1178,11 +1186,9 @@ GetDrawBounds(counted_string String, ui_style *Style)
 }
 
 link_internal void
-PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowMaxClip = V2(f32_MAX))
+PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowMaxClip = DISABLE_CLIPPING_MAX)
 {
-  rect2 AbsWindowBounds = RectMinDim(Window->Basis, WindowMaxClip);
-  /* rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max); */
-  rect2 ClipRect = RectMinMax(AbsWindowBounds.Min, AbsWindowBounds.Max);
+  rect2 ClipRect = RectMinDim(Window->Basis, WindowMaxClip);
 
   ui_render_command Command = {
     .Type = type_ui_render_command_window_start,
@@ -1551,6 +1557,50 @@ TextBox(renderer_2d* Group, cs Name, cs Text, u32 TextBufferLen, ui_id ButtonId,
   }
 }
 
+
+
+/*********************************           *********************************/
+/*********************************   Modal   *********************************/
+/*********************************           *********************************/
+
+#if 0
+link_internal void
+ModalWindow(renderer_2d *Ui, modal_callback Callback, void *UserData)
+{
+  Assert(Ui->ActiveModalCallback == 0);
+  Ui->ActiveModalCallback = Callback;
+  Ui->ActiveModalUserData = UserData;
+}
+
+link_internal window_layout *
+ModalWindowStart(renderer_2d *Ui, const char *WindowTitle, ui_id WindowId)
+{
+  maybe_window_layout_ptr MaybeWindow = GetPtrByHashtableKey(&Ui->WindowTable, WindowId );
+
+  window_layout *Window = MaybeWindow.Value;
+  if (Window == 0)
+  {
+    window_layout Tmp = WindowLayout(WindowTitle);
+    Window = Insert(Tmp, &Ui->WindowTable, &Ui->WindowTableArena);
+  }
+
+  if (Window)
+  {
+    PushWindowStart(Ui, Window);
+
+    if (Button(Ui, CSz("AbortModal"), UiId(Window, "CloseModalButton", 0u)))
+    {
+      Window->Flags |= WindowLayoutFlag_DeferFree;
+    }
+  }
+  else
+  {
+    SoftError("Failed to get free window_layout for window titled (%s).", WindowTitle);
+  }
+
+  return Window;
+}
+#endif
 
 
 /**************************                      *****************************/
@@ -2090,8 +2140,8 @@ SetWindowZDepths(ui_render_command_buffer *CommandBuffer)
   SliceInterval -= SliceInterval*0.0001;
 
   for (u32 SortKeyIndex = 0;
-      SortKeyIndex < WindowSortParams.Count;
-      ++SortKeyIndex)
+           SortKeyIndex < WindowSortParams.Count;
+         ++SortKeyIndex)
   {
     u32 CommandIndex = (u32)WindowSortParams.SortKeys[SortKeyIndex].Index;
     window_layout* Window = CommandBuffer->Commands[CommandIndex].ui_render_command_window_start.Window;
@@ -3030,6 +3080,7 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   AllocateAndInitGeoBuffer(&Renderer->Geo, ElementCount, PermMemory);
 
   Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
+  /* Renderer->WindowTable = Allocate_window_layout_hashtable(256, PermMemory); // 256 windows should be enough for anybody? */
 
 
   if (Headless == False)
@@ -3136,6 +3187,24 @@ UiInteractionWasViewport(renderer_2d *Ui)
   b32 Result = InteractionWasViewport;
   return Result;
 }
+
+#if 0
+link_internal void
+DoModalInteraction(renderer_2d *Ui, rect2 ModalBounds)
+{
+  input *Input = Ui->Input;
+  if (Ui->ActiveModalCallback)
+  {
+    local_persist window_layout ModalWindow = WindowLayout("Modal -- TODO(Jesse): Dynamic window name?", ModalBounds.Min, ModalBounds.Max, WindowLayoutFlag_None);
+    ModalWindow.InteractionStackIndex = INTERACTION_ALWAYS_ON_TOP;
+
+    PushBorderlessWindowStart( Ui, &ModalWindow );
+      Ui->ActiveModalCallback(Ui->ActiveModalUserData);
+      PushUntexturedQuadAt(Ui, ModalBounds.Min, ModalBounds.Max, zDepth_Background, &DefaultBackgroundStyle);
+    PushWindowEnd(Ui, &ModalWindow);
+  }
+}
+#endif
 
 link_internal void
 DoTextEditInteraction(renderer_2d *Ui)

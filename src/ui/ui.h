@@ -73,17 +73,22 @@ enum window_layout_flags
   // below the default window layout.  I don't love this implicit behavior,
   // but it is what it is for now.
   WindowLayoutFlag_Default                 = (WindowLayoutFlag_Size_Dynamic|WindowLayoutFlag_StartupSize_Infer),
+
+  // Set this to free the window layout from the hashtable after drawing
+  WindowLayoutFlag_DeferFree               = (1 << 5),
 };
 
 struct window_layout
 {
+  ui_id HashtableKey;
+
   cs Title;
 
   // TODO(Jesse): Pack Minimized into flags somehow?
   b32 Minimized;
   u32 MinimizeIndex;
 
-  s32 Flags;
+  s32 Flags; // window_layout_flags
 
   v2 Basis;   // Absolute offset from (0,0)
   v2 MaxClip; // Basis-relative maximum corner of the window
@@ -102,8 +107,32 @@ struct window_layout
   r32 zBorder;
   r32 zTitleBar;
 
-  window_layout* NextHotWindow;
+  window_layout *NextHotWindow;
 };
+
+
+link_internal u64
+Hash(window_layout *E)
+{
+  u64 Result = Hash(&E->HashtableKey);
+  return Result;
+}
+
+typedef window_layout* window_layout_ptr;
+
+poof(are_equal(window_layout))
+#include <generated/are_equal_window_layout.h>
+
+poof(maybe(window_layout))
+#include <generated/maybe_window_layout.h>
+
+poof(maybe(window_layout_ptr))
+#include <generated/maybe_window_layout_ptr.h>
+
+poof(hashtable_struct(window_layout))
+#include <generated/hashtable_struct_window_layout.h>
+
+#define INTERACTION_ALWAYS_ON_TOP (u64_MAX)
 
 struct ui_toggle
 {
@@ -120,6 +149,8 @@ struct ui_toggle_button_handle
   ui_id Id;
   u32 Value; // NOTE(Jesse): This is typically the associated enum value
 };
+
+typedef void (*modal_callback)(void*);
 
 /* // 0x3FFFFF == 22 set bits == 4,194,303 in decimal */
 /* CAssert(0x3FFFFF == 0b1111111111111111111111); */
@@ -167,16 +198,9 @@ UiToggle(cs Text, ui_id Id, u32 Value)
 
 typedef ui_toggle* ui_toggle_ptr;
 
+// TODO(Jesse): Move this?
 link_internal umm
 Hash(umm *Value) { return *Value; }
-
-link_internal u64
-Hash(ui_id *Id)
-{
-  // TODO(Jesse)(hash): Is this any good?
-  u64 Result = 654378024321 ^ (Id->WindowBits | (Id->InteractionBits << 31)) ^ (Id->ElementBits << 15);
-  return Result;
-}
 
 link_internal umm
 Hash(ui_toggle *Toggle)
@@ -220,6 +244,7 @@ struct renderer_2d
   input *Input;
 
   ui_toggle_hashtable ToggleTable;
+  /* window_layout_hashtable WindowTable; */
 
 #define MAX_MINIMIZED_WINDOWS 64
   window_layout *MinimizedWindowBuffer[MAX_MINIMIZED_WINDOWS];
@@ -232,6 +257,10 @@ struct renderer_2d
 
   text_box_edit_state TextEdit;
 
+  /* modal_callback  ActiveModalCallback; */
+  /*          void  *ActiveModalUserData; */
+
+
   untextured_2d_geometry_buffer Geo;
   shader TexturedQuadShader;
 
@@ -239,6 +268,7 @@ struct renderer_2d
 
   memory_arena RenderCommandArena;
   memory_arena UiToggleArena;
+  memory_arena WindowTableArena;
 
 #define RANDOM_COLOR_COUNT 128
   v3 DebugColors[RANDOM_COLOR_COUNT];
@@ -359,6 +389,8 @@ enum z_depth
   zDepth_TitleBar,
   zDepth_Text,
   zDepth_Border,
+
+  zDepth_GlobalModal,
 };
 
 
@@ -770,6 +802,7 @@ struct ui_render_command_force_update_basis
 };
 
 
+
 poof(
   d_union ui_render_command
   {
@@ -797,7 +830,6 @@ poof(
 
     ui_render_command_force_advance
     ui_render_command_force_update_basis
-
 
     ui_render_command_new_row           enum_only
     ui_render_command_reset_draw_bounds enum_only
@@ -919,7 +951,18 @@ GetZ(z_depth zDepth, window_layout* Window)
         Result = Window->zBorder;
       } break;
 
-      InvalidDefaultCase;
+      case zDepth_GlobalModal:
+      {
+        Result = 1.f;
+      } break;
+
+    }
+  }
+  else
+  {
+    if (zDepth == zDepth_GlobalModal)
+    {
+      Result = 1.f;
     }
   }
 

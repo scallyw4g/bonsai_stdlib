@@ -18,6 +18,14 @@ IsValid(ui_id *Id)
   return Reuslt;
 }
 
+link_internal u64
+Hash(ui_id *Id)
+{
+  // TODO(Jesse)(hash): Is this any good?
+  u64 Result = 654378024321 ^ (Id->WindowBits | (Id->InteractionBits << 31)) ^ (Id->ElementBits << 15);
+  return Result;
+}
+
 poof(gen_default_equality_operator(ui_id))
 #include <generated/gen_default_equality_operator_ui_id.h>
 
