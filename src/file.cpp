@@ -130,7 +130,7 @@ link_internal b32 Rename(cs CurrentFilePath, cs NewFilePath)
 }
 
 link_internal cs
-GetRandomString(u32 Length, random_series* Entropy, memory_arena* Memory)
+GetRandomString(u32 Length, random_series *Entropy, memory_arena *Memory)
 {
   cs Filename = {
     .Count = Length,
@@ -161,7 +161,7 @@ GetRandomString(u32 Length, umm EntropySeed, memory_arena* Memory)
 }
 
 link_internal cs
-GetTmpFilename(random_series* Entropy, memory_arena* Memory)
+GetTmpFilename(random_series* Entropy, memory_arena *Memory)
 {
   cs Filename = GetRandomString(32, Entropy, Memory);
   Filename = Concat(CSz(TMP_DIR_ROOT), Filename, Memory);
@@ -169,7 +169,7 @@ GetTmpFilename(random_series* Entropy, memory_arena* Memory)
 }
 
 link_internal native_file
-GetTempFile(random_series* Entropy, memory_arena* Memory)
+GetTempFile(random_series *Entropy, memory_arena *Memory)
 {
   cs Filename = GetTmpFilename(Entropy, Memory);
   native_file Result = OpenFile(Filename, FilePermission_Write);
@@ -178,35 +178,35 @@ GetTempFile(random_series* Entropy, memory_arena* Memory)
 }
 
 link_internal inline b32
-WriteToFile(native_file* File, u64 Value)
+WriteToFile(native_file *File, u64 Value)
 {
   b32 Result = PlatformWriteToFile(File, (u8*)&Value, sizeof(Value));
   return Result;
 }
 
 link_internal inline b32
-WriteToFile(native_file* File, u32 Value)
+WriteToFile(native_file *File, u32 Value)
 {
   b32 Result = PlatformWriteToFile(File, (u8*)&Value, sizeof(Value));
   return Result;
 }
 
 link_internal inline b32
-WriteToFile(native_file* File, cs Str)
+WriteToFile(native_file *File, cs Str)
 {
   b32 Result = PlatformWriteToFile(File, (u8*)Str.Start, Str.Count);
   return Result;
 }
 
 link_internal inline b32
-WriteToFile(native_file* File, ansi_stream *Str)
+WriteToFile(native_file *File, ansi_stream *Str)
 {
   b32 Result =WriteToFile(File, CountedString(Str));
   return Result;
 }
 
 link_internal inline b32
-WriteToFile(native_file* File, u8_cursor_block_array *Buf)
+WriteToFile(native_file *File, u8_cursor_block_array *Buf)
 {
   b32 Result = True;
 
@@ -217,6 +217,26 @@ WriteToFile(native_file* File, u8_cursor_block_array *Buf)
 
   return Result;
 }
+
+link_internal inline b32
+WriteToFile(cs Filename, u8_cursor_block_array *Buf)
+{
+  native_file File = OpenFile(Filename, FilePermission_Write);
+
+  b32 Result = True;
+  if (File.Handle)
+  {
+    Result &= WriteToFile(&File, Buf);
+    Result &= CloseFile(&File);
+  }
+  else
+  {
+    Result = False;
+  }
+
+  return Result;
+}
+
 
 link_internal b32
 ReadBytesIntoBuffer(u8_cursor *Src, u8* Dest, umm BytesToRead)
