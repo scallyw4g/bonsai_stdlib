@@ -2132,6 +2132,19 @@ poof(
       return Result;
     }
 
+    link_internal type.name *
+    TryGetPtr((type.name)_block_array *Arr, umm Index)
+    {
+      umm BlockIndex = Index / n_elements;
+      umm ElementIndex = Index % n_elements;
+
+      auto AtE = AtElements(Arr);
+      umm Total = GetIndex(&AtE);
+      type.name *Result = {};
+      if (Index < Total) { Result = GetPtr(Arr, Index); }
+      return Result;
+    }
+
     link_internal u32
     AtElements((type.name)_block *Block)
     {

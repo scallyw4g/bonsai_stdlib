@@ -1114,11 +1114,9 @@ GetPosition(s32 Index, chunk_dimension Dim)
   return Result;
 }
 
-
-struct maybe_v3
-{
-  maybe_tag Tag;
-  v3 V3;
-};
+poof(maybe(v3))
+#include <generated/maybe_v3.h>
+poof(maybe(v3i))
+#include <generated/maybe_v3i.h>
 
 
