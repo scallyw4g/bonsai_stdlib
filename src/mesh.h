@@ -159,6 +159,7 @@ ReserveBufferSpace(untextured_3d_geometry_buffer *Src, u32 ElementsToReserve)
 
           Result.Mat = Src->Mat + ReservationAt;
           Result.End = ElementsToReserve;
+          Result.Type = Src->Type;
 
           Result.Parent = Src;
 
