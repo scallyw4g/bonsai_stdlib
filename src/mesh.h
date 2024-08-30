@@ -103,8 +103,11 @@ link_internal geometry_buffer_stub_v3_u8
 GetBufferStub_v3_u8(untextured_3d_geometry_buffer *Dest)
 {
   Assert(Dest->Type == DataType_v3_u8);
-  geometry_buffer_stub_v3_u8 Result = {};
-  NotImplemented;
+  geometry_buffer_stub_v3_u8 Result = {
+    .Verts = Cast(v3_u8*, Dest->Verts),
+    .Normals = Cast(v3_u8*, Dest->Normals),
+    .Mat  = Dest->Mat,
+  };
   return Result;
 }
 
@@ -112,8 +115,11 @@ link_internal geometry_buffer_stub_v3
 GetBufferStub_v3(untextured_3d_geometry_buffer *Dest)
 {
   Assert(Dest->Type == DataType_v3);
-  geometry_buffer_stub_v3 Result = {};
-  NotImplemented;
+  geometry_buffer_stub_v3 Result = {
+    .Verts = Cast(v3*, Dest->Verts),
+    .Normals = Cast(v3*, Dest->Normals),
+    .Mat  = Dest->Mat,
+  };
   return Result;
 }
 

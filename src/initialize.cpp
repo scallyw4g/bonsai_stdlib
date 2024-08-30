@@ -32,11 +32,15 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     Plat->Threads = Allocate(thread_startup_params, Plat->Memory, TotalThreadCount);
     Global_ThreadStates = Initialize_ThreadLocal_ThreadStates((s32)GetTotalThreadCount(), Memory);
     Stdlib->ThreadStates = Global_ThreadStates;
-
-    // NOTE(Jesse): This has to be set after Global_ThreadStates is set so we
-    // can do GetTranArena during printing
-    SetThreadLocal_ThreadIndex(0);
   }
+  else
+  {
+    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, Memory);
+  }
+
+  // NOTE(Jesse): This has to be set after Global_ThreadStates is set so we
+  // can do GetTranArena during printing
+  SetThreadLocal_ThreadIndex(0);
 
   if (Flags & BonsaiInit_InitDebugSystem)
   {

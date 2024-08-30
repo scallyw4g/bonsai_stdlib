@@ -88,15 +88,6 @@ Initialize_ThreadLocal_ThreadStates(s32 TotalThreadCount, memory_arena* Memory)
   return Result;
 }
 
-link_internal thread_local_state *
-AllocateAndInitThreadStates(memory_arena *Memory)
-{
-  Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, Memory);
-  SetThreadLocal_ThreadIndex(0);
-  return Global_ThreadStates;
-}
-
-
 link_internal void
 WorkerThread_BeforeJobStart(thread_startup_params *StartupParams)
 {

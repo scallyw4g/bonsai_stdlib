@@ -205,19 +205,17 @@ WriteBitmapToDisk(bitmap *Bitmap, const char *Filename)
   Header.Image.GreenMask            = 0x0000FF00;
   Header.Image.BlueMask             = 0x00FF0000;
 
-  u32 SizeWritten = 0;
+  u32 SuccessfulWrites = 0;
   native_file File = PlatformOpenFile(Filename, FilePermission_Write);
   if (File.Handle)
   {
-    SizeWritten += PlatformWriteToFile(&File,              Cast(u8*, &Header), sizeof(Header));
-    SizeWritten += PlatformWriteToFile(&File, Cast(u8*, Bitmap->Pixels.Start), TotalSize(&Bitmap->Pixels));
+    SuccessfulWrites += PlatformWriteToFile(&File,              Cast(u8*, &Header), sizeof(Header));
+    SuccessfulWrites += PlatformWriteToFile(&File, Cast(u8*, Bitmap->Pixels.Start), TotalSize(&Bitmap->Pixels));
     CloseFile(&File);
   }
   else { Error("Opening %s for writing", Filename); }
 
-  Assert(SizeWritten == Header.FileSizeInBytes);
-
-  b32 Result = SizeWritten == Header.FileSizeInBytes;
+  b32 Result = SuccessfulWrites == 2;
   return Result;
 }
 
