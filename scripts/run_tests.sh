@@ -39,4 +39,4 @@ else
   echo "$EXIT_CODE Test suites failed. Inspect log for details."
 fi
 
-exit $EXIT_CODE
+exit -1
