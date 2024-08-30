@@ -41,39 +41,47 @@ FillArray(vertex_material Color, vertex_material *Dest, s32 Count)
   for (s32 Index = 0; Index < Count; ++Index) { Dest[Index] = Color; }
 }
 
-struct world_chunk_geometry_buffer
+enum data_type
 {
-  // NOTE(Jesse): Has to have this here because the freelist needs to put the
-  // pointer somewhere.  We don't free the Verts/Normals/Mat buffers.
-  void *Next; poof(@ui_skip @no_serialize)
+  DataType_Undefinded = 0,
+  /* DataType_f32        = 1, */
+  DataType_v3         = 2,
+  DataType_v3_u8      = 3,
+};
 
-  // NOTE(Jesse): Added this @mesh_allocate tag such that poof can generate
-  // code to allocate meshes without having to do weird macro fuckery
-  v3_u8 *Verts;         poof(@mesh_allocate)
-  v3_u8 *Normals;       poof(@mesh_allocate)
-  vertex_material *Mat; poof(@mesh_allocate)
+global_variable
+u32 DataTypeToElementSize[] = {
+  0,  // DataType_Undefinded,
+  4,  // DataType_f32,
+  12, // DataType_v3,
+  3,  // DataType_v3_u8,
+};
 
-  // NOTE(Jesse): We're never going to have more than 4bln vertices, so these
-  // can be 32 bits.  They can realistaiclly probably be 24 bits, but that's
-  // definitely a waste of time right now.
-  u32 End;
-  u32 At;
 
-  // NOTE(Jesse): This keeps track of what buffer the current reservation buffer came from.
-  world_chunk_geometry_buffer *Parent; poof(@no_serialize)
-  u32 BufferNeedsToGrow;               poof(@no_serialize)
-  u64 Timestamp;                       poof(@no_serialize)
+
+struct geometry_buffer_stub_v3
+{
+               v3 *Verts;
+               v3 *Normals;
+  vertex_material *Mat;
+};
+
+struct geometry_buffer_stub_v3_u8
+{
+            v3_u8 *Verts;
+            v3_u8 *Normals;
+  vertex_material *Mat;
 };
 
 struct untextured_3d_geometry_buffer
 {
+  data_type Type;
+
   void *Next; poof(@ui_skip @no_serialize)
 
-  // NOTE(Jesse): Added this @mesh_allocate tag such that poof can generate
-  // code to allocate meshes without having to do weird macro fuckery
-  v3    *Verts;         poof(@mesh_allocate)
-  v3    *Normals;       poof(@mesh_allocate)
-  vertex_material *Mat; poof(@mesh_allocate)
+             void *Verts;
+             void *Normals;
+  vertex_material *Mat;
 
   // NOTE(Jesse): We're never going to have more than 4bln vertices, so these
   // can be 32 bits.  They can realistaiclly probably be 24 bits, but that's
@@ -87,8 +95,27 @@ struct untextured_3d_geometry_buffer
   u64 Timestamp;                         poof(@no_serialize)
 };
 
-typedef untextured_3d_geometry_buffer geo_u3d;
+typedef untextured_3d_geometry_buffer  geo_u3d;
 typedef untextured_3d_geometry_buffer* geo_u3d_ptr;
+
+
+link_internal geometry_buffer_stub_v3_u8
+GetBufferStub_v3_u8(untextured_3d_geometry_buffer *Dest)
+{
+  Assert(Dest->Type == DataType_v3_u8);
+  geometry_buffer_stub_v3_u8 Result = {};
+  NotImplemented;
+  return Result;
+}
+
+link_internal geometry_buffer_stub_v3
+GetBufferStub_v3(untextured_3d_geometry_buffer *Dest)
+{
+  Assert(Dest->Type == DataType_v3);
+  geometry_buffer_stub_v3 Result = {};
+  NotImplemented;
+  return Result;
+}
 
 
 untextured_3d_geometry_buffer
@@ -114,10 +141,23 @@ ReserveBufferSpace(untextured_3d_geometry_buffer *Src, u32 ElementsToReserve)
       {
         if ( AtomicCompareExchange(&Src->At, (u32)ReservationRequest, (u32)ReservationAt) )
         {
-          Result.Verts   = Src->Verts + ReservationAt;
-          Result.Normals = Src->Normals + ReservationAt;
-          Result.Mat     = Src->Mat + ReservationAt;
+          // TODO(Jesse): Make this switch
+          switch(Src->Type)
+          {
+            InvalidCase(DataType_Undefinded);
+            case DataType_v3:
+            {
+              Result.Verts   = Cast(void*, (Cast(v3*, Src->Verts) + ReservationAt));
+              Result.Normals = Cast(void*, (Cast(v3*, Src->Normals) + ReservationAt));
+            } break;
+            case DataType_v3_u8:
+            {
+              Result.Verts   = Cast(void*, (Cast(v3_u8*, Src->Verts) + ReservationAt));
+              Result.Normals = Cast(void*, (Cast(v3_u8*, Src->Normals) + ReservationAt));
+            } break;
+          }
 
+          Result.Mat = Src->Mat + ReservationAt;
           Result.End = ElementsToReserve;
 
           Result.Parent = Src;
@@ -141,6 +181,7 @@ ReserveBufferSpace(untextured_3d_geometry_buffer *Src, u32 ElementsToReserve)
   return Result;
 }
 
+#if 0
 link_internal void
 DeepCopy(world_chunk_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest)
 {
@@ -162,6 +203,7 @@ DeepCopy(world_chunk_geometry_buffer *Src, world_chunk_geometry_buffer *Dest)
   Dest->At = u32(Count);
   Dest->Timestamp = Src->Timestamp;
 }
+#endif
 
 link_internal void
 DeepCopy(untextured_3d_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest)
@@ -169,12 +211,29 @@ DeepCopy(untextured_3d_geometry_buffer *Src, untextured_3d_geometry_buffer *Dest
   umm Count = Src->At;
   Assert(Dest->End >= Count);
 
-  CopyMemory((u8*)Src->Verts,   (u8*)Dest->Verts,   Count*sizeof(v3));
-  CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3));
-  CopyMemory((u8*)Src->Mat,     (u8*)Dest->Mat,     Count*sizeof(vertex_material));
+  switch (Src->Type)
+  {
+    InvalidCase(DataType_Undefinded);
+
+    case DataType_v3:
+    {
+      CopyMemory((u8*)Src->Verts,   (u8*)Dest->Verts,   Count*sizeof(v3));
+      CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3));
+      CopyMemory((u8*)Src->Mat,     (u8*)Dest->Mat,     Count*sizeof(vertex_material));
+    } break;
+
+    case DataType_v3_u8:
+    {
+      CopyMemory((u8*)Src->Verts,   (u8*)Dest->Verts,   Count*sizeof(v3_u8));
+      CopyMemory((u8*)Src->Normals, (u8*)Dest->Normals, Count*sizeof(v3_u8));
+      CopyMemory((u8*)Src->Mat,     (u8*)Dest->Mat,     Count*sizeof(vertex_material));
+    } break;
+  }
+
   /* CopyMemory((u8*)Src->Colors,  (u8*)Dest->Colors,  Count*sizeof(v3)); */
   /* CopyMemory((u8*)Src->TransEmiss, (u8*)Dest->TransEmiss, Count*sizeof(v2)); */
 
   Dest->At = u32(Count);
   Dest->Timestamp = Src->Timestamp;
+  Dest->Type = Src->Type;
 }

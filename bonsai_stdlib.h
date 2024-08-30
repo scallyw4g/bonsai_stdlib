@@ -61,6 +61,7 @@ struct gpu_element_buffer_handles
   u32    MatHandle;
 
   u32 ElementCount;
+  data_type ElementType;
 
   b8  Mapped;
   b8  Pad;
@@ -77,11 +78,11 @@ struct gpu_element_buffer_handles
   typedef gpu_mapped_element_buffer gpu_mapped_untextured_3d_geometry_buffer;
 // }
 
-struct gpu_mapped_world_chunk_geometry_buffer
-{
-  gpu_element_buffer_handles  Handles;
-  world_chunk_geometry_buffer Buffer;
-};
+/* struct gpu_mapped_world_chunk_geometry_buffer */
+/* { */
+/*   gpu_element_buffer_handles  Handles; */
+/*   world_chunk_geometry_buffer Buffer; */
+/* }; */
 
 struct framebuffer
 {

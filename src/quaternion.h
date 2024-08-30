@@ -117,12 +117,10 @@ Conjugate( Quaternion q )
 }
 
 
+// TODO(Jesse): Can this _not_ be done in 32-bit float?
 inline v3_u8
 Rotate(v3_u8 P, Quaternion Rotation)
 {
-  // TODO(Jesse): make sure this works
-  NotImplemented;
-
   v3 Result = ((Rotation * Quaternion(V3(P),0)) * Conjugate(Rotation)).xyz;
   return V3U8(Result);
 }

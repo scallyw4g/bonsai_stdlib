@@ -240,6 +240,11 @@ poof(gen_hetero_vector_operators(v3_u8, v3i))
 poof(gen_hetero_vector_operators(v3_u8, v3))
 #include <generated/gen_hetero_vector_operators_v3_u8_v3.h>
 
+inline v3_u8
+V3U8(v3_u8 V)
+{
+  return V;
+}
 
 inline v3_u8
 V3U8(v3 V)
