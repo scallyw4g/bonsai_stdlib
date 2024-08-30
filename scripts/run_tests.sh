@@ -5,6 +5,7 @@
 source "$(dirname ${BASH_SOURCE[0]})/preamble.sh"
 
 EXIT_CODE=0
+TESTS_PASSED=0
 
 # echo "${BASH_SOURCE[0]}"
 # exit 0
@@ -19,9 +20,8 @@ fi
 
 echo $(pwd)
 for test_executable in $(find $exe_search_string); do
-  # echo "$test_executable"
-  # echo "$COLORFLAG"
   if $test_executable $COLORFLAG --log-level LogLevel_Shush == 0; then
+    TESTS_PASSED=$((TESTS_PASSED+1))
     echo -n ""
   else
     EXIT_CODE=$(($EXIT_CODE+1))
@@ -30,7 +30,7 @@ done
 
 if [ "$EXIT_CODE" -eq 0 ]; then
   echo ""
-  echo "All Tests Passed"
+  echo "All Tests ($TESTES_PASSED) Passed"
 elif [ "$EXIT_CODE" -eq 1 ]; then
   echo ""
   echo "$EXIT_CODE Test suite failed. Inspect log for details."
