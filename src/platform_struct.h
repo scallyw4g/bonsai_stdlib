@@ -7,6 +7,7 @@ struct platform
   work_queue LowPriority;
   work_queue HighPriority;
   work_queue RenderQ;
+  work_queue WorldUpdateQ;
 
   volatile u32 HighPriorityWorkerCount;
 
