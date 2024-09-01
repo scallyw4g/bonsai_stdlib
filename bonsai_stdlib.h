@@ -49,7 +49,6 @@
 
 enum gpu_element_buffer_flags
 {
-  GpuHandles_UpdatePending  = 1 << 0, // Set if the handles are queued to be updated in some way
 };
 
 struct gpu_element_buffer_handles

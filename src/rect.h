@@ -99,9 +99,32 @@ poof(
       b32 Result = (P >= Rect.Min && P < Rect.Max);
       return Result;
     }
+
   }
 )
 
+
+link_internal void
+Sanitize( rect3 *Rect )
+{
+  if (Rect->Min.E[0] > Rect->Max.E[0])
+  {
+    Rect->Min.E[0] = 0;
+    Rect->Max.E[0] = 0;
+  }
+
+  if (Rect->Min.E[1] > Rect->Max.E[1])
+  {
+    Rect->Min.E[1] = 0;
+    Rect->Max.E[1] = 0;
+  }
+
+  if (Rect->Min.E[2] > Rect->Max.E[2])
+  {
+    Rect->Min.E[2] = 0;
+    Rect->Max.E[2] = 0;
+  }
+}
 
 poof(gen_rect_helpers(rect2, v2))
 #include <generated/gen_rect_helpers_rect2_v2.h>
@@ -222,13 +245,6 @@ Intersect(aabb *First, aabb *Second)
 
   return Result;
 }
-
-/* link_internal aabb */
-/* RectMinMax(v3i Min, v3i Max) */
-/* { */
-/*   rect3 Result = RectMinMax(Min, Max); */
-/*   return Result; */
-/* } */
 
 link_internal rect3i
 Rect3iCenterRad(v3i Center, v3i Rad)
