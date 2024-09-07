@@ -89,6 +89,7 @@ CXX_OPTIONS="
   -Wno-cast-align
 
   -Wno-switch-enum
+  -Wno-switch-default
   -Wno-covered-switch-default
 
   -Wno-undef
