@@ -3,7 +3,7 @@ poof(
   func shader_magic(shader_struct)
   {
     link_internal void
-    Initialize(shader_struct.name.to_capital_case)( shader_struct.name *Struct shader_struct.map(member) { member.has_tag(uniform)?  { , member.type *member.name } })
+    Initialize(shader_struct.name.to_capital_case)( shader_struct.name *Struct shader_struct.map(member) { member.has_tag(uniform)?  {  , member.type member.is_pointer?{*}member.name } })
     {
       shader_struct.has_tag(vert_source_file)?
       {
@@ -17,8 +17,11 @@ poof(
           {
             member.has_tag(uniform)?
             {
-              Struct->member.name = *member.name;
-              Struct->Uniforms[UniformIndex] = ShaderUniform(&Struct->Program, &Struct->member.name, "member.name");
+              member.is_pointer?
+              {
+                Struct->member.name = member.name;
+              }
+              Struct->Uniforms[UniformIndex] = ShaderUniform(&Struct->Program, member.is_pointer?{}{&}Struct->member.name, "member.name");
               ++UniformIndex;
             }
           }
