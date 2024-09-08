@@ -50,6 +50,7 @@ union v3
 
   struct { r32 x; r32 y; r32 z; };
   struct { r32 r; r32 g; r32 b; };
+  struct { r32 h; r32 s; r32 v; };
 
   struct {
     v2 xy;

@@ -35,6 +35,8 @@ precision highp sampler3D;
 #define u32 unsigned int
 #define s32 int
 
+#define link_internal
+
 #define PoissonDiskSize 16
 vec2 poissonDisk[PoissonDiskSize] = vec2[](
    vec2( -0.94201624, -0.39906216 ),
@@ -118,3 +120,62 @@ v3 WorldPositionFromNonlinearDepth(float NonlinearDepth, v2 ScreenUV, mat4 Inver
   }
   return WorldP.xyz;
 }
+
+link_internal v3
+UnpackHSVColor(s32 Packed)
+{
+  s32 FiveBits = 31;
+  s32 SixBits   = 63;
+
+  r32 H = ((Packed >> 10) & SixBits) / r32(SixBits);
+  r32 S = ((Packed >> 5) & FiveBits) / r32(FiveBits);
+  r32 V =  (Packed & FiveBits) / r32(FiveBits);
+  v3 Result = V3(H, S, V);
+  return Result;
+}
+
+//
+// https://github.com/Inseckto/HSV-to-RGB/blob/master/HSV2RGB.c
+//
+v3
+HSVtoRGB(f32 H, f32 S, f32 V)
+{
+  f32 r = 0, g = 0, b = 0;
+
+  f32 h = H;
+  f32 s = S;
+  f32 v = V;
+
+  int i = s32(floor(h * 6));
+  f32 f = h * 6 - i;
+  f32 p = v * (1 - s);
+  f32 q = v * (1 - f * s);
+  f32 t = v * (1 - (1 - f) * s);
+
+  switch (i % 6) {
+    case 0: r = v; g = t; b = p; break;
+    case 1: r = q; g = v; b = p; break;
+    case 2: r = p; g = v; b = t; break;
+    case 3: r = p; g = q; b = v; break;
+    case 4: r = t; g = p; b = v; break;
+    case 5: r = v; g = p; b = q; break;
+  }
+
+  v3 Result = V3(r,g,b);
+  return Result;
+}
+
+v3
+HSVtoRGB(v3 HSV)
+{
+  return HSVtoRGB(HSV.r, HSV.g, HSV.b);
+}
+
+v3
+UnpackHSVColorToRGB(s32 Packed)
+{
+  v3 HSV = UnpackHSVColor(Packed);
+  v3 Result = HSVtoRGB(HSV);
+  return Result;
+}
+
