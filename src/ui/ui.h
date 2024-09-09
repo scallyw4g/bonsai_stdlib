@@ -94,10 +94,11 @@ struct window_layout
   v2 MaxClip; // Basis-relative maximum corner of the window
   v2 Scroll;  // Basis-relative offset of the content within the window
 
+  // NOTE(Jesse): For resetting when we un-minimize
   s32 CachedFlags;
-  v2 CachedBasis;
-  v2 CachedMaxClip;
-  v2 CachedScroll;
+  v2  CachedBasis;
+  v2  CachedMaxClip;
+  v2  CachedScroll;
 
 
   u64 InteractionStackIndex;
@@ -238,13 +239,15 @@ struct renderer_2d
 
   u64 InteractionStackTop;
 
-  v2 *MouseP;
-  v2 *MouseDP;
-  v2 *ScreenDim;
+     v2 *MouseP;
+     v2 *MouseDP;
+     v2 *ScreenDim;
   input *Input;
 
   ui_toggle_hashtable ToggleTable;
-  /* window_layout_hashtable WindowTable; */
+  window_layout_hashtable WindowTable;
+
+
 
 #define MAX_MINIMIZED_WINDOWS 64
   window_layout *MinimizedWindowBuffer[MAX_MINIMIZED_WINDOWS];

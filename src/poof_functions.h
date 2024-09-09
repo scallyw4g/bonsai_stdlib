@@ -764,6 +764,7 @@ poof(
   {
     struct (Type.name)_linked_list_node
     {
+      b32 Tombstoned;
       (Type.name) Element;
       (Type.name)_linked_list_node *Next;
     };
@@ -820,6 +821,19 @@ poof(
       return Result;
     }
 
+    link_internal (Type.name)_linked_list_node**
+    GetMatchingBucket((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
+    {
+      umm HashValue = Hash(&Element) % Table->Size;
+      (Type.name)_linked_list_node **Bucket = Table->Elements + HashValue;
+      while (*Bucket)
+      {
+        if (AreEqual(&Bucket[0]->Element, &Element)) { break; }
+        Bucket = &(*Bucket)->Next;
+      }
+      return Bucket;
+    }
+
     link_internal Type.name *
     Insert((Type.name)_linked_list_node *Node, (Type.name)_hashtable *Table)
     {
@@ -859,7 +873,7 @@ poof(
         Bucket = &(*Bucket)->Next;
       }
 
-      if (*Bucket)
+      if (*Bucket && Bucket[0]->Tombstoned == False)
       {
         Bucket[0]->Element = Element;
       }
@@ -870,6 +884,7 @@ poof(
 
       return &Bucket[0]->Element;
     }
+
 
     //
     // Iterator impl.
@@ -937,22 +952,21 @@ poof(
 poof(
   func hashtable_get(Type, type_poof_symbol key_type, type_poof_symbol key_name)
   {
-    maybe_(Type.name)
-    GetBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
+    (Type.name)_linked_list_node*
+    GetBucketBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
 
-      maybe_(Type.name) Result = {};
+      (Type.name)_linked_list_node* Result = {};
 
       auto *Bucket = GetHashBucket(umm(Hash(&key_name)), Table);
       while (Bucket)
       {
         auto E = &Bucket->Element;
 
-        if (AreEqual(E->key_name, key_name))
+        if (Bucket->Tombstoned == False && AreEqual(E->key_name, key_name))
         {
-          Result.Tag = Maybe_Yes;
-          Result.Value = *E;
+          Result = Bucket;
           break;
         }
         else
@@ -961,6 +975,37 @@ poof(
         }
       }
 
+      return Result;
+    }
+
+    maybe_(Type.name)
+    GetBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
+    {
+      /* ENSURE_OWNED_BY_THREAD(Table); */
+
+      maybe_(Type.name) Result = {};
+
+      (Type.name)_linked_list_node *Bucket = GetBucketBy(key_name)(Table, key_name);
+      if (Bucket)
+      {
+        Result.Tag = Maybe_Yes;
+        Result.Value = Bucket->Element;
+      }
+
+      return Result;
+    }
+
+    link_internal b32
+    Tombstone((key_type) Key, (Type.name)_hashtable *Table, memory_arena *Memory)
+    {
+      b32 Result = False;
+      (Type.name)_linked_list_node *Bucket = GetBucketBy(key_name)(Table, Key);
+      if (Bucket)
+      {
+        Assert(Bucket->Tombstoned == False);
+        Bucket->Tombstoned = True;
+        Result = True;
+      }
       return Result;
     }
   }
@@ -981,7 +1026,7 @@ poof(
       {
         auto E = &Bucket->Element;
 
-        if (AreEqual(E->key_name, key_name))
+        if (Bucket->Tombstoned == False && AreEqual(E->key_name, key_name))
         {
           Result.Tag = Maybe_Yes;
           Result.Value = E;

@@ -1563,6 +1563,57 @@ TextBox(renderer_2d* Group, cs Name, cs Text, u32 TextBufferLen, ui_id ButtonId,
 /*********************************   Modal   *********************************/
 /*********************************           *********************************/
 
+link_internal window_layout*
+ModalIsActive(renderer_2d *Ui, ui_id ModalId)
+{
+  maybe_window_layout_ptr MaybeWindow = GetPtrByHashtableKey( &Ui->WindowTable, ModalId );
+
+  window_layout *Result = MaybeWindow.Tag == Maybe_Yes ? MaybeWindow.Value : 0;
+  return Result;
+}
+
+link_internal void
+ActivateModal(renderer_2d *Ui, const char* Title, ui_id ModalId)
+{
+  if (window_layout *Window = ModalIsActive(Ui, ModalId))
+  {
+  }
+  else
+  {
+    window_layout NewWindow = WindowLayout(Title);
+    NewWindow.HashtableKey = ModalId;
+    Ensure( Insert(NewWindow, &Ui->WindowTable, &Ui->WindowTableArena) );
+  }
+
+}
+
+link_internal void
+CompleteModal(renderer_2d *Ui, ui_id ModalId)
+{
+  Ensure( Tombstone(ModalId, &Ui->WindowTable, &Ui->WindowTableArena) );
+}
+
+link_internal void
+ToggleModal(renderer_2d *Ui, const char* Title, ui_id ModalId)
+{
+  if (window_layout *Window = ModalIsActive(Ui, ModalId))
+  {
+    CompleteModal(Ui, ModalId);
+  }
+  else
+  {
+    ActivateModal(Ui, Title, ModalId);
+  }
+}
+
+link_internal window_layout*
+GetModalWindow(renderer_2d *Ui, ui_id ModalId)
+{
+  window_layout *Result = {};
+  NotImplemented;
+  return Result;
+}
+
 #if 0
 link_internal void
 ModalWindow(renderer_2d *Ui, modal_callback Callback, void *UserData)
@@ -3080,7 +3131,7 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   AllocateAndInitGeoBuffer(&Renderer->Geo, ElementCount, PermMemory);
 
   Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
-  /* Renderer->WindowTable = Allocate_window_layout_hashtable(256, PermMemory); // 256 windows should be enough for anybody? */
+  Renderer->WindowTable = Allocate_window_layout_hashtable(256, PermMemory); // 256 windows should be enough for anybody?
 
 
   if (Headless == False)

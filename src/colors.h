@@ -73,7 +73,7 @@
 #define STANDING_SPOT_DEFAULT_COLOR 128
 
 
-#define HSV_GRASS_GREEN (V3(0.31f, 0.96f, 0.83f))
+#define HSV_GRASS_GREEN (V3(0.33f, 0.96f, 0.96f))
 #define HSV_ICE_BLUE    (V3(0.0f,  0.5f, 0.75f))
 #define HSV_DARK_GREY   (V3(0.0f,  0.5f, 0.75f))
 #define HSV_YELLOW      (V3(0.0f,  0.5f, 0.75f))
