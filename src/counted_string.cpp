@@ -571,9 +571,11 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
           char VectorWidth = Peek(FormatCursor);
           s32 Width = s32(ToU32(VectorWidth));
 
+          // NOTE(Jesse): Just cast to the maximally wide vector so we can iterate over any size
+          v4 *Vector = Cast(v4*, va_arg(Args, void*));
           RangeIterator(Index, Width)
           {
-            r32 Value = r32(va_arg(Args, u32));
+            r32 Value = Vector->E[Index];
             f64ToChar(DestCursor, r64(Value), FormatPrecision ? FormatPrecision : DEFAULT_FORMAT_PRECISION, FormatWidth );
             if (Index < Width-1)
             {
