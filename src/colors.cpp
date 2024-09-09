@@ -2,8 +2,8 @@ inline v3
 GetPaletteData(v3_cursor *Palette, u32 ColorIndex)
 {
   Assert(ColorIndex < AtElements(Palette));
-  v3 Result = Palette->Start[ColorIndex] / 255.f;
-  Assert(LengthSq(Result) < 1.f);
+  v3 Result = Palette->Start[ColorIndex];
+  /* Assert(LengthSq(Result) < 1.1f); */
   return Result;
 }
 

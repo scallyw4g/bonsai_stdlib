@@ -74,10 +74,10 @@
 
 
 #define HSV_GRASS_GREEN (V3(0.31f, 0.8f, 0.74f))
-#define HSV_ICE_BLUE    (V3(0.0f, 0.5f, 0.75f))
-#define HSV_DARK_GREY   (V3(0.0f, 0.5f, 0.75f))
-#define HSV_YELLOW      (V3(0.0f, 0.5f, 0.75f))
-#define HSV_WHITE       (V3(0.0f, 0.5f, 0.75f))
+#define HSV_ICE_BLUE    (V3(0.0f,  0.5f, 0.75f))
+#define HSV_DARK_GREY   (V3(0.0f,  0.5f, 0.75f))
+#define HSV_YELLOW      (V3(0.0f,  0.5f, 0.75f))
+#define HSV_WHITE       (V3(0.0f,  0.5f, 0.75f))
 
 
 
@@ -103,13 +103,16 @@ HSVtoRGB(f32 H, f32 S, f32 V)
   f32 q = v * (1 - f * s);
   f32 t = v * (1 - (1 - f) * s);
 
-  switch (i % 6) {
+  switch (i)
+  {
     case 0: r = v; g = t; b = p; break;
     case 1: r = q; g = v; b = p; break;
     case 2: r = p; g = v; b = t; break;
     case 3: r = p; g = q; b = v; break;
     case 4: r = t; g = p; b = v; break;
     case 5: r = v; g = p; b = q; break;
+
+    InvalidDefaultCase;
   }
 
   v3 Result = V3(r,g,b);
@@ -123,10 +126,49 @@ HSVtoRGB(v3 HSV)
 }
 
 link_internal v3
+RGBtoHSV(f32 r, f32 g, f32 b)
+{
+  f32 h, s, v; // h:0-360.0, s:0.0-1.0, v:0.0-1.0
+
+  f32 max = Max(r, Max(g, b));
+  f32 min = Min(r, Min(g, b));
+
+  v = max;
+
+  if (max == 0.0f) {
+      s = 0;
+      h = 0;
+  }
+  else if (max - min == 0.0f) {
+      s = 0;
+      h = 0;
+  }
+  else {
+      s = (max - min) / max;
+
+      if (max == r) {
+          h = 60 * ((g - b) / (max - min)) + 0;
+      }
+      else if (max == g) {
+          h = 60 * ((b - r) / (max - min)) + 120;
+      }
+      else {
+          h = 60 * ((r - g) / (max - min)) + 240;
+      }
+  }
+
+  if (h < 0) h += 360.0f;
+
+  h = (h / 360.f);
+
+  v3 result = V3(h,s,v);
+  return result;
+}
+
+link_internal v3
 RGBtoHSV(v3 RGB)
 {
-  NotImplemented;
-  v3 Result = {};
+  v3 Result = RGBtoHSV(RGB.r, RGB.g, RGB.b);
   return Result;
 }
 
