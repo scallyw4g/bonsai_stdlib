@@ -568,7 +568,7 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
 
         case 'V':
         {
-          char VectorWidth = Peek(FormatCursor);
+          char VectorWidth = Advance(FormatCursor);
           s32 Width = s32(ToU32(VectorWidth));
 
           // NOTE(Jesse): Just cast to the maximally wide vector so we can iterate over any size

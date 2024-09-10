@@ -80,7 +80,7 @@
 #define HSV_WHITE       (V3(0.0f,  0.0f, 1.0f))
 #define HSV_BLACK       (V3(0.0f,  0.0f, 0.0f))
 
-#define HSV_GRASS_GREEN (V3(0.33f, 0.96f, 0.96f))
+#define HSV_GRASS_GREEN (V3(0.33f, 0.96f, 0.61f))
 #define HSV_ICE_BLUE    (V3(0.0f,  0.5f, 0.75f))
 #define HSV_DARK_GREY   (V3(0.0f,  0.5f, 0.75f))
 
