@@ -3,83 +3,163 @@
  * the columns in this lookup table to match what OpenGL expects: RR GG BB AA
  */
 
-#define BLACK    0
-#define WHITE    1
+// NOTE(Jesse): Colors I named from magicavoxels default palette.  Mostly deprecated
+#define              MCV_BLACK 0
+#define              MCV_WHITE 1
 
-#define     LIGHT_RED 104
-#define           RED 36
-#define      DARK_RED 144
-#define DARK_DARK_RED 180
+#define          MCV_LIGHT_RED 104
+#define                MCV_RED 36
+#define           MCV_DARK_RED 144
+#define      MCV_DARK_DARK_RED 180
 
-#define LIGHT_GREEN 75
-#define       GREEN 186
-
-
-#define      LIGHT_MOSS_GREEN  168
-#define            MOSS_GREEN  174
-
-#define      GRASS_GREEN 232
-#define DARK_GRASS_GREEN 235
-
-#define SNOW        1
-#define ICE_BLUE    207
-
-#define      STONE       GREY_6
-#define DARK_STONE       GREY_8
-
-#define GRAVEL      3
-#define SAND        4
-
-#define LIGHT_DIRT        102
-#define       DIRT        138
-
-#define LONG_YELLOW_GRASS0 5
-#define LONG_YELLOW_GRASS1 6
-
-#define LONG_GREEN_GRASS0 119
-#define LONG_GREEN_GRASS1 120
-
-#define BLUE 211
-#define PINK 27
-#define TEAL 181 // actually cyan
-
-#define LIGHT_LIGHT_YELLOW 4
-#define       LIGHT_YELLOW 5
-#define             YELLOW 6
+#define        MCV_LIGHT_GREEN 75
+#define              MCV_GREEN 186
 
 
-#define LIGHT_LIGHT_ORANGE 6
-#define       LIGHT_ORANGE 12
-#define             ORANGE 18
-#define        DARK_ORANGE 24
+#define   MCV_LIGHT_MOSS_GREEN 168
+#define         MCV_MOSS_GREEN 174
+
+#define        MCV_GRASS_GREEN 232
+#define   MCV_DARK_GRASS_GREEN 235
+
+#define               MCV_SNOW 1
+#define           MCV_ICE_BLUE 207
+
+#define              MCV_STONE MCV_GREY_6
+#define         MCV_DARK_STONE MCV_GREY_8
+
+#define             MCV_GRAVEL 3
+#define               MCV_SAND 4
+
+#define         MCV_LIGHT_DIRT 102
+#define               MCV_DIRT 138
+
+#define MCV_LONG_YELLOW_GRASS0 5
+#define MCV_LONG_YELLOW_GRASS1 6
+
+#define  MCV_LONG_GREEN_GRASS0 119
+#define  MCV_LONG_GREEN_GRASS1 120
+
+#define               MCV_BLUE 211
+#define               MCV_PINK 27
+#define               MCV_TEAL 181 // actually cyan
+
+#define MCV_LIGHT_LIGHT_YELLOW 4
+#define       MCV_LIGHT_YELLOW 5
+#define             MCV_YELLOW 6
 
 
+#define MCV_LIGHT_LIGHT_ORANGE 6
+#define       MCV_LIGHT_ORANGE 12
+#define             MCV_ORANGE 18
+#define        MCV_DARK_ORANGE 24
 
-#define      DARK_GREY 254
-#define DARK_DARK_GREY 255
+#define          MCV_DARK_GREY 254
+#define     MCV_DARK_DARK_GREY 255
 
-#define GREY_0   246
-#define GREY_1   247
-#define GREY_2   248
-#define GREY_3   249
-#define GREY_4   250
-#define GREY_5   251
-#define GREY_6   252
-#define GREY_7   253
-#define GREY_8   254
-#define GREY_9   255
+#define             MCV_GREY_0 246
+#define             MCV_GREY_1 247
+#define             MCV_GREY_2 248
+#define             MCV_GREY_3 249
+#define             MCV_GREY_4 250
+#define             MCV_GREY_5 251
+#define             MCV_GREY_6 252
+#define             MCV_GREY_7 253
+#define             MCV_GREY_8 254
+#define             MCV_GREY_9 255
 
 
-#define STANDING_SPOT_DEFAULT_COLOR 128
+#define MCV_STANDING_SPOT_DEFAULT_COLOR 128
+#define STANDING_SPOT_DEFAULT_COLOR (MagicaVoxelDefaultPaletteToRGB(MCV_STANDING_SPOT_DEFAULT_COLOR))
 
+// A small value
+#define smol 0.001f
+
+// HSV
+
+#define HSV_WHITE       (V3(0.0f,  0.0f, 1.0f))
+#define HSV_BLACK       (V3(0.0f,  0.0f, 0.0f))
 
 #define HSV_GRASS_GREEN (V3(0.33f, 0.96f, 0.96f))
 #define HSV_ICE_BLUE    (V3(0.0f,  0.5f, 0.75f))
 #define HSV_DARK_GREY   (V3(0.0f,  0.5f, 0.75f))
-#define HSV_YELLOW      (V3(0.0f,  0.5f, 0.75f))
-#define HSV_WHITE       (V3(0.0f,  0.5f, 0.75f))
+
+#define HSV_RED         (RGBtoHSV(RGB_RED))
+#define HSV_YELLOW      (V3(0.16f,  1.0f, 1.0f))
 
 
+
+// RGB
+
+
+#define RGB_RED         (V3(1.0f,  smol, smol))
+#define RGB_GREEN       (V3(smol,  1.0f, smol))
+#define RGB_BLUE        (V3(smol,  smol, 1.0f))
+
+#define RGB_YELLOW      (V3(1.0f,  1.0f, smol))
+#define RGB_CYAN        (V3(0.0f,  1.0f, 1.0f))
+#define RGB_MAGENTA     (V3(1.0f,  1.0f, smol))
+
+#define RGB_PINK        (V3(1.0f, smol,  0.5f))
+
+#define RGB_WHITE       (V3(1.0f,  1.0f, 1.0f))
+#define RGB_BLACK       (V3(0.0f,  0.0f, 0.0f))
+
+#define          RGB_LIGHT_RED MagicaVoxelDefaultPaletteToRGB(104)
+#define           RGB_DARK_RED MagicaVoxelDefaultPaletteToRGB(144)
+#define      RGB_DARK_DARK_RED MagicaVoxelDefaultPaletteToRGB(180)
+
+#define        RGB_LIGHT_GREEN MagicaVoxelDefaultPaletteToRGB(75)
+
+
+#define   RGB_LIGHT_MOSS_GREEN MagicaVoxelDefaultPaletteToRGB(168)
+#define         RGB_MOSS_GREEN MagicaVoxelDefaultPaletteToRGB(174)
+
+#define        RGB_GRASS_GREEN MagicaVoxelDefaultPaletteToRGB(232)
+#define   RGB_DARK_GRASS_GREEN MagicaVoxelDefaultPaletteToRGB(235)
+
+#define               RGB_SNOW MagicaVoxelDefaultPaletteToRGB(1)
+#define           RGB_ICE_BLUE MagicaVoxelDefaultPaletteToRGB(207)
+
+#define              RGB_STONE MagicaVoxelDefaultPaletteToRGB(MCV_GREY_6)
+#define         RGB_DARK_STONE MagicaVoxelDefaultPaletteToRGB(MCV_GREY_8)
+
+#define             RGB_GRAVEL MagicaVoxelDefaultPaletteToRGB(3)
+#define               RGB_SAND MagicaVoxelDefaultPaletteToRGB(4)
+
+#define         RGB_LIGHT_DIRT MagicaVoxelDefaultPaletteToRGB(102)
+#define               RGB_DIRT MagicaVoxelDefaultPaletteToRGB(138)
+
+#define RGB_LONG_YELLOW_GRASS0 MagicaVoxelDefaultPaletteToRGB(5)
+#define RGB_LONG_YELLOW_GRASS1 MagicaVoxelDefaultPaletteToRGB(6)
+
+#define  RGB_LONG_GREEN_GRASS0 MagicaVoxelDefaultPaletteToRGB(119)
+#define  RGB_LONG_GREEN_GRASS1 MagicaVoxelDefaultPaletteToRGB(120)
+
+#define               RGB_TEAL MagicaVoxelDefaultPaletteToRGB(181)
+
+#define RGB_LIGHT_LIGHT_YELLOW MagicaVoxelDefaultPaletteToRGB(4)
+#define       RGB_LIGHT_YELLOW MagicaVoxelDefaultPaletteToRGB(5)
+
+
+#define RGB_LIGHT_LIGHT_ORANGE MagicaVoxelDefaultPaletteToRGB(6)
+#define       RGB_LIGHT_ORANGE MagicaVoxelDefaultPaletteToRGB(12)
+#define             RGB_ORANGE MagicaVoxelDefaultPaletteToRGB(18)
+#define        RGB_DARK_ORANGE MagicaVoxelDefaultPaletteToRGB(24)
+
+#define          RGB_DARK_GREY MagicaVoxelDefaultPaletteToRGB(254)
+#define     RGB_DARK_DARK_GREY MagicaVoxelDefaultPaletteToRGB(255)
+
+#define             RGB_GREY_0 MagicaVoxelDefaultPaletteToRGB(246)
+#define             RGB_GREY_1 MagicaVoxelDefaultPaletteToRGB(247)
+#define             RGB_GREY_2 MagicaVoxelDefaultPaletteToRGB(248)
+#define             RGB_GREY_3 MagicaVoxelDefaultPaletteToRGB(249)
+#define             RGB_GREY_4 MagicaVoxelDefaultPaletteToRGB(250)
+#define             RGB_GREY_5 MagicaVoxelDefaultPaletteToRGB(251)
+#define             RGB_GREY_6 MagicaVoxelDefaultPaletteToRGB(252)
+#define             RGB_GREY_7 MagicaVoxelDefaultPaletteToRGB(253)
+#define             RGB_GREY_8 MagicaVoxelDefaultPaletteToRGB(254)
+#define             RGB_GREY_9 MagicaVoxelDefaultPaletteToRGB(255)
 
 
 
@@ -105,7 +185,9 @@ HSVtoRGB(f32 H, f32 S, f32 V)
 
   switch (i)
   {
-    case 0: r = v; g = t; b = p; break;
+    case 6:
+    case 0: {  r = v; g = t; b = p; break; }
+
     case 1: r = q; g = v; b = p; break;
     case 2: r = p; g = v; b = t; break;
     case 3: r = p; g = q; b = v; break;
@@ -219,7 +301,79 @@ PackHSVColor(v3 Color)
   return Result;
 }
 
+link_internal u16
+RGBtoPackedHSV(v3 RGB)
+{
+  v3 HSV = RGBtoHSV(RGB);
+  u16 Packed = PackHSVColor(HSV);
+  return Packed;
+}
 
+link_internal v3
+PackedHSVtoRGB(u16 PackedHSV)
+{
+  v3 HSV = UnpackHSVColor(PackedHSV);
+  v3 Result = HSVtoRGB(HSV);
+  return Result;
+}
+
+
+
+
+
+
+
+
+link_internal v3
+HSVSaturate(v3 HSV, r32 Percentage = 0.1f)
+{
+  v3 Result = V3(HSV.h, HSV.s * (1.f+Percentage), HSV.v);
+  return Result;
+}
+link_internal v3
+HSVDesaturate(v3 HSV, r32 Percentage = 0.1f)
+{
+  v3 Result = V3(HSV.h, HSV.s * (1.f-Percentage), HSV.v);
+  return Result;
+}
+link_internal v3
+HSVLighten(v3 HSV, r32 Percentage = 0.1f)
+{
+  v3 Result = V3(HSV.h, HSV.s, HSV.v * (1.f+Percentage));
+  return Result;
+}
+link_internal v3
+HSVDarken(v3 HSV, r32 Percentage = 0.1f)
+{
+  v3 Result = V3(HSV.h, HSV.s, HSV.v * (1.f-Percentage));
+  return Result;
+}
+
+
+link_internal v3
+RGBSaturate(v3 RGB, r32 Percentage = 0.1f)
+{
+  v3 Result = HSVtoRGB(HSVSaturate(RGBtoHSV(RGB), Percentage));
+  return Result;
+}
+link_internal v3
+RGBDesaturate(v3 RGB, r32 Percentage = 0.1f)
+{
+  v3 Result = HSVtoRGB(HSVDesaturate(RGBtoHSV(RGB), Percentage));
+  return Result;
+}
+link_internal v3
+RGBLighten(v3 RGB, r32 Percentage = 0.1f)
+{
+  v3 Result = HSVtoRGB(HSVLighten(RGBtoHSV(RGB), Percentage));
+  return Result;
+}
+link_internal v3
+RGBDarken(v3 RGB, r32 Percentage = 0.1f)
+{
+  v3 Result = HSVtoRGB(HSVDarken(RGBtoHSV(RGB), Percentage));
+  return Result;
+}
 
 
 
