@@ -2413,3 +2413,28 @@ poof(
     }
   }
 )
+
+poof(
+  func freelist_allocator(type)
+  {
+    struct (type.name)_freelist
+    {
+       (type.name) *Freelist;
+      memory_arena *Memory;
+    };
+
+    link_internal type.name *
+    GetOrAllocate((type.name)_freelist *Freelist)
+    {
+      type.name *Result = {};
+      NotImplemented;
+      return Result;
+    }
+
+    link_internal void
+    Free((type.name)_freelist *Freelist, type.name *Element)
+    {
+      NotImplemented;
+    }
+  }
+)
