@@ -1115,6 +1115,12 @@ GetPosition(s32 Index, chunk_dimension Dim)
   return Result;
 }
 
+inline voxel_position
+PositionFromIndex(s32 Index, chunk_dimension Dim)
+{
+  return GetPosition(Index, Dim);
+}
+
 poof(maybe(v3))
 #include <generated/maybe_v3.h>
 poof(maybe(v3i))

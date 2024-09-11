@@ -2419,22 +2419,32 @@ poof(
   {
     struct (type.name)_freelist
     {
-       (type.name) *Freelist;
+       (type.name) *First;
       memory_arena *Memory;
     };
 
     link_internal type.name *
     GetOrAllocate((type.name)_freelist *Freelist)
     {
-      type.name *Result = {};
-      NotImplemented;
+      type.name *Result = Freelist->First;
+
+      if (Result)
+      {
+        Freelist->First = Result->Next;
+      }
+      else
+      {
+        Result = Allocate( (type.name), Freelist->Memory, 1 );
+      }
+
       return Result;
     }
 
     link_internal void
     Free((type.name)_freelist *Freelist, type.name *Element)
     {
-      NotImplemented;
+      Element->Next = Freelist->First;
+      Freelist->First = Element;
     }
   }
 )

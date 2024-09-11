@@ -100,6 +100,14 @@ poof(
       return Result;
     }
 
+    // TODO(Jesse)(duplicate): make Contains primal and get rid of IsInside ..?
+    link_internal b32
+    Contains((rect.name) Rect, (vector.name) P)
+    {
+      b32 Result = IsInside(P, Rect);
+      return Result;
+    }
+
   }
 )
 
@@ -350,31 +358,6 @@ Union(aabb *First, aabb *Second)
   v3 ResultMax = Min(FirstMax, SecondMax);
   aabb Result = AABBMinMax(ResultMin, ResultMax);
 
-  return Result;
-}
-
-link_internal b32
-Contains(rect3i Rect, v3i P)
-{
-  b32 Result = (P >= Rect.Min && P < Rect.Max);
-  return Result;
-}
-
-link_internal b32
-Contains(aabb AABB, v3 P)
-{
-  /* v3 AABBCenter = GetCenter(&AABB); */
-  /* v3 AABBRadius = GetRadius(&AABB); */
-  /* v3 Min = AABBCenter-AABBRadius; */
-  /* v3 Max = AABBCenter+AABBRadius; */
-  b32 Result = (P >= AABB.Min && P < AABB.Max);
-  return Result;
-}
-
-link_internal b32
-IsInside(aabb AABB, v3 P)
-{
-  b32 Result = Contains(AABB, P);
   return Result;
 }
 
