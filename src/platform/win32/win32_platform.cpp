@@ -298,6 +298,15 @@ WindowMessageCallback(
     } return 0;
 
 
+    case WM_KILLFOCUS:
+    {
+      Clear(&Plat->Input);
+    } return 0;
+
+    case WM_SETFOCUS:
+    {
+    } return 0;
+
     case WM_DESTROY:
     {
       Os->ContinueRunning = false;
