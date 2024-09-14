@@ -512,4 +512,12 @@ Volume(aabb Rect)
 }
 
 
+link_internal r32
+DistanceToBox(v3 Point, rect3 Rect)
+{
+  r32 dx = Max(f32(Rect.Min.x - Point.x), Max(0.f, f32(Point.x - Rect.Max.x)));
+  r32 dy = Max(f32(Rect.Min.y - Point.y), Max(0.f, f32(Point.y - Rect.Max.y)));
+  r32 dz = Max(f32(Rect.Min.z - Point.z), Max(0.f, f32(Point.z - Rect.Max.z)));
+  return SquareRoot(dx*dx + dy*dy + dz*dz);
+}
 
