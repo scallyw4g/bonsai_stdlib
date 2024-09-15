@@ -880,6 +880,7 @@ Perp( v3 A )
 }
 
 
+// TODO(Jesse): Maybe rename these to RoundUpToMultiple?
 inline v3
 RoundToMultiple(v3 N, v3i Thresh)
 {
@@ -897,6 +898,19 @@ RoundToMultiple(v3 N, s32 Thresh)
   v3 Result = V3(Ni - Rem);
   return Result;
 }
+
+link_internal v3i
+RoundToMultiple(v3i Value, v3i Interval)
+{
+  v3i Result = Value;
+  v3i M = Value % Interval;
+  if (M.x | M.y | M.z) // Just checking if any channel was set
+  {
+    Result = Value + (Interval-M);
+  }
+  return Result;
+}
+
 
 
 inline v3

@@ -132,7 +132,7 @@ PerlinNoise(f32 x, f32 y, f32 z)
   u32 Yi = u32(y) & 255;
   u32 Zi = u32(z) & 255;
 
-  // Find relative x, y,z of point in cube
+  // Find relative x,y,z of point in cube
   x -= Floorf(x);
   y -= Floorf(y);
   z -= Floorf(z);
@@ -201,7 +201,7 @@ PerlinNoise(v3 P)
 link_internal void
 PerlinNoise_8x(f32 *xIn, f32 yIn, f32 zIn, f32 *Result)
 {
-#if 1
+#if 0
   RangeIterator(Index, 8)
   {
     Result[Index] = PerlinNoise(xIn[Index], yIn, zIn);
