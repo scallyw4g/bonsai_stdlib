@@ -486,17 +486,24 @@ PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     f32_4x B4_1 = Grad4x(H1537_1, nx_nx_nx_nx_1, y_y_ny_ny, z_nz_z_nz);
 
     f32_4x L0213_0 = Lerp4x(u4_0, A4_0, B4_0);
-
     f32_4x L0213_1 = Lerp4x(u4_1, A4_1, B4_1);
 
     f32_4x L13_0 = StaticShuffle(L0213_0, 2, 3, 0, 0); // Lane 3 and 4 are discarded from this result so they can be 0
     f32_4x L13_1 = StaticShuffle(L0213_1, 2, 3, 0, 0); // Lane 3 and 4 are discarded from this result so they can be 0
 
-    f32_4x L4L5_0 = Lerp4x(v4, L0213_0, L13_0); // This is lerping L02 L13, we don't read lanes 3 & 4
-    f32_4x L4L5_1 = Lerp4x(v4, L0213_1, L13_1); // This is lerping L02 L13, we don't read lanes 3 & 4
 
-    f32 res_0 = lerp(w, L4L5_0.E[0], L4L5_0.E[1] );
-    f32 res_1 = lerp(w, L4L5_1.E[0], L4L5_1.E[1] );
+    f32_4x L02_0_L02_1 = F32_4X(L0213_0.E[0], L0213_0.E[1], L0213_1.E[0], L0213_1.E[1]);
+    f32_4x L13_0_L13_1 = F32_4X(L0213_0.E[2], L0213_0.E[3], L0213_1.E[2], L0213_1.E[3]);
+
+    f32_4x L45_0_L45_1 = Lerp4x(v4, L02_0_L02_1, L13_0_L13_1);
+
+    f32_4x L4_0_L4_1 = StaticShuffle(L45_0_L45_1, 0, 2, 0, 0);
+    f32_4x L5_0_L5_1 = StaticShuffle(L45_0_L45_1, 1, 3, 0, 0);
+
+    f32_4x Res4x = Lerp4x(w4, L4_0_L4_1, L5_0_L5_1);
+
+    f32 res_0 = Res4x.E[0];
+    f32 res_1 = Res4x.E[1];
 
 #else
     f32 G0 = grad(H0,  x,    y,    z);
