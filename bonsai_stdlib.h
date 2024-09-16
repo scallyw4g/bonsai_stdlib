@@ -11,6 +11,13 @@
 #include <bonsai_stdlib/src/iterators.h>
 #include <bonsai_stdlib/src/assert.h>
 #include <bonsai_stdlib/src/primitives.h>
+
+#include <immintrin.h>
+#include <smmintrin.h>
+#include <xmmintrin.h>
+
+#include <bonsai_stdlib/src/simd.h>
+
 #include <bonsai_stdlib/src/console_macros.h>
 #include <bonsai_stdlib/src/globals.h>
 #include <bonsai_stdlib/src/platform.h>
@@ -20,9 +27,6 @@
 
 #include <bonsai_stdlib/src/costable.h>
 #include <bonsai_stdlib/src/arccostable.h>
-
-#include <immintrin.h>
-#include <xmmintrin.h>
 
 #include <bonsai_stdlib/src/maff.h>
 #include <bonsai_stdlib/src/memory_arena.h>

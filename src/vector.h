@@ -639,12 +639,6 @@ operator/(voxel_position A, r32 f)
 }
 
 
-union f32_reg {
-  r32 F[4];
-  __m128 Sse;
-};
-
-
 
 // TODO(Jesse): Now that we're generating operators, it's pretty easy for us to
 // do performance experiments by converting all operators to SIMD in one fell

@@ -109,14 +109,55 @@ lerp(f32 t, f32 a, f32 b) {
   return res;
 }
 
+link_internal f32_4x
+Lerp4x(f32_4x t, f32_4x a, f32_4x b)
+{
+  f32_4x res = a + t * (b - a);
+  return res;
+}
+
+
 link_internal f32
-grad(int hash, f32 x, f32 y, f32 z) {
+grad(u32 hash, f32 x, f32 y, f32 z) {
   int h = hash & 15;
   // Convert lower 4 bits of hash into 12 gradient directions
   f32 u = h < 8 ? x : y;
   f32 v = h < 4 ? y : h == 12 || h == 14 ? x : z;
   f32 res = ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
   return res;
+}
+
+link_internal f32_4x
+Grad4x(u32_4x hash, f32_4x x, f32_4x y, f32_4x z) {
+  u32_4x _15 = U32_4X(15);
+  u32_4x _14 = U32_4X(14);
+  u32_4x _12 = U32_4X(12);
+  u32_4x _8 = U32_4X(8);
+  u32_4x _4 = U32_4X(4);
+  u32_4x _2 = U32_4X(2);
+  u32_4x _1 = U32_4X(1);
+  f32_4x _n1 = F32_4X(-1);
+
+  auto h = hash & _15;
+
+  // Convert lower 4 bits of hash into 12 gradient directions
+  u32_4x uSel = h < _8;
+  f32_4x u = Select(uSel, x, y);
+
+  u32_4x vSel = h < _4;
+  u32_4x xSel = (h == _12 | h == _14 );
+
+  f32_4x xz = Select(xSel, x, z);
+  f32_4x v = Select(vSel, y, xz);
+
+  auto uFlip = (h & _1) == _1;
+  auto vFlip = (h & _2) == _2;
+
+  f32_4x R0 = Select(uFlip, u*_n1, u);
+  f32_4x R1 = Select(vFlip, v*_n1, v);
+  f32_4x Result = R0 + R1;
+
+  return Result;
 }
 
 
@@ -150,39 +191,24 @@ PerlinNoise(f32 x, f32 y, f32 z)
   u32 BA = (u32)Global_PerlinIV[B]   + Zi;
   u32 BB = (u32)Global_PerlinIV[B+1] + Zi;
 
-
-  /* Assert(A  >= 0); */
-  /* Assert(AA >= 0); */
-  /* Assert(AB >= 0); */
-  /* Assert(B  >= 0); */
-  /* Assert(BA >= 0); */
-  /* Assert(BB >= 0); */
-
-  /* Assert(A  <= 511); */
-  /* Assert(AA <= 511); */
-  /* Assert(AB <= 511); */
-  /* Assert(B  <= 511); */
-  /* Assert(BA <= 511); */
-  /* Assert(BB <= 511); */
-
   // Add blended results from 8 corners of cube
+
+  f32 C0 = grad(Global_PerlinIV[AA], x, y, z);
+  f32 C1 = grad(Global_PerlinIV[BA], x-1, y, z);
+  f32 C2 = grad(Global_PerlinIV[AB], x, y-1, z);
+  f32 C3 = grad(Global_PerlinIV[BB], x-1, y-1, z);
+  f32 C4 = grad(Global_PerlinIV[AA+1], x, y, z-1);
+  f32 C5 = grad(Global_PerlinIV[BA+1], x-1, y, z-1);
+  f32 C6 = grad(Global_PerlinIV[AB+1], x, y-1, z-1);
+  f32 C7 = grad(Global_PerlinIV[BB+1], x-1, y-1, z-1);
 
   f32 res = lerp(w,
                  lerp(v,
-                      lerp(u,
-                           grad(Global_PerlinIV[AA], x, y, z),
-                           grad(Global_PerlinIV[BA], x-1, y, z)),
-                      lerp(u,
-                           grad(Global_PerlinIV[AB], x, y-1, z),
-                           grad(Global_PerlinIV[BB], x-1, y-1, z))),
+                      lerp(u, C0, C1),
+                      lerp(u, C2, C3)),
                  lerp(v,
-                      lerp(u,
-                           grad(Global_PerlinIV[AA+1], x, y, z-1),
-                           grad(Global_PerlinIV[BA+1], x-1, y, z-1)),
-                      lerp(u,
-                           grad(Global_PerlinIV[AB+1], x, y-1, z-1),
-                           grad(Global_PerlinIV[BB+1], x-1, y-1, z-1))
-                      )
+                      lerp(u, C4, C5),
+                      lerp(u, C6, C7))
                  );
 
   res = (res + 1.0f)/2.0f;
@@ -198,8 +224,10 @@ PerlinNoise(v3 P)
   return PerlinNoise(P.x, P.y, P.z);
 }
 
+#if 0
+// NOTE(Jesse): Going 16 wide made this slightly slower
 link_internal void
-PerlinNoise_8x(f32 *xIn, f32 yIn, f32 zIn, f32 *Result)
+PerlinNoise_16x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
 {
 #if 0
   RangeIterator(Index, 8)
@@ -222,17 +250,126 @@ PerlinNoise_8x(f32 *xIn, f32 yIn, f32 zIn, f32 *Result)
   f32 v = fade(y);
   f32 w = fade(z);
 
-  f32 _x[8] =
+  u32 _Xi[16] =
   {
-    xIn[0],
-    xIn[1],
-    xIn[2],
-    xIn[3],
-    xIn[4],
-    xIn[5],
-    xIn[6],
-    xIn[7],
+    _x[0]  < 0 ? u32( _x[0]-1.f)&255 : u32( _x[0])&255,
+    _x[1]  < 0 ? u32( _x[1]-1.f)&255 : u32( _x[1])&255,
+    _x[2]  < 0 ? u32( _x[2]-1.f)&255 : u32( _x[2])&255,
+    _x[3]  < 0 ? u32( _x[3]-1.f)&255 : u32( _x[3])&255,
+    _x[4]  < 0 ? u32( _x[4]-1.f)&255 : u32( _x[4])&255,
+    _x[5]  < 0 ? u32( _x[5]-1.f)&255 : u32( _x[5])&255,
+    _x[6]  < 0 ? u32( _x[6]-1.f)&255 : u32( _x[6])&255,
+    _x[7]  < 0 ? u32( _x[7]-1.f)&255 : u32( _x[7])&255,
+    _x[8]  < 0 ? u32( _x[8]-1.f)&255 : u32( _x[8])&255,
+    _x[9]  < 0 ? u32( _x[9]-1.f)&255 : u32( _x[9])&255,
+    _x[10] < 0 ? u32(_x[10]-1.f)&255 : u32(_x[10])&255,
+    _x[11] < 0 ? u32(_x[11]-1.f)&255 : u32(_x[11])&255,
+    _x[12] < 0 ? u32(_x[12]-1.f)&255 : u32(_x[12])&255,
+    _x[13] < 0 ? u32(_x[13]-1.f)&255 : u32(_x[13])&255,
+    _x[14] < 0 ? u32(_x[14]-1.f)&255 : u32(_x[14])&255,
+    _x[15] < 0 ? u32(_x[15]-1.f)&255 : u32(_x[15])&255,
   };
+
+  f32 _xF[16] =
+  {
+    _x[0]-Floorf( _x[0]),
+    _x[1]-Floorf( _x[1]),
+    _x[2]-Floorf( _x[2]),
+    _x[3]-Floorf( _x[3]),
+    _x[4]-Floorf( _x[4]),
+    _x[5]-Floorf( _x[5]),
+    _x[6]-Floorf( _x[6]),
+    _x[7]-Floorf( _x[7]),
+    _x[8]-Floorf( _x[8]),
+    _x[9]-Floorf( _x[9]),
+    _x[10]-Floorf(_x[10]),
+    _x[11]-Floorf(_x[11]),
+    _x[12]-Floorf(_x[12]),
+    _x[13]-Floorf(_x[13]),
+    _x[14]-Floorf(_x[14]),
+    _x[15]-Floorf(_x[15]),
+  };
+
+  f32 _u[16] =
+  {
+    fade(_xF[0]),
+    fade(_xF[1]),
+    fade(_xF[2]),
+    fade(_xF[3]),
+    fade(_xF[4]),
+    fade(_xF[5]),
+    fade(_xF[6]),
+    fade(_xF[7]),
+    fade(_xF[8]),
+    fade(_xF[9]),
+    fade(_xF[10]),
+    fade(_xF[11]),
+    fade(_xF[12]),
+    fade(_xF[13]),
+    fade(_xF[14]),
+    fade(_xF[15]),
+  };
+
+
+
+  RangeIterator(Index, 16)
+  {
+    u32 Xi = _Xi[Index];
+    f32 x = _xF[Index];
+    f32 u = _u[Index];
+
+    // Hash coordinates of the 8 cube corners
+    u32 A  = (u32)Global_PerlinIV[Xi]  + Yi;
+    u32 AA = (u32)Global_PerlinIV[A]   + Zi;
+    u32 AB = (u32)Global_PerlinIV[A+1] + Zi;
+    u32 B  = (u32)Global_PerlinIV[Xi+1]+ Yi;
+    u32 BA = (u32)Global_PerlinIV[B]   + Zi;
+    u32 BB = (u32)Global_PerlinIV[B+1] + Zi;
+
+    // Add blended results from 8 corners of cube
+    f32 res = lerp(w,
+                   lerp(v,
+                        lerp(u,
+                             grad(Global_PerlinIV[AA], x, y, z),
+                             grad(Global_PerlinIV[BA], x-1, y, z)),
+                        lerp(u,
+                             grad(Global_PerlinIV[AB], x, y-1, z),
+                             grad(Global_PerlinIV[BB], x-1, y-1, z))),
+                   lerp(v,
+                        lerp(u,
+                             grad(Global_PerlinIV[AA+1], x, y, z-1),
+                             grad(Global_PerlinIV[BA+1], x-1, y, z-1)),
+                        lerp(u,
+                             grad(Global_PerlinIV[AB+1], x, y-1, z-1),
+                             grad(Global_PerlinIV[BB+1], x-1, y-1, z-1))
+                        )
+                   );
+
+    res = (res + 1.0f)/2.0f;
+
+    Result[Index] = res;
+  }
+#endif
+}
+#endif
+
+link_internal void
+PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
+{
+  f32 y = yIn;
+  f32 z = zIn;
+
+  if (y < 0) y -= 1.f;
+  if (z < 0) z -= 1.f;
+
+  u32 Yi = u32(y) & 255;
+  u32 Zi = u32(z) & 255;
+
+  y -= Floorf(y);
+  z -= Floorf(z);
+
+  f32 v = fade(y);
+  f32 w = fade(z);
 
   u32 _Xi[8] =
   {
@@ -272,44 +409,96 @@ PerlinNoise_8x(f32 *xIn, f32 yIn, f32 zIn, f32 *Result)
 
 
 
-  RangeIterator(Index, 8)
+  for (u32 Index = 0; Index < 8; Index += 1)
   {
     u32 Xi = _Xi[Index];
-    f32 x = _xF[Index];
-    f32 u = _u[Index];
+    f32  x = _xF[Index];
+    f32  u =  _u[Index];
+
+    /* u32_4x Xi_4x = U32_4X(_Xi[Index+0], _Xi[Index+1], _Xi[Index+2], _Xi[Index+3]); */
+    /* f32_4x  x_4x = F32_4X(_xF[Index+0], _xF[Index+1], _xF[Index+2], _xF[Index+3]); */
+    /* f32_4x  u_4x = F32_4X( _u[Index+0],  _u[Index+1],  _u[Index+2],  _u[Index+3]); */
 
     // Hash coordinates of the 8 cube corners
-    u32 A  = (u32)Global_PerlinIV[Xi]  + Yi;
-    u32 AA = (u32)Global_PerlinIV[A]   + Zi;
-    u32 AB = (u32)Global_PerlinIV[A+1] + Zi;
-    u32 B  = (u32)Global_PerlinIV[Xi+1]+ Yi;
-    u32 BA = (u32)Global_PerlinIV[B]   + Zi;
-    u32 BB = (u32)Global_PerlinIV[B+1] + Zi;
+    u32 A  = Global_PerlinIV[Xi]  + Yi;
+    u32 AA = Global_PerlinIV[A]   + Zi;
+    u32 AB = Global_PerlinIV[A+1] + Zi;
+    u32 B  = Global_PerlinIV[Xi+1]+ Yi;
+    u32 BA = Global_PerlinIV[B]   + Zi;
+    u32 BB = Global_PerlinIV[B+1] + Zi;
 
-    // Add blended results from 8 corners of cube
-    f32 res = lerp(w,
-                   lerp(v,
-                        lerp(u,
-                             grad(Global_PerlinIV[AA], x, y, z),
-                             grad(Global_PerlinIV[BA], x-1, y, z)),
-                        lerp(u,
-                             grad(Global_PerlinIV[AB], x, y-1, z),
-                             grad(Global_PerlinIV[BB], x-1, y-1, z))),
-                   lerp(v,
-                        lerp(u,
-                             grad(Global_PerlinIV[AA+1], x, y, z-1),
-                             grad(Global_PerlinIV[BA+1], x-1, y, z-1)),
-                        lerp(u,
-                             grad(Global_PerlinIV[AB+1], x, y-1, z-1),
-                             grad(Global_PerlinIV[BB+1], x-1, y-1, z-1))
-                        )
-                   );
+
+    u32 H0 = Global_PerlinIV[AA];
+    u32 H1 = Global_PerlinIV[BA];
+    u32 H2 = Global_PerlinIV[AB];
+    u32 H3 = Global_PerlinIV[BB];
+    u32 H4 = Global_PerlinIV[AA+1];
+    u32 H5 = Global_PerlinIV[BA+1];
+    u32 H6 = Global_PerlinIV[AB+1];
+    u32 H7 = Global_PerlinIV[BB+1];
+
+
+    f32_4x x_x_x_x     = F32_4X(x, x, x, x);
+    f32_4x nx_nx_nx_nx = F32_4X(x-1, x-1, x-1, x-1);
+    f32_4x y_ny_y_ny   = F32_4X(y, y-1, y, y-1);
+    f32_4x z_z_nz_nz   = F32_4X(z, z, z-1, z-1);
+
+    /* f32_4x x_nx_x_nx   = F32_4X(x, x-1, x, x-1); */
+    /* f32_4x y_y_ny_ny   = F32_4X(y, y, y-1, y-1); */
+    /* f32_4x z_z_z_z     = F32_4X(z, z, z, z); */
+    /* f32_4x nz_nz_nz_nz = F32_4X(z-1, z-1, z-1, z-1); */
+
+    u32_4x H1357 = U32_4X(H1, H3, H5, H7);
+    u32_4x H0246 = U32_4X(H0, H2, H4, H6);
+    /* u32_4x H0123 = U32_4X(H0, H1, H2, H3); */
+    /* u32_4x H4567 = U32_4X(H4, H5, H6, H7); */
+    /* f32_4x G0123 = Grad4x(H0123, x_nx_x_nx, y_y_ny_ny, z_z_z_z); */
+    /* f32_4x G4567 = Grad4x(H4567, x_nx_x_nx, y_y_ny_ny, nz_nz_nz_nz); */
+
+
+    /* f32 G0 = grad(H0,  x,    y,    z); */
+    /* f32 G1 = grad(H1,  x-1,  y,    z); */
+    /* f32 G2 = grad(H2,  x,    y-1,  z); */
+    /* f32 G3 = grad(H3,  x-1,  y-1,  z); */
+
+/*     f32 G4 = grad(H4,  x,    y,    z-1); */
+/*     f32 G5 = grad(H5,  x-1,  y,    z-1); */
+/*     f32 G6 = grad(H6,  x,    y-1,  z-1); */
+/*     f32 G7 = grad(H7,  x-1,  y-1,  z-1); */
+
+#define SIMD_PERLIN (1)
+
+#if SIMD_PERLIN
+    f32_4x u4 = F32_4X(u);
+    /* f32_4x A4 = F32_4X(G0123.E[0], G0123.E[2], G4, G6); */
+    /* f32_4x B4 = F32_4X(G0123.E[1], G0123.E[3], G5, G7); */
+    /* f32_4x A4 = F32_4X(G0123.E[0], G0123.E[2], G4567.E[0], G4567.E[2]); */
+    /* f32_4x B4 = F32_4X(G0123.E[1], G0123.E[3], G4567.E[1], G4567.E[3]); */
+    f32_4x A4 = Grad4x(H0246,     x_x_x_x, y_ny_y_ny, z_z_nz_nz);
+    f32_4x B4 = Grad4x(H1357, nx_nx_nx_nx, y_ny_y_ny, z_z_nz_nz);
+
+    f32_4x L0L1L2L3 = Lerp4x(u4, A4, B4);
+    f32_4x v4 = F32_4X(v);
+    f32_4x L0L2 = F32_4X(L0L1L2L3.E[0], L0L1L2L3.E[2], 0.f, 0.f);
+    f32_4x L1L3 = F32_4X(L0L1L2L3.E[1], L0L1L2L3.E[3], 0.f, 0.f);
+    f32_4x L4L5 = Lerp4x(v4, L0L2, L1L3);
+    f32 res = lerp(w, L4L5.E[0], L4L5.E[1] );
+#else
+    f32 L0 = lerp(u, G0, G1);
+    f32 L1 = lerp(u, G2, G3);
+    f32 L2 = lerp(u, G4, G5);
+    f32 L3 = lerp(u, G6, G7);
+    f32 L4 = lerp(v, L0, L1);
+    f32 L5 = lerp(v, L2, L3);
+    f32 res = lerp(w, L4, L5 );
+#endif
+
+
 
     res = (res + 1.0f)/2.0f;
 
     Result[Index] = res;
   }
-#endif
 }
 
 
