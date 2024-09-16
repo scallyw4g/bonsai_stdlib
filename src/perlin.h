@@ -439,19 +439,19 @@ PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     u32 BB_1 = Global_PerlinIV[  B_1+1] + Zi;
  
 
-    u32 H0_0 = Global_PerlinIV[AA_0];
-    u32 H1_0 = Global_PerlinIV[BA_0];
-    u32 H2_0 = Global_PerlinIV[AB_0];
-    u32 H3_0 = Global_PerlinIV[BB_0];
+    u32 H0_0 = Global_PerlinIV[AA_0  ];
+    u32 H1_0 = Global_PerlinIV[BA_0  ];
+    u32 H2_0 = Global_PerlinIV[AB_0  ];
+    u32 H3_0 = Global_PerlinIV[BB_0  ];
     u32 H4_0 = Global_PerlinIV[AA_0+1];
     u32 H5_0 = Global_PerlinIV[BA_0+1];
     u32 H6_0 = Global_PerlinIV[AB_0+1];
     u32 H7_0 = Global_PerlinIV[BB_0+1];
 
-    u32 H0_1 = Global_PerlinIV[AA_1];
-    u32 H1_1 = Global_PerlinIV[BA_1];
-    u32 H2_1 = Global_PerlinIV[AB_1];
-    u32 H3_1 = Global_PerlinIV[BB_1];
+    u32 H0_1 = Global_PerlinIV[AA_1  ];
+    u32 H1_1 = Global_PerlinIV[BA_1  ];
+    u32 H2_1 = Global_PerlinIV[AB_1  ];
+    u32 H3_1 = Global_PerlinIV[BB_1  ];
     u32 H4_1 = Global_PerlinIV[AA_1+1];
     u32 H5_1 = Global_PerlinIV[BA_1+1];
     u32 H6_1 = Global_PerlinIV[AB_1+1];
@@ -459,6 +459,9 @@ PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
 
 #define SIMD_PERLIN (1)
 #if SIMD_PERLIN
+    f32 ny = y-1;
+    f32 nz = z-1;
+
     f32_4x _x__x__x__x_0 = F32_4X(x_0, x_0, x_0, x_0);
     f32_4x _x__x__x__x_1 = F32_4X(x_1, x_1, x_1, x_1);
     f32_4x nx_nx_nx_nx_0 = F32_4X(x_0-1, x_0-1, x_0-1, x_0-1);
@@ -478,22 +481,34 @@ PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     f32_4x u4_1    = F32_4X(u_1);
 
 
+/*     f32_4x G0426_0 = Grad4x(H0426_0, _x__x__x__x_0, y_y_ny_ny, z_nz_z_nz); */
+/*     f32_4x G1537_0 = Grad4x(H1537_0, nx_nx_nx_nx_0, y_y_ny_ny, z_nz_z_nz); */
 
-    f32_4x A4_0 = Grad4x(H0426_0, _x__x__x__x_0, y_y_ny_ny, z_nz_z_nz);
-    f32_4x B4_0 = Grad4x(H1537_0, nx_nx_nx_nx_0, y_y_ny_ny, z_nz_z_nz);
+/*     f32_4x G0426_1 = Grad4x(H0426_1, _x__x__x__x_1, y_y_ny_ny, z_nz_z_nz); */
+/*     f32_4x G1537_1 = Grad4x(H1537_1, nx_nx_nx_nx_1, y_y_ny_ny, z_nz_z_nz); */
 
-    f32_4x A4_1 = Grad4x(H0426_1, _x__x__x__x_1, y_y_ny_ny, z_nz_z_nz);
-    f32_4x B4_1 = Grad4x(H1537_1, nx_nx_nx_nx_1, y_y_ny_ny, z_nz_z_nz);
+    u32_4x H04_0_H04_1 = U32_4X(H0_0, H4_0, H0_1, H4_1);
+    u32_4x H15_0_H15_1 = U32_4X(H1_0, H5_0, H1_1, H5_1);
+    u32_4x H26_0_H26_1 = U32_4X(H2_0, H6_0, H2_1, H6_1);
+    u32_4x H37_0_H37_1 = U32_4X(H3_0, H7_0, H3_1, H7_1);
 
-    f32_4x L0213_0 = Lerp4x(u4_0, A4_0, B4_0);
-    f32_4x L0213_1 = Lerp4x(u4_1, A4_1, B4_1);
+    f32_4x G04_0_G04_1 = Grad4x(H04_0_H04_1, F32_4X(x_0  , x_0  , x_1  , x_1  ), F32_4X(y, y, y, y),     F32_4X( z, nz,  z, nz));
+    f32_4x G15_0_G15_1 = Grad4x(H15_0_H15_1, F32_4X(x_0-1, x_0-1, x_1-1, x_1-1), F32_4X(y, y, y, y),     F32_4X( z, nz,  z, nz));
+    f32_4x G26_0_G26_1 = Grad4x(H26_0_H26_1, F32_4X(x_0  , x_0  , x_1  , x_1  ), F32_4X(ny, ny, ny, ny), F32_4X(nz, nz, nz, nz));
+    f32_4x G37_0_G37_1 = Grad4x(H37_0_H37_1, F32_4X(x_0-1, x_0-1, x_1-1, x_1-1), F32_4X(ny, ny, ny, ny), F32_4X( z, nz,  z, nz));
 
-    f32_4x L13_0 = StaticShuffle(L0213_0, 2, 3, 0, 0); // Lane 3 and 4 are discarded from this result so they can be 0
-    f32_4x L13_1 = StaticShuffle(L0213_1, 2, 3, 0, 0); // Lane 3 and 4 are discarded from this result so they can be 0
+
+    f32_4x L02_0_L02_1 = Lerp4x(u4_0, G04_0_G04_1, G15_0_G15_1);
+    f32_4x L13_0_L13_1 = Lerp4x(u4_1, G26_0_G26_1, G37_0_G37_1);
+    /* f32_4x L0213_0 = Lerp4x(u4_0, G0426_0, G1537_0); */
+    /* f32_4x L0213_1 = Lerp4x(u4_1, G0426_1, G1537_1); */
+
+    /* f32_4x L13_0 = StaticShuffle(L0213_0, 2, 3, 0, 0); // Lane 3 and 4 are discarded from this result so they can be 0 */
+    /* f32_4x L13_1 = StaticShuffle(L0213_1, 2, 3, 0, 0); // Lane 3 and 4 are discarded from this result so they can be 0 */
 
 
-    f32_4x L02_0_L02_1 = F32_4X(L0213_0.E[0], L0213_0.E[1], L0213_1.E[0], L0213_1.E[1]);
-    f32_4x L13_0_L13_1 = F32_4X(L0213_0.E[2], L0213_0.E[3], L0213_1.E[2], L0213_1.E[3]);
+    /* f32_4x L02_0_L02_1 = F32_4X(L0213_0.E[0], L0213_0.E[1], L0213_1.E[0], L0213_1.E[1]); */
+    /* f32_4x L13_0_L13_1 = F32_4X(L0213_0.E[2], L0213_0.E[3], L0213_1.E[2], L0213_1.E[3]); */
 
     f32_4x L45_0_L45_1 = Lerp4x(v4, L02_0_L02_1, L13_0_L13_1);
 
