@@ -439,23 +439,25 @@ PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
 
 #define SIMD_PERLIN (1)
 #if SIMD_PERLIN
-    f32_4x x_x_x_x     = F32_4X(x, x, x, x);
+    f32_4x _x__x__x__x = F32_4X(x, x, x, x);
     f32_4x nx_nx_nx_nx = F32_4X(x-1, x-1, x-1, x-1);
     f32_4x y_ny_y_ny   = F32_4X(y, y-1, y, y-1);
+    f32_4x y_y_ny_ny   = F32_4X(y, y, y-1, y-1);
+    f32_4x z_nz_z_nz   = F32_4X(z, z-1, z, z-1);
     f32_4x z_z_nz_nz   = F32_4X(z, z, z-1, z-1);
 
-    u32_4x H1357 = U32_4X(H1, H3, H5, H7);
-    u32_4x H0246 = U32_4X(H0, H2, H4, H6);
+    u32_4x H1537 = U32_4X(H1, H5, H3, H7);
+    u32_4x H0426 = U32_4X(H0, H4, H2, H6);
     f32_4x u4 = F32_4X(u);
 
-    f32_4x A4 = Grad4x(H0246,     x_x_x_x, y_ny_y_ny, z_z_nz_nz);
-    f32_4x B4 = Grad4x(H1357, nx_nx_nx_nx, y_ny_y_ny, z_z_nz_nz);
+    f32_4x A4 = Grad4x(H0426, _x__x__x__x, y_y_ny_ny, z_nz_z_nz);
+    f32_4x B4 = Grad4x(H1537, nx_nx_nx_nx, y_y_ny_ny, z_nz_z_nz);
 
-    f32_4x L0123 = Lerp4x(u4, A4, B4);
+    f32_4x L0213 = Lerp4x(u4, A4, B4);
     f32_4x v4 = F32_4X(v);
-    f32_4x L0L2 = F32_4X(L0123.E[0], L0123.E[2], 0.f, 0.f);
-    f32_4x L1L3 = F32_4X(L0123.E[1], L0123.E[3], 0.f, 0.f);
-    f32_4x L4L5 = Lerp4x(v4, L0L2, L1L3);
+
+    f32_4x L13 = StaticShuffle(L0213, 2, 3, 0, 0); // Lane 3 and 4 are discarded from this result so they can be 0
+    f32_4x L4L5 = Lerp4x(v4, L0213, L13); // This is lerping L02 L13, we don't read lanes 3 & 4
     f32 res = lerp(w, L4L5.E[0], L4L5.E[1] );
 
 #else
