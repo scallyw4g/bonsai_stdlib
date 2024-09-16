@@ -437,53 +437,38 @@ PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     u32 H6 = Global_PerlinIV[AB+1];
     u32 H7 = Global_PerlinIV[BB+1];
 
-
+#define SIMD_PERLIN (1)
+#if SIMD_PERLIN
     f32_4x x_x_x_x     = F32_4X(x, x, x, x);
     f32_4x nx_nx_nx_nx = F32_4X(x-1, x-1, x-1, x-1);
     f32_4x y_ny_y_ny   = F32_4X(y, y-1, y, y-1);
     f32_4x z_z_nz_nz   = F32_4X(z, z, z-1, z-1);
 
-    /* f32_4x x_nx_x_nx   = F32_4X(x, x-1, x, x-1); */
-    /* f32_4x y_y_ny_ny   = F32_4X(y, y, y-1, y-1); */
-    /* f32_4x z_z_z_z     = F32_4X(z, z, z, z); */
-    /* f32_4x nz_nz_nz_nz = F32_4X(z-1, z-1, z-1, z-1); */
-
     u32_4x H1357 = U32_4X(H1, H3, H5, H7);
     u32_4x H0246 = U32_4X(H0, H2, H4, H6);
-    /* u32_4x H0123 = U32_4X(H0, H1, H2, H3); */
-    /* u32_4x H4567 = U32_4X(H4, H5, H6, H7); */
-    /* f32_4x G0123 = Grad4x(H0123, x_nx_x_nx, y_y_ny_ny, z_z_z_z); */
-    /* f32_4x G4567 = Grad4x(H4567, x_nx_x_nx, y_y_ny_ny, nz_nz_nz_nz); */
-
-
-    /* f32 G0 = grad(H0,  x,    y,    z); */
-    /* f32 G1 = grad(H1,  x-1,  y,    z); */
-    /* f32 G2 = grad(H2,  x,    y-1,  z); */
-    /* f32 G3 = grad(H3,  x-1,  y-1,  z); */
-
-/*     f32 G4 = grad(H4,  x,    y,    z-1); */
-/*     f32 G5 = grad(H5,  x-1,  y,    z-1); */
-/*     f32 G6 = grad(H6,  x,    y-1,  z-1); */
-/*     f32 G7 = grad(H7,  x-1,  y-1,  z-1); */
-
-#define SIMD_PERLIN (1)
-
-#if SIMD_PERLIN
     f32_4x u4 = F32_4X(u);
-    /* f32_4x A4 = F32_4X(G0123.E[0], G0123.E[2], G4, G6); */
-    /* f32_4x B4 = F32_4X(G0123.E[1], G0123.E[3], G5, G7); */
-    /* f32_4x A4 = F32_4X(G0123.E[0], G0123.E[2], G4567.E[0], G4567.E[2]); */
-    /* f32_4x B4 = F32_4X(G0123.E[1], G0123.E[3], G4567.E[1], G4567.E[3]); */
+
     f32_4x A4 = Grad4x(H0246,     x_x_x_x, y_ny_y_ny, z_z_nz_nz);
     f32_4x B4 = Grad4x(H1357, nx_nx_nx_nx, y_ny_y_ny, z_z_nz_nz);
 
-    f32_4x L0L1L2L3 = Lerp4x(u4, A4, B4);
+    f32_4x L0123 = Lerp4x(u4, A4, B4);
     f32_4x v4 = F32_4X(v);
-    f32_4x L0L2 = F32_4X(L0L1L2L3.E[0], L0L1L2L3.E[2], 0.f, 0.f);
-    f32_4x L1L3 = F32_4X(L0L1L2L3.E[1], L0L1L2L3.E[3], 0.f, 0.f);
+    f32_4x L0L2 = F32_4X(L0123.E[0], L0123.E[2], 0.f, 0.f);
+    f32_4x L1L3 = F32_4X(L0123.E[1], L0123.E[3], 0.f, 0.f);
     f32_4x L4L5 = Lerp4x(v4, L0L2, L1L3);
     f32 res = lerp(w, L4L5.E[0], L4L5.E[1] );
+
 #else
+    f32 G0 = grad(H0,  x,    y,    z);
+    f32 G1 = grad(H1,  x-1,  y,    z);
+    f32 G2 = grad(H2,  x,    y-1,  z);
+    f32 G3 = grad(H3,  x-1,  y-1,  z);
+
+    f32 G4 = grad(H4,  x,    y,    z-1);
+    f32 G5 = grad(H5,  x-1,  y,    z-1);
+    f32 G6 = grad(H6,  x,    y-1,  z-1);
+    f32 G7 = grad(H7,  x-1,  y-1,  z-1);
+
     f32 L0 = lerp(u, G0, G1);
     f32 L1 = lerp(u, G2, G3);
     f32 L2 = lerp(u, G4, G5);

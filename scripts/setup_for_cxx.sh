@@ -62,6 +62,7 @@ fi
 CXX_OPTIONS="
   --std=c++17
   -ferror-limit=2000
+  -mssse3
 
   -Weverything
 

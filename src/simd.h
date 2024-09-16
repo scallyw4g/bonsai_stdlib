@@ -56,6 +56,9 @@ Select(u32_4x Mask, f32_4x A, f32_4x B)
   return Result;
 }
 
+#define StaticShuffle(Source, Lane0Source, Lane1Source, Lane2Source, Lane3Source) \
+  {{ _mm_shuffle_ps(Source.Sse, Source.Sse, (Lane0Source) | (Lane1Source<<2) | (Lane2Source<<4) | (Lane3Source<<6)) }}
+
 
 
 //

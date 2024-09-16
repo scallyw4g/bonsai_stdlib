@@ -13,6 +13,7 @@
 #include <bonsai_stdlib/src/primitives.h>
 
 #include <immintrin.h>
+#include <avxintrin.h>
 #include <smmintrin.h>
 #include <xmmintrin.h>
 
