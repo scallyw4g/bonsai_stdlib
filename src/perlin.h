@@ -422,13 +422,13 @@ PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     f32  x_1 = _xF[Index+1];
     f32  u_1 =  _u[Index+1];
 
-    u32 Xi_2 = _Xi[Index+1];
-    f32  x_2 = _xF[Index+1];
-    f32  u_2 =  _u[Index+1];
+    u32 Xi_2 = _Xi[Index+2];
+    f32  x_2 = _xF[Index+2];
+    f32  u_2 =  _u[Index+2];
 
-    u32 Xi_3 = _Xi[Index+1];
-    f32  x_3 = _xF[Index+1];
-    f32  u_3 =  _u[Index+1];
+    u32 Xi_3 = _Xi[Index+3];
+    f32  x_3 = _xF[Index+3];
+    f32  u_3 =  _u[Index+3];
 
 
     // Hash coordinates of the 8 cube corners
