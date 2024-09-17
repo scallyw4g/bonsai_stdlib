@@ -202,23 +202,33 @@ PerlinNoise(f32 x, f32 y, f32 z)
 
   // Add blended results from 8 corners of cube
 
-  f32 C0 = grad(Global_PerlinIV[AA], x, y, z);
-  f32 C1 = grad(Global_PerlinIV[BA], x-1, y, z);
-  f32 C2 = grad(Global_PerlinIV[AB], x, y-1, z);
-  f32 C3 = grad(Global_PerlinIV[BB], x-1, y-1, z);
-  f32 C4 = grad(Global_PerlinIV[AA+1], x, y, z-1);
-  f32 C5 = grad(Global_PerlinIV[BA+1], x-1, y, z-1);
-  f32 C6 = grad(Global_PerlinIV[AB+1], x, y-1, z-1);
-  f32 C7 = grad(Global_PerlinIV[BB+1], x-1, y-1, z-1);
+  u32 H0 = Global_PerlinIV[AA];
+  u32 H1 = Global_PerlinIV[BA];
+  u32 H2 = Global_PerlinIV[AB];
+  u32 H3 = Global_PerlinIV[BB];
+  u32 H4 = Global_PerlinIV[AA+1];
+  u32 H5 = Global_PerlinIV[BA+1];
+  u32 H6 = Global_PerlinIV[AB+1];
+  u32 H7 = Global_PerlinIV[BB+1];
 
-  f32 res = lerp(w,
-                 lerp(v,
-                      lerp(u, C0, C1),
-                      lerp(u, C2, C3)),
-                 lerp(v,
-                      lerp(u, C4, C5),
-                      lerp(u, C6, C7))
-                 );
+  f32 G0 = grad(H0,  x,    y,    z);
+  f32 G1 = grad(H1,  x-1,  y,    z);
+  f32 G2 = grad(H2,  x,    y-1,  z);
+  f32 G3 = grad(H3,  x-1,  y-1,  z);
+
+  f32 G4 = grad(H4,  x,    y,    z-1);
+  f32 G5 = grad(H5,  x-1,  y,    z-1);
+  f32 G6 = grad(H6,  x,    y-1,  z-1);
+  f32 G7 = grad(H7,  x-1,  y-1,  z-1);
+
+  f32 L0 = lerp(u, G0, G1);
+  f32 L1 = lerp(u, G2, G3);
+  f32 L2 = lerp(u, G4, G5);
+  f32 L3 = lerp(u, G6, G7);
+
+  f32 L4 = lerp(v, L0, L1);
+  f32 L5 = lerp(v, L2, L3);
+  f32 res = lerp(w, L4, L5 );
 
   res = (res + 1.0f)/2.0f;
 
@@ -238,6 +248,84 @@ PerlinNoise(v3 P)
 link_internal void
 PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
 {
+#if 0
+  RangeIterator(Index, 8)
+  {
+    f32 x = _x[Index];
+    f32 y = yIn;
+    f32 z = zIn;
+
+    // Find the unit cube that contains the point
+    if (x < 0) x -= 1.f;
+    if (y < 0) y -= 1.f;
+    if (z < 0) z -= 1.f;
+
+    u32 Xi = u32(x) & 255;
+    u32 Yi = u32(y) & 255;
+    u32 Zi = u32(z) & 255;
+
+    // Find relative x,y,z of point in cube
+    x -= Floorf(x);
+    y -= Floorf(y);
+    z -= Floorf(z);
+
+    // Compute fade curves for each of x, y, z
+    f32 u = fade(x);
+    f32 v = fade(y);
+    f32 w = fade(z);
+
+    // Hash coordinates of the 8 cube corners
+    u32 A  = (u32)Global_PerlinIV[Xi]  + Yi;
+    u32 AA = (u32)Global_PerlinIV[A]   + Zi;
+    u32 AB = (u32)Global_PerlinIV[A+1] + Zi;
+    u32 B  = (u32)Global_PerlinIV[Xi+1]+ Yi;
+    u32 BA = (u32)Global_PerlinIV[B]   + Zi;
+    u32 BB = (u32)Global_PerlinIV[B+1] + Zi;
+
+    // Add blended results from 8 corners of cube
+
+    u32 H0 = Global_PerlinIV[AA];
+    u32 H1 = Global_PerlinIV[BA];
+    u32 H2 = Global_PerlinIV[AB];
+    u32 H3 = Global_PerlinIV[BB];
+    u32 H4 = Global_PerlinIV[AA+1];
+    u32 H5 = Global_PerlinIV[BA+1];
+    u32 H6 = Global_PerlinIV[AB+1];
+    u32 H7 = Global_PerlinIV[BB+1];
+
+    f32 G0 = grad(H0,  x,    y,    z);
+    f32 G1 = grad(H1,  x-1,  y,    z);
+    f32 G2 = grad(H2,  x,    y-1,  z);
+    f32 G3 = grad(H3,  x-1,  y-1,  z);
+
+    f32 G4 = grad(H4,  x,    y,    z-1);
+    f32 G5 = grad(H5,  x-1,  y,    z-1);
+    f32 G6 = grad(H6,  x,    y-1,  z-1);
+    f32 G7 = grad(H7,  x-1,  y-1,  z-1);
+
+    f32 L0 = lerp(u, G0, G1);
+    f32 L1 = lerp(u, G2, G3);
+    f32 L2 = lerp(u, G4, G5);
+    f32 L3 = lerp(u, G6, G7);
+
+    f32_4x u_4x = F32_4X(u,u,u,u);
+
+    f32_4x LHS = F32_4X(G0, G2, G4, G6); // left-hand column of operands
+    f32_4x RHS = F32_4X(G1, G3, G5, G7); // right-hand column of operands
+
+    f32_4x L0123 = Lerp4x(u_4x, LHS, RHS);
+
+    f32 L4 = lerp(v, L0123.E[0], L0123.E[1]);
+    f32 L5 = lerp(v, L0123.E[2], L0123.E[3]);
+    f32 res = lerp(w, L4, L5 );
+
+    res = (res + 1.0f)/2.0f;
+
+    /* Assert(res <= 1.05f); */
+    /* Assert(res > -1.05f); */
+    Result[Index] = res;
+  }
+#else
   f32 _y = yIn;
   f32 _z = zIn;
 
@@ -453,6 +541,7 @@ PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     /* Result[Index] = res_0; */
     /* Result[Index+1] = res_1; */
   }
+#endif
 }
 
 
