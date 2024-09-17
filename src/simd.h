@@ -40,21 +40,56 @@ U32_4X(u32 A)
 
 
 
-link_inline u32_4x
-Select(u32_4x Mask, u32_4x A, u32_4x B)
-{
-  u32_4x Result = {};
-  Result.Sse = _mm_or_ps(_mm_andnot_ps(Mask.Sse, A.Sse), _mm_and_ps(Mask.Sse, B.Sse));
-  return Result;
-}
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+// TODO(Jesse): VERIFY THIS ACTUALLY WORKS CORRECTLY
+//
+// I'm pretty sure it was broken before (taking the wrong operands) but I did
+// see in the debugger (I think) that it worked ..
+//
+// PerlinNoise_8x seemed to work both ways..
 
 link_inline f32_4x
 Select(u32_4x Mask, f32_4x A, f32_4x B)
 {
-  f32_4x Result = {};
-  Result.Sse = _mm_or_si128(_mm_andnot_si128(Mask.Sse, B.Sse), _mm_and_si128(Mask.Sse, A.Sse));
+  f32_4x Result = {{_mm_or_ps(_mm_and_ps(Mask.Sse, A.Sse), _mm_andnot_ps(Mask.Sse, B.Sse))}};
   return Result;
 }
+
+/* link_inline f32_4x */
+/* Select(u32_4x Mask, f32_4x A, f32_4x B) */
+/* { */
+/*   f32_4x Result = {{_mm_or_si128(_mm_andnot_si128(Mask.Sse, B.Sse), _mm_and_si128(Mask.Sse, A.Sse))}}; */
+/*   return Result; */
+/* } */
 
 #define StaticShuffle(Source, Lane0Source, Lane1Source, Lane2Source, Lane3Source) \
   {{ _mm_shuffle_ps(Source.Sse, Source.Sse, (Lane0Source) | (Lane1Source<<2) | (Lane2Source<<4) | (Lane3Source<<6)) }}
