@@ -12,10 +12,8 @@
 #include <bonsai_stdlib/src/assert.h>
 #include <bonsai_stdlib/src/primitives.h>
 
-#include <immintrin.h>
-#include <avxintrin.h>
+#include <intrin.h>
 #include <smmintrin.h>
-#include <xmmintrin.h>
 
 #include <bonsai_stdlib/src/simd.h>
 
