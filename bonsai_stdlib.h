@@ -80,7 +80,7 @@ struct gpu_element_buffer_handles
   typedef gpu_mapped_element_buffer gpu_mapped_untextured_3d_geometry_buffer;
 // }
 
-/* struct gpu_mapped_world_chunk_geometry_buffer */
+/* struct gpu_mapped_jorld_chunk_geometry_buffer */
 /* { */
 /*   gpu_element_buffer_handles  Handles; */
 /*   world_chunk_geometry_buffer Buffer; */

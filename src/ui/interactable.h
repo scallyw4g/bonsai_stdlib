@@ -7,8 +7,6 @@ struct ui_id
   u32 WindowBits;
   u32 InteractionBits;
   u32 ElementBits;
-
-  /* operator bool(); */
 };
 
 link_internal b32

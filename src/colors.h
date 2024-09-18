@@ -289,9 +289,9 @@ PackHSVColor(v3 Color)
   u16 S = u16(Color.s * r32(FiveBits));
   u16 V = u16(Color.v * r32(FiveBits));
 
-  Assert(H <= SixBits);
-  Assert(S <= FiveBits);
-  Assert(V <= FiveBits);
+  /* Assert(H <= SixBits); */
+  /* Assert(S <= FiveBits); */
+  /* Assert(V <= FiveBits); */
 
 
   u16 Result = u16((H << 10) | (S << 5) | V);
