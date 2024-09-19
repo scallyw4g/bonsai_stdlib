@@ -161,16 +161,6 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
 
 #define CompleteAllWrites _WriteBarrier(); _mm_sfence()
 
-inline r64
-ComputeDtForFrame(r64 *LastTime)
-{
-  r64 CurrentTime = GetHighPrecisionClock();
-  r64 Dt = (CurrentTime - *LastTime) / 1000000000.0;
-
-  *LastTime = CurrentTime;
-  return Dt;
-}
-
 void
 Terminate(os *Os, platform *Plat)
 {

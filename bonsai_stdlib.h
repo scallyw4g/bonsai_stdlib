@@ -13,9 +13,12 @@
 #include <bonsai_stdlib/src/primitives.h>
 
 #include <intrin.h>
+#include <immintrin.h>
 #include <smmintrin.h>
+/* #include <ymmintrin.h> */
 
-#include <bonsai_stdlib/src/simd.h>
+#include <bonsai_stdlib/src/simd_sse.h>
+#include <bonsai_stdlib/src/simd_avx2.h>
 
 #include <bonsai_stdlib/src/console_macros.h>
 #include <bonsai_stdlib/src/globals.h>

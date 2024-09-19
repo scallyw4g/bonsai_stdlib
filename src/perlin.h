@@ -112,6 +112,16 @@ Fade4x(f32_4x t) {
   return res;
 }
 
+link_internal f32_8x
+Fade8x(f32_8x t) {
+  f32_8x _15 = F32_8X(15);
+  f32_8x _10 = F32_8X(10);
+  f32_8x _6  = F32_8X(6);
+  f32_8x res = t * t * t * (t * (t * _6 - _15) + _10);
+  return res;
+}
+
+
 
 link_internal f32
 lerp(f32 t, f32 a, f32 b) {
@@ -126,15 +136,68 @@ Lerp4x(f32_4x t, f32_4x a, f32_4x b)
   return res;
 }
 
+link_internal f32_8x
+Lerp8x(f32_8x t, f32_8x a, f32_8x b)
+{
+  f32_8x res = FMA(b-a, t, a); //a + t * (b - a);
+  /* f32_8x res = a + t * (b - a); */
+  return res;
+}
+
+
 
 link_internal f32
-grad(u32 hash, f32 x, f32 y, f32 z) {
-  int h = hash & 15;
-  // Convert lower 4 bits of hash into 12 gradient directions
-  f32 u = h < 8 ? x : y;
-  f32 v = h < 4 ? y : h == 12 || h == 14 ? x : z;
-  f32 res = ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
-  return res;
+grad(u32 hash, f32 x, f32 y, f32 z)
+{
+  switch (hash & 15)
+  {
+    case 0 : return  x + y; // ( 1, 1, 0)
+    case 1 : return  x + z; // ( 1, 0, 1)
+    case 8 : return  x - y; // ( 1,-1, 0)
+    case 9 : return  x - z; // ( 1, 0,-1)
+    case 12: return -x - y; // (-1,-1, 0)
+    case 13: return -x - z; // (-1, 0,-1)
+
+    case 3 : return  y + x; // ( 1, 1, 0)
+    case 2 : return  y + z; // ( 0, 1, 1)
+    case 7 : return  y - x; // (-1, 1, 0)
+    case 10: return  y - z; // ( 0, 1,-1)
+    case 14: return -y - z; // ( 0,-1,-1)
+    case 15: return -y - z; // ( 0,-1,-1)
+
+    case 5 : return  z - x; // (-1, 0, 1)
+    case 6 : return  z - y; // ( 0,-1, 1)
+    case 11: return  z - y; // ( 0,-1, 1)
+  }
+  return -1;
+}
+
+link_internal f32
+grad_(u32 hash, f32 x, f32 y, f32 z)
+{
+  switch (hash & 15)
+  {
+    case  0: return  x + y; // ( 1, 1, 0)
+    case  1: return -x + y; // (-1, 1, 0)
+    case  2: return  x - y; // ( 1,-1, 0)
+    case  3: return -x - y; // (-1,-1, 0)
+
+    case  4: return  x + z; // ( 1, 0, 1)
+    case  5: return -x + z; // (-1, 0, 1)
+    case  6: return  x - z; // ( 1, 0,-1)
+    case  7: return -x - z; // (-1, 0,-1)
+                            //
+    case  8: return  y + z; // ( 0, 1, 1)
+    case  9: return -y + z; // ( 0,-1, 1)
+    case 10: return  y - z; // ( 0, 1,-1)
+    case 11: return -y - z; // ( 0,-1,-1)
+                            //
+    case 12: return  y + x; // ( 1, 1, 0)
+    case 13: return -x + y; // (-1, 1, 0)
+    case 14: return -y + z; // ( 0,-1, 1)
+    case 15: return -y - z; // ( 0,-1,-1)
+  }
+  return f32_MAX;
 }
 
 link_internal f32_4x
@@ -143,10 +206,10 @@ Grad4x(u32_4x hash, f32_4x x, f32_4x y, f32_4x z)
   u32_4x _15 = U32_4X(15);
   u32_4x _14 = U32_4X(14);
   u32_4x _12 = U32_4X(12);
-  u32_4x _8 = U32_4X(8);
-  u32_4x _4 = U32_4X(4);
-  u32_4x _2 = U32_4X(2);
-  u32_4x _1 = U32_4X(1);
+  u32_4x _8  = U32_4X(8);
+  u32_4x _4  = U32_4X(4);
+  u32_4x _2  = U32_4X(2);
+  u32_4x _1  = U32_4X(1);
   f32_4x _n1 = F32_4X(-1);
 
   auto h = hash & _15;
@@ -165,6 +228,45 @@ Grad4x(u32_4x hash, f32_4x x, f32_4x y, f32_4x z)
   f32_4x R0 = Select(uFlip, u*_n1, u);
   f32_4x R1 = Select(vFlip, v*_n1, v);
   f32_4x Result = R0 + R1;
+
+  return Result;
+}
+
+
+link_internal f32_8x
+Grad8x(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
+{
+  u32_8x _15 = U32_8X(15);
+  u32_8x _14 = U32_8X(14);
+  u32_8x _12 = U32_8X(12);
+  u32_8x _8  = U32_8X(8);
+  u32_8x _4  = U32_8X(4);
+  u32_8x _2  = U32_8X(2);
+  u32_8x _1  = U32_8X(1);
+  f32_8x _n1 = F32_8X(-1);
+
+  auto h = hash & _15;
+
+  u32_8x uSel = h < _8;
+  u32_8x vSel = h < _4;
+  u32_8x xSel = (h == _12 | h == _14 );
+
+  f32_8x u  = Select(uSel, x, y);
+  f32_8x xz = Select(xSel, x, z);
+  f32_8x v  = Select(vSel, y, xz);
+
+#if 0
+  auto uFlip = (h & _1) == _1;
+  auto vFlip = (h & _2) == _2;
+  f32_8x R0 = Select(uFlip, u*_n1, u);
+  f32_8x R1 = Select(vFlip, v*_n1, v);
+  f32_8x Result = R0 + R1;
+#else
+  f32_8x h1 = F32_8X( hash << 31 );
+  f32_8x h2 = F32_8X( (hash & U32_8X(2)) << 30 );
+  //then add them
+  f32_8x Result = ( u ^ h1 ) + ( v ^ h2 );
+#endif
 
   return Result;
 }
@@ -279,22 +381,25 @@ float gradientDotV( u8 perm, float x, float y, float z)
 {
   switch (perm & 15)
   {
-    case  0: return  x + y; // (1,1,0)
-    case  1: return -x + y; // (-1,1,0)
-    case  2: return  x - y; // (1,-1,0)
-    case  3: return -x - y; // (-1,-1,0)
-    case  4: return  x + z; // (1,0,1)
-    case  5: return -x + z; // (-1,0,1)
-    case  6: return  x - z; // (1,0,-1)
-    case  7: return -x - z; // (-1,0,-1)
-    case  8: return  y + z; // (0,1,1),
-    case  9: return -y + z; // (0,-1,1),
-    case 10: return  y - z; // (0,1,-1),
-    case 11: return -y - z; // (0,-1,-1)
-    case 12: return  y + x; // (1,1,0)
-    case 13: return -x + y; // (-1,1,0)
-    case 14: return -y + z; // (0,-1,1)
-    case 15: return -y - z; // (0,-1,-1)
+    case  0: return  x + y; // ( 1, 1, 0)
+    case  1: return -x + y; // (-1, 1, 0)
+    case  2: return  x - y; // ( 1,-1, 0)
+    case  3: return -x - y; // (-1,-1, 0)
+
+    case  4: return  x + z; // ( 1, 0, 1)
+    case  5: return -x + z; // (-1, 0, 1)
+    case  6: return  x - z; // ( 1, 0,-1)
+    case  7: return -x - z; // (-1, 0,-1)
+                            //
+    case  8: return  y + z; // ( 0, 1, 1)
+    case  9: return -y + z; // ( 0,-1, 1)
+    case 10: return  y - z; // ( 0, 1,-1)
+    case 11: return -y - z; // ( 0,-1,-1)
+                            //
+    case 12: return  y + x; // ( 1, 1, 0)
+    case 13: return -x + y; // (-1, 1, 0)
+    case 14: return -y + z; // ( 0,-1, 1)
+    case 15: return -y - z; // ( 0,-1,-1)
   }
   return f32_MAX;
 }
@@ -505,4 +610,7 @@ PerlinNoise_Derivitives1(r32 px, r32 py, r32 pz, v3 *derivs)
 
 
 link_internal void
-PerlinNoise_8x(f32 *_x, f32 yIn, f32 zIn, f32 *Result);
+PerlinNoise_8x_sse(f32 *_x, f32 yIn, f32 zIn, f32 *Result);
+
+link_internal void
+PerlinNoise_8x_avx2(f32 *_x, f32 yIn, f32 zIn, f32 *Result);

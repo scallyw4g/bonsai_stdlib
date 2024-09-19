@@ -63,6 +63,9 @@ CXX_OPTIONS="
   --std=c++17
   -ferror-limit=2000
   -mssse3
+  -mavx
+  -mavx2
+  -mfma
 
   -Weverything
 
