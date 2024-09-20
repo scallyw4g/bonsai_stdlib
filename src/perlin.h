@@ -1,4 +1,12 @@
-
+struct perlin_params
+{
+  f32_8x channel;
+  u32_8x channel0;
+  u32_8x channel1;
+  f32_8x f0;
+  f32_8x f1;
+  f32_8x Fade;
+};
 typedef r32 (*noise_callback)(r32, r32, r32);
 typedef r32 (*noise_callback_derivs)(r32, r32, r32, v3*);
 
@@ -606,6 +614,40 @@ PerlinNoise_Derivitives1(r32 px, r32 py, r32 pz, v3 *derivs)
 
   return k0 + k1 * u + k2 * v + k3 * w + k4 * u * v + k5 * u * w + k6 * v * w + k7 * u * v * w;
 }
+
+
+
+link_inline perlin_params
+ComputePerlinParameters(f32_8x Input, u32_8x Prime)
+{
+  f32_8x fInput = Floor(Input);
+  u32_8x channel0 = U32_8X(fInput) * Prime;
+  u32_8x channel1 = channel0 + Prime;
+  f32_8x fractInput = Input-fInput;
+  f32_8x fractInput1 = fractInput - F32_8X(1);
+  f32_8x Fade = Fade8x(fractInput);
+
+  perlin_params Result =
+  {
+    fInput,
+    channel0,
+    channel1,
+    fractInput,
+    fractInput1,
+    Fade,
+  };
+  return Result;
+}
+
+#if 0
+#define ComputePerlinParameters(channel) \
+  auto channel##s    = Floor(channel); \
+  auto channel##0    = U32_8X(channel##s) * Prime##channel; \
+  auto channel##1    = channel##0 + Prime##channel; \
+  auto channel##f0   = channel - channel##s; \
+  auto channel##f1   = channel##f0 - F32_8X(1.f); \
+  auto channel##Fade = Fade8x(channel##f0)
+#endif
 
 
 
