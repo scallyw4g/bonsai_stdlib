@@ -30,8 +30,14 @@ F32_8X(f32 A)
 link_inline f32_8x
 F32_8X(u32_8x A)
 {
+  f32_8x Result = {{ _mm256_cvtepi32_ps(A.Sse) }};
+  return Result;
+}
+
+f32_8x
+Cast_f32_8x(u32_8x A)
+{
   f32_8x Result = {{ _mm256_castsi256_ps(A.Sse) }};
-  /* f32_8x Result = {{ _mm256_cvtepi32_ps(A.Sse) }}; */
   return Result;
 }
 
@@ -186,7 +192,7 @@ operator-(u32_8x A, u32_8x B)
 link_inline u32_8x
 operator*(u32_8x A, u32_8x B)
 {
-  u32_8x Result = {{ _mm256_mul_epi32(A.Sse, B.Sse) }};
+  u32_8x Result = {{ _mm256_mullo_epi32(A.Sse, B.Sse) }};
   return Result;
 }
 
