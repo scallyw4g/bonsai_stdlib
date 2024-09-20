@@ -351,3 +351,169 @@ PerlinNoise_8x_avx2(f32 *xIn, f32 yIn, f32 zIn, f32 *Result)
     Result[Index+7] = Res.E[7];
   }
 }
+
+link_internal void
+PerlinNoise_16x2x2_avx2(perlin_params *xParams_in, perlin_params *yParams_in, perlin_params *zParams_in, f32 *Result)
+{
+  auto PrimeX = U32_8X(501125321);
+
+#pragma unroll(2)
+  for (s32 zIndex = 0; zIndex <  2; zIndex += 1)
+  {
+    perlin_params *zParams = zParams_in+zIndex;
+#pragma unroll(2)
+    for (s32 yIndex = 0; yIndex <  2; yIndex += 1)
+    {
+      perlin_params *yParams = yParams_in+yIndex;
+#pragma unroll(2)
+      for (s32 xIndex = 0; xIndex < 2; xIndex += 1)
+      {
+        perlin_params *xParams = xParams_in+xIndex;
+        u32_8x Seed = U32_8X(1066037191);
+
+        f32_8x G0 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel0, zParams->channel0), xParams->f0, yParams->f0, zParams->f0);
+        f32_8x G1 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel0, zParams->channel0), xParams->f1, yParams->f0, zParams->f0);
+        f32_8x G2 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel1, zParams->channel0), xParams->f0, yParams->f1, zParams->f0);
+        f32_8x G3 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel1, zParams->channel0), xParams->f1, yParams->f1, zParams->f0);
+
+        f32_8x G4 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel0, zParams->channel1), xParams->f0, yParams->f0, zParams->f1);
+        f32_8x G5 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel0, zParams->channel1), xParams->f1, yParams->f0, zParams->f1);
+        f32_8x G6 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel1, zParams->channel1), xParams->f0, yParams->f1, zParams->f1);
+        f32_8x G7 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel1, zParams->channel1), xParams->f1, yParams->f1, zParams->f1);
+
+        auto L0  = Lerp8x(xParams->Fade, G0, G1);
+        auto L1  = Lerp8x(xParams->Fade, G2, G3);
+        auto L2  = Lerp8x(xParams->Fade, G4, G5);
+        auto L3  = Lerp8x(xParams->Fade, G6, G7);
+
+        auto L4  = Lerp8x(yParams->Fade, L0, L1);
+        auto L5  = Lerp8x(yParams->Fade, L2, L3);
+
+        auto Res = Lerp8x(zParams->Fade, L4, L5);
+        /* Res = Res * F32_8X( 0.964921414852142333984375f ); */
+        Res = (Res + F32_8X(1.f)) / F32_8X(2.f);
+
+        s32 destIndex = GetIndex(xIndex*8, yIndex, zIndex, V3i(16,2,2));
+        Result[destIndex+0] = Res.E[0];
+        Result[destIndex+1] = Res.E[1];
+        Result[destIndex+2] = Res.E[2];
+        Result[destIndex+3] = Res.E[3];
+        Result[destIndex+4] = Res.E[4];
+        Result[destIndex+5] = Res.E[5];
+        Result[destIndex+6] = Res.E[6];
+        Result[destIndex+7] = Res.E[7];
+      }
+    }
+  }
+}
+
+link_internal void
+PerlinNoise_16x2x1_avx2(perlin_params *xParams_in, perlin_params *yParams_in, perlin_params *zParams_in, f32 *Result)
+{
+  auto PrimeX = U32_8X(501125321);
+
+#pragma unroll(2)
+  for (s32 zIndex = 0; zIndex < 1; zIndex += 1)
+  {
+    perlin_params *zParams = zParams_in+zIndex;
+#pragma unroll(2)
+    for (s32 yIndex = 0; yIndex <  2; yIndex += 1)
+    {
+      perlin_params *yParams = yParams_in+yIndex;
+#pragma unroll(2)
+      for (s32 xIndex = 0; xIndex < 2; xIndex += 1)
+      {
+        perlin_params *xParams = xParams_in+xIndex;
+        u32_8x Seed = U32_8X(1066037191);
+
+        f32_8x G0 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel0, zParams->channel0), xParams->f0, yParams->f0, zParams->f0);
+        f32_8x G1 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel0, zParams->channel0), xParams->f1, yParams->f0, zParams->f0);
+        f32_8x G2 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel1, zParams->channel0), xParams->f0, yParams->f1, zParams->f0);
+        f32_8x G3 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel1, zParams->channel0), xParams->f1, yParams->f1, zParams->f0);
+
+        f32_8x G4 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel0, zParams->channel1), xParams->f0, yParams->f0, zParams->f1);
+        f32_8x G5 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel0, zParams->channel1), xParams->f1, yParams->f0, zParams->f1);
+        f32_8x G6 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel1, zParams->channel1), xParams->f0, yParams->f1, zParams->f1);
+        f32_8x G7 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel1, zParams->channel1), xParams->f1, yParams->f1, zParams->f1);
+
+        auto L0  = Lerp8x(xParams->Fade, G0, G1);
+        auto L1  = Lerp8x(xParams->Fade, G2, G3);
+        auto L2  = Lerp8x(xParams->Fade, G4, G5);
+        auto L3  = Lerp8x(xParams->Fade, G6, G7);
+
+        auto L4  = Lerp8x(yParams->Fade, L0, L1);
+        auto L5  = Lerp8x(yParams->Fade, L2, L3);
+
+        auto Res = Lerp8x(zParams->Fade, L4, L5);
+        /* Res = Res * F32_8X( 0.964921414852142333984375f ); */
+        Res = (Res + F32_8X(1.f)) / F32_8X(2.f);
+
+        s32 destIndex = GetIndex(xIndex*8, yIndex, zIndex, V3i(16,2,1));
+        Result[destIndex+0] = Res.E[0];
+        Result[destIndex+1] = Res.E[1];
+        Result[destIndex+2] = Res.E[2];
+        Result[destIndex+3] = Res.E[3];
+        Result[destIndex+4] = Res.E[4];
+        Result[destIndex+5] = Res.E[5];
+        Result[destIndex+6] = Res.E[6];
+        Result[destIndex+7] = Res.E[7];
+      }
+    }
+  }
+}
+
+
+link_internal void
+PerlinNoise_16x1x1_avx2(perlin_params *xParams_in, perlin_params *yParams_in, perlin_params *zParams_in, f32 *Result)
+{
+  auto PrimeX = U32_8X(501125321);
+
+#pragma unroll(2)
+  for (s32 zIndex = 0; zIndex < 1; zIndex += 1)
+  {
+    perlin_params *zParams = zParams_in+zIndex;
+#pragma unroll(2)
+    for (s32 yIndex = 0; yIndex < 1; yIndex += 1)
+    {
+      perlin_params *yParams = yParams_in+yIndex;
+#pragma unroll(2)
+      for (s32 xIndex = 0; xIndex < 2; xIndex += 1)
+      {
+        perlin_params *xParams = xParams_in+xIndex;
+        u32_8x Seed = U32_8X(1066037191);
+
+        f32_8x G0 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel0, zParams->channel0), xParams->f0, yParams->f0, zParams->f0);
+        f32_8x G1 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel0, zParams->channel0), xParams->f1, yParams->f0, zParams->f0);
+        f32_8x G2 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel1, zParams->channel0), xParams->f0, yParams->f1, zParams->f0);
+        f32_8x G3 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel1, zParams->channel0), xParams->f1, yParams->f1, zParams->f0);
+
+        f32_8x G4 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel0, zParams->channel1), xParams->f0, yParams->f0, zParams->f1);
+        f32_8x G5 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel0, zParams->channel1), xParams->f1, yParams->f0, zParams->f1);
+        f32_8x G6 = Grad8x(HashPrimes(Seed, xParams->channel0, yParams->channel1, zParams->channel1), xParams->f0, yParams->f1, zParams->f1);
+        f32_8x G7 = Grad8x(HashPrimes(Seed, xParams->channel1, yParams->channel1, zParams->channel1), xParams->f1, yParams->f1, zParams->f1);
+
+        auto L0  = Lerp8x(xParams->Fade, G0, G1);
+        auto L1  = Lerp8x(xParams->Fade, G2, G3);
+        auto L2  = Lerp8x(xParams->Fade, G4, G5);
+        auto L3  = Lerp8x(xParams->Fade, G6, G7);
+
+        auto L4  = Lerp8x(yParams->Fade, L0, L1);
+        auto L5  = Lerp8x(yParams->Fade, L2, L3);
+
+        auto Res = Lerp8x(zParams->Fade, L4, L5);
+        /* Res = Res * F32_8X( 0.964921414852142333984375f ); */
+        Res = (Res + F32_8X(1.f)) / F32_8X(2.f);
+
+        s32 destIndex = GetIndex(xIndex*8, yIndex, zIndex, V3i(16,1,1));
+        Result[destIndex+0] = Res.E[0];
+        Result[destIndex+1] = Res.E[1];
+        Result[destIndex+2] = Res.E[2];
+        Result[destIndex+3] = Res.E[3];
+        Result[destIndex+4] = Res.E[4];
+        Result[destIndex+5] = Res.E[5];
+        Result[destIndex+6] = Res.E[6];
+        Result[destIndex+7] = Res.E[7];
+      }
+    }
+  }
+}
