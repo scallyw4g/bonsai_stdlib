@@ -262,10 +262,10 @@ Grad8x(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
   f32_8x R1 = Select(vFlip, v*_n1, v);
   f32_8x Result = R0 + R1;
 #else
-  f32_8x h1 = F32_8X( hash << 31 );
-  f32_8x h2 = F32_8X( (hash & U32_8X(2)) << 30 );
+  auto h1 = hash << 31;
+  auto h2 = (hash & U32_8X(2)) << 30 ;
   //then add them
-  f32_8x Result = ( u ^ h1 ) + ( v ^ h2 );
+  f32_8x Result = ( u ^ Cast_f32_8x(h1) ) + ( v ^ Cast_f32_8x(h2) );
 #endif
 
   return Result;

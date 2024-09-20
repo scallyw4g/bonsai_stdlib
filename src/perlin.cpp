@@ -149,96 +149,66 @@ PerlinNoise_8x_sse(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
 link_internal void
 PerlinNoise_8x_avx2(f32 *xIn, f32 yIn, f32 zIn, f32 *Result)
 {
-  f32 _y = yIn;
-  f32 _z = zIn;
-
-  if (_y < 0) _y -= 1.f;
-  if (_z < 0) _z -= 1.f;
-
-  u32 Yi = u32(_y) & 255;
-  u32 Zi = u32(_z) & 255;
-
-  _y -= Floorf(_y);
-  _z -= Floorf(_z);
-
-  f32 v = fade(_y);
-  f32 w = fade(_z);
-
-  f32_8x v4 = F32_8X(v);
-  f32_8x w4 = F32_8X(w);
-
-  auto x = F32_8X( xIn[0], xIn[1], xIn[2], xIn[3], xIn[4], xIn[5], xIn[6], xIn[7] );
-  auto y = F32_8X(_y);
-  auto z = F32_8X(_z);
-
-
-  auto xf = Floor(x);
-  auto yf = F32_8X(Floorf(_y));
-  auto zf = F32_8X(Floorf(_z));
-  auto xm1 = xf - F32_8X(1.f);
-
-  u32_8x ltMask = x < F32_8X(0.f);
-  u32_8x _Xi = Select(ltMask, U32_8X(xm1), U32_8X(xf)) & 255;
-
-  f32_8x u4 = Fade8x(x - xf);
-
   auto PrimeX = U32_8X(501125321);
   auto PrimeY = U32_8X(1136930381);
   auto PrimeZ = U32_8X(1720413743);
   auto PrimeW = U32_8X(1066037191);
 
-  auto x0 = U32_8X(xf) * PrimeX;
+  auto x = F32_8X( xIn[0], xIn[1], xIn[2], xIn[3], xIn[4], xIn[5], xIn[6], xIn[7] );
+  /* auto x = F32_8X( xIn[0] ); */
+  auto y = F32_8X(yIn);
+  auto z = F32_8X(zIn);
+
+  auto xs = Floor(x);
+  auto ys = Floor(y);
+  auto zs = Floor(z);
+
+  auto x0 = U32_8X(xs) * PrimeX;
+  auto y0 = U32_8X(ys) * PrimeY;
+  auto z0 = U32_8X(zs) * PrimeZ;
+
   auto x1 = x0 + PrimeX;
-
-  auto y0 = U32_8X(yf) * PrimeY;
   auto y1 = y0 + PrimeY;
-
-  auto z0 = U32_8X(zf) * PrimeZ;
   auto z1 = z0 + PrimeZ;
 
-  auto xGrad0 = x - xf;
-  auto yGrad0 = y - yf;
-  auto zGrad0 = z - zf;
+  auto xf0 = xs = x - xs;
+  auto yf0 = ys = y - ys;
+  auto zf0 = zs = z - zs;
 
-  auto xGrad1 = xGrad0 - F32_8X(1.f);
-  auto yGrad1 = yGrad0 - F32_8X(1.f);
-  auto zGrad1 = zGrad0 - F32_8X(1.f);
+  auto xf1 = xf0 - F32_8X(1.f);
+  auto yf1 = yf0 - F32_8X(1.f);
+  auto zf1 = zf0 - F32_8X(1.f);
 
+  xs = Fade8x(xs);
+  ys = Fade8x(ys);
+  zs = Fade8x(zs);
 
   u32 Index = 0;
   /* for (u32 Index = 0; Index < 8; Index += 4) */
   {
 
     u32_8x Seed = U32_8X(1066037191);
-    u32_8x H0 = HashPrimes(Seed, x0, y0, z0);
-    u32_8x H1 = HashPrimes(Seed, x1, y0, z0);
-    u32_8x H2 = HashPrimes(Seed, x0, y1, z0);
-    u32_8x H3 = HashPrimes(Seed, x1, y1, z0);
 
-    u32_8x H4 = HashPrimes(Seed, x0, y0, z1);
-    u32_8x H5 = HashPrimes(Seed, x1, y0, z1);
-    u32_8x H6 = HashPrimes(Seed, x0, y1, z1);
-    u32_8x H7 = HashPrimes(Seed, x1, y1, z1);
+    f32_8x G0 = Grad8x(HashPrimes(Seed, x0, y0, z0), xf0, yf0, zf0);
+    f32_8x G1 = Grad8x(HashPrimes(Seed, x1, y0, z0), xf1, yf0, zf0);
+    f32_8x G2 = Grad8x(HashPrimes(Seed, x0, y1, z0), xf0, yf1, zf0);
+    f32_8x G3 = Grad8x(HashPrimes(Seed, x1, y1, z0), xf1, yf1, zf0);
 
-    f32_8x G0 = Grad8x(H0, xGrad0, yGrad0, zGrad0);
-    f32_8x G1 = Grad8x(H1, xGrad1, yGrad0, zGrad0);
-    f32_8x G2 = Grad8x(H2, xGrad0, yGrad1, zGrad0);
-    f32_8x G3 = Grad8x(H3, xGrad1, yGrad1, zGrad0);
+    f32_8x G4 = Grad8x(HashPrimes(Seed, x0, y0, z1), xf0, yf0, zf1);
+    f32_8x G5 = Grad8x(HashPrimes(Seed, x1, y0, z1), xf1, yf0, zf1);
+    f32_8x G6 = Grad8x(HashPrimes(Seed, x0, y1, z1), xf0, yf1, zf1);
+    f32_8x G7 = Grad8x(HashPrimes(Seed, x1, y1, z1), xf1, yf1, zf1);
 
-    f32_8x G4 = Grad8x(H4, xGrad0, yGrad0, zGrad1);
-    f32_8x G5 = Grad8x(H5, xGrad1, yGrad0, zGrad1);
-    f32_8x G6 = Grad8x(H6, xGrad0, yGrad1, zGrad1);
-    f32_8x G7 = Grad8x(H7, xGrad1, yGrad1, zGrad1);
+    auto L0  = Lerp8x(xs, G0, G1);
+    auto L1  = Lerp8x(xs, G2, G3);
+    auto L2  = Lerp8x(xs, G4, G5);
+    auto L3  = Lerp8x(xs, G6, G7);
 
-    auto L0  = Lerp8x(u4, G0, G1);
-    auto L1  = Lerp8x(u4, G2, G3);
-    auto L2  = Lerp8x(u4, G4, G5);
-    auto L3  = Lerp8x(u4, G6, G7);
+    auto L4  = Lerp8x(ys, L0, L1);
+    auto L5  = Lerp8x(ys, L2, L3);
 
-    auto L4  = Lerp8x(v4, L0, L1);
-    auto L5  = Lerp8x(v4, L2, L3);
-
-    auto Res = Lerp8x(w4, L4, L5 );
+    auto Res = Lerp8x(zs, L4, L5);
+    /* Res = Res * F32_8X( 0.964921414852142333984375f ); */
     Res = (Res + F32_8X(1.f)) / F32_8X(2.f);
 
     Result[Index+0] = Res.E[0];
