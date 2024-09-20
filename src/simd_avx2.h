@@ -130,6 +130,13 @@ operator^(f32_8x A, f32_8x B)
 }
 
 link_inline u32_8x
+operator>>(u32_8x A, int B)
+{
+  u32_8x Result = {{ _mm256_srli_epi32(A.Sse, B) }};
+  return Result;
+}
+
+link_inline u32_8x
 operator<<(u32_8x A, int B)
 {
   u32_8x Result = {{ _mm256_slli_epi32(A.Sse, B) }};
@@ -192,6 +199,14 @@ operator/(u32_8x A, u32_8x B)
   return Result;
 }
 #endif
+
+link_inline u32_8x
+operator^(u32_8x A, u32_8x B)
+{
+  u32_8x Result = {{ _mm256_xor_si256(A.Sse, B.Sse) }};
+  return Result;
+}
+
 
 link_inline u32_8x
 operator==(u32_8x A, u32_8x B)
