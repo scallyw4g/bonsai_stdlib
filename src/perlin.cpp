@@ -1,4 +1,5 @@
 
+#if 1
 #define SETUP_HASH_DATA_FOR_SIMD_LANE(lane_number) \
     u32 Xi_##lane_number = _Xi[Index+lane_number]; \
     f32  x_##lane_number = _xF[Index+lane_number]; \
@@ -8,6 +9,7 @@
     u32  B_##lane_number = Global_PerlinIV[ Xi_##lane_number+1] + Yi;      \
     u32 BA_##lane_number = Global_PerlinIV[  B_##lane_number  ] + Zi;      \
     u32 BB_##lane_number = Global_PerlinIV[  B_##lane_number+1] + Zi;      \
+    \
     u32 H0_##lane_number = Global_PerlinIV[ AA_##lane_number  ];            \
     u32 H1_##lane_number = Global_PerlinIV[ BA_##lane_number  ];            \
     u32 H2_##lane_number = Global_PerlinIV[ AB_##lane_number  ];            \
@@ -16,6 +18,17 @@
     u32 H5_##lane_number = Global_PerlinIV[ BA_##lane_number+1];            \
     u32 H6_##lane_number = Global_PerlinIV[ AB_##lane_number+1];            \
     u32 H7_##lane_number = Global_PerlinIV[ BB_##lane_number+1]
+#else
+#define SETUP_HASH_DATA_FOR_SIMD_LANE(lane_number) \
+    u32 H0_##lane_number = HashPrimes();            \
+    u32 H1_##lane_number = HashPrimes();            \
+    u32 H2_##lane_number = HashPrimes();            \
+    u32 H3_##lane_number = HashPrimes();            \
+    u32 H4_##lane_number = HashPrimes();            \
+    u32 H5_##lane_number = HashPrimes();            \
+    u32 H6_##lane_number = HashPrimes();            \
+    u32 H7_##lane_number = HashPrimes()
+#endif
 
 link_internal void
 PerlinNoise_8x_sse(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
@@ -76,11 +89,6 @@ PerlinNoise_8x_sse(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     SETUP_HASH_DATA_FOR_SIMD_LANE(1);
     SETUP_HASH_DATA_FOR_SIMD_LANE(2);
     SETUP_HASH_DATA_FOR_SIMD_LANE(3);
-    SETUP_HASH_DATA_FOR_SIMD_LANE(4);
-    SETUP_HASH_DATA_FOR_SIMD_LANE(5);
-    SETUP_HASH_DATA_FOR_SIMD_LANE(6);
-    SETUP_HASH_DATA_FOR_SIMD_LANE(7);
-
 
     u32_4x H0 = U32_4X(H0_0, H0_1, H0_2, H0_3);
     u32_4x H1 = U32_4X(H1_0, H1_1, H1_2, H1_3);
@@ -154,35 +162,30 @@ PerlinNoise_8x_avx2(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
   f32_8x v4 = F32_8X(v);
   f32_8x w4 = F32_8X(w);
 
-  
   auto _x8 = F32_8X( _x[0], _x[1], _x[2], _x[3], _x[4], _x[5], _x[6], _x[7] );
+  auto _x8f = Floor(_x8);
+  f32_8x _xF = _x8 - _x8f;
 
-  u32 _Xi[8] =
-  {
-    _x[0] < 0 ? u32(_x[0]-1.f)&255 : u32(_x[0])&255,
-    _x[1] < 0 ? u32(_x[1]-1.f)&255 : u32(_x[1])&255,
-    _x[2] < 0 ? u32(_x[2]-1.f)&255 : u32(_x[2])&255,
-    _x[3] < 0 ? u32(_x[3]-1.f)&255 : u32(_x[3])&255,
-    _x[4] < 0 ? u32(_x[4]-1.f)&255 : u32(_x[4])&255,
-    _x[5] < 0 ? u32(_x[5]-1.f)&255 : u32(_x[5])&255,
-    _x[6] < 0 ? u32(_x[6]-1.f)&255 : u32(_x[6])&255,
-    _x[7] < 0 ? u32(_x[7]-1.f)&255 : u32(_x[7])&255,
-  };
+  auto _xn8 = _x8f - F32_8X(1.f);
+  u32_8x ltMask = _x8 < F32_8X(0.f);
+  u32_8x _Xi = Select(ltMask, U32_8X(_xn8), U32_8X(_x8f)) & 255;
 
-  f32 _xF[8] =
-  {
-    _x[0]-Floorf(_x[0]),
-    _x[1]-Floorf(_x[1]),
-    _x[2]-Floorf(_x[2]),
-    _x[3]-Floorf(_x[3]),
-    _x[4]-Floorf(_x[4]),
-    _x[5]-Floorf(_x[5]),
-    _x[6]-Floorf(_x[6]),
-    _x[7]-Floorf(_x[7]),
-  };
+  f32_8x u4 = Fade8x(_xF);
 
-  f32_8x u4 = Fade8x(F32_8X(_xF[0], _xF[1], _xF[2], _xF[3], _xF[4], _xF[5], _xF[6], _xF[7]));
+  s32 PrimeX = 501125321;
+  s32 PrimeY = 1136930381;
+  s32 PrimeZ = 1720413743;
+  s32 PrimeW = 1066037191;
 
+/* #define SETUP_HASH_DATA_FOR_SIMD_LANE(lane_number) \ */
+/*     u32 H0_##lane_number = HashPrimes();            \ */
+/*     u32 H1_##lane_number = HashPrimes();            \ */
+/*     u32 H2_##lane_number = HashPrimes();            \ */
+/*     u32 H3_##lane_number = HashPrimes();            \ */
+/*     u32 H4_##lane_number = HashPrimes();            \ */
+/*     u32 H5_##lane_number = HashPrimes();            \ */
+/*     u32 H6_##lane_number = HashPrimes();            \ */
+/*     u32 H7_##lane_number = HashPrimes() */
 
 
   u32 Index = 0;
@@ -196,7 +199,6 @@ PerlinNoise_8x_avx2(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     SETUP_HASH_DATA_FOR_SIMD_LANE(5);
     SETUP_HASH_DATA_FOR_SIMD_LANE(6);
     SETUP_HASH_DATA_FOR_SIMD_LANE(7);
-    SETUP_HASH_DATA_FOR_SIMD_LANE(8);
 
     u32_8x H0 = U32_8X(H0_0, H0_1, H0_2, H0_3, H0_4, H0_5, H0_6, H0_7);
     u32_8x H1 = U32_8X(H1_0, H1_1, H1_2, H1_3, H1_4, H1_5, H1_6, H1_7);
@@ -235,6 +237,7 @@ PerlinNoise_8x_avx2(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     auto L1  = Lerp8x(u4, G2, G3);
     auto L2  = Lerp8x(u4, G4, G5);
     auto L3  = Lerp8x(u4, G6, G7);
+
     auto L4  = Lerp8x(v4, L0, L1);
     auto L5  = Lerp8x(v4, L2, L3);
 
@@ -249,7 +252,5 @@ PerlinNoise_8x_avx2(f32 *_x, f32 yIn, f32 zIn, f32 *Result)
     Result[Index+5] = Res.E[5];
     Result[Index+6] = Res.E[6];
     Result[Index+7] = Res.E[7];
-
-
   }
 }
