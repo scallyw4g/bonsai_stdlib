@@ -82,8 +82,8 @@ Select(u32_8x Mask, u32_8x A, u32_8x B)
 }
 
 
-#define StaticShuffle_avx(Source, Lane0Source, Lane1Source, Lane2Source, Lane3Source) \
-  {{ _mm256_shuffle_ps(Source.Sse, Source.Sse, (Lane0Source) | (Lane1Source<<2) | (Lane2Source<<4) | (Lane3Source<<6)) }}
+#define StaticShuffle_avx(Source, Lane0Source, Lane1Source, Lane2Source, Lane3Source, Lane4Source, Lane5Source, Lane6Source, Lane7Source) \
+  {{ _mm256_permutevar8x32_ps(Source.Sse, U32_8X(Lane0Source, Lane1Source, Lane2Source, Lane3Source, Lane4Source, Lane5Source, Lane6Source, Lane7Source).Sse )  }}
 
 
 
@@ -270,4 +270,11 @@ Floor(f32_8x A)
 {
   f32_8x Result = {{ _mm256_round_ps( A.Sse, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC ) }};
   return Result;
+}
+
+link_inline void
+ShuffleToMemoryOrderAndStore(f32 *Dest, f32_8x Data)
+{
+  f32_8x MemoryOrdered = StaticShuffle_avx(Data, 7, 6, 5, 4, 3, 2, 1, 0);
+  _mm256_store_ps(Dest, MemoryOrdered.Sse);
 }
