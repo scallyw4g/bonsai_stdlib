@@ -5,8 +5,9 @@ jFashHash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
   // Bad visual artifacts
   /* u32_8x hash = (Seed + x + y + z) >> 15; */
 
-  // Fast, reasonable visual entropy
-  u32_8x hash = (x ^ y ^ z) >> 15;
+  // Fast, reasonable visual entropy, but stil artifacts compared to ChrisWellonsIntegerHash_lowbias32
+  u32_8x hash = (x ^ y ^ z);
+         hash = (hash >> 15) ^ hash;
 
   return hash;
 }
@@ -26,14 +27,16 @@ HashPrimes(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
 // https://nullprogram.com/blog/2018/07/31/
 //
 u32_8x
-ChrisWellonsIntegerHash_lowbias32(u32_8x x)
+ChrisWellonsIntegerHash_lowbias32(u32_8x x, u32_8x y, u32_8x z)
 {
-  x = x ^ (x >> 16);
-  x = x * U32_8X(0x7feb352d);
-  x = x ^ (x >> 15);
-  x = x * U32_8X(0x846ca68b);
-  x = x ^ (x >> 16);
-  return x;
+  u32_8x Result = x ^ y ^ z;
+
+  Result = Result ^ (Result >> 16);
+  Result = Result ^ U32_8X(0x7feb352d);
+  Result = Result ^ (Result >> 15);
+  Result = Result * U32_8X(0x846ca68b);
+  Result = Result ^ (Result >> 16);
+  return Result;
 }
 
 link_internal void
@@ -47,15 +50,15 @@ __asm volatile("# LLVM-MCA-BEGIN foo":::"memory");
   {
 
 #if 0
-    f32_8x G0 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel0+perlinY->channel0+perlinZ->channel0), perlinX->f0, perlinY->f0, perlinZ->f0);
-    f32_8x G1 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel1+perlinY->channel0+perlinZ->channel0), perlinX->f1, perlinY->f0, perlinZ->f0);
-    f32_8x G2 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel0+perlinY->channel1+perlinZ->channel0), perlinX->f0, perlinY->f1, perlinZ->f0);
-    f32_8x G3 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel1+perlinY->channel1+perlinZ->channel0), perlinX->f1, perlinY->f1, perlinZ->f0);
-                                                                                                                                                      
-    f32_8x G4 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel0+perlinY->channel0+perlinZ->channel1), perlinX->f0, perlinY->f0, perlinZ->f1);
-    f32_8x G5 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel1+perlinY->channel0+perlinZ->channel1), perlinX->f1, perlinY->f0, perlinZ->f1);
-    f32_8x G6 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel0+perlinY->channel1+perlinZ->channel1), perlinX->f0, perlinY->f1, perlinZ->f1);
-    f32_8x G7 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel1+perlinY->channel1+perlinZ->channel1), perlinX->f1, perlinY->f1, perlinZ->f1);
+    f32_8x G0 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel0, perlinY->channel0, perlinZ->channel0), perlinX->f0, perlinY->f0, perlinZ->f0);
+    f32_8x G1 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel1, perlinY->channel0, perlinZ->channel0), perlinX->f1, perlinY->f0, perlinZ->f0);
+    f32_8x G2 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel0, perlinY->channel1, perlinZ->channel0), perlinX->f0, perlinY->f1, perlinZ->f0);
+    f32_8x G3 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel1, perlinY->channel1, perlinZ->channel0), perlinX->f1, perlinY->f1, perlinZ->f0);
+
+    f32_8x G4 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel0, perlinY->channel0, perlinZ->channel1), perlinX->f0, perlinY->f0, perlinZ->f1);
+    f32_8x G5 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel1, perlinY->channel0, perlinZ->channel1), perlinX->f1, perlinY->f0, perlinZ->f1);
+    f32_8x G6 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel0, perlinY->channel1, perlinZ->channel1), perlinX->f0, perlinY->f1, perlinZ->f1);
+    f32_8x G7 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel1, perlinY->channel1, perlinZ->channel1), perlinX->f1, perlinY->f1, perlinZ->f1);
 #endif
 
 #if 1

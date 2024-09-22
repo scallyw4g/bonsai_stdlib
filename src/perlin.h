@@ -77,7 +77,7 @@ debug_global u32 DEBUG_NOISE_SEED = 64324;
 global_variable b32 Global_GradientTableInitialized = False;
 global_variable v3 Global_PerlinGradients[256] = {};
 
-global_variable u8 Global_PerlinIV[512] = {
+global_variable u32 Global_PerlinIV[512] = {
         151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,
         8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,
         35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,
@@ -256,11 +256,11 @@ Grad8x(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
 
   u32_8x uSel = h < _8;
   u32_8x vSel = h < _4;
-  u32_8x xSel = (h == _12 | h == _14 );
+  /* u32_8x xSel = (h == _12 | h == _14 ); */
 
   f32_8x u  = Select(uSel, x, y);
-  f32_8x xz = Select(xSel, x, z);
-  f32_8x v  = Select(vSel, y, xz);
+  /* f32_8x xz = Select(xSel, x, z); */
+  f32_8x v  = Select(vSel, y, z);
 
   auto h1 = hash << 31;
   auto h2 = (hash & U32_8X(2)) << 30 ;
