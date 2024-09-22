@@ -39,6 +39,7 @@ ChrisWellonsIntegerHash_lowbias32(u32_8x x)
 link_internal void
 PerlinNoise_16x_avx2(perlin_params *perlinX, perlin_params *perlinY, perlin_params *perlinZ, f32 *Dest, f32 Amplitude)
 {
+__asm volatile("# LLVM-MCA-BEGIN foo":::"memory");
   auto PrimeX = U32_8X(501125321);
 
 #pragma unroll(2)
@@ -57,7 +58,7 @@ PerlinNoise_16x_avx2(perlin_params *perlinX, perlin_params *perlinY, perlin_para
     f32_8x G7 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->channel1+perlinY->channel1+perlinZ->channel1), perlinX->f1, perlinY->f1, perlinZ->f1);
 #endif
 
-#if 0
+#if 1
     u32_8x Seed = U32_8X(1066037191);
 
     f32_8x G0 = Grad8x(HashPrimes(Seed, perlinX->channel0, perlinY->channel0, perlinZ->channel0), perlinX->f0, perlinY->f0, perlinZ->f0);
@@ -72,7 +73,7 @@ PerlinNoise_16x_avx2(perlin_params *perlinX, perlin_params *perlinY, perlin_para
 #endif
 
 
-#if 1
+#if 0
     u32_8x Seed = U32_8X(1066037191);
 
     f32_8x G0 = Grad8x(jFashHash(Seed, perlinX->channel0, perlinY->channel0, perlinZ->channel0), perlinX->f0, perlinY->f0, perlinZ->f0);
@@ -94,9 +95,9 @@ PerlinNoise_16x_avx2(perlin_params *perlinX, perlin_params *perlinY, perlin_para
     auto L4  = Lerp8x(perlinY->Fade, L0, L1);
     auto L5  = Lerp8x(perlinY->Fade, L2, L3);
 
-    auto Res = Lerp8x(perlinZ->Fade, L4, L5);
+    auto Res = Lerp8x(perlinZ->Fade, L4, L5) * F32_8X(Amplitude);
     /* Res = Res * F32_8X( 0.964921414852142333984375f ); */
-    Res = ((Res + F32_8X(1.f)) / F32_8X(2.f)) * F32_8X(Amplitude);
+    /* Res = ((Res + F32_8X(1.f)) / F32_8X(2.f)) * F32_8X(Amplitude); */
 
     f32_8x Current = {{ _mm256_load_ps(Dest+Index) }};
     f32_8x Total = Res + Current;
@@ -104,6 +105,7 @@ PerlinNoise_16x_avx2(perlin_params *perlinX, perlin_params *perlinY, perlin_para
 
     ++perlinX;
   }
+__asm volatile("# LLVM-MCA-END foo":::"memory");
 }
 
 link_internal void

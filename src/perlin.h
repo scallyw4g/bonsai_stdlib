@@ -147,8 +147,7 @@ Lerp4x(f32_4x t, f32_4x a, f32_4x b)
 link_internal f32_8x
 Lerp8x(f32_8x t, f32_8x a, f32_8x b)
 {
-  f32_8x res = FMA(b-a, t, a); //a + t * (b - a);
-  /* f32_8x res = a + t * (b - a); */
+  f32_8x res = FMA(b-a, t, a);
   return res;
 }
 
@@ -263,18 +262,9 @@ Grad8x(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
   f32_8x xz = Select(xSel, x, z);
   f32_8x v  = Select(vSel, y, xz);
 
-#if 0
-  auto uFlip = (h & _1) == _1;
-  auto vFlip = (h & _2) == _2;
-  f32_8x R0 = Select(uFlip, u*_n1, u);
-  f32_8x R1 = Select(vFlip, v*_n1, v);
-  f32_8x Result = R0 + R1;
-#else
   auto h1 = hash << 31;
   auto h2 = (hash & U32_8X(2)) << 30 ;
-  //then add them
   f32_8x Result = ( u ^ Cast_f32_8x(h1) ) + ( v ^ Cast_f32_8x(h2) );
-#endif
 
   return Result;
 }
