@@ -366,7 +366,7 @@ SmoothstepDeriv(f32 N)
 link_internal u8
 hash_u8(u8 x, u8 y, u8 z)
 {
-  return Global_PerlinIV[Global_PerlinIV[Global_PerlinIV[x] + y] + z];
+  return Cast(u8, Global_PerlinIV[Global_PerlinIV[Global_PerlinIV[x] + y] + z]);
 }
 
 // https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L281
@@ -644,5 +644,5 @@ ComputePerlinParameters(f32_8x Input, u32_8x Prime)
 link_internal void
 PerlinNoise_8x_sse(f32 *_x, f32 yIn, f32 zIn, f32 *Result);
 
-link_internal void
-PerlinNoise_8x_avx2(f32 *_x, f32 yIn, f32 zIn, f32 *Result);
+/* link_internal void */
+/* PerlinNoise_8x_avx2(f32 *_x, f32 yIn, f32 zIn, f32 *Result); */

@@ -374,8 +374,10 @@ ClipRect3AgainstRect2(v2 MinP, v2 Dim, r32 Z, rect2 *UV, rect2 Clip)
   // Note(Jesse): Z==0 | far-clip
   // Note(Jesse): Z==1 | near-clip
   clip_result Result = {
+    .ClipStatus = {},
     .ClippedMin = MinP,
     .ClippedMax = MinP+Dim,
+    .ClipRatio = {},
   };
 
   Assert(Z >= 0.0f && Z <= 1.0f);
@@ -773,10 +775,8 @@ PushUiRenderCommand(renderer_2d *Group, ui_render_command* Command)
 link_internal void
 PushDebugCommand(renderer_2d *Group)
 {
-  ui_render_command Command = {
-    .Type = type_ui_render_command_debug,
-  };
-
+  ui_render_command Command = {};
+  Command.Type = type_ui_render_command_debug;
   PushUiRenderCommand(Group, &Command);
 
   // NOTE(Jesse): This doesn't really work because the thing that toggles DebugBreakUiCommand happens last in the UI ..
@@ -786,13 +786,9 @@ PushDebugCommand(renderer_2d *Group)
 link_internal void
 PushNewRow(renderer_2d *Group)
 {
-  ui_render_command Command = {
-    .Type = type_ui_render_command_new_row
-  };
-
+  ui_render_command Command = {};
+  Command.Type = type_ui_render_command_new_row;
   PushUiRenderCommand(Group, &Command);
-
-  return;
 }
 
 link_internal void
@@ -932,7 +928,11 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim,
     .ui_render_command_textured_quad.HasAlphaChannel = (Texture->Channels == 4),
     .ui_render_command_textured_quad.Layout =
     {
+      .Basis = {},
+      .At = {},
       .DrawBounds = InvertedInfinityRectangle(),
+      .Padding = {},
+      .Prev = {},
     }
   };
 
@@ -957,7 +957,11 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, v
     .ui_render_command_textured_quad.HasAlphaChannel = (Texture->Channels == 4),
     .ui_render_command_textured_quad.Layout =
     {
+      .Basis = {},
+      .At = {},
       .DrawBounds = InvertedInfinityRectangle(),
+      .Padding = {},
+      .Prev = {},
     }
   };
 
@@ -1000,8 +1004,11 @@ PushUntexturedQuadAt(renderer_2d* Group, v2 AbsoluteP, v2 QuadDim, z_depth zDept
       .Style = Style? *Style : DefaultStyle,
       .Layout  =
       {
-        .At         = AbsoluteP,
+        .Basis = {},
+        .At = AbsoluteP,
         .DrawBounds = InvertedInfinityRectangle(),
+        .Padding = {},
+        .Prev = {},
       }
     }
   };
@@ -1023,9 +1030,11 @@ PushUntexturedQuad(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui
       .Style   = Style? *Style : DefaultStyle,
       .Layout  =
       {
+        .At = {},
         .Basis   = Offset,
         .Padding = Padding,
         .DrawBounds = InvertedInfinityRectangle(),
+        .Prev = {},
       },
     }
   };
@@ -1038,11 +1047,9 @@ PushUntexturedQuad(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui
 link_internal void
 PushButtonEnd(renderer_2d *Group)
 {
-  ui_render_command Command = {
-    .Type = type_ui_render_command_button_end,
-  };
+  ui_render_command Command = {};
+  Command.Type = type_ui_render_command_button_end;
   PushUiRenderCommand(Group, &Command);
-  return;
 }
 
 link_internal interactable_handle
@@ -1077,8 +1084,10 @@ PushTableStart(renderer_2d* Group, relative_position Position = Position_None, u
     .ui_render_command_table_start.Layout =
     {
       .Basis   = Offset,
+      .At   = {},
       .Padding = Padding,
       .DrawBounds = InvertedInfinityRectangle(),
+      .Prev   = {},
     }
   };
 
@@ -1102,13 +1111,9 @@ PushTableStart(renderer_2d* Group, ui_render_params *Params)
 link_internal void
 PushTableEnd(renderer_2d *Group)
 {
-  ui_render_command Command = {
-    .Type = type_ui_render_command_table_end,
-  };
-
+  ui_render_command Command = {};
+  Command.Type = type_ui_render_command_table_end;
   PushUiRenderCommand(Group, &Command);
-
-  return;
 }
 
 link_internal void
@@ -1141,22 +1146,18 @@ PushBorder(renderer_2d *Group, rect2 AbsoluteBounds, v3 Color, v4 Thickness = V4
 link_internal void
 PushResetDrawBounds(renderer_2d *Group)
 {
-  ui_render_command Command = {
-    .Type = type_ui_render_command_reset_draw_bounds,
-  };
+  ui_render_command Command = {};
+  Command.Type = type_ui_render_command_reset_draw_bounds;
   PushUiRenderCommand(Group, &Command);
-  return;
 }
 
 link_internal void
 PushForceUpdateBasis(renderer_2d *Group, v2 Offset)
 {
-  ui_render_command Command = {
-    .Type = type_ui_render_command_force_update_basis,
-    .ui_render_command_force_update_basis.Offset = Offset
-  };
+  ui_render_command Command = {};
+  Command.Type = type_ui_render_command_force_update_basis;
+  Command.ui_render_command_force_update_basis.Offset = Offset;
   PushUiRenderCommand(Group, &Command);
-  return;
 }
 
 link_internal void
@@ -1197,8 +1198,11 @@ PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowM
       .Window = Window,
       .ClipRect = ClipRect,
       .Layout = {
+        .At = {},
         .Basis = Window->Basis,
         .DrawBounds = InvertedInfinityRectangle(),
+        .Padding = {},
+        .Prev = {},
       }
     }
   };
@@ -1344,7 +1348,10 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
       .ClipRect = ClipRect,
       .Layout = {
         .Basis = WindowBasis,
+        .At = {},
         .DrawBounds = InvertedInfinityRectangle(),
+        .Padding = {},
+        .Prev = {},
       }
     }
   };
@@ -1512,9 +1519,8 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id Intera
   cs NameToUse = Result ? ButtonNameOn : ButtonNameOff;
   PushColumn(Group, NameToUse, FStyle, Padding, AlignFlags);
 
-  ui_render_command EndCommand = {
-    .Type = type_ui_render_command_button_end,
-  };
+  ui_render_command EndCommand = {};
+  EndCommand.Type = type_ui_render_command_button_end;
   PushUiRenderCommand(Group, &EndCommand);
 
   return Result;
@@ -3202,6 +3208,9 @@ global_variable interactable Global_GenericWindowInteraction = {
    // Could do a comptime string hash if poof supported that..
 
   .ID = {0, 0, 0, 4208142317, }, // 420blazeit  Couldn't spell faggot.. rip.
+  .MinP = {},
+  .MaxP = {},
+  .Window = {},
 };
 
 global_variable interactable Global_ViewportInteraction = {
@@ -3210,6 +3219,9 @@ global_variable interactable Global_ViewportInteraction = {
    // Could do a comptime string hash if poof supported that..
 
   .ID = {0, 0, 4208142317, 0}, // 420blazeit  Couldn't spell faggot.. rip.
+  .MinP = {},
+  .MaxP = {},
+  .Window = {},
 };
 
 link_internal b32

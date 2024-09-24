@@ -106,7 +106,7 @@ link_internal parser
 MakeParser(c_token_cursor *Tokens)
 {
   parser Result = {
-    .Tokens = Tokens,
+    {}, {}, Tokens,
   };
   return Result;
 }
@@ -219,10 +219,9 @@ operator!=(c_token T1, c_token T2)
 inline c_token
 CToken(counted_string Value)
 {
-  c_token Result = {
-    .Type = CTokenType_Identifier,
-    .Value = Value
-  };
+  c_token Result = {};
+  Result.Type = CTokenType_Identifier;
+  Result.Value = Value;
   return Result;
 }
 

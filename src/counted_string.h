@@ -191,6 +191,7 @@ CharCursor(counted_string S)
     .Start = (char*)S.Start,
     .At = (char*)S.Start,
     .End = (char*)(S.Start + S.Count),
+    {},
   };
   return Result;
 }

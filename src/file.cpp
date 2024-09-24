@@ -331,7 +331,7 @@ DirectoryListingHelper(file_traversal_node Node, u64 _FileNodes)
 link_internal file_traversal_node_block_array
 GetLexicographicallySortedListOfFilesInDirectory(cs Directory, memory_arena *Memory)
 {
-  file_traversal_node_block_array TmpFileNodes = { .Memory = GetTranArena() };
+  file_traversal_node_block_array TmpFileNodes = { {}, {}, GetTranArena() };
   PlatformTraverseDirectoryTreeUnordered(Directory, DirectoryListingHelper, u64(&TmpFileNodes));
 
   u32 SortKeyCount = u32(TotalElements(&TmpFileNodes));
@@ -346,7 +346,7 @@ GetLexicographicallySortedListOfFilesInDirectory(cs Directory, memory_arena *Mem
 
   LexicograpicSort(SortKeys, SortKeyCount);
 
-  file_traversal_node_block_array Result = { .Memory = Memory };
+  file_traversal_node_block_array Result = { {}, {}, Memory };
   RangeIterator(Index, s32(SortKeyCount))
   {
     file_traversal_node *Node = GetPtr(&TmpFileNodes, umm(SortKeys[Index].Index));

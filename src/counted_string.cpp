@@ -417,7 +417,8 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
   char_cursor FormatCursor_ = {
     .Start = (char*)FS.Start,
     .At    = (char*)FS.Start,
-    .End   = (char*)FS.Start + FS.Count
+    .End   = (char*)FS.Start + FS.Count,
+    {},
   };
 
   char_cursor* FormatCursor = &FormatCursor_;
@@ -666,6 +667,7 @@ FormatCountedString_(char* Buffer, umm BufferSize, const char *FS, ...)
     .Start = Buffer,
     .At    = Buffer,
     .End   = Buffer + BufferSize,
+    {},
   };
 
   va_list Args;
@@ -685,6 +687,7 @@ FormatCountedString_(char* Buffer, umm BufferSize, counted_string FS, ...)
     .Start = Buffer,
     .At    = Buffer,
     .End   = Buffer + BufferSize,
+    {},
   };
 
   va_list Args;

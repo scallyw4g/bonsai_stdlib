@@ -87,34 +87,31 @@ link_internal void           EatWhitespaceAndComments(parser *Parser);
 inline c_token
 CToken(r32 FloatValue)
 {
-  c_token Result = {
-    .Type = CTokenType_Float,
-    .Value = FormatCountedString(GetTranArena(), CSz("%f"), r64(FloatValue)), // TODO(Jesse id: 350, tags: memory_leak)
-    .FloatValue = r64(FloatValue)
-  };
+  c_token Result = {};
+  Result.Type = CTokenType_Float;
+  Result.Value = FormatCountedString(GetTranArena(), CSz("%f"), r64(FloatValue)); // TODO(Jesse id: 350, tags: memory_leak)
+  Result.FloatValue = r64(FloatValue);
   return Result;
 }
 
 inline c_token
 CToken(s32 Value)
 {
-  c_token Result = {
-    .Type = CTokenType_IntLiteral,
-    .Value = FormatCountedString(GetTranArena(), CSz("%s"), Value), // TODO(Jesse id: 351, tags: memory_leak)
-    .as_s64 = s64(Value),
-    .Flags = CTFlags_Signed,
-  };
+  c_token Result = {};
+  Result.Type = CTokenType_IntLiteral;
+  Result.Value = FormatCountedString(GetTranArena(), CSz("%s"), Value); // TODO(Jesse id: 351, tags: memory_leak)
+  Result.as_s64 = s64(Value);
+  Result.Flags = CTFlags_Signed;
   return Result;
 }
 
 inline c_token
 CToken(u32 Value)
 {
-  c_token Result = {
-    .Type = CTokenType_IntLiteral,
-    .Value = FormatCountedString(GetTranArena(), CSz("%u"), Value), // TODO(Jesse id: 351, tags: memory_leak)
-    .as_u64 = u64(Value),
-  };
+  c_token Result = {};
+  Result.Type = CTokenType_IntLiteral;
+  Result.Value = FormatCountedString(GetTranArena(), CSz("%u"), Value); // TODO(Jesse id: 351, tags: memory_leak)
+  Result.as_u64 = u64(Value);
   return Result;
 }
 
@@ -248,7 +245,7 @@ PeekToken(ansi_stream* Stream, u32 Lookahead = 0)
       case CTokenType_CarrigeReturn:
       case CTokenType_EOF:
       {
-        Result = { .Type = (c_token_type)At };
+        Result.Type = (c_token_type)At;
       } break;
     }
   }
@@ -2383,9 +2380,11 @@ EatBetween_Parser(parser *Parser, c_token_type Open, c_token_type Close, memory_
                 TokenCursorSource_IntermediateRepresentaton,
                 {0,0} );
 
-  parser Result = { .Tokens = Tokens };
+  parser Result = {};
+  Result.Tokens = Tokens;
 
   EatBetween(Parser, CTokenType_OpenParen, CTokenType_CloseParen);
+
   Result.Tokens->End = Parser->Tokens->At;
   return Result;
 }
@@ -2744,7 +2743,8 @@ link_internal counted_string
 PopHex(ansi_stream* SourceFileStream)
 {
   counted_string Result = {
-    .Start = SourceFileStream->At
+    .Start = SourceFileStream->At,
+    .Count = 0,
   };
 
   while (Remaining(SourceFileStream))
@@ -2767,7 +2767,8 @@ link_internal counted_string
 PopNumeric(ansi_stream* SourceFileStream)
 {
   counted_string Result = {
-    .Start = SourceFileStream->At
+    .Start = SourceFileStream->At,
+    .Count = 0,
   };
 
   while (Remaining(SourceFileStream))
@@ -2790,7 +2791,8 @@ link_internal counted_string
 PopIdentifier(ansi_stream* SourceFileStream)
 {
   counted_string Result = {
-    .Start = SourceFileStream->At
+    .Start = SourceFileStream->At,
+    .Count = 0,
   };
 
   while (Remaining(SourceFileStream))
@@ -2993,7 +2995,7 @@ ParseNumericToken(ansi_stream *Code)
     Assert(IsNumeric(*Code->At));
   }
 
-  counted_string IntegralString = { .Start = Code->At };
+  counted_string IntegralString = { .Start = Code->At, .Count = 0 };
   while (Remaining(Code) && IsNumeric(*Code->At)) { Advance(Code); }
   IntegralString.Count = (umm)(Code->At - IntegralString.Start);
 

@@ -125,6 +125,7 @@ poof(
         Type.map_members(M).sep(,) {
           M.is_array?
           {
+            .M.name = {}
           }
           {
             .M.name = M.name.to_capital_case
@@ -1318,11 +1319,10 @@ poof(
     (Type.name.to_capital_case)Stack(umm ElementCount, memory_arena* Memory)
     {
       Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name))*ElementCount, 1, 0);
-      (Type.name)_stack Result = {
-        .Start = Start,
-        .End = ElementCount,
-        .At = 0,
-      };
+      (Type.name)_stack Result = {};
+      Result.Start = Start;
+      Result.End = ElementCount;
+      Result.At = 0;
       return Result;
     }
 
@@ -1432,12 +1432,10 @@ poof(
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
       Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name))*ElementCount, 1, 0);
-      (Type.name)_cursor Result = {
-        .Start = Start,
-        .End = Start+ElementCount,
-        .At = Start,
-        /* OWNED_BY_THREAD_MEMBER_INIT() */
-      };
+      (Type.name)_cursor Result = {};
+      Result.Start = Start;
+      Result.End = Start+ElementCount;
+      Result.At = Start;
       return Result;
     }
 
