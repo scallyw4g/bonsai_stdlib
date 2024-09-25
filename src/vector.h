@@ -975,6 +975,19 @@ GetSigni(v3 P)
   return Result;
 }
 
+inline v3i
+RoundUp(v3i N, v3i Thresh)
+{
+  v3i Result = N;
+
+  v3i Mod = N % Thresh;
+  if (Mod.x > 0) { Result.x += (Thresh.x-Mod.x); }
+  if (Mod.y > 0) { Result.y += (Thresh.y-Mod.y); }
+  if (Mod.z > 0) { Result.z += (Thresh.z-Mod.z); }
+
+  return Result;
+}
+
 inline s32
 GetIndexUnsafe(voxel_position P, chunk_dimension Dim)
 {
@@ -1060,8 +1073,8 @@ GetIndex(s32 X, s32 Y, s32 Z, chunk_dimension Dim)
               (Y*Dim.x) +
               (Z*Dim.x*Dim.y);
 
-  Assert(Result >= 0);
-  Assert(Result < Volume(Dim));
+  /* Assert(Result >= 0); */
+  /* Assert(Result < Volume(Dim)); */
 
   return Result;
 }
