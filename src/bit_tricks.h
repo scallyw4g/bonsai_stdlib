@@ -71,7 +71,7 @@ poof(gen_bit_operators(u64))
 #include <generated/gen_bit_operators_u64.h>
 
 // TODO(Jesse): This is probably _hella_ braindead, but I couldn't think of a
-// clever way of doing this, so I used a vim macro ;)
+// cleverer way of doing this, so I used a vim macro ;)
 link_inline u32
 GetIndexOfSingleSetBit( u64 O )
 {
