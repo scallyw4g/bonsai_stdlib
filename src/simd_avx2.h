@@ -56,6 +56,13 @@ U32_8X(u32 A)
 }
 
 link_inline u32_8x
+U32_8X(__m256i A)
+{
+  u32_8x Result = { .Sse = A };
+  return Result;
+}
+
+link_inline u32_8x
 U32_8X(f32_8x A)
 {
   u32_8x Result = {{ _mm256_cvtps_epi32(A.Sse) }};

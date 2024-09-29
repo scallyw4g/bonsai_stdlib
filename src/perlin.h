@@ -1,10 +1,9 @@
 struct perlin_params
 {
-  f32_8x channel;
-  u32_8x channel0;
-  u32_8x channel1;
-  f32_8x f0;
-  f32_8x f1;
+  u32_8x P0;
+  u32_8x P1;
+  f32_8x Fract0;
+  f32_8x Fract1;
   f32_8x Fade;
 };
 typedef r32 (*noise_callback)(r32, r32, r32);
@@ -147,7 +146,15 @@ Lerp4x(f32_4x t, f32_4x a, f32_4x b)
 link_internal f32_8x
 Lerp8x(f32_8x t, f32_8x a, f32_8x b)
 {
+  // Slowest
+  /* f32_8x res = b*t + (F32_8X(1.f)-t)*a; */
+
+  // Fast
   f32_8x res = FMA(b-a, t, a);
+
+  // Also fast
+  /* f32_8x res = FMA(t, b, FMA(F32_8X(-1)*t, a, a)); */
+
   return res;
 }
 
@@ -239,6 +246,27 @@ Grad4x(u32_4x hash, f32_4x x, f32_4x y, f32_4x z)
   return Result;
 }
 
+
+link_internal f32_8x
+Grad8x_fast(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
+{
+#if 0
+  u32_8x Trunc = hash & U32_8X(0xFFFF);
+  f32_8x Result =  (F32_8X(Trunc) / F32_8X(0xFFFF/2)) - F32_8X(1.f);
+#endif
+
+#if 0
+  u32_8x Trunc = hash & U32_8X(0xFFFF);
+  f32_8x Result =  ((F32_8X(Trunc) / F32_8X(0xFFFF)) * F32_8X(2.f)) - F32_8X(1.f);
+#endif
+
+#if 1
+  /* f32_8x Result =  F32_8X(hash) / F32_8X(0xFFFFFFFF); */
+  /* f32_8x Result =  (F32_8X(hash) / F32_8X(0xFFFFFFFF/2)) - F32_8X(1.f); */
+  f32_8x Result =  F32_8X(hash) / F32_8X(0xFFFFFFFF/2);
+#endif
+  return Result;
+}
 
 link_internal f32_8x
 Grad8x(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
@@ -611,19 +639,18 @@ link_inline perlin_params
 ComputePerlinParameters(f32_8x Input, u32_8x Prime)
 {
   f32_8x fInput = Floor(Input);
-  u32_8x channel0 = U32_8X(fInput) * Prime;
-  u32_8x channel1 = channel0 + Prime;
-  f32_8x fractInput = Input-fInput;
-  f32_8x fractInput1 = fractInput - F32_8X(1);
-  f32_8x Fade = Fade8x(fractInput);
+  u32_8x P0 = U32_8X(fInput) * Prime;
+  u32_8x P1 = P0 + Prime;
+  f32_8x Fract0 = Input-fInput;
+  f32_8x Fract1 = Fract0 - F32_8X(1);
+  f32_8x Fade = Fade8x(Fract0);
 
   perlin_params Result =
   {
-    fInput,
-    channel0,
-    channel1,
-    fractInput,
-    fractInput1,
+    P0,
+    P1,
+    Fract0,
+    Fract1,
     Fade,
   };
   return Result;

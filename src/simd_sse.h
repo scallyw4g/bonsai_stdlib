@@ -43,7 +43,8 @@ U32_4X(u32 A)
 link_inline f32_4x
 Select(u32_4x Mask, f32_4x A, f32_4x B)
 {
-  // NOTE(Jesse): These are equal in performance when computing Perlin noise in SSE
+  // NOTE(Jesse): These are equal in performance when computing Perlin noise in
+  // SSE but using blendv is significantly faster in AVX
   /* f32_4x Result = {{_mm_or_ps(_mm_and_ps(Mask.Sse, A.Sse), _mm_andnot_ps(Mask.Sse, B.Sse))}}; */
   f32_4x Result = {{ _mm_blendv_ps(B.Sse, A.Sse, Mask.Sse) }};
   return Result;
