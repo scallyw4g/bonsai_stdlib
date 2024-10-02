@@ -637,6 +637,7 @@ PlatformAllocateSize(umm AllocationSize)
 
   if (!Result)
   {
+    Win32PrintLastError();
     Error("Allocating %lu bytes.", AllocationSize);
   }
 

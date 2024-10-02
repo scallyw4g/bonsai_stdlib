@@ -271,7 +271,8 @@ VoronoiNoise3D(v3 Texel, r32 Squreness = 0.f, r32 MaskChance = 0.f)
     // first pass to find the closest cell
     //
     f32 minDistToCellSq = 100;
-    v3 toClosestCell; v3 closestCell;
+    v3 toClosestCell;
+    v3 closestCell;
     s32 CellIndex = 0;
     for( s32 x1 = -1;
              x1 <= 1;
