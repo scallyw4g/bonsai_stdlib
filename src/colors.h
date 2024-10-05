@@ -85,8 +85,13 @@
 #define HSV_DARK_GREY   (V3(0.0f,  0.5f, 0.75f))
 
 #define HSV_RED         (RGBtoHSV(RGB_RED))
+#define HSV_GREEN       (RGBtoHSV(RGB_GREEN))
+#define HSV_BLUE        (RGBtoHSV(RGB_BLUE))
+
 #define HSV_YELLOW      (V3(0.16f,  1.0f, 1.0f))
 
+
+#define HSV_PINK        (RGBtoHSV(RGB_PINK))
 
 
 // RGB
