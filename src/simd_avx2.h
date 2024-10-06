@@ -56,6 +56,14 @@ U32_8X(u32 A)
 }
 
 link_inline u32_8x
+U32_8X(s32 A)
+{
+  u32_8x Result = U32_8X(u32(A), u32(A), u32(A), u32(A), u32(A), u32(A), u32(A), u32(A));
+  return Result;
+}
+
+
+link_inline u32_8x
 U32_8X(__m256i A)
 {
   u32_8x Result = { .Sse = A };
@@ -142,27 +150,6 @@ operator^(f32_8x A, f32_8x B)
   return Result;
 }
 
-link_inline u32_8x
-operator>>(u32_8x A, int B)
-{
-  u32_8x Result = {{ _mm256_srli_epi32(A.Sse, B) }};
-  return Result;
-}
-
-link_inline u32_8x
-operator<<(u32_8x A, int B)
-{
-  u32_8x Result = {{ _mm256_slli_epi32(A.Sse, B) }};
-  return Result;
-}
-
-link_inline u32_8x
-operator<(f32_8x A, f32_8x B)
-{
-  u32_8x Result = {{ _mm256_cmp_ps( A.Sse, B.Sse, _CMP_LT_OS) }};
-  return Result;
-}
-
 
 
 
@@ -203,15 +190,65 @@ operator*(u32_8x A, u32_8x B)
   return Result;
 }
 
-// NOTE(Jesse): Apparently this one doesn't exist?!
-#if 0
+// NOTE(Jesse): Fuck me.. that's expensive..
+#if 1
 link_inline u32_8x
 operator/(u32_8x A, u32_8x B)
 {
-  u32_8x Result = {{ _mm256_div_epi32(A.Sse, B.Sse) }};
+  u32 C[8];
+
+  C[0] = A[0] / B[0];
+  C[1] = A[1] / B[1];
+  C[2] = A[2] / B[2];
+  C[3] = A[3] / B[3];
+  C[4] = A[4] / B[4];
+  C[5] = A[5] / B[5];
+  C[6] = A[6] / B[6];
+  C[7] = A[7] / B[7];
+
+  u32_8x Result = U32_8X(C[0], C[1], C[2], C[3], C[4], C[5], C[6], C[7]);
+  return Result;
+}
+link_inline u32_8x
+operator%(u32_8x A, u32_8x B)
+{
+  u32 C[8];
+
+  C[0] = A[0] % B[0];
+  C[1] = A[1] % B[1];
+  C[2] = A[2] % B[2];
+  C[3] = A[3] % B[3];
+  C[4] = A[4] % B[4];
+  C[5] = A[5] % B[5];
+  C[6] = A[6] % B[6];
+  C[7] = A[7] % B[7];
+
+  u32_8x Result = U32_8X(C[0], C[1], C[2], C[3], C[4], C[5], C[6], C[7]);
   return Result;
 }
 #endif
+
+link_inline u32_8x
+operator>>(u32_8x A, int B)
+{
+  u32_8x Result = {{ _mm256_srli_epi32(A.Sse, B) }};
+  return Result;
+}
+
+link_inline u32_8x
+operator<<(u32_8x A, int B)
+{
+  u32_8x Result = {{ _mm256_slli_epi32(A.Sse, B) }};
+  return Result;
+}
+
+link_inline u32_8x
+operator<(f32_8x A, f32_8x B)
+{
+  u32_8x Result = {{ _mm256_cmp_ps( A.Sse, B.Sse, _CMP_LT_OS) }};
+  return Result;
+}
+
 
 link_inline u32_8x
 operator^(u32_8x A, u32_8x B)

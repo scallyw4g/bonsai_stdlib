@@ -635,6 +635,46 @@ PerlinNoise_Derivitives1(r32 px, r32 py, r32 pz, v3 *derivs)
 
 
 
+#if 1
+
+link_inline perlin_params
+ComputePerlinParameters(u32_8x WorldP, u32_8x Offset, u32_8x WorldChunkDim, u32_8x ChunkResolution, u32_8x Period, u32_8x Prime)
+{
+#if 1
+  u32_8x AbsoluteWorldP = (WorldP*WorldChunkDim + Offset*ChunkResolution);
+
+  u32_8x Cell = AbsoluteWorldP / Period;
+
+  u32_8x Rem = AbsoluteWorldP % Period;
+  f32_8x Fract0 = F32_8X(Rem)/F32_8X(Period);
+  f32_8x Fract1 = Fract0 - F32_8X(1);
+#else
+  f32_8x Input = (F32_8X(WorldP)*F32_8X(WorldChunkDim) + F32_8X(Offset)*F32_8X(ChunkResolution)) 
+                  / F32_8X(Period);
+  f32_8x Cellf = Floor(Input);
+  u32_8x Cell = U32_8X(Cellf);
+  f32_8x Fract0 = Input-Cellf;
+  f32_8x Fract1 = Fract0 - F32_8X(1);
+#endif
+
+  u32_8x P0 = Cell * Prime;
+  u32_8x P1 = P0 + Prime;
+
+  f32_8x Fade = Fade8x(Fract0);
+
+  perlin_params Result =
+  {
+    P0,
+    P1,
+    Fract0,
+    Fract1,
+    Fade,
+  };
+  return Result;
+}
+
+#else
+
 link_inline perlin_params
 ComputePerlinParameters(f32_8x Input, u32_8x Prime)
 {
@@ -655,6 +695,7 @@ ComputePerlinParameters(f32_8x Input, u32_8x Prime)
   };
   return Result;
 }
+#endif
 
 #if 0
 #define ComputePerlinParameters(channel) \
