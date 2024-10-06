@@ -635,13 +635,11 @@ PerlinNoise_Derivitives1(r32 px, r32 py, r32 pz, v3 *derivs)
 
 
 
-#if 1
-
 link_inline perlin_params
-ComputePerlinParameters(u32_8x WorldP, u32_8x Offset, u32_8x WorldChunkDim, u32_8x ChunkResolution, u32_8x Period, u32_8x Prime)
+ComputePerlinParameters(u32_8x Basis, u32_8x Offset, u32_8x ChunkResolution, u32_8x Period, u32_8x Prime)
 {
 #if 1
-  u32_8x AbsoluteWorldP = (WorldP*WorldChunkDim + Offset*ChunkResolution);
+  u32_8x AbsoluteWorldP = (Basis + Offset*ChunkResolution);
 
   u32_8x Cell = AbsoluteWorldP / Period;
 
@@ -649,7 +647,7 @@ ComputePerlinParameters(u32_8x WorldP, u32_8x Offset, u32_8x WorldChunkDim, u32_
   f32_8x Fract0 = F32_8X(Rem)/F32_8X(Period);
   f32_8x Fract1 = Fract0 - F32_8X(1);
 #else
-  f32_8x Input = (F32_8X(WorldP)*F32_8X(WorldChunkDim) + F32_8X(Offset)*F32_8X(ChunkResolution)) 
+  f32_8x Input = (F32_8X(Basis) + F32_8X(Offset)*F32_8X(ChunkResolution)) 
                   / F32_8X(Period);
   f32_8x Cellf = Floor(Input);
   u32_8x Cell = U32_8X(Cellf);
@@ -672,45 +670,3 @@ ComputePerlinParameters(u32_8x WorldP, u32_8x Offset, u32_8x WorldChunkDim, u32_
   };
   return Result;
 }
-
-#else
-
-link_inline perlin_params
-ComputePerlinParameters(f32_8x Input, u32_8x Prime)
-{
-  f32_8x fInput = Floor(Input);
-  u32_8x P0 = U32_8X(fInput) * Prime;
-  u32_8x P1 = P0 + Prime;
-  f32_8x Fract0 = Input-fInput;
-  f32_8x Fract1 = Fract0 - F32_8X(1);
-  f32_8x Fade = Fade8x(Fract0);
-
-  perlin_params Result =
-  {
-    P0,
-    P1,
-    Fract0,
-    Fract1,
-    Fade,
-  };
-  return Result;
-}
-#endif
-
-#if 0
-#define ComputePerlinParameters(channel) \
-  auto channel##s    = Floor(channel); \
-  auto channel##0    = U32_8X(channel##s) * Prime##channel; \
-  auto channel##1    = channel##0 + Prime##channel; \
-  auto channel##f0   = channel - channel##s; \
-  auto channel##f1   = channel##f0 - F32_8X(1.f); \
-  auto channel##Fade = Fade8x(channel##f0)
-#endif
-
-
-
-link_internal void
-PerlinNoise_8x_sse(f32 *_x, f32 yIn, f32 zIn, f32 *Result);
-
-/* link_internal void */
-/* PerlinNoise_8x_avx2(f32 *_x, f32 yIn, f32 zIn, f32 *Result); */
