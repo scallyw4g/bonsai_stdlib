@@ -633,18 +633,20 @@ PerlinNoise_Derivitives1(r32 px, r32 py, r32 pz, v3 *derivs)
   return k0 + k1 * u + k2 * v + k3 * w + k4 * u * v + k5 * u * w + k6 * v * w + k7 * u * v * w;
 }
 
-
-
 link_inline perlin_params
-ComputePerlinParameters(u32_8x Basis, u32_8x Offset, u32_8x ChunkResolution, u32_8x Period, u32_8x Prime)
+ComputePerlinParameters(u32_8x Basis, u32_8x Offset, u32_8x ChunkResolution, avx_divisor Period, u32_8x Prime)
 {
 #if 1
   u32_8x AbsoluteWorldP = (Basis + Offset*ChunkResolution);
 
   u32_8x Cell = AbsoluteWorldP / Period;
+  /* u32_8x Cell = U32_8X(F32_8X(AbsoluteWorldP) / F32_8X(Period)); */
 
-  u32_8x Rem = AbsoluteWorldP % Period;
-  f32_8x Fract0 = F32_8X(Rem)/F32_8X(Period);
+  /* u32_8x Rem = U32_8X(F32_8X(AbsoluteWorldP) % F32_8X(Period)); */
+  u32_8x Rem = AbsoluteWorldP - (Cell * U32_8X(Period.E));
+  /* u32_8x Rem = AbsoluteWorldP % Period; */
+
+  f32_8x Fract0 = F32_8X(Rem)/F32_8X(Period.E);
   f32_8x Fract1 = Fract0 - F32_8X(1);
 #else
   f32_8x Input = (F32_8X(Basis) + F32_8X(Offset)*F32_8X(ChunkResolution)) 
