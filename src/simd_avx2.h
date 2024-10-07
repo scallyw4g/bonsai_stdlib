@@ -41,6 +41,12 @@ Cast_f32_8x(u32_8x A)
   return Result;
 }
 
+
+
+
+
+
+
 link_inline u32_8x
 U32_8X(u32 A, u32 B, u32 C, u32 D, u32 E, u32 F, u32 G, u32 H)
 {
@@ -77,6 +83,12 @@ U32_8X(f32_8x A)
   return Result;
 }
 
+link_inline u32_8x
+U32_8X(u32 *A)
+{
+  u32_8x Result = {{ _mm256_load_si256(Cast(const __m256i*, A)) }};
+  return Result;
+}
 
 
 
