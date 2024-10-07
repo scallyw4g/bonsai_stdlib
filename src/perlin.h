@@ -687,6 +687,7 @@ ComputePerlinParameters_scalar(u32 Basis, u32 Offset, u32 ChunkResolution, u32 P
 link_inline perlin_params
 ComputePerlinParameters_vector(u32_8x Basis, u32_8x Offset, u32_8x ChunkResolution, avx_divisor Period, u32_8x Prime)
 {
+#if 0
   auto AbsoluteWorldP = (Basis + Offset*ChunkResolution);
 
   auto Cell = AbsoluteWorldP / Period;
@@ -694,6 +695,15 @@ ComputePerlinParameters_vector(u32_8x Basis, u32_8x Offset, u32_8x ChunkResoluti
 
   auto Fract0 = F32_8X(Rem)/F32_8X(Period.E);
   auto Fract1 = Fract0 - F32_8X(1);
+
+#else
+  f32_8x Input = (F32_8X(Basis) + F32_8X(Offset)*F32_8X(ChunkResolution)) 
+                  / F32_8X(Period.E);
+  f32_8x Cellf = Floor(Input);
+  u32_8x Cell = U32_8X(Cellf);
+  f32_8x Fract0 = Input-Cellf;
+  f32_8x Fract1 = Fract0 - F32_8X(1);
+#endif
 
   auto P0 = Cell * Prime;
   auto P1 = P0 + Prime;
@@ -703,3 +713,41 @@ ComputePerlinParameters_vector(u32_8x Basis, u32_8x Offset, u32_8x ChunkResoluti
   perlin_params Result = PerlinParams( P0, P1, Fract0, Fract1, Fade );
   return Result;
 }
+
+#if 0
+link_inline perlin_params
+ComputePerlinParameters(u32_8x Basis, u32_8x Offset, u32_8x ChunkResolution, u32_8x Period, u32_8x Prime)
+{
+#if 1
+  u32_8x AbsoluteWorldP = (Basis + Offset*ChunkResolution);
+
+  u32_8x Cell = AbsoluteWorldP / Period;
+
+  u32_8x Rem = AbsoluteWorldP % Period;
+  f32_8x Fract0 = F32_8X(Rem)/F32_8X(Period);
+  f32_8x Fract1 = Fract0 - F32_8X(1);
+#else
+  f32_8x Input = (F32_8X(Basis) + F32_8X(Offset)*F32_8X(ChunkResolution)) 
+                  / F32_8X(Period);
+  f32_8x Cellf = Floor(Input);
+  u32_8x Cell = U32_8X(Cellf);
+  f32_8x Fract0 = Input-Cellf;
+  f32_8x Fract1 = Fract0 - F32_8X(1);
+#endif
+
+  u32_8x P0 = Cell * Prime;
+  u32_8x P1 = P0 + Prime;
+
+  f32_8x Fade = Fade8x(Fract0);
+
+  perlin_params Result =
+  {
+    P0,
+    P1,
+    Fract0,
+    Fract1,
+    Fade,
+  };
+  return Result;
+}
+#endif
