@@ -9,6 +9,24 @@ struct perlin_params
 typedef r32 (*noise_callback)(r32, r32, r32);
 typedef r32 (*noise_callback_derivs)(r32, r32, r32, v3*);
 
+poof(gen_constructor(perlin_params))
+#include <generated/gen_constructor_perlin_params.h>
+
+link_inline perlin_params
+PerlinParams(u32 P0, u32 P1, f32 Fract0, f32 Fract1, f32 Fade)
+{
+  perlin_params Result =
+  {
+    U32_8X(P0),
+    U32_8X(P1),
+    F32_8X(Fract0),
+    F32_8X(Fract1),
+    F32_8X(Fade),
+  };
+  return Result;
+}
+    
+
 // NOTE(Jesse): This is very slow and for debug only, calculate normals analytically!
 // https://www.shadertoy.com/view/XttSz2
 link_internal v3
@@ -104,6 +122,7 @@ global_variable u32 Global_PerlinIV[512] = {
         138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180
 };
 
+// TODO(Jesse): Rename/remove these
 link_internal f32
 fade(f32 t) {
   f32 res = t * t * t * (t * (t * 6 - 15) + 10);
@@ -126,6 +145,17 @@ Fade8x(f32_8x t) {
   f32_8x _6  = F32_8X(6);
   f32_8x res = t * t * t * (t * (t * _6 - _15) + _10);
   return res;
+}
+
+
+link_internal f32
+FadeQuintic(f32 t) {
+  return fade(t);
+}
+
+link_internal f32_8x
+FadeQuintic(f32_8x t) {
+  return Fade8x(t);
 }
 
 
@@ -634,41 +664,42 @@ PerlinNoise_Derivitives1(r32 px, r32 py, r32 pz, v3 *derivs)
 }
 
 link_inline perlin_params
-ComputePerlinParameters(u32_8x Basis, u32_8x Offset, u32_8x ChunkResolution, avx_divisor Period, u32_8x Prime)
+ComputePerlinParameters_scalar(u32 Basis, u32 Offset, u32 ChunkResolution, u32 Period, u32 Prime)
 {
-#if 1
-  u32_8x AbsoluteWorldP = (Basis + Offset*ChunkResolution);
+  auto AbsoluteWorldP = (Basis + Offset*ChunkResolution);
 
-  u32_8x Cell = AbsoluteWorldP / Period;
-  /* u32_8x Cell = U32_8X(F32_8X(AbsoluteWorldP) / F32_8X(Period)); */
+  auto Cell = AbsoluteWorldP / Period;
 
-  /* u32_8x Rem = U32_8X(F32_8X(AbsoluteWorldP) % F32_8X(Period)); */
-  u32_8x Rem = AbsoluteWorldP - (Cell * U32_8X(Period.E));
-  /* u32_8x Rem = AbsoluteWorldP % Period; */
+  auto Rem = AbsoluteWorldP - (Cell * Period);
 
-  f32_8x Fract0 = F32_8X(Rem)/F32_8X(Period.E);
-  f32_8x Fract1 = Fract0 - F32_8X(1);
-#else
-  f32_8x Input = (F32_8X(Basis) + F32_8X(Offset)*F32_8X(ChunkResolution)) 
-                  / F32_8X(Period);
-  f32_8x Cellf = Floor(Input);
-  u32_8x Cell = U32_8X(Cellf);
-  f32_8x Fract0 = Input-Cellf;
-  f32_8x Fract1 = Fract0 - F32_8X(1);
-#endif
+  auto Fract0 = f32(Rem)/f32(Period);
+  auto Fract1 = Fract0 - 1.f;
 
-  u32_8x P0 = Cell * Prime;
-  u32_8x P1 = P0 + Prime;
+  auto P0 = Cell * Prime;
+  auto P1 = P0 + Prime;
 
-  f32_8x Fade = Fade8x(Fract0);
+  auto Fade = FadeQuintic(Fract0);
 
-  perlin_params Result =
-  {
-    P0,
-    P1,
-    Fract0,
-    Fract1,
-    Fade,
-  };
+  perlin_params Result = PerlinParams( P0, P1, Fract0, Fract1, Fade );
+  return Result;
+}
+
+link_inline perlin_params
+ComputePerlinParameters_vector(u32_8x Basis, u32_8x Offset, u32_8x ChunkResolution, avx_divisor Period, u32_8x Prime)
+{
+  auto AbsoluteWorldP = (Basis + Offset*ChunkResolution);
+
+  auto Cell = AbsoluteWorldP / Period;
+  auto Rem = AbsoluteWorldP - (Cell * U32_8X(Period.E));
+
+  auto Fract0 = F32_8X(Rem)/F32_8X(Period.E);
+  auto Fract1 = Fract0 - F32_8X(1);
+
+  auto P0 = Cell * Prime;
+  auto P1 = P0 + Prime;
+
+  auto Fade = FadeQuintic(Fract0);
+
+  perlin_params Result = PerlinParams( P0, P1, Fract0, Fract1, Fade );
   return Result;
 }
