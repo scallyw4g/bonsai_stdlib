@@ -375,15 +375,15 @@ PerlinNoise_8x_avx2(perlin_params *perlinX, perlin_params *perlinY, perlin_param
 {
   u32_8x Seed = U32_8X(1066037191);
 
-  f32_8x G0 = Grad8x_fast(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
-  f32_8x G1 = Grad8x_fast(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
-  f32_8x G2 = Grad8x_fast(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
-  f32_8x G3 = Grad8x_fast(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+  f32_8x G0 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+  f32_8x G1 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+  f32_8x G2 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+  f32_8x G3 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
 
-  f32_8x G4 = Grad8x_fast(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
-  f32_8x G5 = Grad8x_fast(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
-  f32_8x G6 = Grad8x_fast(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
-  f32_8x G7 = Grad8x_fast(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+  f32_8x G4 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+  f32_8x G5 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+  f32_8x G6 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+  f32_8x G7 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
 
   auto L0  = Lerp8x(perlinX->Fade, G0, G1);
   auto L1  = Lerp8x(perlinX->Fade, G2, G3);

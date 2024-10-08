@@ -666,28 +666,37 @@ PerlinNoise_Derivitives1(r32 px, r32 py, r32 pz, v3 *derivs)
 link_inline perlin_params
 ComputePerlinParameters_scalar(u32 Basis, u32 Offset, u32 ChunkResolution, u32 Period, u32 Prime)
 {
+#if 1
   auto AbsoluteWorldP = (Basis + Offset*ChunkResolution);
 
   auto Cell = AbsoluteWorldP / Period;
-
   auto Rem = AbsoluteWorldP - (Cell * Period);
 
   auto Fract0 = f32(Rem)/f32(Period);
   auto Fract1 = Fract0 - 1.f;
+
+#else
+  auto Input = (f32(Basis) + f32(Offset)*f32(ChunkResolution)) 
+                  / f32(Period);
+  auto Cellf = Floorf(Input);
+  auto Cell = f32(Cellf);
+  auto Fract0 = Input-Cellf;
+  auto Fract1 = Fract0 - 1.f;
+#endif
 
   auto P0 = Cell * Prime;
   auto P1 = P0 + Prime;
 
   auto Fade = FadeQuintic(Fract0);
 
-  perlin_params Result = PerlinParams( P0, P1, Fract0, Fract1, Fade );
+  perlin_params Result = PerlinParams( u32(P0), u32(P1), Fract0, Fract1, Fade );
   return Result;
 }
 
 link_inline perlin_params
 ComputePerlinParameters_vector(u32_8x Basis, u32_8x Offset, u32_8x ChunkResolution, avx_divisor Period, u32_8x Prime)
 {
-#if 0
+#if 1
   auto AbsoluteWorldP = (Basis + Offset*ChunkResolution);
 
   auto Cell = AbsoluteWorldP / Period;

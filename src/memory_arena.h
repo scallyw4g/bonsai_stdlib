@@ -160,7 +160,7 @@ struct memory_arena
 
 #define AllocateProtection(Type, Arena, Number, Protection)                                                                                              \
 ( GetDebugState() ?                                                                                                                   \
-    (Type*)GetDebugState()->Debug_Allocate(Arena, sizeof(Type), (umm)Number, #Type " " __FILE__ ":" LINE_STRING, __LINE__, __FILE__, 1, Protection ) : \
+    (Type*)GetDebugState()->Debug_Allocate(Arena, sizeof(Type), umm(Number), #Type " " __FILE__ ":" LINE_STRING, __LINE__, __FILE__, 1, Protection ) : \
     (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, Protection)                                                                                   \
 )
 
@@ -172,13 +172,13 @@ struct memory_arena
 
 #define AllocateAligned(Type, Arena, Number, Alignment)                                                                                                  \
 ( GetDebugState() ?                                                                                                                   \
-  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), (umm)Number, #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, True) : \
+  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, True) : \
   (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, True)                                                                                   \
 )
 
 #define Allocate(Type, Arena, Number)                                                                                                             \
 ( GetDebugState() ?                                                                                                            \
-  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), (umm)Number, #Type ":" __FILE__ ":" LINE_STRING , __LINE__, __FILE__, 1, True) : \
+  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING , __LINE__, __FILE__, 1, True) : \
   (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, True)                                                                                    \
 )
 
@@ -195,16 +195,16 @@ void noop() {}
       //
 
 #define AllocateProtection(Type, Arena, Number, Protection) \
-      (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, 1, Protection)
+      (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, Protection)
 
 #define AllocateAlignedProtection(Type, Arena, Number, Alignment, Protection) \
     (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, Protection)
 
 #define AllocateAligned(Type, Arena, Number, Alignment) \
-    (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, Alignment, True)
+    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, True)
 
 #define Allocate(Type, Arena, Number) \
-    (Type*)PushSize( Arena, sizeof(Type)*(umm)Number, 1, True)
+    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, True)
 
 
 #define DEBUG_REGISTER_ARENA(...)
