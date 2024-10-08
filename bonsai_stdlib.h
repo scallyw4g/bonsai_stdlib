@@ -137,42 +137,9 @@ struct debug_state;
 link_weak bonsai_stdlib *GetStdlib();
 link_internal debug_state *GetDebugState();
 
-#if BONSAI_DEBUG_SYSTEM_API
-  /* #define GetDebugState() ( Global_EngineResources ? &Global_EngineResources->Stdlib.DebugState : 0 ) */
 
-  #include <bonsai_debug/debug.h>
-  #include <bonsai_debug/src/api.h>
-#else
-#if 1 // TODO(Jesse): Pretty sure this should all just be packed up in debug.h..
-  struct debug_state {};
-
-  /* #define GetDebugState(...) */
-
-  #define TIMED_FUNCTION(...)
-  #define TIMED_NAMED_BLOCK(...)
-  #define HISTOGRAM_FUNCTION(...)
-
-  #define TIMED_BLOCK(...)
-  #define END_BLOCK(...)
-
-  #define DEBUG_VALUE(...)
-
-  #define TIMED_MUTEX_WAITING(...)
-  #define TIMED_MUTEX_AQUIRED(...)
-  #define TIMED_MUTEX_RELEASED(...)
-
-  #define DEBUG_FRAME_RECORD(...)
-  #define DEBUG_FRAME_END(...)
-  #define DEBUG_FRAME_BEGIN(...)
-
-  #define WORKER_THREAD_WAIT_FOR_DEBUG_SYSTEM(...)
-  #define MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(...)
-  #define WORKER_THREAD_ADVANCE_DEBUG_SYSTEM()
-
-  #define DEBUG_CLEAR_META_RECORDS_FOR(...)
-  #define DEBUG_TRACK_DRAW_CALL(...)
-#endif
-#endif
+#include <bonsai_debug/debug.h>
+#include <bonsai_debug/src/api.h>
 
 #define UNPACK_STDLIB(Stdlib) \
   os *Os         = &(Stdlib)->Os; \
@@ -192,6 +159,10 @@ struct bonsai_stdlib
   // TODO(Jesse): Move into debug_state?
   texture_block_array AllTextures;
 
+#if BONSAI_DEBUG_SYSTEM_API
   debug_state DebugState;
+#else
+  void *DebugState;
+#endif
 };
 
