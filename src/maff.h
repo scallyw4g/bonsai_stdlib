@@ -83,6 +83,8 @@ SafeDivide0(r32 Dividend, r32 Divisor)
 
 // TODO(Jesse): Can we do this without converting to integer to avoid overflow?
 // And/or do we care?
+//
+// @braindead_truncate
 link_internal r32
 Truncate(r32 Input)
 {
@@ -183,7 +185,10 @@ Pow(r32 N, int Exp)
 }
 
 
-// https://github.com/AZHenley/cosine/blob/master/cosine.c
+// TODO(Jesse): Try this  out : https://www.shadertoy.com/view/432yWW
+// 
+//
+// Source : https://github.com/AZHenley/cosine/blob/master/cosine.c
 //
 link_inline f32
 Cos(f32 x)
@@ -384,19 +389,17 @@ Clamp01(r32 Value)
 s32
 clamp0(s32 i)
 {
-  if (i < 0)
-    i = 0;
-
+  if (i < 0) i = 0;
   return i;
 }
 
-s32
-Floori(r32 f)
-{
-  s32 Result;
-  Result = (s32)(f);
-  return Result;
-}
+/* s32 */
+/* Floori(r32 f) */
+/* { */
+/*   s32 Result; */
+/*   Result = (s32)(f); */
+/*   return Result; */
+/* } */
 
 u32
 Floorfu(r32 f)
@@ -406,6 +409,11 @@ Floorfu(r32 f)
   return Result;
 }
 
+// TODO(Jesse): This can be done with _mm256_round_ps and it would be way
+// fucking better.  Whoever wrote this is fired for sure.
+//
+// @braindead_truncate
+//
 r32
 Floorf(r32 f)
 {
@@ -427,6 +435,7 @@ Floorf(r32 f)
 #endif
 }
 
+// @braindead_truncate
 r32
 Ceilf(r32 f)
 {
@@ -483,6 +492,9 @@ InverseSquareRoot(f32 x)
 {
   if (x == 0) return 0.f;
 #if BONSAI_FAST_MATH__INVSQRT 
+  // TODO(Jesse): Is this actually even faster than doing a sqrt?  Apparently
+  // set_ps1 is a "Sequence" instruction (according to Intel Intrinsics Guide)
+  // and might be slow ..?  Should check into this.
   r32 Result = _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ps1(x)));
 #else
   r32 Result = 1.f/r32(sqrt(double(x)));

@@ -19,6 +19,7 @@
 
 #include <bonsai_stdlib/src/simd_sse.h>
 #include <bonsai_stdlib/src/simd_avx2.h>
+#include <bonsai_stdlib/src/avx2_v3.h>
 
 #include <bonsai_stdlib/src/console_macros.h>
 #include <bonsai_stdlib/src/globals.h>
