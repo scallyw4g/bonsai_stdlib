@@ -226,6 +226,16 @@ struct text_box_edit_state
   umm   TextBufferLen;
 };
 
+struct shape_shader
+poof( @vert_source_file("external/bonsai_stdlib/shaders/shape.vertexshader")
+      @frag_source_file("external/bonsai_stdlib/shaders/shape.fragmentshader") )
+{
+  shader Program;
+
+  shader_uniform Uniforms[1];
+  v2 Resolution; poof(@uniform)
+};
+
 
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
@@ -234,6 +244,9 @@ struct ui_render_command_buffer;
 struct renderer_2d
 {
   render_buffers_2d *TextGroup;
+
+  f32 Zoom = 1.f;
+  v2 Offset;
 
   texture SpriteTextureArray;
 
@@ -266,6 +279,8 @@ struct renderer_2d
 
   untextured_2d_geometry_buffer Geo;
   shader TexturedQuadShader;
+
+  shape_shader ShapeShader;
 
   ui_render_command_buffer *CommandBuffer;
 
@@ -733,6 +748,21 @@ struct ui_render_command_untextured_quad_at
   layout Layout;
 };
 
+struct ui_render_command_line
+{
+  v2 P0;
+  v2 P1;
+  f32 Thickness;
+  v3 Color;
+};
+
+struct ui_render_command_circle
+{
+  v2 Center;
+  f32 Radius;
+  v3 Color;
+};
+
 /* enum textured_quad_source */
 /* { */
 /*   TexturedQuadSource_Undefined, */
@@ -827,6 +857,9 @@ poof(
     ui_render_command_textured_quad
     ui_render_command_untextured_quad
     ui_render_command_untextured_quad_at
+
+    ui_render_command_line
+    ui_render_command_circle
 
     ui_render_command_rel_border
     ui_render_command_abs_border

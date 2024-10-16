@@ -1,3 +1,5 @@
+#define BONSAI_WORK_QUEUE_INCLUDED (1)
+
 link_internal work_queue_entry *
 PopWorkQueueEntry(work_queue* Queue)
 {
@@ -50,7 +52,6 @@ DrainQueue(work_queue* Queue, thread_local_state* Thread, application_api *GameA
     if ( Exchanged )
     {
       volatile work_queue_entry* Entry = Queue->Entries + DequeueIndex;
-      /* GameWorkerThreadCallback(Entry, Thread); */
       HandleJob(Entry, Thread, GameApi);
     }
   }
@@ -105,7 +106,7 @@ DefaultWorkerThread(void *Input)
     // NOTE(Jesse): This is here to ensure the game lib (and, by extesion, the debug lib)
     // has ThreadLocal_ThreadIndex set.  This is super annoying and I want a better solution.
     WorkerThread_BeforeJobStart(ThreadParams);
-    ThreadParams->AppApi->WorkerBeforeJob(Thread, ThreadParams);
+    if (ThreadParams->AppApi->WorkerBeforeJob) { ThreadParams->AppApi->WorkerBeforeJob(Thread, ThreadParams); }
 
     AtomicIncrement(ThreadParams->HighPriorityWorkerCount);
     DrainQueue( ThreadParams->HighPriority, Thread, ThreadParams->AppApi );
@@ -150,9 +151,7 @@ DefaultWorkerThread(void *Input)
       if ( Exchanged )
       {
         volatile work_queue_entry *Entry = LowPriority->Entries+DequeueIndex;
-
         HandleJob(Entry, Thread, ThreadParams->AppApi);
-
         Ensure( RewindArena(Thread->TempMemory) );
       }
     }

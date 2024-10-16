@@ -142,7 +142,7 @@ inline v3_8x
 Normalize(v3_8x Vec, f32_8x Length)
 {
   /* if (Length == 0.f) return {}; */
-  v3_8x Result = Vec / Length.Sse;
+  v3_8x Result = Vec / Length;
   return Result;
 }
 

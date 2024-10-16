@@ -1,5 +1,7 @@
 #define u32_COUNT_PER_QUAD (6)
 
+poof(shader_magic(shape_shader))
+#include <generated/shader_magic_shape_shader.h>
 
 poof(buffer(ui_toggle_button_handle))
 #include <generated/buffer_ui_toggle_button_handle.h>
@@ -453,6 +455,45 @@ ClipRect3AgainstRect2(v2 MinP, v2 Dim, r32 Z, rect2 *UV, rect2 Clip)
   return Result;
 }
 
+template <typename T> link_internal void
+BufferLineDirect(T *Geo, v2 P0, v2 P1, f32 Thickness, r32 Z, v2 *ScreenDim)
+{
+  Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
+
+  v2 Dir =  P1 - P0;
+
+  v2 Tangent = Perp( Normalize(V3(Dir, 0.f)) ).xy;
+
+  if (ScreenDim->x > 0 && ScreenDim->y > 0)
+  {
+    f32 HalfThickness = 0.5f * Thickness;
+    v3 LeftBottom  = V3(P0 - Tangent*HalfThickness, Z);
+    v3 RightBottom = V3(P0 + Tangent*HalfThickness, Z);
+
+    v3 LeftTop    = V3(P1 - Tangent*HalfThickness, Z);
+    v3 RightTop   = V3(P1 + Tangent*HalfThickness, Z);
+
+    #define TO_NDC(P) ((P * ToNDC) - 1.0f)
+    v3 ToNDC = 2.0f/V3(ScreenDim->x, ScreenDim->y, 1.0f);
+
+    // Native OpenGL screen coordinates are {0,0} at the bottom-left corner. This
+    // maps the origin to the top-left of the screen.
+    // @inverted_screen_y_coordinate
+    v3 InvertYZ = V3(1.0f, -1.0f, -1.0f);
+    /* v3 InvertYZ = V3(1.0f, 1.0f, 1.0f); */
+
+    v3 *Dest = Geo->Verts;
+    u32 StartingIndex = Geo->At;
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(LeftTop);
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(LeftBottom);
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(RightTop);
+
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(RightBottom);
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(RightTop);
+    Dest[StartingIndex++] = InvertYZ * TO_NDC(LeftBottom);
+    #undef TO_NDC
+  }
+}
 
 template <typename T> link_internal void
 BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
@@ -970,6 +1011,34 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, v
   return;
 }
 #endif
+
+link_internal void
+PushCircle(renderer_2d *Group, v2 Center, f32 Radius, v3 Color)
+{
+  ui_render_command Command = {
+    .Type = type_ui_render_command_circle,
+    .ui_render_command_circle.Center = Center,
+    .ui_render_command_circle.Radius = Radius,
+    .ui_render_command_circle.Color = Color,
+  };
+
+  PushUiRenderCommand(Group, &Command);
+}
+
+
+link_internal void
+PushLine(renderer_2d *Group, v2 P0, v2 P1, f32 Thickness, v3 Color)
+{
+  ui_render_command Command = {
+    .Type = type_ui_render_command_line,
+    .ui_render_command_line.P0 = P0,
+    .ui_render_command_line.P1 = P1,
+    .ui_render_command_line.Thickness = Thickness,
+    .ui_render_command_line.Color = Color,
+  };
+
+  PushUiRenderCommand(Group, &Command);
+}
 
 link_internal void
 PushTexturedQuadColumn( renderer_2d *Group,
@@ -2589,10 +2658,19 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
   return Result;
 }
 
+global_variable u32 Culled = 0;
+global_variable u32 Drawn = 0;
+
+global_variable u32_cursor CircleIndices;
+
 link_internal void
 FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_command_buffer *CommandBuffer, layout *DefaultLayout)
 {
   TIMED_FUNCTION();
+
+  Info("Flushing (%d) Render Commands ", CommandBuffer->CommandCount);
+
+  CircleIndices = U32Cursor(Megabytes(32), GetTranArena());
 
   u32 NextCommandIndex = 0;
   ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
@@ -2601,6 +2679,51 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
     switch(Command->Type)
     {
       InvalidCase(type_ui_render_command_noop);
+
+      case type_ui_render_command_circle:
+      {
+        Assert(NextCommandIndex > 0);
+        /* u32 Index = NextCommandIndex-1; */
+        /* Push(&CircleIndices, Index); */
+      } break;
+
+      case type_ui_render_command_line:
+      {
+        ui_render_command_line *Line = RenderCommandAs(line, Command);
+
+        untextured_2d_geometry_buffer* Geo = &Group->Geo;
+
+        auto Thickness = Line->Thickness*Group->Zoom;
+
+        auto P0 = Group->Offset + Line->P0*Group->Zoom;
+        auto P1 = Group->Offset + Line->P1*Group->Zoom;
+        /* auto P0 = Line->P0; */
+        /* auto P1 = Line->P1; */
+        if (Thickness > 0.5f)
+        {
+          auto P0NDC = P0 * 2.f/ (*Group->ScreenDim);
+          auto P1NDC = P1 * 2.f/ (*Group->ScreenDim);
+          if (Contains(RectMinMax(V2(0.f), V2(2.f)), P0NDC) ||
+              Contains(RectMinMax(V2(0.f), V2(2.f)), P1NDC) )
+
+          // TODO(Jesse): No idea why this doesn't work correctly..
+          /* if (Contains(RectMinDim(Group->Offset, (*Group->ScreenDim)), Line->P0) || */
+          /*     Contains(RectMinDim(Group->Offset, (*Group->ScreenDim)), Line->P1)) */
+          {
+            BufferLineDirect(Geo, P0, P1, Thickness, 0.5f, Group->ScreenDim);
+            BufferColors(Group, Geo, Line->Color);
+            Geo->At += u32_COUNT_PER_QUAD;
+            ++Drawn;
+          }
+          else
+          {
+            ++Culled;
+          }
+        }
+        {
+          ++Culled;
+        }
+      } break;
 
       case type_ui_render_command_debug:
       {
@@ -2983,104 +3106,112 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
   DrawUiBuffers(Group, Group->ScreenDim); // Draws text and solid UI buffers
 
   // Draw textured quads
-  u32 NextCommandIndex = 0;
-  ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
-  while (Command)
+  //
+#if 1
   {
-    switch(Command->Type)
+    u32 NextCommandIndex = 0;
+    ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
+    while (Command)
     {
-      InvalidCase(type_ui_render_command_noop);
-
-      case type_ui_render_command_window_start:
-      case type_ui_render_command_window_end:
-      case type_ui_render_command_table_start:
-      case type_ui_render_command_table_end:
-      case type_ui_render_command_column_start:
-      case type_ui_render_command_column_end:
-      case type_ui_render_command_text:
-      case type_ui_render_command_text_at:
-      case type_ui_render_command_untextured_quad:
-      case type_ui_render_command_untextured_quad_at:
-      case type_ui_render_command_new_row:
-      case type_ui_render_command_button_start:
-      case type_ui_render_command_button_end:
-      case type_ui_render_command_rel_border:
-      case type_ui_render_command_abs_border:
-      case type_ui_render_command_force_advance:
-      case type_ui_render_command_force_update_basis:
-      case type_ui_render_command_reset_draw_bounds:
-      case type_ui_render_command_debug:
-        { break; }
-
-      case type_ui_render_command_textured_quad:
+      switch(Command->Type)
       {
-        ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
+        InvalidCase(type_ui_render_command_noop);
 
+        case type_ui_render_command_window_start:
+        case type_ui_render_command_window_end:
+        case type_ui_render_command_table_start:
+        case type_ui_render_command_table_end:
+        case type_ui_render_command_column_start:
+        case type_ui_render_command_column_end:
+        case type_ui_render_command_text:
+        case type_ui_render_command_text_at:
+        case type_ui_render_command_untextured_quad:
+        case type_ui_render_command_untextured_quad_at:
+        case type_ui_render_command_line:
+        case type_ui_render_command_circle:
+        case type_ui_render_command_new_row:
+        case type_ui_render_command_button_start:
+        case type_ui_render_command_button_end:
+        case type_ui_render_command_rel_border:
+        case type_ui_render_command_abs_border:
+        case type_ui_render_command_force_advance:
+        case type_ui_render_command_force_update_basis:
+        case type_ui_render_command_reset_draw_bounds:
+        case type_ui_render_command_debug:
+          { break; }
+
+        case type_ui_render_command_textured_quad:
         {
-          v2 MinP    = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
-          v2 Dim     = TypedCommand->QuadDim;
-          r32 Z      = TypedCommand->Z;
-          rect2 Clip = TypedCommand->Clip;
+          ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
 
-          if (TypedCommand->Texture)
           {
-            Assert(Group->TextGroup->Geo.At == 0);
+            v2 MinP    = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
+            v2 Dim     = TypedCommand->QuadDim;
+            r32 Z      = TypedCommand->Z;
+            rect2 Clip = TypedCommand->Clip;
 
-            shader *Shader = &Group->TexturedQuadShader;
-            GL.UseProgram(Shader->ID);
-
-            if (TypedCommand->TextureSlice < 0)
+            if (TypedCommand->Texture)
             {
-              Assert(TypedCommand->Texture->Slices == 1);
-              BindUniformByName(Shader, "Texture", TypedCommand->Texture, 0);
-              GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
-            }
-            else
-            {
-              Assert(TypedCommand->Texture->Slices > 1);
-              BindUniformByName(Shader, "TextureArray", TypedCommand->Texture, 0);
-              GL.BindTexture(GL_TEXTURE_2D, 0);
-            }
+              Assert(Group->TextGroup->Geo.At == 0);
 
-            BindUniformByName(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
-            BindUniformByName(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel );
-            BindUniformByName(Shader, "TextureSlice",    TypedCommand->TextureSlice   );
-            BindUniformByName(Shader, "Tint",            &TypedCommand->Tint   );
+              shader *Shader = &Group->TexturedQuadShader;
+              GL.UseProgram(Shader->ID);
 
-            // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
-            // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
-            BufferTexturedQuad(Group, TypedCommand->TextureSlice, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
+              if (TypedCommand->TextureSlice < 0)
+              {
+                Assert(TypedCommand->Texture->Slices == 1);
+                BindUniformByName(Shader, "Texture", TypedCommand->Texture, 0);
+                GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+              }
+              else
+              {
+                Assert(TypedCommand->Texture->Slices > 1);
+                BindUniformByName(Shader, "TextureArray", TypedCommand->Texture, 0);
+                GL.BindTexture(GL_TEXTURE_2D, 0);
+              }
 
-            Group->SolidGeoCountLastFrame += Group->Geo.At;
-            Group->TextGeoCountLastFrame  += Group->TextGroup->Geo.At;
+              BindUniformByName(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
+              BindUniformByName(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel );
+              BindUniformByName(Shader, "TextureSlice",    TypedCommand->TextureSlice   );
+              BindUniformByName(Shader, "Tint",            &TypedCommand->Tint   );
+
+              // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
+              // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
+              BufferTexturedQuad(Group, TypedCommand->TextureSlice, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
+
+              Group->SolidGeoCountLastFrame += Group->Geo.At;
+              Group->TextGeoCountLastFrame  += Group->TextGroup->Geo.At;
 
 
 #if 1
-            GL.Enable(GL_BLEND);
-            GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-              DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
-            GL.Disable(GL_BLEND);
+              GL.Enable(GL_BLEND);
+              GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
+              GL.Disable(GL_BLEND);
 #else
-            Group->TextGroup->Geo.At = 0;
+              Group->TextGroup->Geo.At = 0;
 #endif
 
-            /* GL.ActiveTexture(GL_TEXTURE0); */
-            GL.BindTexture(GL_TEXTURE_2D, 0);
-            GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+              /* GL.ActiveTexture(GL_TEXTURE0); */
+              GL.BindTexture(GL_TEXTURE_2D, 0);
+              GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
-            AssertNoGlErrors;
+              AssertNoGlErrors;
+            }
+            else
+            {
+              // we already drew "(null texture)" text in the previous pass
+            }
           }
-          else
-          {
-            // we already drew "(null texture)" text in the previous pass
-          }
-        }
 
-      } break;
+        } break;
+      }
+
+      Command = GetCommand(CommandBuffer, NextCommandIndex++);
     }
-
-    Command = GetCommand(CommandBuffer, NextCommandIndex++);
   }
+#endif
+
 }
 
 link_internal v2
@@ -3132,13 +3263,14 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   // TODO(Jesse, memory): Instead of allocate insanely massive buffers (these are ~400x overkill)
   // we should have a system that streams blocks of memory in as-necessary
   // @streaming_ui_render_memory
-  u32 ElementCount = (u32)Megabytes(2);
+  u32 ElementCount = (u32)Megabytes(32);
   AllocateAndInitGeoBuffer(&Renderer->TextGroup->Geo, ElementCount, PermMemory);
   AllocateAndInitGeoBuffer(&Renderer->Geo, ElementCount, PermMemory);
 
   Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
   Renderer->WindowTable = Allocate_window_layout_hashtable(256, PermMemory); // 256 windows should be enough for anybody?
 
+  InitializeShapeShader(&Renderer->ShapeShader, V2(0));
 
   if (Headless == False)
   {

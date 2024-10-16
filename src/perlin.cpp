@@ -60,6 +60,19 @@ HashPrimes(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
 
 // https://nullprogram.com/blog/2018/07/31/
 //
+u32
+ChrisWellonsIntegerHash_lowbias32(u32 x, u32 y, u32 z)
+{
+  u32 Result = x ^ y ^ z;
+
+  Result = Result ^ (Result >> 16);
+  Result = Result ^ u32(0x7feb352d);
+  Result = Result ^ (Result >> 15);
+  Result = Result * u32(0x846ca68b);
+  Result = Result ^ (Result >> 16);
+  return Result;
+}
+
 u32_8x
 ChrisWellonsIntegerHash_lowbias32(u32_8x x, u32_8x y, u32_8x z)
 {
@@ -72,6 +85,16 @@ ChrisWellonsIntegerHash_lowbias32(u32_8x x, u32_8x y, u32_8x z)
   Result = Result ^ (Result >> 16);
   return Result;
 }
+
+link_internal u32
+Hash(v2 P)
+{
+  u32 xBits = u32(P.x);
+  u32 yBits = u32(P.y);
+  u32 Result = ChrisWellonsIntegerHash_lowbias32(xBits, yBits, 1);
+  return Result;
+}
+
 
 link_internal void
 PerlinNoise_16x_avx2_x(perlin_params *perlinX, perlin_params *perlinY, perlin_params *perlinZ, f32 *Dest, f32 Amplitude)
@@ -399,3 +422,4 @@ PerlinNoise_8x_avx2(perlin_params *perlinX, perlin_params *perlinY, perlin_param
   f32_8x Total = Res + Current;
   _mm256_store_ps(Dest, Total.Sse);
 }
+

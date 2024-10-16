@@ -16,6 +16,7 @@ union v2
   struct { r32 x; r32 y; };
 };
 
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 union v3i
@@ -811,6 +812,20 @@ Distance( v3 P1, v3 P2 )
 
 inline r32
 DistanceSq( v3 P1, v3 P2 )
+{
+  r32 Result = LengthSq(P1-P2);
+  return Result;
+}
+
+inline r32
+Distance( v2 P1, v2 P2 )
+{
+  r32 Result = Length(P1-P2);
+  return Result;
+}
+
+inline r32
+DistanceSq( v2 P1, v2 P2 )
 {
   r32 Result = LengthSq(P1-P2);
   return Result;

@@ -1,0 +1,19 @@
+
+in vec2 UV;
+in vec3 Color;
+
+out v4 Result ;
+
+void main()
+{
+  /* Result = V4(Tint, 1.f); */
+  f32 D = distance(UV, V2(0.5f, 0.5f));
+  if (D < 0.5f)
+  {
+    Result = V4(Color, 1.f);
+  }
+  else
+  {
+    discard;
+  }
+}

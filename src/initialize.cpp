@@ -6,6 +6,8 @@ enum bonsai_init_flags
   BonsaiInit_LaunchThreadPool = (1 << 0),
   BonsaiInit_OpenWindow       = (1 << 1),
   BonsaiInit_InitDebugSystem  = (1 << 2),
+
+  BonsaiInit_TheWorks = (BonsaiInit_LaunchThreadPool|BonsaiInit_OpenWindow|BonsaiInit_InitDebugSystem)
 };
 
 
@@ -76,6 +78,9 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
     if (AppApi->WorkerInit) { AppApi->WorkerInit(Global_ThreadStates, 0); }
+    /* CAssert(BONSAI_WORK_QUEUE_INCLUDED == 1); */
+    Assert(LaunchWorkerThreads); // Need to include work_queue.cpp after the definitions
+
     LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
   }
 
