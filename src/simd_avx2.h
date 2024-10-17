@@ -427,7 +427,6 @@ operator/(u32_8x A, avx_divisor B)
 
 
 
-
 link_inline f32_8x
 FMA(f32_8x MulLHS, f32_8x MulRHS, f32_8x AddRHS)
 {

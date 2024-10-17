@@ -159,6 +159,7 @@ struct bonsai_stdlib
 
   // TODO(Jesse): Move into debug_state?
   texture_block_array AllTextures;
+  shader_ptr_block_array AllShaders;
 
 #if BONSAI_DEBUG_SYSTEM_API
   debug_state DebugState;

@@ -278,6 +278,26 @@ FileExists(const char* Path)
   return Result;
 }
 
+#include <sys/stat.h>
+
+link_internal b32
+FileIsNew(const char *Filepath, s64 *LastTime)
+{
+  b32 Result = False;
+  struct stat StatStruct;
+
+  if (stat(Filepath, &StatStruct) == 0)
+  {
+    if (StatStruct.st_mtime > *LastTime)
+    {
+      *LastTime = StatStruct.st_mtime;
+      Result = True;
+    }
+  }
+
+  return Result;
+}
+
 link_internal b32
 FileExists(cs Path)
 {

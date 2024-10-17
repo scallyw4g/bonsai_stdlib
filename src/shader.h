@@ -38,6 +38,8 @@ poof(
       {
         poof_error { Poof func shader_magic requires tag @vert_source_file }
       }
+
+      RegisterShaderForHotReload(GetStdlib(), &Struct->Program);
     }
 
     link_internal void
@@ -119,7 +121,15 @@ struct shader
 
   cs VertexSourceFilename;
   cs FragSourceFilename;
+
+  s64 VertexTimeModifiedWhenLoaded;
+  s64 FragmentTimeModifiedWhenLoaded;
 };
+
+typedef shader* shader_ptr;
+
+poof(block_array_h(shader_ptr, {64}, {}))
+#include <generated/block_array_h_shader_ptr_688853971_0.h>
 
 enum shader_language_setting
 {

@@ -1,3 +1,7 @@
+
+poof(block_array_c(shader_ptr, {64}))
+#include <generated/block_array_c_shader_ptr_688853971.h>
+
 #define INVALID_SHADER_UNIFORM (-1)
 #define INVALID_SHADER (u32)(-1)
 
@@ -37,17 +41,20 @@ CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
     {
       SoftError("Compiling Shader : (%d)(%S)", InfoLogLength, CS(ProgramErrorMessage, umm(ActualLength)));
     }
+
+    GL.DeleteShader(ShaderID);
+    ShaderID = INVALID_SHADER;
   }
 
   u32 Result = ShaderID;
   return Result;
 }
 
-#if 0
+#if 1
 link_internal void
 CheckShaderCompilationStatus(cs ShaderPath, u32 ShaderId)
 {
-  s32 Success = False;
+  s32 Success = GL_FALSE;
   GL.GetShaderiv(ShaderId, GL_COMPILE_STATUS, &Success);
 
   if (Success == GL_FALSE)
@@ -61,6 +68,11 @@ CheckShaderCompilationStatus(cs ShaderPath, u32 ShaderId)
     SoftError("Error Compiling shader (%S)", ShaderPath);
     Error("%d (%s)", InfoLogLength, ProgramErrorMessage);
   }
+  else
+  {
+    Assert(Success == GL_TRUE);
+  }
+
 }
 #endif
 
@@ -109,14 +121,14 @@ LoadShaders(cs VertShaderPath, cs FragShaderPath)
   int InfoLogLength;
 
   u32 VertexShaderID = CompileShader(HeaderCode, VertexShaderCode, GL_VERTEX_SHADER);
-  /* CheckShaderCompilationStatus(VertShaderPath, VertexShaderID); */
+  /* CheckShaderCompilationStatus(VertShaderPath, VertexShaderID); */ // NOTE(JEsse): This happens inline in CompileShader
 
   u32 FragmentShaderID = CompileShader(HeaderCode, FragShaderCode, GL_FRAGMENT_SHADER);
   /* CheckShaderCompilationStatus(FragShaderPath, FragmentShaderID); */
 
   memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
-  shader Shader = { INVALID_SHADER, 0, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory) };
-  /* if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER) */
+  shader Shader = { INVALID_SHADER, 0, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0};
+  if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER)
   {
     // Link the program
     u32 ProgramID = GL.CreateProgram();
@@ -124,31 +136,78 @@ LoadShaders(cs VertShaderPath, cs FragShaderPath)
     GL.AttachShader(ProgramID, VertexShaderID);
     GL.AttachShader(ProgramID, FragmentShaderID);
     GL.LinkProgram(ProgramID);
+    AssertNoGlErrors;
 
     // Check the program linked
     s32 LinkResult = GL_FALSE;
     GL.GetProgramiv(ProgramID, GL_LINK_STATUS, &LinkResult);
     GL.GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    AssertNoGlErrors;
+    GL.DetachShader(ProgramID, VertexShaderID);
+    GL.DetachShader(ProgramID, FragmentShaderID);
+    AssertNoGlErrors;
+    GL.DeleteShader(VertexShaderID);
+    GL.DeleteShader(FragmentShaderID);
+    AssertNoGlErrors;
+
     if (LinkResult == GL_FALSE)
     {
       char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
       GL.GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
+      AssertNoGlErrors;
       SoftError("Linking shader pair %S | %S", VertShaderPath, FragShaderPath);
-      Error("%s", ProgramErrorMessage);
+      SoftError("%s", ProgramErrorMessage);
+      ProgramID = INVALID_SHADER;
     }
 
-
-    GL.DetachShader(ProgramID, VertexShaderID);
-    GL.DetachShader(ProgramID, FragmentShaderID);
-
-    GL.DeleteShader(VertexShaderID);
-    GL.DeleteShader(FragmentShaderID);
-
     Shader.ID = ProgramID;
+
+    // NOTE(Jesse): Kind of a hack to set the last modified times on the shader.  Should
+    // really be able to do this when reading the source code into buffers, but .. meh ..
+    FileIsNew(GetNullTerminated(Shader.VertexSourceFilename), &Shader.VertexTimeModifiedWhenLoaded);
+    FileIsNew(GetNullTerminated(Shader.FragSourceFilename), &Shader.FragmentTimeModifiedWhenLoaded);
   }
 
+  AssertNoGlErrors;
   return Shader;
 }
+
+link_internal void
+RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
+{
+  if (Stdlib->AllShaders.Memory == 0)
+  {
+    Stdlib->AllShaders.Memory = AllocateArena();
+  }
+
+  Push(&Stdlib->AllShaders, &Shader);
+}
+
+link_internal void
+HotReloadShaders(bonsai_stdlib *Stdlib)
+{
+  IterateOver(&Stdlib->AllShaders, ShaderP, ShaderIndex)
+  {
+    shader *Shader = *ShaderP;
+    s64 VertTime = Shader->VertexTimeModifiedWhenLoaded;
+    s64 FragTime = Shader->FragmentTimeModifiedWhenLoaded;
+    if (FileIsNew(GetNullTerminated(Shader->VertexSourceFilename), &VertTime) ||
+        FileIsNew(GetNullTerminated(Shader->FragSourceFilename), &FragTime))
+    {
+      auto T1 = Shader->VertexTimeModifiedWhenLoaded;
+      auto T2 = Shader->FragmentTimeModifiedWhenLoaded;
+      shader LoadedShader = LoadShaders(Shader->VertexSourceFilename, Shader->FragSourceFilename);
+
+      if (LoadedShader.ID != INVALID_SHADER)
+      {
+        GL.DeleteProgram(Shader->ID);
+        *Shader = LoadedShader;
+      }
+      AssertNoGlErrors;
+    }
+  }
+}
+
 
 
 s32

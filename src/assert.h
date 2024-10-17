@@ -4,6 +4,9 @@
 #if BONSAI_INTERNAL
 
 #  define Ensure(condition) Assert((condition))
+/* #  define Ensure(condition) condition */
+
+/* #  define Assert(condition)                                                   \ */
 
 #  define Assert(condition)                                                    \
     do {                                                                       \

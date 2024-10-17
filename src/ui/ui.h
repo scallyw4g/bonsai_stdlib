@@ -43,8 +43,8 @@ link_weak ui_debug *GetUiDebug();
 struct render_buffers_2d
 {
   u32 SolidUIVertexBuffer;
-  u32 SolidUIColorBuffer;
   u32 SolidUIUVBuffer;
+  u32 SolidUIColorBuffer;
 
   texture DebugTextureArray;
   s32 TextTextureUniform;

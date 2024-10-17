@@ -19,9 +19,10 @@ enum texture_storage_format
 };
 
 
+#define INVALID_TEXTURE_HANDLE (0xFFFFFFFF)
 struct texture
 {
-  u32 ID;
+  u32 ID = INVALID_TEXTURE_HANDLE;
 
   v2i Dim;
   u32 Slices;
