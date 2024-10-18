@@ -294,6 +294,7 @@ typedef void            (*OpenglBindTextures)              (GLuint first, GLsize
 typedef void            (*OpenglBindTexture)               (GLenum target, GLuint texture);
 typedef void            (*OpenglDeleteTextures)            (GLsizei n, const GLuint *textures);
 typedef void            (*OpenglActiveTexture)             (GLenum texture);
+typedef void            (*OpenglGetTexImage)               (GLenum target, GLint level, GLenum format, GLenum	type, GLvoid * img);
 typedef void            (*OpenglTexStorage1D)              (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
 typedef void            (*OpenglTexStorage2D)              (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
 typedef void            (*OpenglTexStorage3D)              (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
@@ -417,6 +418,7 @@ struct opengl
   OpenglBindTexture BindTexture;
   OpenglDeleteTextures DeleteTextures;
   OpenglActiveTexture ActiveTexture;
+  OpenglGetTexImage GetTexImage;
   OpenglTexStorage1D TexStorage1D;
   OpenglTexStorage2D TexStorage2D;
   OpenglTexStorage3D TexStorage3D;
