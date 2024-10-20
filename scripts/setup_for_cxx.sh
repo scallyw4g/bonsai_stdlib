@@ -67,7 +67,6 @@ CXX_OPTIONS="
   -mavx2
   -mfma
   -mvaes
-  -msm4
 
   -Weverything
 

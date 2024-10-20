@@ -1,4 +1,5 @@
 
+#if 0
 u32_8x
 SM4Hash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
 {
@@ -7,6 +8,7 @@ SM4Hash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
 
   return {{ hash }};
 }
+#endif
 
 u32_8x
 AESHash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)

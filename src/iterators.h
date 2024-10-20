@@ -75,7 +75,7 @@
 #define SafeAccessPtr(T, Ptr) ((Ptr)->T); Assert((Ptr)->Type == type_##T)
 
 #define tswitch(Ptr)  switch ((Ptr)->Type)
-#define tmatch(type_name, match_name, var_name) case type_##type_name: type_name *var_name = (type_name*)(&(match_name)->type_name);
+#define tmatch(type_name, match_name, var_name) case type_##type_name: type_name *var_name = (type_name*)(&(match_name)->type_name); Assert((match_name)->Type == type_##type_name);
 
 
 #define ITERATE_OVER_AS(prefix, value_ptr)         \

@@ -143,7 +143,10 @@
 #define GL_DEPTH_TEST                     0x0B71
 
 #define GL_ARRAY_BUFFER                   0x8892
+#define GL_READ_ONLY                      0x88B8
 #define GL_WRITE_ONLY                     0x88B9
+#define GL_READ_WRITE                     0x88BA
+
 #define GL_MAP_READ_BIT                   0x0001
 #define GL_MAP_WRITE_BIT                  0x0002
 #define GL_STATIC_DRAW                    0x88E4
@@ -176,6 +179,26 @@
 #define GL_QUERY_RESULT_AVAILABLE         0x8867
 #define GL_TIME_ELAPSED                   0x88BF
 
+#define GL_SYNC_GPU_COMMANDS_COMPLETE     0x9117
+#define GL_SYNC_FLUSH_COMMANDS_BIT        0x00000001
+#define GL_SYNC_FENCE                     0x9116
+#define GL_UNSIGNALED                     0x9118
+#define GL_SIGNALED                       0x9119
+#define GL_ALREADY_SIGNALED               0x911A
+#define GL_TIMEOUT_EXPIRED                0x911B
+#define GL_CONDITION_SATISFIED            0x911C
+#define GL_WAIT_FAILED                    0x911D
+#define GL_TIMEOUT_IGNORED                0xFFFFFFFFFFFFFFFFull
+
+#define GL_PIXEL_PACK_BUFFER              0x88EB
+#define GL_PIXEL_UNPACK_BUFFER            0x88EC
+#define GL_PIXEL_PACK_BUFFER_BINDING      0x88ED
+#define GL_PIXEL_UNPACK_BUFFER_BINDING    0x88EF
+
+#define GL_STREAM_DRAW                    0x88E0
+#define GL_STREAM_READ                    0x88E1
+#define GL_STREAM_COPY                    0x88E2
+
 typedef void GLvoid;
 typedef unsigned int GLenum;
 typedef float GLfloat;
@@ -188,6 +211,9 @@ typedef double GLdouble;
 typedef unsigned int GLuint;
 typedef unsigned char GLboolean;
 typedef unsigned char GLubyte;
+typedef struct __GLsync* GLsync;
+
+typedef GLsync gl_fence ;
 
 typedef ptrdiff_t GLsizeiptr;
 typedef ptrdiff_t GLintptr;
@@ -295,6 +321,7 @@ typedef void            (*OpenglBindTexture)               (GLenum target, GLuin
 typedef void            (*OpenglDeleteTextures)            (GLsizei n, const GLuint *textures);
 typedef void            (*OpenglActiveTexture)             (GLenum texture);
 typedef void            (*OpenglGetTexImage)               (GLenum target, GLint level, GLenum format, GLenum	type, GLvoid * img);
+typedef void            (*OpenglReadPixels)                (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels);
 typedef void            (*OpenglTexStorage1D)              (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
 typedef void            (*OpenglTexStorage2D)              (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
 typedef void            (*OpenglTexStorage3D)              (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
@@ -384,6 +411,10 @@ typedef void (*OpenglGenQueries)(GLsizei n, GLuint * ids);
 typedef void (*OpenglBeginQuery)(GLenum target, GLuint id);
 typedef void (*OpenglEndQuery)(GLenum target);
 
+typedef GLsync (*OpenglFenceSync)(GLenum condition, GLbitfield flags);
+/* typedef void   (*OpenglWaitSync)(GLsync sync, GLbitfield flags, GLuint64 timeout); */
+typedef GLenum (*OpenglClientWaitSync)(GLsync sync, GLbitfield flags, GLuint64 timeout);
+
 typedef void (*OpenglGetQueryObjectiv)(GLuint id, GLenum pname, GLint * params);
 typedef void (*OpenglGetQueryObjectuiv)(GLuint id, GLenum pname, GLuint * params);
 typedef void (*OpenglGetQueryObjecti64v)(GLuint id, GLenum pname, GLint64 * params);
@@ -419,6 +450,7 @@ struct opengl
   OpenglDeleteTextures DeleteTextures;
   OpenglActiveTexture ActiveTexture;
   OpenglGetTexImage GetTexImage;
+  OpenglReadPixels ReadPixels;
   OpenglTexStorage1D TexStorage1D;
   OpenglTexStorage2D TexStorage2D;
   OpenglTexStorage3D TexStorage3D;
@@ -506,6 +538,10 @@ struct opengl
   OpenglGenQueries GenQueries;
   OpenglBeginQuery BeginQuery;
   OpenglEndQuery EndQuery;
+
+  OpenglFenceSync FenceSync;
+  /* OpenglWaitSync WaitSync; */
+  OpenglClientWaitSync ClientWaitSync;
 
   OpenglGetQueryObjectiv GetQueryObjectiv;
   OpenglGetQueryObjectuiv GetQueryObjectuiv;
