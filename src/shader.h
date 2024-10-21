@@ -17,10 +17,7 @@ poof(
           {
             member.has_tag(uniform)?
             {
-              member.is_pointer?
-              {
-                Struct->member.name = member.name;
-              }
+              Struct->member.name = member.name;
               Struct->Uniforms[UniformIndex] = ShaderUniform(&Struct->Program, member.is_pointer?{}{&}Struct->member.name, "member.name");
               ++UniformIndex;
             }
