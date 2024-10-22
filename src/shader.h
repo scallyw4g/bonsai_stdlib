@@ -121,6 +121,8 @@ struct shader
 
   s64 VertexTimeModifiedWhenLoaded;
   s64 FragmentTimeModifiedWhenLoaded;
+
+  b32 HotReloaded;
 };
 
 typedef shader* shader_ptr;
