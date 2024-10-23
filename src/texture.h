@@ -2,6 +2,7 @@ enum texture_storage_format
 {
   TextureStorageFormat_Undefined,
 
+  TextureStorageFormat_R16I    = GL_R16I,
   TextureStorageFormat_R16F    = GL_R16F,
   TextureStorageFormat_R32F    = GL_R32F,
 

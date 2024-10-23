@@ -42,8 +42,9 @@ CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
       SoftError("Compiling Shader : (%d)(%S)", InfoLogLength, CS(ProgramErrorMessage, umm(ActualLength)));
     }
 
-    GL.DeleteShader(ShaderID);
-    ShaderID = INVALID_SHADER;
+    // NOTE(Jesse): Need this to get the actual error message later ... sigh ...
+    /* GL.DeleteShader(ShaderID); */
+    /* ShaderID = INVALID_SHADER; */
   }
 
   u32 Result = ShaderID;
@@ -121,14 +122,18 @@ LoadShaders(cs VertShaderPath, cs FragShaderPath)
   int InfoLogLength;
 
   u32 VertexShaderID = CompileShader(HeaderCode, VertexShaderCode, GL_VERTEX_SHADER);
+    AssertNoGlErrors;
   /* CheckShaderCompilationStatus(VertShaderPath, VertexShaderID); // NOTE(Jesse): This happens inline in CompileShader */
 
   u32 FragmentShaderID = CompileShader(HeaderCode, FragShaderCode, GL_FRAGMENT_SHADER);
+    AssertNoGlErrors;
   /* CheckShaderCompilationStatus(FragShaderPath, FragmentShaderID); */
 
   memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
   shader Shader = { INVALID_SHADER, 0, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0, False};
-  if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER)
+
+  // NOTE(Jesse): Not doing this because the errors come through when you go to link the program.  Of course ..
+  /* if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER) */
   {
     // Link the program
     u32 ProgramID = GL.CreateProgram();
@@ -136,25 +141,20 @@ LoadShaders(cs VertShaderPath, cs FragShaderPath)
     GL.AttachShader(ProgramID, VertexShaderID);
     GL.AttachShader(ProgramID, FragmentShaderID);
     GL.LinkProgram(ProgramID);
-    AssertNoGlErrors;
 
     // Check the program linked
     s32 LinkResult = GL_FALSE;
     GL.GetProgramiv(ProgramID, GL_LINK_STATUS, &LinkResult);
     GL.GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    AssertNoGlErrors;
     GL.DetachShader(ProgramID, VertexShaderID);
     GL.DetachShader(ProgramID, FragmentShaderID);
-    AssertNoGlErrors;
     GL.DeleteShader(VertexShaderID);
     GL.DeleteShader(FragmentShaderID);
-    AssertNoGlErrors;
 
     if (LinkResult == GL_FALSE)
     {
       char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
       GL.GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
-      AssertNoGlErrors;
       SoftError("Linking shader pair %S | %S", VertShaderPath, FragShaderPath);
       SoftError("%s", ProgramErrorMessage);
       ProgramID = INVALID_SHADER;
