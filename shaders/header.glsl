@@ -179,3 +179,14 @@ UnpackHSVColorToRGB(s32 Packed)
   return Result;
 }
 
+uint PackRGB(v3 Color)
+{
+  uint FiveBits    = (1u << 5) - 1u;
+  uint FifteenBits = (1u << 15) - 1u;
+  uint R = uint(Color.r * f32(FiveBits)) & FiveBits;
+  uint G = uint(Color.g * r32(FiveBits)) & FiveBits;
+  uint B = uint(Color.b * r32(FiveBits)) & FiveBits;
+  uint Result = uint((R << 10) | (G << 5) | B) & FifteenBits;
+  return Result;
+}
+
