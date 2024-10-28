@@ -191,14 +191,23 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
     shader *Shader = *ShaderP;
     Shader->HotReloaded = False;
 
-    s64 VertTime = Shader->VertexTimeModifiedWhenLoaded;
-    s64 FragTime = Shader->FragmentTimeModifiedWhenLoaded;
-    if (FileIsNew(GetNullTerminated(Shader->VertexSourceFilename), &VertTime) ||
-        FileIsNew(GetNullTerminated(Shader->FragSourceFilename), &FragTime))
+    b32 VertIsNew = FileIsNew(GetNullTerminated(Shader->VertexSourceFilename), &Shader->VertexTimeModifiedWhenLoaded);
+    b32 FragIsNew = FileIsNew(GetNullTerminated(Shader->FragSourceFilename),   &Shader->FragmentTimeModifiedWhenLoaded);
+    if (VertIsNew || FragIsNew)
     {
       auto T1 = Shader->VertexTimeModifiedWhenLoaded;
       auto T2 = Shader->FragmentTimeModifiedWhenLoaded;
       shader LoadedShader = LoadShaders(Shader->VertexSourceFilename, Shader->FragSourceFilename);
+
+      b32 RetryCount = 0;
+      while (LoadedShader.ID == INVALID_SHADER)
+      {
+        SleepMs(1);
+        LoadedShader = LoadShaders(Shader->VertexSourceFilename, Shader->FragSourceFilename);
+
+        if (++RetryCount > 5) { break; } // If it doesn't work after 5 tries, it's probably a syntax error.
+      }
+
 
       if (LoadedShader.ID != INVALID_SHADER)
       {
