@@ -2142,6 +2142,14 @@ poof(
       return Result;
     }
 
+    link_internal umm
+    Count((type.name)_block_array *Arr)
+    {
+      auto Index = AtElements(Arr);
+      umm Result = GetIndex(&Index);
+      return Result;
+    }
+
     link_internal type.name *
     GetPtr((type.name)_block_array *Arr, (type.name)_block_array_index Index)
     {
