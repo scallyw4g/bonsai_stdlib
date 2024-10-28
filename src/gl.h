@@ -440,6 +440,7 @@ typedef void (*OpenglBeginQuery)(GLenum target, GLuint id);
 typedef void (*OpenglEndQuery)(GLenum target);
 
 typedef GLsync (*OpenglFenceSync)(GLenum condition, GLbitfield flags);
+typedef void   (*OpenglDeleteSync)(GLsync);
 /* typedef void   (*OpenglWaitSync)(GLsync sync, GLbitfield flags, GLuint64 timeout); */
 typedef GLenum (*OpenglClientWaitSync)(GLsync sync, GLbitfield flags, GLuint64 timeout);
 
@@ -568,6 +569,7 @@ struct opengl
   OpenglEndQuery EndQuery;
 
   OpenglFenceSync FenceSync;
+  OpenglDeleteSync DeleteSync;
   /* OpenglWaitSync WaitSync; */
   OpenglClientWaitSync ClientWaitSync;
 

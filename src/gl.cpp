@@ -385,6 +385,9 @@ InitializeOpenglFunctions()
       GL.FenceSync                 = (OpenglFenceSync)PlatformGetGlFunction("glFenceSync");
       GL.Initialized               &= GL.FenceSync != 0;
 
+      GL.DeleteSync                = (OpenglDeleteSync)PlatformGetGlFunction("glDeleteSync");
+      GL.Initialized               &= GL.DeleteSync != 0;
+
       /* GL.WaitSync                  = (OpenglWaitSync)PlatformGetGlFunction("glWaitSync"); */
       /* GL.Initialized               &= GL.WaitSync != 0; */
 
