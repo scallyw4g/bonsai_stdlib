@@ -190,3 +190,168 @@ uint PackRGB(v3 Color)
   return Result;
 }
 
+vec3 ivhash( ivec3 p )     // this hash is not production ready, please
+{                        // replace this by something better
+  ivec3 n = ivec3( p.x*127 + p.y*311 + p.z*74,
+                   p.x*269 + p.y*183 + p.z*246,
+                   p.x*113 + p.y*271 + p.z*124);
+
+  // 1D hash by Hugo Elias
+  n = (n << 13) ^ n;
+  n = n * (n * n * 15731 + 789221) + 1376312589;
+  return -1.0+2.0*vec3( n & ivec3(0x0fffffff))/float(0x0fffffff);
+}
+
+vec3 vhash( vec3 p )      // this hash is not production ready, please
+{                        // replace this by something better
+  p = vec3( dot(p,vec3(127.1,311.7, 74.7)),
+            dot(p,vec3(269.5,183.3,246.1)),
+            dot(p,vec3(113.5,271.9,124.6)));
+
+  return -1.0 + 2.0*fract(sin(p)*43758.5453123);
+}
+
+
+uint
+ChrisWellonsIntegerHash_lowbias32(uint x)
+{
+  uint Result = x;
+
+  Result = Result ^ (Result >> 16);
+  Result = Result ^ uint(0x7feb352d);
+  Result = Result ^ (Result >> 15);
+  Result = Result * uint(0x846ca68b);
+  Result = Result ^ (Result >> 16);
+
+  return Result;
+}
+
+// TODO(Jesse): I would expect this to produce a good result .. but it doesn't
+vec3 bad_hash(vec3 Input)
+{
+  uint PrimeX = 501125321u;
+  uint PrimeY = 1136930381u;
+  uint PrimeZ = 1720413743u;
+
+  uint xI = uint(floatBitsToInt(Input.x)) * PrimeX;
+  uint yI = uint(floatBitsToInt(Input.y)) * PrimeY;
+  uint zI = uint(floatBitsToInt(Input.z)) * PrimeZ;
+
+  uint xH = ChrisWellonsIntegerHash_lowbias32(xI);
+  uint yH = ChrisWellonsIntegerHash_lowbias32(yI);
+  uint zH = ChrisWellonsIntegerHash_lowbias32(zI);
+
+  uint X = ChrisWellonsIntegerHash_lowbias32(xH ^ yH) & 0xFFFFu;
+  uint Y = ChrisWellonsIntegerHash_lowbias32(xH ^ zH) & 0xFFFFu;
+  uint Z = ChrisWellonsIntegerHash_lowbias32(yH ^ zH) & 0xFFFFu;
+
+  return fract(vec3(f32(X)/f32(0xFFFF), f32(Y)/f32(0xFFFF), f32(Z)/f32(0xFFFF)));
+}
+
+vec3 hash3( vec3 p )
+{
+  // procedural white noise	
+	return fract(sin(
+        vec3(
+          dot(p,vec3(127.1,311.7,531.9)),
+          dot(p,vec3(722.1,117.7,438.9)),
+          dot(p,vec3(269.5,183.3,22.5))))*43758.5453);
+}
+
+float hashf( float f )
+{
+  return -1.0 + 2.0*fract(sin(f)*43758.5453123);
+}
+
+float white_noise(v2 P)
+{
+  float Res = hashf(P.x);
+        Res = hashf(P.y + Res);
+  return Res;
+}
+
+float white_noise(v3 P)
+{
+  float Res = hashf(P.x);
+        Res = hashf(P.y + Res);
+        Res = hashf(P.z + Res);
+  return Res;
+}
+
+vec3 voronoi_noise( in vec3 x )
+{
+  vec3 ip = floor(x);
+  vec3 fp = fract(x);
+
+  //----------------------------------
+  // first pass: regular voronoi
+  //----------------------------------
+  vec3 mg, mr;
+
+  float md = 8.0;
+  for( int k=-1; k<=1; k++ )
+  for( int j=-1; j<=1; j++ )
+  for( int i=-1; i<=1; i++ )
+  {
+    vec3 g = vec3(float(i),float(j),float(k));
+    vec3 o = hash3( ip + g );
+    vec3 r = g + o - fp;
+    float d = dot(r,r);
+
+      if( d<md )
+      {
+          md = d;
+          mr = r;
+          mg = g;
+      }
+  }
+
+  //----------------------------------
+  // second pass: distance to borders
+  //----------------------------------
+  md = 8.0;
+  for( int k=-1; k<=1; k++ )
+  for( int j=-1; j<=1; j++ )
+  for( int i=-1; i<=1; i++ )
+  {
+    vec3 g = mg + vec3(float(i),float(j),float(k));
+    vec3 o = hash3( ip + g );
+    vec3 r = g + o - fp;
+
+    if( dot(mr-r,mr-r)>0.00001 )
+    md = min( md, dot( 0.5*(mr+r), normalize(r-mr) ) );
+  }
+
+  return vec3( md, mr );
+}
+
+vec4 value_noise_derivs( in vec3 x )
+{
+    vec3 p = floor(x);
+    vec3 w = fract(x);
+    vec3 u = w*w*(3.0-2.0*w);
+    vec3 du = 6.0*w*(1.0-w);
+    
+    float n = p.x + p.y*157.0 + 113.0*p.z;
+    
+    float a = hashf(n+  0.0);
+    float b = hashf(n+  1.0);
+    float c = hashf(n+157.0);
+    float d = hashf(n+158.0);
+    float e = hashf(n+113.0);
+    float f = hashf(n+114.0);
+    float g = hashf(n+270.0);
+    float h = hashf(n+271.0);
+	
+    float k0 =   a;
+    float k1 =   b - a;
+    float k2 =   c - a;
+    float k3 =   e - a;
+    float k4 =   a - b - c + d;
+    float k5 =   a - c - e + g;
+    float k6 =   a - b - e + f;
+    float k7 = - a + b + c - d + e - f - g + h;
+
+    return vec4( k0 + k1*u.x + k2*u.y + k3*u.z + k4*u.x*u.y + k5*u.y*u.z + k6*u.z*u.x + k7*u.x*u.y*u.z, 
+                 du * (vec3(k1,k2,k3) + u.yzx*vec3(k4,k5,k6) + u.zxy*vec3(k6,k4,k5) + k7*u.yzx*u.zxy ));
+}
