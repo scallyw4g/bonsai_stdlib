@@ -219,6 +219,13 @@ poof(
         b32 Result = E1 == E2;
         return Result;
       }
+
+      link_internal b32
+      AreEqual( (Type.name) *E1, (Type.name) *E2 )
+      {
+        b32 Result = *E1 == *E2;
+        return Result;
+      }
     }
   }
 )
