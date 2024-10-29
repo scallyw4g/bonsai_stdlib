@@ -264,10 +264,10 @@ UnpackHSVColor(u16 Packed)
 {
   /* u8 FourBits   = 0b1111; */
   s32 FiveBits = 31;
-  /* s32 SixBits   = 63; */
+  s32 SixBits   = 63;
   /* u8 EightBits  = 0b11111111; */
 
-  r32 H = ((Packed >> 10) & FiveBits) / r32(FiveBits);
+  r32 H = ((Packed >> 10) & SixBits) / r32(SixBits);
   r32 S = ((Packed >> 5) & FiveBits) / r32(FiveBits);
   r32 V =  (Packed & FiveBits) / r32(FiveBits);
   v3 Result = V3(H, S, V);
@@ -287,10 +287,10 @@ PackHSVColor(v3 Color)
 {
   /* u8 FourBits   = 0b1111; */
   u8 FiveBits   = 0b11111;
-  /* u8 SixBits    = 0b111111; */
+  u8 SixBits    = 0b111111;
   /* u8 EightBits  = 0b11111111; */
 
-  u16 H = u16(Color.h * r32(FiveBits));
+  u16 H = u16(Color.h * r32(SixBits));
   u16 S = u16(Color.s * r32(FiveBits));
   u16 V = u16(Color.v * r32(FiveBits));
 

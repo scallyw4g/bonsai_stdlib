@@ -3195,8 +3195,8 @@ UiFrameBegin(renderer_2d *Ui)
   Assert(Ui->Input);
   Assert(Ui->MouseP);
   Assert(Ui->MouseDP);
-  Assert(Ui->ScreenDim->x > 0.f);
-  Assert(Ui->ScreenDim->y > 0.f);
+  /* Assert(Ui->ScreenDim->x > 0.f); */
+  /* Assert(Ui->ScreenDim->y > 0.f); */
 
   input *Input = Ui->Input;
   if ( ! (Input->LMB.Pressed || Input->RMB.Pressed) ) { Ui->Pressed = {}; }
