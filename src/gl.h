@@ -436,6 +436,7 @@ typedef void            (*OpenglFinish)                    (void);
 
 
 typedef void (*OpenglGenQueries)(GLsizei n, GLuint * ids);
+typedef void (*OpenglDeleteQueries)(GLsizei n, GLuint * ids);
 typedef void (*OpenglBeginQuery)(GLenum target, GLuint id);
 typedef void (*OpenglEndQuery)(GLenum target);
 
@@ -565,6 +566,7 @@ struct opengl
   OpenglFinish Finish;
 
   OpenglGenQueries GenQueries;
+  OpenglDeleteQueries DeleteQueries;
   OpenglBeginQuery BeginQuery;
   OpenglEndQuery EndQuery;
 

@@ -375,6 +375,9 @@ InitializeOpenglFunctions()
       GL.GenQueries                = (OpenglGenQueries)PlatformGetGlFunction("glGenQueries");
       GL.Initialized               &= GL.GenQueries != 0;
 
+      GL.DeleteQueries                = (OpenglDeleteQueries)PlatformGetGlFunction("glDeleteQueries");
+      GL.Initialized               &= GL.DeleteQueries != 0;
+
       GL.BeginQuery                = (OpenglBeginQuery)PlatformGetGlFunction("glBeginQuery");
       GL.Initialized               &= GL.BeginQuery != 0;
 
