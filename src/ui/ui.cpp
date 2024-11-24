@@ -2592,6 +2592,12 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 {
   TIMED_FUNCTION();
 
+  if (RenderState->Layout != DefaultLayout)
+  {
+    Assert(RenderState->Layout == 0);
+    RenderState->Layout = DefaultLayout;
+  }
+
   u32 NextCommandIndex = 0;
   ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
   while (Command)

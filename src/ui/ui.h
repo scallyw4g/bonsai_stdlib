@@ -314,7 +314,7 @@ struct render_state
   window_layout*  Window;
   u32 WindowStartCommandIndex;
 
-  rect2 ClipRect;
+  rect2 ClipRect = DISABLE_CLIPPING;
 
   layout* Layout;
 
