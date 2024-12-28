@@ -1,3 +1,5 @@
+#include "wasm_file.cpp"
+
 inline void
 BonsaiSwapBuffers(os *Os)
 {

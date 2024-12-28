@@ -23,6 +23,8 @@
 // TODO(Jesse)(math): Remove this.
 #include <math.h>
 
+#include <errno.h>
+
 #define PLATFORM_RUNTIME_BREAK() do { PlatformDebugStacktrace(); raise(SIGTRAP); } while (false)
 
 #define Newline "\n"

@@ -118,10 +118,15 @@ struct thread_local_state
 
   char *TempStdoutFormatStringBuffer;
 
-  s32 Index;
-  s32 Pad0[7];
 
   void *UserData;
+
+  s32 Index;
+#if BONSAI_EMCC
+  u8 Pad0[42];
+#else
+  s32 Pad0[7];
+#endif
 };
 CAssert(sizeof(thread_local_state) == CACHE_LINE_SIZE);
 

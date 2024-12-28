@@ -1,10 +1,10 @@
-#define BONSAI_FAST_MATH__INVSQRT (1)
-#define BONSAI_FAST_MATH__SQRT    (1)
-#define BONSAI_FAST_MATH__ARCCOS  (1)
-#define BONSAI_FAST_MATH__COS     (1)
-#define BONSAI_FAST_MATH__TAN     (1)
-#define BONSAI_FAST_MATH__FLOORF  (1)
-#define BONSAI_FAST_MATH__CEILF   (1)
+#define BONSAI_FAST_MATH__INVSQRT (0)
+#define BONSAI_FAST_MATH__SQRT    (0)
+#define BONSAI_FAST_MATH__ARCCOS  (0)
+#define BONSAI_FAST_MATH__COS     (0)
+#define BONSAI_FAST_MATH__TAN     (0)
+#define BONSAI_FAST_MATH__FLOORF  (0)
+#define BONSAI_FAST_MATH__CEILF   (0)
 
 // Include math.h if we're not using all the bonsai implementations
 #if !BONSAI_FAST_MATH__INVSQRT || \

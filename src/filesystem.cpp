@@ -1,7 +1,7 @@
 link_internal b32
 SearchForProjectRoot(void)
 {
-#if EMCC
+#if BONSAI_EMCC
   b32 Result = True;
 #else
   b32 Result = FileExists(".root_marker");

@@ -27,9 +27,18 @@ const char * PlatformGetEnvironmentVar(const char *, memory_arena *);
 // @compat_with_windows_barf
 s32 _chdir(const char* DirName);
 
+
+link_internal void
+PlatformInitializeStdout(native_file *Stdout)
+{
+  NotImplemented;
+}
+
 link_internal b32
 PlatformStdoutIsRedirected()
 {
+  // TODO(Jesse): What do we do here?
+  NotImplemented;
   b32 Result = True;
   return Result;
 }

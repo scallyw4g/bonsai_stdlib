@@ -15,11 +15,11 @@ enum heap_allocation_type
 #pragma pack(push, 1)
 struct heap_allocation_block
 {
-  umm Magic0;
+  u64 Magic0;
   heap_allocation_type Type;
   umm Size; // Note(Jesse): Includes sizeof(heap_allocation_block), except for the one on the end of the heap
   umm PrevAllocationSize;
-  umm Magic1;
+  u64 Magic1;
 };
 #pragma pack(pop)
 

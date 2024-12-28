@@ -206,7 +206,7 @@ Hash(umm *Value) { return *Value; }
 link_internal umm
 Hash(ui_toggle *Toggle)
 {
-  return Hash(&Toggle->Id);
+  return umm(Hash(&Toggle->Id));
 }
 
 poof(maybe(ui_toggle))

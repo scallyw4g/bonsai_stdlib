@@ -110,28 +110,28 @@ SafeTruncateS8(s32 Size)
 inline umm
 Kilobytes(umm Bytes)
 {
-  umm Result = SafeTruncateToUMM(Bytes*1024);
+  umm Result = SafeTruncateToUMM(Bytes*1024ull);
   return Result;
 }
 
 inline umm
 Megabytes(umm Number)
 {
-  umm Result = SafeTruncateToUMM(Number*Kilobytes(1024));
+  umm Result = SafeTruncateToUMM(u64(Number*Kilobytes(1024)));
   return Result;
 }
 
 inline umm
 Gigabytes(umm Number)
 {
-  umm Result = SafeTruncateToUMM(Number*Megabytes(1024));
+  umm Result = SafeTruncateToUMM(u64(Number*Megabytes(1024)));
   return Result;
 }
 
 inline umm
 Terabytes(umm Number)
 {
-  umm Result = SafeTruncateToUMM(Number*Gigabytes(1024));
+  umm Result = SafeTruncateToUMM(u64(Number*Gigabytes(1024)));
   return Result;
 }
 

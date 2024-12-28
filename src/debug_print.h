@@ -46,11 +46,13 @@ DebugPrint(void *E, u32 Depth = 0)
   DebugChars("%*s%p\n", Depth, "", E);
 }
 
+#if !BONSAI_EMCC
 link_internal void
 DebugPrint(__m128 E, u32 Depth = 0)
 {
   DebugChars("%*s%f %f %f %f", Depth, "", double(E[0]), double(E[1]), double(E[2]), double(E[3]));
 }
+#endif
 
 link_internal void
 DebugPrint(counted_string E, u32 Depth = 0)

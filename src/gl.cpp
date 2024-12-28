@@ -523,7 +523,7 @@ BufferFloatDataToCard(u32 BufferId, u32 Stride, u32 ByteCount, void *Data, u32 *
 #endif
 
   GL.BindBuffer(GL_ARRAY_BUFFER, BufferId);
-  GL.BufferData(GL_ARRAY_BUFFER, ByteCount, Data, GL_STATIC_DRAW);
+  GL.BufferData(GL_ARRAY_BUFFER, s32(ByteCount), Data, GL_STATIC_DRAW);
 
   GL.EnableVertexAttribArray(*AttributeIndex);
   GL.VertexAttribPointer(*AttributeIndex, (s32)Stride, GL_FLOAT, GL_FALSE, 0, (void*)0);
