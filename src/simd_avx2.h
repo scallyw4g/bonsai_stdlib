@@ -306,6 +306,13 @@ operator^(u32_8x A, u32_8x B)
 
 
 link_inline u32_8x
+operator==(f32_8x A, f32_8x B)
+{
+  u32_8x Result = {{ _mm256_cmpeq_epi32(A.Sse, B.Sse) }};
+  return Result;
+}
+
+link_inline u32_8x
 operator==(u32_8x A, u32_8x B)
 {
   u32_8x Result = {{ _mm256_cmpeq_epi32(A.Sse, B.Sse) }};

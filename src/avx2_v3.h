@@ -28,7 +28,7 @@ union v3_8x
 /* #endif */
 
 /* poof(gen_vector_operators(v3_8x)) */
-#include <generated/gen_vector_operators_v3_8x.h>
+/* #include <generated/gen_vector_operators_v3_8x.h> */
 
 link_inline v3_8x
 V3_8X(f32_8x x, f32_8x y, f32_8x z)
@@ -142,7 +142,7 @@ inline v3_8x
 Normalize(v3_8x Vec, f32_8x Length)
 {
   /* if (Length == 0.f) return {}; */
-  v3_8x Result = Vec / Length.Sse;
+  v3_8x Result = {{{ Vec / Length.Sse }}};
   return Result;
 }
 

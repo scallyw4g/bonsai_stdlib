@@ -136,6 +136,13 @@ operator/(u32_4x A, u32_4x B)
 #endif
 
 link_inline u32_4x
+operator==(f32_4x A, f32_4x B)
+{
+  u32_4x Result = {{ _mm_cmpeq_epi32(A.Sse, B.Sse) }};
+  return Result;
+}
+
+link_inline u32_4x
 operator==(u32_4x A, u32_4x B)
 {
   u32_4x Result = {{ _mm_cmpeq_epi32(A.Sse, B.Sse) }};
