@@ -85,32 +85,32 @@ link_internal void           EatWhitespaceAndComments(parser *Parser);
 
 
 inline c_token
-CToken(r32 FloatValue)
+CToken(r32 FloatValue, cs csValue = {})
 {
   c_token Result = {};
   Result.Type = CTokenType_Float;
-  Result.Value = FormatCountedString(GetTranArena(), CSz("%f"), r64(FloatValue)); // TODO(Jesse id: 350, tags: memory_leak)
+  Result.Value = csValue.Start ? csValue : FormatCountedString(GetTranArena(), CSz("%f"), r64(FloatValue)); // TODO(Jesse id: 350, tags: memory_leak)
   Result.FloatValue = r64(FloatValue);
   return Result;
 }
 
 inline c_token
-CToken(s32 Value)
+CToken(s32 Value, cs csValue = {})
 {
   c_token Result = {};
   Result.Type = CTokenType_IntLiteral;
-  Result.Value = FormatCountedString(GetTranArena(), CSz("%s"), Value); // TODO(Jesse id: 351, tags: memory_leak)
+  Result.Value = csValue.Start ? csValue : FormatCountedString(GetTranArena(), CSz("%s"), Value); // TODO(Jesse id: 351, tags: memory_leak)
   Result.as_s64 = s64(Value);
   Result.Flags = CTFlags_Signed;
   return Result;
 }
 
 inline c_token
-CToken(u32 Value)
+CToken(u32 Value, cs csValue = {})
 {
   c_token Result = {};
   Result.Type = CTokenType_IntLiteral;
-  Result.Value = FormatCountedString(GetTranArena(), CSz("%u"), Value); // TODO(Jesse id: 351, tags: memory_leak)
+  Result.Value = csValue.Start ? csValue : FormatCountedString(GetTranArena(), CSz("%u"), Value); // TODO(Jesse id: 351, tags: memory_leak)
   Result.as_u64 = u64(Value);
   return Result;
 }

@@ -21,6 +21,7 @@ TestSuiteBegin(const char *TestSuite, s32 ArgCount, const char** Args)
 {
   memory_arena *Memory = AllocateArena();
   Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, Memory);
+  SetThreadLocal_ThreadIndex(0);
 
   SetupStdout((u32)ArgCount, Args);
 

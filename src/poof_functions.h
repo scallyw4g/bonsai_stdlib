@@ -1104,9 +1104,9 @@ poof(
     }
 
     link_internal void
-    DebugPrint( (DUnion.type) *Struct, u32 Depth)
+    DebugPrint( (DUnion.name) *Struct, u32 Depth)
     {
-      DebugPrint("DUnion.type {\n", Depth);
+      DebugPrint("DUnion.name {\n", Depth);
 
       if (Struct)
       {
@@ -1137,7 +1137,7 @@ poof(
     }
 
     link_internal void
-    DebugPrint( (DUnion.type) Struct, u32 Depth)
+    DebugPrint( (DUnion.name) Struct, u32 Depth)
     {
       DebugPrint(&Struct, Depth);
     }
