@@ -479,6 +479,29 @@ DoublyLinkedListSwap(d_list *P0, d_list *P1)
 
 
 
+link_internal string_from_parser
+StartParserFromParser(parser* Parser)
+{
+  string_from_parser Result = StartStringFromParser(Parser);
+  return Result;
+}
+
+link_internal parser
+FinalizeParserFromParser(string_from_parser *StringFromParser, memory_arena *Memory)
+{
+  c_token *Start = StringFromParser->StartToken;
+  c_token *End   = StringFromParser->Parser->Tokens->At;
+
+  c_token_cursor *Tokens = Allocate(c_token_cursor, Memory, 1);
+
+  CTokenCursor( Tokens, Start, 0, CSz("(anonymous parser)"), TokenCursorSource_IntermediateRepresentaton, {0,0} );
+
+  parser Result = {};
+  Result.Tokens = Tokens;
+  Result.Tokens->End  = End;
+  return Result;
+}
+
 
 
 
@@ -651,6 +674,15 @@ EatUntilExcluding(parser* Parser, c_token_type Close)
     }
   }
   return;
+}
+
+link_internal parser
+EatUntilExcluding_Parser(parser* Parser, c_token_type Close, memory_arena *Memory)
+{
+  auto Start = StartParserFromParser(Parser);
+  EatUntilExcluding(Parser, Close);
+  auto Result = FinalizeParserFromParser(&Start, Memory);
+  return Result;
 }
 
 link_internal c_token *
@@ -1887,16 +1919,15 @@ OptionalTokenRaw(parser* Parser, c_token_type Type)
   return Result;
 }
 
-link_internal b32
-OptionalTokenRaw(parser* Parser, c_token T)
+link_internal c_token *
+OptionalTokenRaw(parser *Parser, c_token T)
 {
-  b32 Result = False;
-  c_token Peeked = PeekTokenRaw(Parser);
-  if (Peeked == T)
+  c_token *Result = {};
+  c_token *Peeked = PeekTokenRawPointer(Parser);
+  if (Peeked && *Peeked == T)
   {
-    Result = True;
-    c_token Popped = PopTokenRaw(Parser);
-    Assert(Popped == Peeked);
+    Result = PopTokenRawPointer(Parser);
+    Assert(Result == Peeked);
   }
 
   return Result;
@@ -1905,7 +1936,7 @@ OptionalTokenRaw(parser* Parser, c_token T)
 // TODO(Jesse): Optimize by calling Advance() instead of RequireToken()
 // @optimize_call_advance_instead_of_being_dumb
 link_internal c_token *
-OptionalToken(parser* Parser, c_token T)
+OptionalToken(parser *Parser, c_token T)
 {
   c_token *Result = PeekTokenPointer(Parser);
   if (Result && *Result == T) { RequireToken(Parser, *Result); } else { Result = 0;}
@@ -2301,6 +2332,7 @@ EatBetweenExcluding(ansi_stream *Code, char Open, char Close)
   return Result;
 }
 
+// TODO(Jesse): Rewrite in terms of EatBetweenExcluding
 link_internal void
 EatBetween(parser* Parser, c_token_type Open, c_token_type Close)
 {
@@ -2349,6 +2381,8 @@ EatBetweenExcluding_Str(parser* Parser, c_token_type Open, c_token_type Close)
   if (Result.Count > 1)
   {
     Assert(Result.Start);
+    Assert(Result.Start[0] == char(Open));
+    Assert(Result.Start[Result.Count-1] == char(Close));
     Result.Count -= 2;
     Result.Start++;
   }
@@ -2368,24 +2402,13 @@ EatBetween_Str(parser* Parser, c_token_type Open, c_token_type Close)
   return Result;
 }
 
+
 link_internal parser
 EatBetween_Parser(parser *Parser, c_token_type Open, c_token_type Close, memory_arena *Memory)
 {
-  c_token *Start = PeekTokenPointer(Parser);
-
-  c_token_cursor *Tokens = Allocate(c_token_cursor, Memory, 1);
-  CTokenCursor( Tokens,
-                Start, 0,
-                CSz("(anonymous parser)"),
-                TokenCursorSource_IntermediateRepresentaton,
-                {0,0} );
-
-  parser Result = {};
-  Result.Tokens = Tokens;
-
-  EatBetween(Parser, CTokenType_OpenParen, CTokenType_CloseParen);
-
-  Result.Tokens->End = Parser->Tokens->At;
+  auto Start = StartParserFromParser(Parser);
+  EatBetween(Parser, Open, Close);
+  parser Result = FinalizeParserFromParser(&Start, Memory);
   return Result;
 }
 
