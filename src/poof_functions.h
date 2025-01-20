@@ -1716,10 +1716,7 @@ poof(
     link_internal (Type.name) *
     Push((Type.name)_stream* Stream, (Type.name) Element)
     {
-      if (Stream->Memory == 0)
-      {
-        Stream->Memory = AllocateArena();
-      }
+      Assert(Stream->Memory);
 
       /* (Type.name)_stream_chunk* NextChunk = AllocateProtection((Type.name)_stream_chunk*), Stream->Memory, 1, False) */
       (Type.name)_stream_chunk* NextChunk = ((Type.name)_stream_chunk*)PushStruct(Stream->Memory, sizeof((Type.name)_stream_chunk), 1, 0);
@@ -2269,7 +2266,7 @@ poof(
     link_internal type.name *
     Push((type.name)_block_array *Array, type.name *Element)
     {
-      if (Array->Memory == 0) { Array->Memory = AllocateArena(); }
+      Assert(Array->Memory);
 
       if (Array->First == 0) { Array->First = Allocate_(type.name)_block(Array->Memory); Array->Current = Array->First; }
 
