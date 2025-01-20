@@ -2209,28 +2209,41 @@ poof(
   }
 )
 
+#define INVALID_BLOCK_ARRAY_INDEX {0, u32_MAX, u32_MAX}
+
 poof(
   func block_array_c(type, type_poof_symbol n_elements)
   {
+    @var block_array_t (type.name)_block_array
+    @var block_t       (type.name)_block
+    @var index_t       (type.name)_block_array_index
 
-    link_internal (type.name)_block*
+    link_internal block_array_t
+    block_array_t.to_capital_case(memory_arena *Memory)
+    {
+      block_array_t Result = {};
+      Result.Memory = Memory;
+      return Result;
+    }
+
+    link_internal block_t *
     Allocate_(type.name)_block(memory_arena *Memory)
     {
-      (type.name)_block *Result = Allocate((type.name)_block, Memory, 1);
-      Result->Elements = Allocate((type.name), Memory, n_elements);
+      block_t *Result = Allocate( block_t, Memory, 1);
+      Result->Elements = Allocate( type.name, Memory, n_elements);
       return Result;
     }
 
     link_internal cs
-    CS((type.name)_block_array_index Index)
+    CS( index_t Index )
     {
       return FSz("(%u)(%u)", Index.BlockIndex, Index.ElementIndex);
     }
 
     link_internal void
-    RemoveUnordered((type.name)_block_array *Array, (type.name)_block_array_index Index)
+    RemoveUnordered( block_array_t *Array, index_t Index)
     {
-      (type.name)_block_array_index LastI = LastIndex(Array);
+      index_t LastI = LastIndex(Array);
 
       type.name *Element = GetPtr(Array, Index);
       type.name *LastElement = GetPtr(Array, LastI);
@@ -2257,8 +2270,8 @@ poof(
         else
         {
           // Walk the chain till we get to the second-last one
-          (type.name)_block *Current = Array->First;
-          (type.name)_block *LastB = LastI.Block;
+          block_t *Current = Array->First;
+          block_t *LastB = LastI.Block;
 
           while (Current->Next && Current->Next != LastB)
           {
@@ -2271,8 +2284,33 @@ poof(
       }
     }
 
+    link_internal index_t
+    Find( block_array_t *Array, type.name *Query)
+    {
+      index_t Result = INVALID_BLOCK_ARRAY_INDEX;
+      IterateOver(Array, E, Index)
+      {
+        if (E == Query)
+        {
+          Result = Index;
+          break;
+        }
+      }
+      return Result;
+    }
+
+    link_internal b32
+    IsValid((type.name)_block_array_index *Index)
+    {
+      NotImplemented;
+      index_t Test = INVALID_BLOCK_ARRAY_INDEX;
+      /* b32 Result = AreEqual(*Index, Test); */
+      b32 Result = False;
+      return Result;
+    }
+
     link_internal type.name *
-    Push((type.name)_block_array *Array, type.name *Element)
+    Push( block_array_t *Array, type.name *Element)
     {
       Assert(Array->Memory);
 
@@ -2287,7 +2325,7 @@ poof(
         }
         else
         {
-          (type.name)_block *Next = Allocate_(type.name)_block(Array->Memory);
+          block_t *Next = Allocate_(type.name)_block(Array->Memory);
           Next->Index = Array->Current->Index + 1;
 
           Array->Current->Next = Next;
