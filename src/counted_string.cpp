@@ -241,6 +241,22 @@ ToCapitalCaseInplace(counted_string* Source)
 }
 
 link_internal counted_string
+ToUpperCase(counted_string Source, memory_arena* Memory)
+{
+  counted_string Result = CountedString(Source.Count, Memory);
+
+  for (u32 CharIndex = 0;
+           CharIndex < Result.Count;
+         ++CharIndex)
+  {
+    char At = ToUpper(Source.Start[CharIndex]);
+    ((char*)Result.Start)[CharIndex] = At;
+  }
+
+  return Result;
+}
+
+link_internal counted_string
 ToLowerCase(counted_string Source, memory_arena* Memory)
 {
   counted_string Result = CountedString(Source.Count, Memory);
