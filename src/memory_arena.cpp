@@ -5,6 +5,7 @@ VaporizeArena(memory_arena *Arena)
   TIMED_FUNCTION();
   DEBUG_UNREGISTER_ARENA(Arena);
 
+  Info("Vaporizing Arena (0x%x)", Arena);
   b32 Result = True;
 
   if (Arena)
@@ -109,3 +110,64 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 }
 #endif
 
+// @temp-string-builder-memory
+// TODO(Jesse, id: 98, tags: robustness, api_improvement): Make allocating these on the stack work!
+link_internal memory_arena*
+AllocateArena_(const char *Id, umm RequestedBytes /* = Megabytes(1) */, b32 MemProtect /* = True */, b32 DebugRegister)
+{
+  RequestedBytes = Max(RequestedBytes, Megabytes(1));
+
+  umm PageSize = PlatformGetPageSize();
+  umm ToNextPage = PageSize - (RequestedBytes % PageSize);
+  umm AllocationSize = RequestedBytes + ToNextPage;
+
+  Assert(AllocationSize % PageSize == 0);
+
+#if MEMPROTECT_OVERFLOW
+  Assert(sizeof(memory_arena) < PageSize);
+  u8 *ArenaBytes = PlatformAllocateSize(PageSize*2);
+  ArenaBytes += (PageSize - sizeof(memory_arena));
+
+#elif MEMPROTECT_UNDERFLOW
+  NotImplemented;
+#else
+
+  u8 *ArenaBytes = PlatformAllocateSize(PageSize);
+#endif
+
+  memory_arena *Result = (memory_arena*)ArenaBytes;
+
+  u8 *Bytes = PlatformAllocateSize(AllocationSize);
+  Result->Start = Bytes;
+  Result->At = Bytes;
+
+  Result->End = Bytes + AllocationSize;
+  Result->NextBlockSize = Min(AllocationSize * 2, Gigabytes(1)); // Max out at 1gb blocks
+
+#if MEMPROTECT_OVERFLOW
+  if (MemProtect)
+  {
+    Assert(OnPageBoundary(Result, PageSize));
+    ProtectPage(ArenaBytes + sizeof(memory_arena));
+  }
+
+  Assert((umm)Result->Start % PageSize == 0);
+  Assert(Remaining(Result) >= RequestedBytes);
+#elif MEMPROTECT_UNDERFLOW
+  NotImplemented;
+#else
+  Assert(OnPageBoundary(Result, PageSize));
+  Assert(Remaining(Result) >= RequestedBytes);
+#endif
+
+#if BONSAI_INTERNAL
+  InitializeFutex(&Result->DebugFutex);
+#endif
+
+  if (DebugRegister)
+  {
+    DEBUG_REGISTER_NAMED_ARENA(Result, ThreadLocal_ThreadIndex, Id );
+  }
+
+  return Result;
+}

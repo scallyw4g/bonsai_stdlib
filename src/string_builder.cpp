@@ -1,3 +1,10 @@
+
+link_internal void
+Discard(string_builder* Builder)
+{
+  VaporizeArena(Builder->Chunks.Memory);
+}
+
 link_internal counted_string
 Finalize(string_builder* Builder, memory_arena* PermMemory, b32 IncludeNullTerminator = False)
 {
@@ -37,15 +44,7 @@ Finalize(string_builder* Builder, memory_arena* PermMemory, b32 IncludeNullTermi
     Assert(AtIndex == Result.Count);
   }
 
-  VaporizeArena(Builder->Memory);
+  Discard(Builder);
 
   return Result;
 }
-
-
-link_internal void
-Discard(string_builder* Builder)
-{
-  VaporizeArena(Builder->Memory);
-}
-

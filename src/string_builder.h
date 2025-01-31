@@ -1,13 +1,14 @@
 struct string_builder
 {
-  memory_arena* Memory = AllocateArena();
-  counted_string_stream Chunks;
+  counted_string_stream Chunks = { AllocateArena(0, True, False), 0, 0, 0 };
 };
 
 link_internal string_builder
 StringBuilder(memory_arena *Memory)
 {
-  string_builder Result = {Memory, {}};
+  string_builder Result = {{0,0,0,0}};
+  Assert(Result.Chunks.Memory == 0);
+  Result.Chunks.Memory = Memory;
   return Result;
 }
 

@@ -152,6 +152,8 @@ struct memory_arena
 #endif
 };
 
+global_variable memory_arena Global_PermMemory = {};
+
 #define STRINGIZE(x) STRINGIZE2(x)
 #define STRINGIZE2(x) #x
 #define LINE_STRING STRINGIZE(__LINE__)
@@ -411,62 +413,18 @@ ProtectPage(u8* Mem)
   return Result;
 }
 
-// @temp-string-builder-memory
-// TODO(Jesse, id: 98, tags: robustness, api_improvement): Make allocating these on the stack work!
+#define S1(x) #x
+#define S2(x) S1(x)
+#define LOCATION ()
+
+#ifndef POOF_PREPROCESSOR
+#define AllocateArena( ... ) AllocateArena_( __FILE__ ":" S2(__LINE__), __VA_ARGS__ )
+#else
+#define AllocateArena( ... )
+#endif
+
 link_internal memory_arena*
-AllocateArena(umm RequestedBytes = Megabytes(1), b32 MemProtect = True)
-{
-  RequestedBytes = Max(RequestedBytes, Megabytes(1));
-
-  umm PageSize = PlatformGetPageSize();
-  umm ToNextPage = PageSize - (RequestedBytes % PageSize);
-  umm AllocationSize = RequestedBytes + ToNextPage;
-
-  Assert(AllocationSize % PageSize == 0);
-
-#if MEMPROTECT_OVERFLOW
-  Assert(sizeof(memory_arena) < PageSize);
-  u8 *ArenaBytes = PlatformAllocateSize(PageSize*2);
-  ArenaBytes += (PageSize - sizeof(memory_arena));
-
-#elif MEMPROTECT_UNDERFLOW
-  NotImplemented;
-#else
-
-  u8 *ArenaBytes = PlatformAllocateSize(PageSize);
-#endif
-
-  memory_arena *Result = (memory_arena*)ArenaBytes;
-
-  u8 *Bytes = PlatformAllocateSize(AllocationSize);
-  Result->Start = Bytes;
-  Result->At = Bytes;
-
-  Result->End = Bytes + AllocationSize;
-  Result->NextBlockSize = Min(AllocationSize * 2, Gigabytes(1)); // Max out at 1gb blocks
-
-#if MEMPROTECT_OVERFLOW
-  if (MemProtect)
-  {
-    Assert(OnPageBoundary(Result, PageSize));
-    ProtectPage(ArenaBytes + sizeof(memory_arena));
-  }
-
-  Assert((umm)Result->Start % PageSize == 0);
-  Assert(Remaining(Result) >= RequestedBytes);
-#elif MEMPROTECT_UNDERFLOW
-  NotImplemented;
-#else
-  Assert(OnPageBoundary(Result, PageSize));
-  Assert(Remaining(Result) >= RequestedBytes);
-#endif
-
-#if BONSAI_INTERNAL
-  InitializeFutex(&Result->DebugFutex);
-#endif
-
-  return Result;
-}
+AllocateArena_(const char *, umm RequestedBytes = 1<<20, b32 MemProtect = True, b32 DebugRegister = True);
 
 link_internal b32
 DeallocateArena(memory_arena *Arena)
@@ -503,6 +461,7 @@ ReallocateArena(memory_arena *Arena, umm MinSize, b32 MemProtect)
     AllocationSize = MinSize;
 
   memory_arena *NewArena = AllocateArena(AllocationSize, MemProtect);
+  /* memory_arena *NewArena = AllocateArena_(__FILE__, AllocationSize, MemProtect); */
 
   memory_arena OldArena = *Arena;
   *Arena = *NewArena;

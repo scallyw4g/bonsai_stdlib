@@ -1756,6 +1756,14 @@ poof(
       umm ChunkCount;
     };
 
+    link_internal (Type.name)_stream
+    (Type.name.to_capital_case)Stream(memory_arena *Memory)
+    {
+      (Type.name)_stream Result = {};
+      Result.Memory = Memory;
+      return Result;
+    }
+
     link_internal void
     Deallocate((Type.name)_stream *Stream)
     {

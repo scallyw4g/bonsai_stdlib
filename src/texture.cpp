@@ -136,7 +136,12 @@ GenTexture(v2i Dim, cs DebugName, texture_storage_format StorageFormat, u32 Chan
   GL.GenTextures(1, &Result.ID);
   GL.BindTexture(TextureDimensionality, Result.ID);
 
-  if (GetStdlib) { Push(&GetStdlib()->AllTextures, &Result); }
+  if (GetStdlib)
+  {
+    bonsai_stdlib *Stdlib = GetStdlib();
+    Stdlib->AllTextures.Memory = &Global_PermMemory;
+    Push(&GetStdlib()->AllTextures, &Result);
+  }
 
   // Note(Jesse): This is required to be set if mipmapping is off.  The default
   // behavior is to lerp between the two closest mipmap levels, and when there
