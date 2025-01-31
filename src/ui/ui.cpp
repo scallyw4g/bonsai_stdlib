@@ -593,16 +593,14 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, v3 Color, r32 Z, r
 {
   rect2 UV = UVsForChar(Char);
 
-  // Lightly text gets a dark shadow, dark text gets a light shadow
-  v3 ShadowColor = V3(0.1f);
-  if (Length(Color) < 0.6f)
+  // Shadow
   {
-    ShadowColor = V3(0.9f);
+    v3 ShadowColor = V3(0.0f);
+    v2 ShadowOffset = 0.10f*FontSize;
+    BufferTexturedQuad( Group, DebugTextureArraySlice_Font,
+                      MinP+ShadowOffset, FontSize, UV, ShadowColor, Z, ClipWindow, ClipOptional);
   }
 
-  v2 ShadowOffset = 0.075f*FontSize;
-  BufferTexturedQuad( Group, DebugTextureArraySlice_Font,
-                      MinP+ShadowOffset, FontSize, UV, ShadowColor, Z, ClipWindow, ClipOptional);
 
   BufferTexturedQuad( Group, DebugTextureArraySlice_Font,
                       MinP, FontSize, UV, Color, Z, ClipWindow, ClipOptional);
