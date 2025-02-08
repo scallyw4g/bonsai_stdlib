@@ -550,22 +550,32 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
         case 's':
         {
           char* Value = va_arg(Args, char*);
-          u32 ValueLen = FormatPrecision ? FormatPrecision : (u32)Length(Value);
-
-          if (FormatWidth)
+          if (Value)
           {
-            u32 PadCount = FormatWidth - ValueLen;
-            PadForFormatWidth(DestCursor, PadCount);
-          }
+            u32 ValueLen = FormatPrecision ? FormatPrecision : (u32)Length(Value);
 
-          u32 Count = 0;
-          while (*Value)
-          {
-            CopyToDest(DestCursor, *Value++);
-            if (FormatPrecision && ++Count == FormatPrecision)
+            if (FormatWidth)
             {
-              break;
+              u32 PadCount = FormatWidth - ValueLen;
+              PadForFormatWidth(DestCursor, PadCount);
             }
+
+            u32 Count = 0;
+            while (*Value)
+            {
+              CopyToDest(DestCursor, *Value++);
+              if (FormatPrecision && ++Count == FormatPrecision)
+              {
+                break;
+              }
+            }
+          }
+          else
+          {
+            CopyToDest(DestCursor, 'n');
+            CopyToDest(DestCursor, 'u');
+            CopyToDest(DestCursor, 'l');
+            CopyToDest(DestCursor, 'l');
           }
         } break;
 
