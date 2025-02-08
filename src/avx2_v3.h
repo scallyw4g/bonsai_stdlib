@@ -27,8 +27,43 @@ union v3_8x
 /* } */
 /* #endif */
 
-/* poof(gen_vector_operators(v3_8x)) */
-/* #include <generated/gen_vector_operators_v3_8x.h> */
+#if 0
+poof(gen_vector_operators(v3_8x))
+#include <generated/gen_vector_operators_v3_8x.h>
+#else
+inline v3_8x
+operator*( v3_8x P1, v3_8x P2 )
+{
+  v3_8x Result = {{
+            Cast(f32_8x, P1.Raw[0] * P2.Raw[0]),
+      Cast(f32_8x, P1.Raw[1] * P2.Raw[1]),
+      Cast(f32_8x, P1.Raw[2] * P2.Raw[2]),
+    }};
+  return Result;
+}
+
+inline v3_8x
+operator*( v3_8x P1, f32_8x Scalar )
+{
+  v3_8x Result = {{
+            Cast(f32_8x, P1.Raw[0] * Scalar),
+      Cast(f32_8x, P1.Raw[1] * Scalar),
+      Cast(f32_8x, P1.Raw[2] * Scalar),
+    }};
+  return Result;
+}
+
+inline v3_8x
+operator*( f32_8x Scalar, v3_8x P1 )
+{
+  v3_8x Result = {{
+            Cast(f32_8x, Scalar * P1.Raw[0]),
+      Cast(f32_8x, Scalar * P1.Raw[1]),
+      Cast(f32_8x, Scalar * P1.Raw[2]),
+    }};
+  return Result;
+}
+#endif
 
 link_inline v3_8x
 V3_8X(f32_8x x, f32_8x y, f32_8x z)
@@ -153,4 +188,5 @@ Normalize( v3_8x Vec )
   v3_8x Result = Normalize(Vec, Length(Vec));
   return Result;
 }
+
 
