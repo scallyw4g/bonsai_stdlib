@@ -607,7 +607,21 @@ ProcessOsMessages(os *Os, platform *Plat)
 link_internal void
 PlatformMakeRenderContextCurrent(os *Os)
 {
-  wglMakeCurrent(Os->Display, Os->GlContext);
+  if (wglMakeCurrent(Os->Display, Os->GlContext) == False)
+  {
+    Win32PrintLastError();
+    Error("Making render context current.");
+  }
+}
+
+link_internal void
+PlatformReleaseRenderContext(os *Os)
+{
+  if (wglMakeCurrent(Os->Display, 0) == False)
+  {
+    Win32PrintLastError();
+    Error("Releasing render context.");
+  }
 }
 
 inline void
@@ -744,7 +758,7 @@ Win32PrintLastError()
     if (LastChar(Str) == '\n') { TruncateAndNullTerminate(&Str, 1); }
     if (LastChar(Str) == '\r') { TruncateAndNullTerminate(&Str, 1); }
 
-    IndentMessage("Win32 GetLastError (%S)", Str);
+    Warn("Win32 GetLastError (%S)", Str);
 
     //Free the Win32's string's buffer.
     LocalFree(messageBuffer);

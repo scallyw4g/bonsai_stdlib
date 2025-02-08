@@ -70,6 +70,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
     PlatformMakeRenderContextCurrent(Os);
     Ensure( InitializeOpenglFunctions() );
+    PlatformReleaseRenderContext(Os);
 #else
     Error("Asked to open a window when window implementations were not compiled in!");
 #endif

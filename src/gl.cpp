@@ -49,6 +49,7 @@ InitializeOpenglFunctions()
   Debug(glxExtensionString);
 #endif
 
+  Assert(GL.Initialized == False);
   GL.Initialized = True;
 
   GL.GetString                = (OpenglGetString)PlatformGetGlFunction("glGetString");
@@ -438,6 +439,7 @@ InitializeOpenglFunctions()
     }
     else
     {
+      Warn("Invalid Opengl Driver Info : (%s) (%s) (%s)", Vendor, Renderer, Version);
       GL.Initialized = False;
     }
   }
