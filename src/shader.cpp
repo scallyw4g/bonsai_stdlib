@@ -186,9 +186,8 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
 link_internal void
 HotReloadShaders(bonsai_stdlib *Stdlib)
 {
-  IterateOver(&Stdlib->AllShaders, ShaderP, ShaderIndex)
+  IterateOver(&Stdlib->AllShaders, Shader, ShaderIndex)
   {
-    shader *Shader = *ShaderP;
     Shader->HotReloaded = False;
 
     b32 VertIsNew = FileIsNew(GetNullTerminated(Shader->VertexSourceFilename), &Shader->VertexTimeModifiedWhenLoaded);

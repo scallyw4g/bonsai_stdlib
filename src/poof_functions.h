@@ -2035,35 +2035,41 @@ poof(
 
 
 poof(
-  func block_array_h(type, type_poof_symbol n_elements, type_poof_symbol extra_members)
+  func block_array_h(element_t, type_poof_symbol n_elements, type_poof_symbol extra_members)
   {
-    struct (type.name)_block
+    @var block_array_t (element_t.name)_block_array
+    @var block_t       (element_t.name)_block
+    @var index_t       (element_t.name)_block_array_index
+
+    struct block_t
     {
       u32 Index;
       u32 At;
-      (type.name) *Elements;
-      (type.name)_block *Next;
+      element_t.name *Elements;
+      block_t *Next;
     };
 
-    struct (type.name)_block_array_index
+    struct index_t
     {
-      (type.name)_block *Block;
+      block_t *Block;
       u32 BlockIndex;
       u32 ElementIndex;
     };
 
-    struct (type.name)_block_array
+    struct block_array_t
     {
-      (type.name)_block *First;
-      (type.name)_block *Current;
+      block_t *First;
+      block_t *Current;
       memory_arena *Memory; poof(@no_serialize)
       extra_members
     };
 
-    typedef (type.name)_block_array (type.name)_paged_list;
+    are_equal(index_t)
 
-    link_internal (type.name)_block_array_index
-    operator++((type.name)_block_array_index &I0)
+    typedef (element_t.name)_block_array (element_t.name)_paged_list;
+
+    link_internal index_t
+    operator++( index_t &I0 )
     {
       if (I0.Block)
       {
@@ -2086,30 +2092,29 @@ poof(
     }
 
     link_internal b32
-    operator<((type.name)_block_array_index I0, (type.name)_block_array_index I1)
+    operator<( index_t I0, index_t I1 )
     {
       b32 Result = I0.BlockIndex < I1.BlockIndex || (I0.BlockIndex == I1.BlockIndex & I0.ElementIndex < I1.ElementIndex);
       return Result;
     }
 
     link_inline umm
-    GetIndex((type.name)_block_array_index *Index)
+    GetIndex( index_t *Index)
     {
       umm Result = Index->ElementIndex + (Index->BlockIndex*n_elements);
       return Result;
     }
 
-    link_internal (type.name)_block_array_index
-    ZerothIndex((type.name)_block_array *Arr)
+    link_internal index_t
+    ZerothIndex( block_array_t *Arr)
     {
-      (type.name)_block_array_index Result = {};
+      (element_t.name)_block_array_index Result = {};
       Result.Block = Arr->First;
-      /* Assert(Result.Block->Index == 0); */
       return Result;
     }
 
     link_internal umm
-    TotalElements((type.name)_block_array *Arr)
+    TotalElements( block_array_t *Arr)
     {
       umm Result = 0;
       if (Arr->Current)
@@ -2119,10 +2124,10 @@ poof(
       return Result;
     }
 
-    link_internal (type.name)_block_array_index
-    LastIndex((type.name)_block_array *Arr)
+    link_internal index_t
+    LastIndex( block_array_t *Arr)
     {
-      (type.name)_block_array_index Result = {};
+      index_t Result = {};
       if (Arr->Current)
       {
         Result.Block = Arr->Current;
@@ -2134,10 +2139,10 @@ poof(
       return Result;
     }
 
-    link_internal (type.name)_block_array_index
-    AtElements((type.name)_block_array *Arr)
+    link_internal index_t
+    AtElements( block_array_t *Arr)
     {
-      (type.name)_block_array_index Result = {};
+      index_t Result = {};
       if (Arr->Current)
       {
         Result.Block = Arr->Current;
@@ -2148,61 +2153,76 @@ poof(
     }
 
     link_internal umm
-    Count((type.name)_block_array *Arr)
+    Count( block_array_t *Arr)
     {
       auto Index = AtElements(Arr);
       umm Result = GetIndex(&Index);
       return Result;
     }
 
-    link_internal type.name *
-    GetPtr((type.name)_block_array *Arr, (type.name)_block_array_index Index)
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    Set( block_array_t *Arr,
+         element_t.name element_t.is_pointer?{}{*}Element,
+         index_t Index )
     {
-      type.name *Result = {};
-      if (Index.Block) { Result = Index.Block->Elements + Index.ElementIndex; }
+      element_t.name element_t.is_pointer?{}{*}Result = {};
+      if (Index.Block)
+      {
+        Result = element_t.is_pointer?{}{&}Index.Block->Elements[Index.ElementIndex];
+        element_t.is_pointer?{}{*}Result = element_t.is_pointer?{}{*}Element;
+      }
+
       return Result;
     }
 
-    link_internal type.name *
-    GetPtr((type.name)_block *Block, umm Index)
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    GetPtr((element_t.name)_block_array *Arr, (element_t.name)_block_array_index Index)
     {
-      type.name *Result = 0;
-      if (Index < Block->At) { Result = Block->Elements + Index; }
+      element_t.name element_t.is_pointer?{}{*}Result = {};
+      if (Index.Block) { Result = element_t.is_pointer?{*}(Index.Block->Elements + Index.ElementIndex); }
       return Result;
     }
 
-    link_internal type.name *
-    GetPtr((type.name)_block_array *Arr, umm Index)
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    GetPtr((element_t.name)_block *Block, umm Index)
+    {
+      element_t.name element_t.is_pointer?{}{*}Result = {};
+      if (Index < Block->At) { Result = element_t.is_pointer?{*}(Block->Elements + Index); }
+      return Result;
+    }
+
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    GetPtr((element_t.name)_block_array *Arr, umm Index)
     {
       umm BlockIndex = Index / n_elements;
       umm ElementIndex = Index % n_elements;
 
       umm AtBlock = 0;
-      (type.name)_block *Block = Arr->First;
+      (element_t.name)_block *Block = Arr->First;
       while (AtBlock++ < BlockIndex)
       {
         Block = Block->Next;
       }
 
-      type.name *Result = Block->Elements+ElementIndex;
+      element_t.name element_t.is_pointer?{}{*}Result = element_t.is_pointer?{*}(Block->Elements+ElementIndex);
       return Result;
     }
 
-    link_internal type.name *
-    TryGetPtr((type.name)_block_array *Arr, umm Index)
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    TryGetPtr((element_t.name)_block_array *Arr, umm Index)
     {
       umm BlockIndex = Index / n_elements;
       umm ElementIndex = Index % n_elements;
 
       auto AtE = AtElements(Arr);
       umm Total = GetIndex(&AtE);
-      type.name *Result = {};
+      element_t.name element_t.is_pointer?{}{*}Result = {};
       if (Index < Total) { Result = GetPtr(Arr, Index); }
       return Result;
     }
 
     link_internal u32
-    AtElements((type.name)_block *Block)
+    AtElements((element_t.name)_block *Block)
     {
       return Block->At;
     }
@@ -2212,11 +2232,11 @@ poof(
 #define INVALID_BLOCK_ARRAY_INDEX {0, u32_MAX, u32_MAX}
 
 poof(
-  func block_array_c(type, type_poof_symbol n_elements)
+  func block_array_c(element_t, type_poof_symbol n_elements)
   {
-    @var block_array_t (type.name)_block_array
-    @var block_t       (type.name)_block
-    @var index_t       (type.name)_block_array_index
+    @var block_array_t (element_t.name)_block_array
+    @var block_t       (element_t.name)_block
+    @var index_t       (element_t.name)_block_array_index
 
     link_internal block_array_t
     block_array_t.to_capital_case(memory_arena *Memory)
@@ -2227,10 +2247,10 @@ poof(
     }
 
     link_internal block_t *
-    Allocate_(type.name)_block(memory_arena *Memory)
+    Allocate_(element_t.name)_block(memory_arena *Memory)
     {
       block_t *Result = Allocate( block_t, Memory, 1);
-      Result->Elements = Allocate( type.name, Memory, n_elements);
+      Result->Elements = Allocate( element_t.name, Memory, n_elements);
       return Result;
     }
 
@@ -2245,10 +2265,10 @@ poof(
     {
       index_t LastI = LastIndex(Array);
 
-      type.name *Element = GetPtr(Array, Index);
-      type.name *LastElement = GetPtr(Array, LastI);
+      element_t.name element_t.is_pointer?{}{*}Element = GetPtr(Array, Index);
+      element_t.name element_t.is_pointer?{}{*}LastElement = GetPtr(Array, LastI);
 
-      *Element = *LastElement;
+      Set(Array, LastElement, Index);
 
       Assert(Array->Current->At);
       Array->Current->At -= 1;
@@ -2285,12 +2305,12 @@ poof(
     }
 
     link_internal index_t
-    Find( block_array_t *Array, type.name *Query)
+    Find( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Query)
     {
       index_t Result = INVALID_BLOCK_ARRAY_INDEX;
       IterateOver(Array, E, Index)
       {
-        if (E == Query)
+        if ( E == Query)
         {
           Result = Index;
           break;
@@ -2300,21 +2320,20 @@ poof(
     }
 
     link_internal b32
-    IsValid((type.name)_block_array_index *Index)
+    IsValid((element_t.name)_block_array_index *Index)
     {
-      NotImplemented;
       index_t Test = INVALID_BLOCK_ARRAY_INDEX;
-      /* b32 Result = AreEqual(*Index, Test); */
-      b32 Result = False;
+      b32 Result = AreEqual(Index, &Test);
+      /* b32 Result = False; */
       return Result;
     }
 
-    link_internal type.name *
-    Push( block_array_t *Array, type.name *Element)
+    link_internal element_t.name *
+    Push( block_array_t *Array, element_t.name *Element)
     {
       Assert(Array->Memory);
 
-      if (Array->First == 0) { Array->First = Allocate_(type.name)_block(Array->Memory); Array->Current = Array->First; }
+      if (Array->First == 0) { Array->First = Allocate_(element_t.name)_block(Array->Memory); Array->Current = Array->First; }
 
       if (Array->Current->At == n_elements)
       {
@@ -2325,7 +2344,7 @@ poof(
         }
         else
         {
-          block_t *Next = Allocate_(type.name)_block(Array->Memory);
+          block_t *Next = Allocate_(element_t.name)_block(Array->Memory);
           Next->Index = Array->Current->Index + 1;
 
           Array->Current->Next = Next;
@@ -2333,7 +2352,7 @@ poof(
         }
       }
 
-      type.name *Result = Array->Current->Elements + Array->Current->At;
+      element_t.name *Result = Array->Current->Elements + Array->Current->At;
 
       Array->Current->Elements[Array->Current->At++] = *Element;
 
@@ -2343,15 +2362,15 @@ poof(
 )
 
 poof(
-  func flatten_block_array(type)
+  func flatten_block_array(element_t)
   {
-    link_internal (type.name)_buffer
-    Flatten((type.name)_block_array *Array, memory_arena *Memory)
+    link_internal (element_t.name)_buffer
+    Flatten((element_t.name)_block_array *Array, memory_arena *Memory)
     {
       // TODO(Jesse): This is MAJOR barf
       auto At = AtElements(Array);
       auto Count = GetIndex(&At);
-      (type.name)_buffer Result = (type.name.to_capital_case)Buffer(Count, Memory);
+      (element_t.name)_buffer Result = (element_t.name.to_capital_case)Buffer(Count, Memory);
       IterateOver(Array, Element, ElementIndex)
       {
         // NOTE(Jesse): UGGGGGGHHH

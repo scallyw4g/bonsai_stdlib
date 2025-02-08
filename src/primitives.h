@@ -209,7 +209,7 @@ Clear(T *Struct)
 
 
 poof(
-  func gen_are_equal( type_poof_symbol Types)
+  func gen_are_equal( type_poof_symbol Types )
   {
     Types.map (Type)
     {
