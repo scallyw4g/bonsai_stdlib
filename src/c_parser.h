@@ -33,6 +33,7 @@ enum parse_error_code
   ParseErrorCode_PoofTypeError,
   ParseErrorCode_DUnionParse,
   ParseErrorCode_UndefinedDatatype,
+  ParseErrorCode_InvalidKeyword,
   ParseErrorCode_InvalidDirective,
   ParseErrorCode_InvalidOperator,
   ParseErrorCode_InvalidMetaTransformOp,
