@@ -2064,6 +2064,14 @@ poof(
       extra_members
     };
 
+    link_internal block_array_t
+    block_array_t.to_capital_case(memory_arena *Memory)
+    {
+      block_array_t Result = {};
+      Result.Memory = Memory;
+      return Result;
+    }
+
     are_equal(index_t)
 
     typedef (element_t.name)_block_array (element_t.name)_paged_list;
@@ -2238,14 +2246,6 @@ poof(
     @var block_t       (element_t.name)_block
     @var index_t       (element_t.name)_block_array_index
 
-    link_internal block_array_t
-    block_array_t.to_capital_case(memory_arena *Memory)
-    {
-      block_array_t Result = {};
-      Result.Memory = Memory;
-      return Result;
-    }
-
     link_internal block_t *
     Allocate_(element_t.name)_block(memory_arena *Memory)
     {
@@ -2323,8 +2323,7 @@ poof(
     IsValid((element_t.name)_block_array_index *Index)
     {
       index_t Test = INVALID_BLOCK_ARRAY_INDEX;
-      b32 Result = AreEqual(Index, &Test);
-      /* b32 Result = False; */
+      b32 Result = (AreEqual(Index, &Test) == False);
       return Result;
     }
 
