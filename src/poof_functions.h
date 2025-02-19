@@ -2169,21 +2169,6 @@ poof(
     }
 
     link_internal element_t.name element_t.is_pointer?{}{*}
-    Set( block_array_t *Arr,
-         element_t.name element_t.is_pointer?{}{*}Element,
-         index_t Index )
-    {
-      element_t.name element_t.is_pointer?{}{*}Result = {};
-      if (Index.Block)
-      {
-        Result = element_t.is_pointer?{}{&}Index.Block->Elements[Index.ElementIndex];
-        element_t.is_pointer?{}{*}Result = element_t.is_pointer?{}{*}Element;
-      }
-
-      return Result;
-    }
-
-    link_internal element_t.name element_t.is_pointer?{}{*}
     GetPtr((element_t.name)_block_array *Arr, (element_t.name)_block_array_index Index)
     {
       element_t.name element_t.is_pointer?{}{*}Result = {};
@@ -2258,6 +2243,23 @@ poof(
     CS( index_t Index )
     {
       return FSz("(%u)(%u)", Index.BlockIndex, Index.ElementIndex);
+    }
+
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    Set( block_array_t *Arr,
+         element_t.name element_t.is_pointer?{}{*}Element,
+         index_t Index )
+    {
+      element_t.name element_t.is_pointer?{}{*}Result = {};
+      if (Index.Block)
+      {
+        element_t.name *Slot = &Index.Block->Elements[Index.ElementIndex];
+        *Slot = element_t.is_pointer?{}{*}Element;
+
+        Result = element_t.is_pointer?{*}{}Slot;
+      }
+
+      return Result;
     }
 
     link_internal void
