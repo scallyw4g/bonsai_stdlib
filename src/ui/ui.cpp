@@ -3381,3 +3381,4 @@ UiFrameEnd(renderer_2d *Ui)
   Ui->CommandBuffer->CommandCount = 0;
   if (GetUiDebug) { GetUiDebug()->DebugBreakUiCommand = False; }
 }
+

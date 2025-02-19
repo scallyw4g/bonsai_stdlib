@@ -105,6 +105,12 @@ TryDeleteDirectory(cs Filepath)
 
 
 
+link_internal b32
+Remove(cs FilePath)
+{
+  return PlatformRemoveFile(FilePath);
+}
+
 link_internal native_file
 OpenFile(const char *FilePath, file_permission Permissions)
 {

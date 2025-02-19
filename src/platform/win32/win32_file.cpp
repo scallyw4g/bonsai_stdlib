@@ -171,6 +171,13 @@ PlatformRenameFile(cs CurrentFilePath, cs NewFilePath)
   return Result;
 }
 
+link_internal b32
+PlatformRemoveFile(cs CurrentFilePath)
+{
+  b32 Result = DeleteFile(GetNullTerminated(CurrentFilePath)) != 0;
+  return Result;
+}
+
 link_internal DWORD
 Win32GetSectorSize()
 {
