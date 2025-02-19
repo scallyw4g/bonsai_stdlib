@@ -1,9 +1,9 @@
 link_internal void
-CopyString(cs *S1, cs *S2)
+CopyString(cs *Src, cs *Dest)
 {
-  Assert(S1->Count <= S2->Count);
-  MemCopy((u8*)S1->Start, (u8*)S2->Start, S1->Count);
-  S2->Count = S1->Count;
+  Assert(Src->Count <= Dest->Count);
+  MemCopy((u8*)Src->Start, (u8*)Dest->Start, Src->Count);
+  Dest->Count = Src->Count;
 }
 
 link_internal void
