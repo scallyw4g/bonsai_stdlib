@@ -154,6 +154,7 @@ GetIndexOfSingleSetBit( u64 O )
 link_inline u64
 NextPowerOfTwo(u64 Input)
 {
+  Input = Input == 0 ? 1 : Input;
   u64 Result = Input;
 
   Result--;
@@ -172,6 +173,7 @@ NextPowerOfTwo(u64 Input)
 link_inline u32
 NextPowerOfTwo(u32 Input)
 {
+  Input = Input == 0 ? 1 : Input;
   u32 Result = Input;
 
   Result--;
