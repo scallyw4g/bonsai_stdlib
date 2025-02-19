@@ -7,6 +7,13 @@ CopyString(cs *S1, cs *S2)
 }
 
 link_internal void
+CopyString(const char *Src, const char *Dest, umm Count)
+{
+  MemCopy((u8*)Src, (u8*)Dest, Count);
+}
+
+
+link_internal void
 DeepCopy(cs *S1, cs *S2)
 {
   CopyString(S1, S2);
