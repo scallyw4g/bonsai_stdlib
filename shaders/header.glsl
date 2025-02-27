@@ -278,6 +278,62 @@ float white_noise(v3 P)
   return Res;
 }
 
+#if 1
+
+vec4 voronoi_noise( in vec3 p ) // , vec3 AngleOffset, vec3 CellDensity)
+{
+  v3 AngleOffset = vec3(1.f, 1.f, 1.f);
+  v3 CellDensity = vec3(1.f, 1.f, 1.f);
+  vec4 Out;
+
+  vec3 g = floor(p * CellDensity);
+  vec3 f = fract(p * CellDensity);	
+  float res = 8.0;
+  float md=8.0;
+  vec3 mr;
+  for( int z=-1; z<=1; z++ )
+  for( int y=-1; y<=1; y++ )
+  for( int x=-1; x<=1; x++ )
+  {
+    vec3 lattice = vec3(x,y,z);
+    vec3 offset=vhash(lattice + g);
+    vec3 r = lattice +offset -f;
+    float d = dot( r, r );
+    if (d < res)
+    {
+      res=d;
+      mr=r;
+    }
+  }
+
+  res = 8.0;
+  for( int z=-1; z<=1; z++ )
+  for( int y=-1; y<=1; y++ )
+  for( int x=-1; x<=1; x++ )
+  {
+    vec3 lattice = vec3(x,y,z);
+    vec3 offset=vhash(lattice + g);
+    vec3 r = lattice +offset -f;
+    float d = dot( r, r );
+    if( d < res )
+    {
+      res = d;
+      Out.x= offset.x;
+      Out.y =  d;
+    }
+    if( dot(mr-r,mr-r)>0.00001)
+    {
+      md = min( md, dot( 0.5*(mr+r), normalize(r-mr) ) );
+    }
+  }
+  Out.z = mix(1.0, 0.0, smoothstep( 0.0, 0.1, md ));
+  Out.w = 1.0-smoothstep( 0.0, 0.1, res);
+
+  return Out;
+}
+
+#else
+
 vec3 voronoi_noise( in vec3 x )
 {
   vec3 ip = floor(x);
@@ -324,6 +380,8 @@ vec3 voronoi_noise( in vec3 x )
 
   return vec3( md, mr );
 }
+
+#endif
 
 vec4 value_noise_derivs( in vec3 x )
 {
