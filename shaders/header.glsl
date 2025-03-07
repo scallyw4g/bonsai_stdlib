@@ -19,6 +19,29 @@ precision highp sampler3D;
 // NOTE(Jesse): Must match defines in render.h
 #define RENDERER_MAX_LIGHT_EMISSION_VALUE (5.f)
 
+
+
+
+// https://thebookofshaders.com/10/
+float rand(vec2 st) {
+    return fract(sin(dot(st.xy,
+                         vec2(12.9898,78.233)))*
+        43758.5453123);
+}
+
+
+#define Floor floor
+#define Abs abs
+#define Clamp01(x) clamp(x, 0.f, 1.f)
+#define LengthSq(V) (V.x*V.x + V.y*V.y + V.z*V.z)
+#define Normalize normalize
+#define Dot dot
+#define Min min
+
+#define True true
+#define False false
+#define b32 bool
+
 #define f32_MAX (1E+37f)
 #define f32_MIN (1E-37f)
 
@@ -36,6 +59,10 @@ precision highp sampler3D;
 #define s32 int
 
 #define link_internal
+
+float hash(float x)  { return fract(x + 1.32154 * 1.2151); }
+vec3 RandomV3FromFloat(float x) { return vec3(hash(((x   + 0.5283) * 59.3829) * 274.3487), hash(((x   + 0.8192) * 83.6621) * 345.3871), hash(((x   + 0.2157f) * 36.6521f) * 458.3971f)); }
+vec3 RandomV3FromV3(v3 V)       { return vec3(rand(V.xy), rand(V.yz), rand(V.xz)); }
 
 #define PoissonDiskSize 16
 vec2 poissonDisk[PoissonDiskSize] = vec2[](
@@ -278,110 +305,91 @@ float white_noise(v3 P)
   return Res;
 }
 
-#if 1
-
-vec4 voronoi_noise( in vec3 p ) // , vec3 AngleOffset, vec3 CellDensity)
+link_internal v3
+voronoi_noise(v3 Texel, f32 Squareness = 0.f)
 {
-  v3 AngleOffset = vec3(1.f, 1.f, 1.f);
-  v3 CellDensity = vec3(1.f, 1.f, 1.f);
-  vec4 Out;
+  v3 baseCell = Floor(Texel);
 
-  vec3 g = floor(p * CellDensity);
-  vec3 f = fract(p * CellDensity);	
-  float res = 8.0;
-  float md=8.0;
-  vec3 mr;
-  for( int z=-1; z<=1; z++ )
-  for( int y=-1; y<=1; y++ )
-  for( int x=-1; x<=1; x++ )
+  v3 CellOffsets[27];
+
+  // first pass to find the closest cell
+  //
+  f32 minDistToCellSq = 100;
+  v3 toClosestCell;
+  v3 closestCell;
+  s32 CellIndex = 0;
+  for( s32 x1 = -1;
+           x1 <= 1;
+         ++x1 )
   {
-    vec3 lattice = vec3(x,y,z);
-    vec3 offset=vhash(lattice + g);
-    vec3 r = lattice +offset -f;
-    float d = dot( r, r );
-    if (d < res)
+    for(s32 y1 = -1;
+            y1 <= 1;
+          ++y1 )
     {
-      res=d;
-      mr=r;
-    }
-  }
-
-  res = 8.0;
-  for( int z=-1; z<=1; z++ )
-  for( int y=-1; y<=1; y++ )
-  for( int x=-1; x<=1; x++ )
-  {
-    vec3 lattice = vec3(x,y,z);
-    vec3 offset=vhash(lattice + g);
-    vec3 r = lattice +offset -f;
-    float d = dot( r, r );
-    if( d < res )
-    {
-      res = d;
-      Out.x= offset.x;
-      Out.y =  d;
-    }
-    if( dot(mr-r,mr-r)>0.00001)
-    {
-      md = min( md, dot( 0.5*(mr+r), normalize(r-mr) ) );
-    }
-  }
-  Out.z = mix(1.0, 0.0, smoothstep( 0.0, 0.1, md ));
-  Out.w = 1.0-smoothstep( 0.0, 0.1, res);
-
-  return Out;
-}
-
-#else
-
-vec3 voronoi_noise( in vec3 x )
-{
-  vec3 ip = floor(x);
-  vec3 fp = fract(x);
-
-  //----------------------------------
-  // first pass: regular voronoi
-  //----------------------------------
-  vec3 mg, mr;
-
-  float md = 8.0;
-  for( int k=-1; k<=1; k++ )
-  for( int j=-1; j<=1; j++ )
-  for( int i=-1; i<=1; i++ )
-  {
-    vec3 g = vec3(float(i),float(j),float(k));
-    vec3 o = hash3( ip + g );
-    vec3 r = g + o - fp;
-    float d = dot(r,r);
-
-      if( d<md )
+      for( s32 z1 = -1;
+               z1 <= 1;
+             ++z1 )
       {
-          md = d;
-          mr = r;
-          mg = g;
+        v3 cell      =  baseCell + V3(x1, y1, z1);
+        v3 offset    = Clamp01(RandomV3FromV3(cell) - Squareness);
+        v3 cellPosition = cell + offset;
+
+        v3 toCell = cellPosition - Texel;
+        f32 distToCellSq = LengthSq(toCell);
+        if(distToCellSq < minDistToCellSq)
+        {
+          minDistToCellSq = distToCellSq;
+          closestCell = cell;
+          toClosestCell = toCell;
+        }
+
+        CellOffsets[CellIndex++] = offset;
       }
+    }
   }
-
-  //----------------------------------
-  // second pass: distance to borders
-  //----------------------------------
-  md = 8.0;
-  for( int k=-1; k<=1; k++ )
-  for( int j=-1; j<=1; j++ )
-  for( int i=-1; i<=1; i++ )
+  //
+  // TODO(Jesse): This seems like you'd just want to do it in-line in the first
+  // loop ..?
+  //
+  // second pass to find the distance to the closest edge
+  //
+  f32 minEdgeDistance = 10;
+  CellIndex = 0;
+  for( s32 x2 = -1;
+           x2 <= 1;
+         ++x2 )
   {
-    vec3 g = mg + vec3(float(i),float(j),float(k));
-    vec3 o = hash3( ip + g );
-    vec3 r = g + o - fp;
+    for(s32 y2 = -1;
+            y2 <= 1;
+          ++y2 )
+    {
+      for( s32 z2 = -1;
+               z2 <= 1;
+             ++z2 )
+      {
+        /* v3 cell = (baseCell + V3(x2, y2, z2)); */
+        v3 cell = baseCell + V3(x2, y2, z2);
+        v3 offset = CellOffsets[CellIndex++];
 
-    if( dot(mr-r,mr-r)>0.00001 )
-    md = min( md, dot( 0.5*(mr+r), normalize(r-mr) ) );
+        v3 cellPosition = cell + offset;
+        v3 toCell = cellPosition - Texel;
+
+        v3 diffToClosestCell = Abs(closestCell - cell);
+        b32 isClosestCell = diffToClosestCell.x + diffToClosestCell.y + diffToClosestCell.z < 0.1f;
+        if(isClosestCell == False)
+        {
+          v3 toCenter = (toClosestCell + toCell) * 0.5;
+          v3 cellDifference = Normalize(toCell - toClosestCell);
+          f32 edgeDistance = Dot(toCenter, cellDifference);
+          minEdgeDistance = Min(minEdgeDistance, edgeDistance);
+        }
+      }
+    }
   }
 
-  return vec3( md, mr );
+  return V3(minEdgeDistance, minDistToCellSq, closestCell);
 }
 
-#endif
 
 vec4 value_noise_derivs( in vec3 x )
 {
