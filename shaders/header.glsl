@@ -58,6 +58,9 @@ float rand(vec2 st) {
 #define u32 unsigned int
 #define s32 int
 
+#define PI64 (3.1415926535897932384626433832795028841971693993)
+#define PI32 ((float)PI64)
+
 #define link_internal
 
 float hash(float x)  { return fract(x + 1.32154 * 1.2151); }
@@ -420,4 +423,13 @@ vec4 value_noise_derivs( in vec3 x )
 
     return vec4( k0 + k1*u.x + k2*u.y + k3*u.z + k4*u.x*u.y + k5*u.y*u.z + k6*u.z*u.x + k7*u.x*u.y*u.z, 
                  du * (vec3(k1,k2,k3) + u.yzx*vec3(k4,k5,k6) + u.zxy*vec3(k6,k4,k5) + k7*u.yzx*u.zxy ));
+}
+
+
+// https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L94
+link_internal f32
+Smoothstep(f32 N)
+{
+  f32 Result = N * N * (3.f - 2.f * N);
+  return Result;
 }
