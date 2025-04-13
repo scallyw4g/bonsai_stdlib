@@ -63,6 +63,13 @@ float rand(vec2 st) {
 
 #define link_internal
 
+f32 SafeDivide0(f32 Dividend, f32 Divisor) { return Divisor != 0.f ? Dividend/Divisor : 0.f; }
+
+v3 SafeDivide0(v3 Dividend, v3 Divisor) { return V3( SafeDivide0(Dividend.x, Divisor.x),
+                                                     SafeDivide0(Dividend.y, Divisor.y),
+                                                     SafeDivide0(Dividend.z, Divisor.z) ); }
+
+
 float hash(float x)  { return fract(x + 1.32154 * 1.2151); }
 vec3 RandomV3FromFloat(float x) { return vec3(hash(((x   + 0.5283) * 59.3829) * 274.3487), hash(((x   + 0.8192) * 83.6621) * 345.3871), hash(((x   + 0.2157f) * 36.6521f) * 458.3971f)); }
 vec3 RandomV3FromV3(v3 V)       { return vec3(rand(V.xy), rand(V.yz), rand(V.xz)); }
