@@ -63,6 +63,14 @@ float rand(vec2 st) {
 
 #define link_internal
 
+// @braindead_truncate
+r32 Truncate(r32 Input)
+{
+  s32 Truncated = s32(Input);
+  r32 Result = r32(Truncated);
+  return Result;
+}
+
 f32 SafeDivide0(f32 Dividend, f32 Divisor) { return Divisor != 0.f ? Dividend/Divisor : 0.f; }
 
 v3 SafeDivide0(v3 Dividend, v3 Divisor) { return V3( SafeDivide0(Dividend.x, Divisor.x),
