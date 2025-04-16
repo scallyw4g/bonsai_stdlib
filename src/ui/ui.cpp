@@ -1523,20 +1523,13 @@ Button(    renderer_2d *Group,
 }
 
 
-link_internal b32
-ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* FStyle = &DefaultStyle, ui_style* BStyle = &DefaultBackgroundStyle, v4 Padding = DefaultButtonPadding, ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_LeftAlign)
+/*********************************           *********************************/
+/*********************************  Toggles  *********************************/
+/*********************************           *********************************/
+
+link_internal interactable_handle
+ToggleButtonStart(renderer_2d* Group, ui_id InteractionId, ui_style* BStyle = &DefaultBackgroundStyle, v4 Padding = DefaultButtonPadding, ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_LeftAlign)
 {
-  interactable_handle Handle = {
-    .Id = InteractionId
-  };
-
-  b32 Result = ToggledOn(Group, &Handle);
-
-  if (Result && FStyle == &DefaultStyle)
-  {
-    FStyle = &DefaultSelectedStyle;
-  }
-
   ui_render_command StartCommand = {
     .Type = type_ui_render_command_button_start,
     .ui_render_command_button_start.ID = InteractionId,
@@ -1546,12 +1539,31 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id Intera
 
   PushUiRenderCommand(Group, &StartCommand);
 
-  cs NameToUse = Result ? ButtonNameOn : ButtonNameOff;
-  PushColumn(Group, NameToUse, FStyle, Padding, AlignFlags);
+  interactable_handle Handle = {
+    .Id = InteractionId
+  };
 
+  return Handle;
+}
+
+link_internal void
+ToggleButtonEnd(renderer_2d* Group)
+{
   ui_render_command EndCommand = {};
   EndCommand.Type = type_ui_render_command_button_end;
   PushUiRenderCommand(Group, &EndCommand);
+}
+
+link_internal b32
+ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id InteractionId, ui_style* FStyle = &DefaultStyle, ui_style* BStyle = &DefaultBackgroundStyle, v4 Padding = DefaultButtonPadding, ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_LeftAlign)
+{
+  auto Handle = ToggleButtonStart(Group, InteractionId, BStyle, Padding, AlignFlags);
+  b32 Result = ToggledOn(Group, &Handle);
+
+  cs NameToUse = Result ? ButtonNameOn : ButtonNameOff;
+  PushColumn(Group, NameToUse, FStyle, Padding, AlignFlags);
+
+  ToggleButtonEnd(Group);
 
   return Result;
 }
