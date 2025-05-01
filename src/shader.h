@@ -1,3 +1,6 @@
+#define INVALID_SHADER_UNIFORM (-1)
+#define INVALID_SHADER (u32)(-1)
+
 
 poof(
   func shader_magic(shader_struct)
@@ -10,6 +13,7 @@ poof(
         shader_struct.has_tag(frag_source_file)?
         {
           Struct->Program = CompileShaderPair(CSz((shader_struct.tag_value(vert_source_file))), CSz((shader_struct.tag_value(frag_source_file))));
+          Struct->Program.Uniforms = ShaderUniformBuffer(Struct->Uniforms, ArrayCount(Struct->Uniforms));
 
           u32 UniformIndex = 0;
 
@@ -18,8 +22,7 @@ poof(
             member.has_tag(uniform)?
             {
               Struct->member.name = member.name;
-              Struct->Uniforms[UniformIndex] = ShaderUniform(&Struct->Program, member.is_pointer?{}{&}Struct->member.name, "member.name");
-              ++UniformIndex;
+              SetShaderUniform(&Struct->Program, UniformIndex++, member.is_pointer?{}{&}Struct->member.name, "member.name");
             }
           }
 
@@ -88,8 +91,6 @@ struct light;
 struct camera;
 
 // TODO(Jesse, id: 83, tags: metaprogramming, immediate): d_union-ify this
-// TODO(Jesse): Convert all shaders to use poof func shader_magic and remove
-// the next pointer.
 struct shader_uniform
 {
   shader_uniform_type Type;
@@ -106,15 +107,17 @@ struct shader_uniform
     void *Data;
   };
 
-  s32 ID;
+  s32 ID = INVALID_SHADER_UNIFORM;
   const char *Name;
-  shader_uniform *Next;
 };
+
+poof(buffer_h(shader_uniform, u32))
+#include <generated/buffer_h_struct_u32.h>
 
 struct shader
 {
   u32 ID;
-  shader_uniform *FirstUniform;
+  shader_uniform_buffer Uniforms;
 
   cs VertexSourceFilename;
   cs FragSourceFilename;

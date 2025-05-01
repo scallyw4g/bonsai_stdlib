@@ -98,14 +98,10 @@ link_internal shader
 MakeRenderToTextureShader(memory_arena *Memory, m4 *ViewProjection, texture *ColorPalette)
 {
   shader Shader = CompileShaderPair( CSz(BONSAI_SHADER_PATH "RenderToTexture.vertexshader"), CSz(BONSAI_SHADER_PATH "RenderToTexture.fragmentshader") );
+  Shader.Uniforms = ShaderUniformBuffer(2, Memory);
 
-  shader_uniform **Current = &Shader.FirstUniform;
-
-  *Current = GetUniform(Memory, &Shader, ViewProjection, "ViewProjection");
-  Current = &(*Current)->Next;
-
-  *Current = GetUniform(Memory, &Shader, ColorPalette, "ColorPalette");
-  Current = &(*Current)->Next;
+  SetShaderUniform(&Shader, 0, ViewProjection, "ViewProjection");
+  SetShaderUniform(&Shader, 1, ColorPalette,  "ColorPalette");
 
   return Shader;
 }

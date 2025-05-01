@@ -1,9 +1,8 @@
+poof(buffer_c(shader_uniform, u32))
+#include <generated/buffer_c_struct_u32.h>
 
 poof(block_array_c(shader_ptr, {64}))
 #include <generated/block_array_c_shader_ptr_688853971.h>
-
-#define INVALID_SHADER_UNIFORM (-1)
-#define INVALID_SHADER (u32)(-1)
 
 link_internal u32
 CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
@@ -35,7 +34,7 @@ CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
     GL.GetShaderInfoLog(ShaderID, InfoLogLength, &ActualLength, ProgramErrorMessage);
     if (ActualLength == 0)
     {
-      SoftError("Compiling Shader : Unfortunately, the driver did not provide an error message.  Sorry, friend.");
+      SoftError("Compiling Shader : The driver did not provide an error message.  Sorry, friend.");
     }
     else
     {
@@ -130,7 +129,7 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
   /* CheckShaderCompilationStatus(FragShaderPath, FragmentShaderID); */
 
   memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
-  shader Shader = { INVALID_SHADER, 0, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0, False};
+  shader Shader = { INVALID_SHADER, {}, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0, False};
 
   // NOTE(Jesse): Not doing this because the errors come through when you go to link the program.  Of course ..
   /* if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER) */
@@ -150,6 +149,12 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
     GL.DetachShader(ProgramID, FragmentShaderID);
     GL.DeleteShader(VertexShaderID);
     GL.DeleteShader(FragmentShaderID);
+
+
+    s32 ActiveUniformSlots;
+    GL.GetProgramiv(ProgramID, GL_ACTIVE_UNIFORMS, &ActiveUniformSlots);
+
+    Info("Shader program (%d) reported (%d) active uniform slots.", ProgramID, ActiveUniformSlots);
 
     if (LinkResult == GL_FALSE)
     {
@@ -183,6 +188,30 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
   Push(&Stdlib->AllShaders, &Shader);
 }
 
+link_internal s32
+GetShaderUniform(shader *Shader, const char *Name)
+{
+  s32 Result = GL.GetUniformLocation(Shader->ID, Name);
+  if (Result == INVALID_SHADER_UNIFORM)
+  {
+    Warn("Couldn't retreive %s shader uniform - was it optimized out?", Name);
+  }
+
+  return Result;
+}
+
+link_internal b32
+ReloadShaderUniform(shader *Shader, shader_uniform *Uniform)
+{
+  Assert(Uniform->Name);
+  auto PrevLoc = Uniform->ID;
+  Uniform->ID = GetShaderUniform(Shader, Uniform->Name);
+
+  Info("Reloaded Shader Uniform (%s) at location (%d), previously (%d)", Uniform->Name, Uniform->ID, PrevLoc);
+  return Uniform->ID != INVALID_SHADER_UNIFORM;
+}
+
+
 link_internal void
 HotReloadShaders(bonsai_stdlib *Stdlib)
 {
@@ -209,13 +238,33 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
         if (++RetryCount > 5) { break; } // If it doesn't work after 5 tries, it's probably a syntax error.
       }
 
+      if (LoadedShader.ID == INVALID_SHADER)
+      {
+        // Hit an error loading the shader
 
-      if (LoadedShader.ID != INVALID_SHADER)
+        IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
+        {
+          *Uniform = {};
+          Assert(Uniform->ID == INVALID_SHADER_UNIFORM);
+        }
+      }
+      else
       {
         GL.DeleteProgram(Shader->ID);
+
+        auto Uniforms = Shader->Uniforms;
         *Shader = LoadedShader;
+        Shader->Uniforms = Uniforms;
+
         Shader->HotReloaded = True;
+
+        IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
+        {
+          ReloadShaderUniform(Shader, Uniform);
+        }
+
       }
+
       AssertNoGlErrors;
     }
   }
@@ -223,48 +272,36 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
 
 
-s32
-GetShaderUniform(shader *Shader, const char *Name)
-{
-  s32 Result = GL.GetUniformLocation(Shader->ID, Name);
-  if (Result == INVALID_SHADER_UNIFORM)
-  {
-    Warn("Couldn't retreive %s shader uniform - was it optimized out?", Name);
-  }
 
-  return Result;
-}
-
-shader_uniform *
-PushShaderUniform( memory_arena *Mem, const char *Name)
-{
-  shader_uniform *Uniform = Allocate(shader_uniform, Mem, 1);
-  Uniform->Name = Name;
-  return Uniform;
-}
+/* shader_uniform * */
+/* PushShaderUniform( memory_arena *Mem, const char *Name) */
+/* { */
+/*   shader_uniform *Uniform = Allocate(shader_uniform, Mem, 1); */
+/*   Uniform->Name = Name; */
+/*   return Uniform; */
+/* } */
 
 
-poof(gen_shader_uniform_push(texture));
+poof(set_shader_uniform(texture));
 #include <generated/gen_shader_uniform_push_texture.h>
 
-poof(gen_shader_uniform_push(m4));
+poof(set_shader_uniform(m4));
 #include <generated/gen_shader_uniform_push_m4.h>
 
-poof(gen_shader_uniform_push(v2));
+poof(set_shader_uniform(v2));
 #include <generated/gen_shader_uniform_push_v2.h>
 
-poof(gen_shader_uniform_push(v3));
+poof(set_shader_uniform(v3));
 #include <generated/gen_shader_uniform_push_v3.h>
 
-poof(gen_shader_uniform_push(u32));
+poof(set_shader_uniform(u32));
 #include <generated/gen_shader_uniform_push_u32.h>
 
-poof(gen_shader_uniform_push(s32));
+poof(set_shader_uniform(s32));
 #include <generated/gen_shader_uniform_push_s32.h>
 
-poof(gen_shader_uniform_push(r32));
+poof(set_shader_uniform(r32));
 #include <generated/gen_shader_uniform_push_r32.h>
-
 
 
 shader
@@ -272,10 +309,11 @@ MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
   shader Shader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "Passthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
 
-  shader_uniform **Current = &Shader.FirstUniform;
+  Shader.Uniforms = ShaderUniformBuffer(1, GraphicsMemory);
 
-  *Current = GetUniform(GraphicsMemory, &Shader, Texture, "Texture");
-  Current = &(*Current)->Next;
+  SetShaderUniform(&Shader, 0, Texture, "Texture");
+  /* *Current = GetUniform(GraphicsMemory, &Shader, Texture, "Texture"); */
+  /* Current = &(*Current)->Next; */
 
   AssertNoGlErrors;
 
@@ -286,21 +324,12 @@ shader
 MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
   shader Shader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "FullPassthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
+  Shader.Uniforms = ShaderUniformBuffer(4, GraphicsMemory);
 
-  shader_uniform **Current = &Shader.FirstUniform;
-
-  *Current = GetUniform(GraphicsMemory, &Shader, Texture, "Texture");
-  Current = &(*Current)->Next;
-
-  *Current = GetUniform(GraphicsMemory, &Shader, Texture, "TextureArray");
-  Current = &(*Current)->Next;
-
-  *Current = GetUniform(GraphicsMemory, &Shader, (b32*)0, "IsDepthTexture");
-  Current = &(*Current)->Next;
-
-  *Current = GetUniform(GraphicsMemory, &Shader, (b32*)0, "HasAlphaChannel");
-  Current = &(*Current)->Next;
-
+  SetShaderUniform(&Shader, 0, Texture, "Texture");
+  SetShaderUniform(&Shader, 1, Texture, "TextureArray");
+  SetShaderUniform(&Shader, 2, (b32*)0, "IsDepthTexture");
+  SetShaderUniform(&Shader, 3, (b32*)0, "HasAlphaChannel");
   AssertNoGlErrors;
 
   return Shader;
@@ -619,14 +648,10 @@ BindShaderUniforms(shader *Shader)
 {
   TIMED_FUNCTION();
 
-  shader_uniform *Uniform = Shader->FirstUniform;
-
   s32 TextureUnit = 0;
-
-  while (Uniform)
+  IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
   {
     BindUnifromById(Uniform, &TextureUnit);
-    Uniform = Uniform->Next;
     AssertNoGlErrors;
   }
 
@@ -638,11 +663,8 @@ CleanupTextureBindings(shader *Shader)
 {
   TIMED_FUNCTION();
 
-  shader_uniform *Uniform = Shader->FirstUniform;
-
   u32 TextureUnit = 0;
-
-  while (Uniform)
+  IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
   {
     switch(Uniform->Type)
     {
@@ -655,8 +677,7 @@ CleanupTextureBindings(shader *Shader)
 
       default: { } break;
     }
-
-    Uniform = Uniform->Next;
+    AssertNoGlErrors;
   }
 }
 

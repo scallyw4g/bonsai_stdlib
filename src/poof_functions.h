@@ -11,37 +11,22 @@
 // TODO(Jesse)(bug, poof): If I put this function in bonsai_stdlib/shader.cpp
 // poof fails to call it when it gets to engine/shader.cpp
 poof(
-  func gen_shader_uniform_push(uniform_t)
+  func set_shader_uniform(uniform_t)
   {
-    shader_uniform *
-    PushShaderUniform( memory_arena *Mem, const char *Name, uniform_t.name *Value)
+    b32
+    SetShaderUniform(shader *Shader, u32 Index, uniform_t.name *Value, const char *Name)
     {
-      shader_uniform *Uniform = PushShaderUniform(Mem, Name);
+      Assert(Index < Shader->Uniforms.Count);
+
+      shader_uniform *Uniform = Shader->Uniforms.Start + Index;
+
       Uniform->Type = ShaderUniform_(uniform_t.name.to_capital_case);
       Uniform->uniform_t.name.to_capital_case = Value;
-      return Uniform;
-    }
+      Uniform->Name = Name;
 
-    shader_uniform *
-    GetUniform(memory_arena *Mem, shader *Shader, uniform_t.name *Value, const char *Name)
-    {
-      shader_uniform *Uniform = PushShaderUniform(Mem, Name, Value);
       Uniform->ID = GetShaderUniform(Shader, Name);
-      return Uniform;
-    }
 
-    shader_uniform
-    ShaderUniform(shader *Shader, uniform_t.name *Value, const char *Name)
-    {
-      shader_uniform Uniform = {};
-
-      Uniform.Type = ShaderUniform_(uniform_t.name.to_capital_case);
-      Uniform.uniform_t.name.to_capital_case = Value;
-      Uniform.Name = Name;
-
-      Uniform.ID = GetShaderUniform(Shader, Name);
-
-      return Uniform;
+      return Uniform->ID != INVALID_SHADER_UNIFORM;
     }
   }
 );
@@ -1218,7 +1203,7 @@ poof(
 )
 
 poof(
-  func buffer_t(Type, count_type)
+  func buffer_h(Type, count_type)
   {
     struct (Type.name)_buffer
     {
@@ -1227,20 +1212,12 @@ poof(
     };
 
     link_internal (Type.name)_buffer
-    (Type.name.to_capital_case)Buffer( count_type.name ElementCount, memory_arena* Memory)
+    (Type.name.to_capital_case)Buffer( count_type.name ElementCount, memory_arena* Memory);
+
+    link_internal (Type.name)_buffer
+    (Type.name.to_capital_case)Buffer( Type.name *Start, count_type.name ElementCount)
     {
-      (Type.name)_buffer Result = {};
-
-      if (ElementCount)
-      {
-        Result.Start = Allocate( (Type.name), Memory, ElementCount );
-        Result.Count = ElementCount;
-      }
-      else
-      {
-        Warn("Attempted to allocate (Type.name)_buffer of 0 length.");
-      }
-
+      (Type.name)_buffer Result = {ElementCount, Start};
       return Result;
     }
 
@@ -1295,11 +1272,42 @@ poof(
     }
   }
 )
+poof(
+  func buffer_c(Type, count_type)
+  {
+    link_internal (Type.name)_buffer
+    (Type.name.to_capital_case)Buffer( count_type.name ElementCount, memory_arena* Memory)
+    {
+      (Type.name)_buffer Result = {};
+
+      if (ElementCount)
+      {
+        Result.Start = Allocate( (Type.name), Memory, ElementCount );
+        Result.Count = ElementCount;
+      }
+      else
+      {
+        Warn("Attempted to allocate (Type.name)_buffer of 0 length.");
+      }
+
+      return Result;
+    }
+  }
+)
+
+// TODO(Jesse): Remove
+poof(
+  func buffer_t(Type, count_type)
+  {
+    buffer_h(Type, count_type)
+  }
+)
 
 poof(
   func buffer(Type)
   {
-    buffer_t(Type, umm)
+    buffer_h(Type, umm)
+    buffer_c(Type, umm)
   }
 )
 
