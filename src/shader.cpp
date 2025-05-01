@@ -109,7 +109,7 @@ LoadGlobalShaderHeaderCode(shader_language_setting ShaderLanguage)
 }
 
 link_internal shader
-LoadShaders(cs VertShaderPath, cs FragShaderPath)
+CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
 {
   Info("Creating shader : %S | %S", VertShaderPath, FragShaderPath);
 
@@ -194,15 +194,17 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
     b32 FragIsNew = FileIsNew(GetNullTerminated(Shader->FragSourceFilename),   &Shader->FragmentTimeModifiedWhenLoaded);
     if (VertIsNew || FragIsNew)
     {
+      SleepMs(5);
+
       auto T1 = Shader->VertexTimeModifiedWhenLoaded;
       auto T2 = Shader->FragmentTimeModifiedWhenLoaded;
-      shader LoadedShader = LoadShaders(Shader->VertexSourceFilename, Shader->FragSourceFilename);
+      shader LoadedShader = CompileShaderPair(Shader->VertexSourceFilename, Shader->FragSourceFilename);
 
       b32 RetryCount = 0;
       while (LoadedShader.ID == INVALID_SHADER)
       {
-        SleepMs(1);
-        LoadedShader = LoadShaders(Shader->VertexSourceFilename, Shader->FragSourceFilename);
+        SleepMs(5);
+        LoadedShader = CompileShaderPair(Shader->VertexSourceFilename, Shader->FragSourceFilename);
 
         if (++RetryCount > 5) { break; } // If it doesn't work after 5 tries, it's probably a syntax error.
       }
@@ -268,7 +270,7 @@ poof(gen_shader_uniform_push(r32));
 shader
 MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
-  shader Shader = LoadShaders( CSz(STDLIB_SHADER_PATH "Passthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
+  shader Shader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "Passthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
 
   shader_uniform **Current = &Shader.FirstUniform;
 
@@ -283,7 +285,7 @@ MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 shader
 MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
-  shader Shader = LoadShaders( CSz(STDLIB_SHADER_PATH "FullPassthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
+  shader Shader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "FullPassthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
 
   shader_uniform **Current = &Shader.FirstUniform;
 

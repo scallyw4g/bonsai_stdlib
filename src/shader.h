@@ -9,7 +9,7 @@ poof(
       {
         shader_struct.has_tag(frag_source_file)?
         {
-          Struct->Program = LoadShaders(CSz((shader_struct.tag_value(vert_source_file))), CSz((shader_struct.tag_value(frag_source_file))));
+          Struct->Program = CompileShaderPair(CSz((shader_struct.tag_value(vert_source_file))), CSz((shader_struct.tag_value(frag_source_file))));
 
           u32 UniformIndex = 0;
 

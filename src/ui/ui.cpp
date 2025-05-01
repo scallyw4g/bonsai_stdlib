@@ -3196,11 +3196,11 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
     GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
 
-    TextGroup->Text2DShader = LoadShaders( CSz(STDLIB_SHADER_PATH "TextVertexShader.vertexshader"), CSz(STDLIB_SHADER_PATH "TextVertexShader.fragmentshader") );
+    TextGroup->Text2DShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "TextVertexShader.vertexshader"), CSz(STDLIB_SHADER_PATH "TextVertexShader.fragmentshader") );
 
     TextGroup->TextTextureUniform = GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
 
-    Renderer->TextGroup->SolidUIShader = LoadShaders( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") );
+    Renderer->TextGroup->SolidUIShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") );
 
     // Generic shader that gets reused to draw simple textured quads
     Renderer->TexturedQuadShader = MakeFullTextureShader(0, PermMemory);
