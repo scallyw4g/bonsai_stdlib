@@ -252,3 +252,10 @@ poof( gen_primitive_deep_copy({s64 u64 r64 s32 u32 r32 s16 u16 s8 u8 }) )
 
 link_internal void PlatformDebugStacktrace();
 
+#define DETECT_CHANGES_ON(Value, PrevValueName, Block) \
+  do {                                                 \
+    static auto PrevValueName = Value;                 \
+    if (AreEqual(Value, PrevValueName) == False) Block \
+    PrevValueName = (Value);                           \
+  } while (false)
+
