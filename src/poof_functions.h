@@ -2367,6 +2367,14 @@ poof(
 
       return Result;
     }
+
+    link_internal element_t.name *
+    Push( block_array_t *Array )
+    {
+      element_t.name Element = {};
+      auto Result = Push(Array, &Element);
+      return Result;
+    }
   }
 )
 
