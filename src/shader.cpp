@@ -4,7 +4,13 @@ poof(buffer_c(shader_uniform, u32))
 poof(block_array_c(shader_ptr, {64}))
 #include <generated/block_array_c_shader_ptr_688853971.h>
 
-link_internal u32
+struct shader_compile_result
+{
+  b32 Success;
+  u32 ShaderId;
+};
+
+link_internal shader_compile_result
 CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
 {
   const int InfoLogLength = 0;
@@ -32,21 +38,14 @@ CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
     char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength);
     s32 ActualLength = 0;
     GL.GetShaderInfoLog(ShaderID, InfoLogLength, &ActualLength, ProgramErrorMessage);
-    if (ActualLength == 0)
-    {
-      SoftError("Compiling Shader : The driver did not provide an error message.  Sorry, friend.");
-    }
-    else
-    {
-      SoftError("Compiling Shader : (%d)(%S)", InfoLogLength, CS(ProgramErrorMessage, umm(ActualLength)));
-    }
+    SoftError("Compiling Shader : ApparentLogLength(%d) ActualLogLength(%d) DriverInfoMessage (%S)", InfoLogLength, ActualLength, CS(ProgramErrorMessage, umm(ActualLength)));
 
     // NOTE(Jesse): Need this to get the actual error message later ... sigh ...
     /* GL.DeleteShader(ShaderID); */
     /* ShaderID = INVALID_SHADER; */
   }
 
-  u32 Result = ShaderID;
+  shader_compile_result Result = {CompileSuccess == GL_TRUE, ShaderID};
   return Result;
 }
 
@@ -107,6 +106,25 @@ LoadGlobalShaderHeaderCode(shader_language_setting ShaderLanguage)
   Global_ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
 }
 
+link_internal void
+DumpShaderSource(u32 ShaderId)
+{
+  s32 BufferSize = s32(Megabytes(4));
+  s32 BytesWritten = 0;
+  char *Buffer = Allocate(char, GetTranArena(), BufferSize);
+  GL.GetShaderSource(ShaderId, BufferSize, &BytesWritten, Buffer);
+  AssertNoGlErrors;
+
+  u32 LineNumber = 1;
+  DebugChars("%4d | ", LineNumber++);
+  RangeIterator(CharIndex, BytesWritten)
+  {
+    char C = Buffer[CharIndex];
+    DebugChars("%c", C);
+    if (C == '\n') { DebugChars("%4d | ", LineNumber++); }
+  }
+}
+
 link_internal shader
 CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
 {
@@ -120,13 +138,11 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
 
   int InfoLogLength;
 
-  u32 VertexShaderID = CompileShader(HeaderCode, VertexShaderCode, GL_VERTEX_SHADER);
-    AssertNoGlErrors;
-  /* CheckShaderCompilationStatus(VertShaderPath, VertexShaderID); // NOTE(Jesse): This happens inline in CompileShader */
+  shader_compile_result VertexResult = CompileShader(HeaderCode, VertexShaderCode, GL_VERTEX_SHADER);
+  AssertNoGlErrors;
 
-  u32 FragmentShaderID = CompileShader(HeaderCode, FragShaderCode, GL_FRAGMENT_SHADER);
-    AssertNoGlErrors;
-  /* CheckShaderCompilationStatus(FragShaderPath, FragmentShaderID); */
+  shader_compile_result FragResult = CompileShader(HeaderCode, FragShaderCode, GL_FRAGMENT_SHADER);
+  AssertNoGlErrors;
 
   memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
   shader Shader = { INVALID_SHADER, {}, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0, False};
@@ -137,22 +153,31 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
     // Link the program
     u32 ProgramID = GL.CreateProgram();
     Assert(ProgramID);
-    GL.AttachShader(ProgramID, VertexShaderID);
-    GL.AttachShader(ProgramID, FragmentShaderID);
+    GL.AttachShader(ProgramID, VertexResult.ShaderId);
+    GL.AttachShader(ProgramID, FragResult.ShaderId);
     GL.LinkProgram(ProgramID);
+    AssertNoGlErrors;
 
     // Check the program linked
     s32 LinkResult = GL_FALSE;
     GL.GetProgramiv(ProgramID, GL_LINK_STATUS, &LinkResult);
     GL.GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    GL.DetachShader(ProgramID, VertexShaderID);
-    GL.DetachShader(ProgramID, FragmentShaderID);
-    GL.DeleteShader(VertexShaderID);
-    GL.DeleteShader(FragmentShaderID);
+    AssertNoGlErrors;
 
 
     s32 ActiveUniformSlots;
     GL.GetProgramiv(ProgramID, GL_ACTIVE_UNIFORMS, &ActiveUniformSlots);
+    AssertNoGlErrors;
+
+    if (VertexResult.Success == False)
+    {
+      DumpShaderSource(VertexResult.ShaderId);
+    }
+
+    if (FragResult.Success == False)
+    {
+      DumpShaderSource(FragResult.ShaderId);
+    }
 
     Info("Shader program (%d) reported (%d) active uniform slots.", ProgramID, ActiveUniformSlots);
 
@@ -161,10 +186,17 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
       char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
       GL.GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
       SoftError("Linking shader pair %S | %S", VertShaderPath, FragShaderPath);
-      SoftError("%s", ProgramErrorMessage);
-      ProgramID = INVALID_SHADER;
+      SoftError("\n%s", ProgramErrorMessage);
+      AssertNoGlErrors;
     }
 
+    GL.DetachShader(ProgramID, VertexResult.ShaderId);
+    GL.DetachShader(ProgramID, FragResult.ShaderId);
+    GL.DeleteShader(VertexResult.ShaderId);
+    GL.DeleteShader(FragResult.ShaderId);
+    AssertNoGlErrors;
+
+    if (LinkResult == GL_FALSE) { ProgramID = INVALID_SHADER; }
     Shader.ID = ProgramID;
 
     // NOTE(Jesse): Kind of a hack to set the last modified times on the shader.  Should

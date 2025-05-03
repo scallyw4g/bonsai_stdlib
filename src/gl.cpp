@@ -229,6 +229,9 @@ InitializeOpenglFunctions()
       GL.ShaderSource              = (OpenglShaderSource)PlatformGetGlFunction("glShaderSource");
       GL.Initialized               &= GL.ShaderSource != 0;
 
+      GL.GetShaderSource           = (OpenglGetShaderSource)PlatformGetGlFunction("glGetShaderSource");
+      GL.Initialized               &= GL.GetShaderSource != 0;
+
       GL.UseProgram                = (OpenglUseProgram)PlatformGetGlFunction("glUseProgram");
       GL.Initialized               &= GL.UseProgram != 0;
 

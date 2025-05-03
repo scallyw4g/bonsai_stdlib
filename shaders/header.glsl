@@ -2,7 +2,6 @@
 /* #version 310 es */
 /* #version 330 core */
 
-#extension GL_NV_shader_buffer_load : enable
 
 
 precision highp float;
@@ -59,7 +58,7 @@ float rand(vec2 st) {
 #define s32 int
 
 #define PI64 (3.1415926535897932384626433832795028841971693993)
-#define PI32 ((float)PI64)
+#define PI32 (float(PI64))
 
 #define link_internal
 

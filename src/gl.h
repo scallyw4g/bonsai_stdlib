@@ -388,6 +388,7 @@ typedef GLuint          (*OpenglCreateProgram)             (void);
 typedef GLuint          (*OpenglCreateShader)              (GLenum type);
 typedef void            (*OpenglLinkProgram)               (GLuint program);
 typedef void            (*OpenglShaderSource)              (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
+typedef void            (*OpenglGetShaderSource)           (GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* source);
 typedef void            (*OpenglUseProgram)                (GLuint program);
 typedef void            (*OpenglGetProgramInfoLog)         (GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
 typedef void            (*OpenglGetShaderInfoLog)          (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
@@ -519,6 +520,7 @@ struct opengl
   OpenglCreateShader CreateShader;
   OpenglLinkProgram LinkProgram;
   OpenglShaderSource ShaderSource;
+  OpenglGetShaderSource GetShaderSource;
   OpenglUseProgram UseProgram;
   OpenglGetProgramInfoLog GetProgramInfoLog;
   OpenglGetShaderInfoLog GetShaderInfoLog;
