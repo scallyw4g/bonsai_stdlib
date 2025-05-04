@@ -227,6 +227,14 @@ struct text_box_edit_state
 };
 
 
+enum layer_toolbar_actions
+{
+  LayerToolbarActions_New,
+  LayerToolbarActions_Delete,
+  LayerToolbarActions_Rename,
+  // ?
+};
+
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
 struct input;
@@ -260,9 +268,7 @@ struct renderer_2d
 
   text_box_edit_state TextEdit;
 
-  /* modal_callback  ActiveModalCallback; */
-  /*          void  *ActiveModalUserData; */
-
+  layer_toolbar_actions LayerToolbarAction;
 
   untextured_2d_geometry_buffer Geo;
   shader TexturedQuadShader;
@@ -485,9 +491,10 @@ debug_global v4 DefaultButtonPadding       = V4(10, 3, 10, 3);
 debug_global v4 DefaultCheckboxPadding     = DefaultButtonPadding;
 debug_global v4 DefaultToggleButtonPadding = DefaultButtonPadding;
 
-debug_global v4 DefaultGenericPadding           = V4( 3, 3, 3,  3);
-debug_global v4 DefaultGenericHorizontalPadding = V4( 3, 0, 3,  0);
-debug_global v4 DefaultZeroPadding              = V4( 0, 0, 0,  0);
+debug_global v4 DefaultGenericPadding           = V4( 3, 3, 3, 3);
+debug_global v4 DefaultGenericVerticalPadding   = V4( 0, 3, 0, 3);
+debug_global v4 DefaultGenericHorizontalPadding = V4( 3, 0, 3, 0);
+debug_global v4 DefaultZeroPadding              = V4( 0, 0, 0, 0);
 /* debug_global v4 DefaultColumnPadding         = V4(0); */
 /* debug_global v4 DefaultButtonPadding         = V4(15); */
 /* debug_global v4 DefaultButtonPadding         = V4(0); */
@@ -543,6 +550,17 @@ debug_global ui_style Global_DefaultCheckboxBackground = UiStyleFromLightestColo
 debug_global ui_style Global_DefaultSuccessStyle = UiStyleFromLightestColor(V3(0.1f, 0.9f, 0.1f));;
 debug_global ui_style Global_DefaultWarnStyle    = UiStyleFromLightestColor(V3(1.f,  0.5f, 0.2f));
 debug_global ui_style Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1.f,  0.2f, 0.1f));
+
+global_variable ui_render_params DefaultUiRenderParams_Toolbar =
+{
+  {},
+  &DefaultStyle,
+  &DefaultBackgroundStyle,
+  {},
+  DefaultGenericVerticalPadding,
+  UiElementAlignmentFlag_LeftAlign,
+  UiElementLayoutFlag_Default,
+};
 
 global_variable ui_render_params DefaultUiRenderParams_Button =
 {
