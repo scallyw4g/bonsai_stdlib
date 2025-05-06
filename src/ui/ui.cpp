@@ -45,7 +45,7 @@ struct ui_toggle_button_group
 
   ui_toggle_button_handle_buffer Buttons;
 
-  ui_element_reference UiRef;
+  /* ui_element_reference UiRef; */
   ui_toggle_button_group_flags Flags;
 
   // This is a bitfield which indicates which enum values are toggled on.  Each
@@ -56,7 +56,7 @@ struct ui_toggle_button_group
   b32 AnyElementClicked;
 };
 
-link_internal ui_element_reference
+link_internal void //ui_element_reference
 DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params = &DefaultUiRenderParams_Generic);
 
 link_internal ui_toggle_button_group
@@ -75,7 +75,7 @@ DrawButtonGroupForEnum( renderer_2d *Ui,
 
   Assert(Buttons->Count < bitsof(*EnumStorage));
 
-  Result.UiRef = DrawButtonGroup(&Result, Name, Params);
+  /* Result.UiRef = */ DrawButtonGroup(&Result, Name, Params);
 
   return Result;
 }
@@ -1613,6 +1613,33 @@ TextBox(renderer_2d* Group, cs Name, cs Text, u32 TextBufferLen, ui_id ButtonId,
 
 
 
+/********************************            *********************************/
+/********************************   Window   *********************************/
+/********************************            *********************************/
+
+link_internal window_layout *
+GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId)
+{
+  maybe_window_layout_ptr MaybeWindow = GetPtrByHashtableKey( &Ui->WindowTable, WindowId );
+
+  window_layout *Result = {};
+  if (MaybeWindow.Tag == Maybe_Yes)
+  {
+    Result = MaybeWindow.Value;
+  }
+  else
+  {
+    window_layout Dummy = {};
+    Dummy.HashtableKey = WindowId;
+    Result = Upsert(Dummy, &Ui->WindowTable, &Ui->WindowTableArena);
+  }
+
+  Assert(Result);
+  return Result;
+}
+
+
+
 /*********************************           *********************************/
 /*********************************   Modal   *********************************/
 /*********************************           *********************************/
@@ -1823,7 +1850,7 @@ ToggleRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *Toggle
   SetRadioButton(Group, MaybeInputToggle, ToggleHandle, ToggleState);
 }
 
-link_internal ui_element_reference
+link_internal void //ui_element_reference
 DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
@@ -1842,7 +1869,7 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
     *Group->EnumStorage = INVALID_BUTTON_ENUM_VALUE;
   }
 
-  ui_element_reference Result = PushTableStart(Ui, &TableParams);
+  /* ui_element_reference Result = PushTableStart(Ui, &TableParams); */
     if (Name.Count)
     {
       PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column);
@@ -1852,51 +1879,54 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
         PushNewRow(Ui);
       }
     }
-    IterateOver(ButtonBuffer, UiButton, ButtonIndex)
-    {
-      interactable_handle ButtonHandle = {UiButton->Id};
 
-      ui_style *ThisStyle = FStyle;
-
-      b32 ButtonClicked = Clicked(Ui, &ButtonHandle);
-
-      if (ButtonClicked) {
-        Group->AnyElementClicked = True;
-      }
-
-      switch (Group->Flags & ToggleButtonGroupFlags_ButtonTypes)
+    u32 ColumnIndex = StartColumn(Ui);
+      IterateOver(ButtonBuffer, UiButton, ButtonIndex)
       {
-        case ToggleButtonGroupFlags_TypePlainButton:
-        case ToggleButtonGroupFlags_TypeRadioButton:
+        interactable_handle ButtonHandle = {UiButton->Id};
+
+        ui_style *ThisStyle = FStyle;
+
+        b32 ButtonClicked = Clicked(Ui, &ButtonHandle);
+
+        if (ButtonClicked) {
+          Group->AnyElementClicked = True;
+        }
+
+        switch (Group->Flags & ToggleButtonGroupFlags_ButtonTypes)
         {
-          Assert((Group->Flags & ToggleButtonGroupFlags_TypeMultiSelectButton) == 0);
+          case ToggleButtonGroupFlags_TypePlainButton:
+          case ToggleButtonGroupFlags_TypeRadioButton:
+          {
+            Assert((Group->Flags & ToggleButtonGroupFlags_TypeMultiSelectButton) == 0);
 
-          ThisStyle = (*Group->EnumStorage == UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
-          if (ButtonClicked) { *Group->EnumStorage = UiButton->Value; }
-        } break;
+            ThisStyle = (*Group->EnumStorage == UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
+            if (ButtonClicked) { *Group->EnumStorage = UiButton->Value; }
+          } break;
 
-        case ToggleButtonGroupFlags_TypeMultiSelectButton:
+          case ToggleButtonGroupFlags_TypeMultiSelectButton:
+          {
+            Assert((Group->Flags & ToggleButtonGroupFlags_TypeRadioButton) == 0);
+            Assert((Group->Flags & ToggleButtonGroupFlags_TypePlainButton) == 0);
+
+            ThisStyle = (*Group->EnumStorage & UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
+            if (ButtonClicked) { ToggleBitfieldValue(*Group->EnumStorage, UiButton->Value); }
+          } break;
+
+          InvalidDefaultCase;
+        }
+
+        Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, BStyle, Params->Padding, Params->AlignFlags);
+
+        if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
         {
-          Assert((Group->Flags & ToggleButtonGroupFlags_TypeRadioButton) == 0);
-          Assert((Group->Flags & ToggleButtonGroupFlags_TypePlainButton) == 0);
-
-          ThisStyle = (*Group->EnumStorage & UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
-          if (ButtonClicked) { ToggleBitfieldValue(*Group->EnumStorage, UiButton->Value); }
-        } break;
-
-        InvalidDefaultCase;
+          PushNewRow(Ui);
+        }
       }
-
-      Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, BStyle, Params->Padding, Params->AlignFlags);
-
-      if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
-      {
-        PushNewRow(Ui);
-      }
-    }
+    EndColumn(Ui, ColumnIndex);
   PushNewRow(Ui);
-  PushTableEnd(Ui);
-  return Result;
+  /* PushTableEnd(Ui); */
+  /* return Result; */
 }
 
 link_internal maybe_file_traversal_node

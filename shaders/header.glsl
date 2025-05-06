@@ -2,6 +2,7 @@
 /* #version 310 es */
 /* #version 330 core */
 
+#extension GL_ARB_explicit_uniform_location : enable
 
 
 precision highp float;

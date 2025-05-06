@@ -121,8 +121,19 @@ Hash(window_layout *E)
 
 typedef window_layout* window_layout_ptr;
 
-poof(are_equal(window_layout))
-#include <generated/are_equal_window_layout.h>
+/* poof(are_equal(window_layout)) */
+/* #include <generated/are_equal_window_layout.h> */
+
+link_internal b32
+AreEqual(window_layout *Thing1, window_layout *Thing2)
+{
+  b32 Result = False;
+  if (Thing1 && Thing2)
+  {
+      Result = AreEqual(Thing1->HashtableKey, Thing2->HashtableKey);
+  }
+  return Result;
+}
 
 poof(maybe(window_layout))
 #include <generated/maybe_window_layout.h>
@@ -158,6 +169,13 @@ typedef void (*modal_callback)(void*);
 /* #define UiId(window, base, mod) u64( (u64(base)&0x3FFFFF) | ( (u64(mod)&0x3FFFFF) << 22 | (u64(window)&0x3FFFFF) << 44)) */
 
 #define UiMaskAndCastPointer(p) u32(u64(p)&0xffffffff)
+
+link_internal ui_id
+UiId(void *Window, void *Interaction, void *Element)
+{
+  ui_id Result = {0, UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};
+  return Result;
+}
 
 link_internal ui_id
 UiId(window_layout *Window, void *Interaction, void *Element)

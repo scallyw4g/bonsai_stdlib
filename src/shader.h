@@ -108,7 +108,7 @@ struct shader_uniform
   };
 
   s32 ID = INVALID_SHADER_UNIFORM;
-  const char *Name; poof(@ui_display_as(CS))
+  const char *Name; poof(@ui_construct_as(CS))
 };
 
 poof(buffer_h(shader_uniform, u32))
