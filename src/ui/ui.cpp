@@ -29,13 +29,13 @@ enum ui_toggle_button_group_flags
   // NOTE(Jesse): One and only one of these two must be set
   ToggleButtonGroupFlags_TypeRadioButton       = (1 << 0),
   ToggleButtonGroupFlags_TypeMultiSelectButton = (1 << 1),
-  ToggleButtonGroupFlags_TypePlainButton       = (1 << 2),
+  ToggleButtonGroupFlags_TypeClickButton       = (1 << 2),
 
   ToggleButtonGroupFlags_DrawVertical       = (1 << 3),
 
   ToggleButtonGroupFlags_ButtonTypes = ToggleButtonGroupFlags_TypeRadioButton       |
                                        ToggleButtonGroupFlags_TypeMultiSelectButton |
-                                       ToggleButtonGroupFlags_TypePlainButton       ,
+                                       ToggleButtonGroupFlags_TypeClickButton       ,
 
 };
 
@@ -57,7 +57,7 @@ struct ui_toggle_button_group
 };
 
 link_internal void //ui_element_reference
-DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params = &DefaultUiRenderParams_Generic);
+DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params = &DefaultUiRenderParams_Button);
 
 link_internal ui_toggle_button_group
 DrawButtonGroupForEnum( renderer_2d *Ui,
@@ -96,6 +96,14 @@ ToggledOn(renderer_2d *Ui, ui_toggle_button_handle *Button)
 {
   interactable_handle Handle = { Button->Id };
   b32 Result = ToggledOn(Ui, &Handle);
+  return Result;
+}
+
+link_internal b32
+GetToggleState(renderer_2d* Group, ui_id Id)
+{
+  interactable_handle Handle = {Id};
+  b32 Result = ToggledOn(Group, &Handle);
   return Result;
 }
 
@@ -1862,25 +1870,30 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
   TableParams.Padding = {};
   TableParams.Offset = {};
 
+  // NOTE(Jesse): This turned out to be a bad idea in one weird case where I was
+  // using the same enum storage for a bunch of toolbars and wanted to keep the
+  // value intact across all the toolbars.
+#if 0
   // For plain buttons, we want to clear the stored value every frame
-  if (Group->Flags & ToggleButtonGroupFlags_TypePlainButton)
+  if (Group->Flags & ToggleButtonGroupFlags_TypeClickButton)
   {
 #define INVALID_BUTTON_ENUM_VALUE (u32_MAX)
     *Group->EnumStorage = INVALID_BUTTON_ENUM_VALUE;
   }
+#endif
 
   /* ui_element_reference Result = PushTableStart(Ui, &TableParams); */
-    if (Name.Count)
-    {
-      PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column);
-      if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
-      {
-        PushNewRow(Ui);
-        PushNewRow(Ui);
-      }
-    }
-
     u32 ColumnIndex = StartColumn(Ui);
+      if (Name.Count)
+      {
+        PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column);
+        if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
+        {
+          PushNewRow(Ui);
+          PushNewRow(Ui);
+        }
+      }
+
       IterateOver(ButtonBuffer, UiButton, ButtonIndex)
       {
         interactable_handle ButtonHandle = {UiButton->Id};
@@ -1895,7 +1908,7 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
 
         switch (Group->Flags & ToggleButtonGroupFlags_ButtonTypes)
         {
-          case ToggleButtonGroupFlags_TypePlainButton:
+          case ToggleButtonGroupFlags_TypeClickButton:
           case ToggleButtonGroupFlags_TypeRadioButton:
           {
             Assert((Group->Flags & ToggleButtonGroupFlags_TypeMultiSelectButton) == 0);
@@ -1907,7 +1920,7 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Params
           case ToggleButtonGroupFlags_TypeMultiSelectButton:
           {
             Assert((Group->Flags & ToggleButtonGroupFlags_TypeRadioButton) == 0);
-            Assert((Group->Flags & ToggleButtonGroupFlags_TypePlainButton) == 0);
+            Assert((Group->Flags & ToggleButtonGroupFlags_TypeClickButton) == 0);
 
             ThisStyle = (*Group->EnumStorage & UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
             if (ButtonClicked) { ToggleBitfieldValue(*Group->EnumStorage, UiButton->Value); }
@@ -2989,6 +3002,8 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       {
         u32 ButtonStartIndex = FindPreviousButtonStart(CommandBuffer, NextCommandIndex-1);
         rect2 AbsDrawBounds = FindAbsoluteDrawBoundsBetween(CommandBuffer, ButtonStartIndex, NextCommandIndex);
+
+        /* BufferBorder(Group, AbsDrawBounds, V3(1,0,0), GetZ(zDepth_Border, RenderState->Window), DISABLE_CLIPPING); */
 
         ui_render_command *ButtonCmd = CommandBuffer->Commands+ButtonStartIndex;
         ui_render_command_button_start* ButtonStart = RenderCommandAs(button_start, ButtonCmd);

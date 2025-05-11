@@ -171,6 +171,13 @@ typedef void (*modal_callback)(void*);
 #define UiMaskAndCastPointer(p) u32(u64(p)&0xffffffff)
 
 link_internal ui_id
+UiId(void *Window, void *Interaction, void *Element, void *Index)
+{
+  ui_id Result = {UiMaskAndCastPointer(Index), UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};
+  return Result;
+}
+
+link_internal ui_id
 UiId(void *Window, void *Interaction, void *Element)
 {
   ui_id Result = {0, UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};
@@ -245,13 +252,24 @@ struct text_box_edit_state
 };
 
 
-enum layer_toolbar_actions
+enum ui_layer_toolbar_actions
 {
   LayerToolbarActions_New,
   LayerToolbarActions_Delete,
   LayerToolbarActions_Rename,
   // ?
 };
+
+enum ui_brush_layer_actions
+{
+  UiBrushLayerAction_NoAction  poof(@ui_skip),
+
+  UiBrushLayerAction_MoveUp,
+  UiBrushLayerAction_MoveDown,
+  UiBrushLayerAction_Duplicate,
+  UiBrushLayerAction_Delete,
+};
+
 
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
@@ -286,7 +304,8 @@ struct renderer_2d
 
   text_box_edit_state TextEdit;
 
-  layer_toolbar_actions LayerToolbarAction;
+  ui_layer_toolbar_actions LayerToolbarAction;
+  ui_brush_layer_actions   UiBrushLayerAction;
 
   untextured_2d_geometry_buffer Geo;
   shader TexturedQuadShader;
@@ -569,17 +588,6 @@ debug_global ui_style Global_DefaultSuccessStyle = UiStyleFromLightestColor(V3(0
 debug_global ui_style Global_DefaultWarnStyle    = UiStyleFromLightestColor(V3(1.f,  0.5f, 0.2f));
 debug_global ui_style Global_DefaultErrorStyle   = UiStyleFromLightestColor(V3(1.f,  0.2f, 0.1f));
 
-global_variable ui_render_params DefaultUiRenderParams_Toolbar =
-{
-  {},
-  &DefaultStyle,
-  &DefaultBackgroundStyle,
-  {},
-  DefaultGenericVerticalPadding,
-  UiElementAlignmentFlag_LeftAlign,
-  UiElementLayoutFlag_Default,
-};
-
 global_variable ui_render_params DefaultUiRenderParams_Button =
 {
   {},
@@ -590,6 +598,8 @@ global_variable ui_render_params DefaultUiRenderParams_Button =
   UiElementAlignmentFlag_LeftAlign,
   UiElementLayoutFlag_Default,
 };
+
+global_variable ui_render_params DefaultUiRenderParams_Toolbar = DefaultUiRenderParams_Button;
 
 global_variable ui_render_params DefaultUiRenderParams_Checkbox =
 {
