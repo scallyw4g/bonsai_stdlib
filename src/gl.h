@@ -427,8 +427,10 @@ typedef void            (*OpenglGetShaderiv)               (GLuint shader, GLenu
 typedef void            (*OpenglGetProgramiv)              (GLuint program, GLenum pname, GLint *params);
 typedef void            (*OpenglAttachShader)              (GLuint program, GLuint shader);
 typedef void            (*OpenglBindBuffer)                (GLenum target, GLuint buffer);
+typedef void            (*OpenglBindVertexArray)           (GLuint array);
 typedef void            (*OpenglDeleteBuffers)             (GLsizei n, const GLuint *buffers);
 typedef void            (*OpenglGenBuffers)                (GLsizei n, GLuint *buffers);
+typedef void            (*OpenglGenVertexArrays)           (GLsizei n, GLuint *arrays);
 typedef void            (*OpenglBufferData)                (GLenum target, GLsizeiptr size, const void *data, GLenum usage);
 typedef void*           (*OpenglMapBuffer)                 (GLenum target, GLenum access);
 typedef void*           (*OpenglMapBufferRange)            (GLenum target, GLintptr offset, GLsizeiptr length,  GLenum access);
@@ -559,8 +561,10 @@ struct opengl
   OpenglGetProgramiv GetProgramiv;
   OpenglAttachShader AttachShader;
   OpenglBindBuffer BindBuffer;
+  OpenglBindVertexArray BindVertexArray;
   OpenglDeleteBuffers DeleteBuffers;
   OpenglGenBuffers GenBuffers;
+  OpenglGenVertexArrays GenVertexArrays;
   OpenglBufferData BufferData;
   OpenglMapBuffer MapBuffer;
   OpenglMapBufferRange MapBufferRange;

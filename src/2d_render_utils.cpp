@@ -10,6 +10,7 @@ g_quad_vertex_buffer_data[] =
 };
 
 global_variable u32 Global_QuadVertexBuffer;
+global_variable u32 Global_QuadVAO;
 global_variable v3 GlobalLightPosition = {{0.20f, 1.0f, 1.0f}};
 
 global_variable m4 NdcToScreenSpace =
@@ -23,6 +24,9 @@ global_variable m4 NdcToScreenSpace =
 void
 Init_Global_QuadVertexBuffer()
 {
+  GL.GenVertexArrays(1, &Global_QuadVAO);
+  GL.BindVertexArray(Global_QuadVAO);
+
   GL.GenBuffers(1, &Global_QuadVertexBuffer);
   Assert(Global_QuadVertexBuffer);
 
@@ -38,8 +42,10 @@ RenderQuad()
 {
   if (!Global_QuadVertexBuffer) { Init_Global_QuadVertexBuffer(); }
 
-  GL.EnableVertexAttribArray(0);
   GL.BindBuffer(GL_ARRAY_BUFFER, Global_QuadVertexBuffer);
+  AssertNoGlErrors;
+  GL.EnableVertexAttribArray(0);
+  AssertNoGlErrors;
   GL.VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
   AssertNoGlErrors;
 

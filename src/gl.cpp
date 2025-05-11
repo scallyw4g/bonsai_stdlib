@@ -346,11 +346,17 @@ InitializeOpenglFunctions()
       GL.BindBuffer                = (OpenglBindBuffer)PlatformGetGlFunction("glBindBuffer");
       GL.Initialized               &= GL.BindBuffer != 0;
 
+      GL.BindVertexArray           = (OpenglBindVertexArray)PlatformGetGlFunction("glBindVertexArray");
+      GL.Initialized               &= GL.BindVertexArray != 0;
+
       GL.DeleteBuffers             = (OpenglDeleteBuffers)PlatformGetGlFunction("glDeleteBuffers");
       GL.Initialized               &= GL.DeleteBuffers != 0;
 
       GL.GenBuffers                = (OpenglGenBuffers)PlatformGetGlFunction("glGenBuffers");
       GL.Initialized               &= GL.GenBuffers != 0;
+
+      GL.GenVertexArrays           = (OpenglGenVertexArrays)PlatformGetGlFunction("glGenVertexArrays");
+      GL.Initialized               &= GL.GenVertexArrays != 0;
 
       GL.BufferData                = (OpenglBufferData)PlatformGetGlFunction("glBufferData");
       GL.Initialized               &= GL.BufferData != 0;

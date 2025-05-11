@@ -530,8 +530,8 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 
   int attribs[] =
   {
-    WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-    WGL_CONTEXT_MINOR_VERSION_ARB, 0, // TODO(Jesse): Make this a 3.3 ctx?!?
+    WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+    WGL_CONTEXT_MINOR_VERSION_ARB, 6,
     WGL_CONTEXT_FLAGS_ARB, 0,
     0
   };
