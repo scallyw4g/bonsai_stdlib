@@ -101,8 +101,7 @@ ValueFromSetting(shader_language_setting ShaderLanguage)
 link_internal void
 LoadGlobalShaderHeaderCode(shader_language_setting ShaderLanguage)
 {
-  cs ShaderVersion = CSz(""); //ValueFromSetting(ShaderLanguage);
-  /* cs ShaderVersion = ValueFromSetting(ShaderLanguage); */
+  cs ShaderVersion = ValueFromSetting(ShaderLanguage);
   cs HeaderCode    = ReadEntireFileIntoString(CSz(STDLIB_SHADER_PATH "/header.glsl"), GetTranArena());
   Global_ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
 }

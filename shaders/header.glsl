@@ -1,6 +1,4 @@
-// NOTE(Jesse): These get switched between at startup
-/* #version 310 es */
-#version 460
+
 
 #extension GL_ARB_explicit_uniform_location : enable
 
@@ -502,4 +500,6 @@ CosineInterpolate( float t, f32 y1, f32 y2 )
   f32 b = y2*t2;
   return(a+b);
 }
+
+
 
