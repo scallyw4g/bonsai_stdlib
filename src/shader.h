@@ -53,7 +53,7 @@ poof(
       {
         member.has_tag(uniform)?
         {
-          BindUnifromById(Struct->Uniforms+UniformIndex, &TextureUnit);
+          BindUniformById(Struct->Uniforms+UniformIndex, &TextureUnit);
           ++UniformIndex;
         }
       }

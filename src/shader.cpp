@@ -564,12 +564,14 @@ BindUniformByName(shader *Shader, const char *Name, m4 *Matrix)
 }
 
 link_internal void
-BindUnifromById(shader_uniform *Uniform, s32 *TextureUnit)
+BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
 {
   if (Uniform->ID >= 0)
   {
     switch(Uniform->Type)
     {
+      InvalidCase(ShaderUniform_Undefined);
+
       case ShaderUniform_Texture:
       {
         TIMED_BLOCK("ShaderUniform_Texture");
@@ -670,7 +672,7 @@ BindUniformByName(shader *Shader, shader_uniform *Uniform, s32 *TextureUnit)
     Uniform->ID = GL.GetUniformLocation(Shader->ID, Uniform->Name);
     if (Uniform->ID != INVALID_SHADER_UNIFORM)
     {
-      BindUnifromById(Uniform, TextureUnit);
+      BindUniformById(Uniform, TextureUnit);
     }
   }
 }
@@ -683,7 +685,7 @@ BindShaderUniforms(shader *Shader)
   s32 TextureUnit = 0;
   IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
   {
-    BindUnifromById(Uniform, &TextureUnit);
+    BindUniformById(Uniform, &TextureUnit);
     AssertNoGlErrors;
   }
 
