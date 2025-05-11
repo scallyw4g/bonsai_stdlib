@@ -81,29 +81,35 @@ DrawButtonGroupForEnum( renderer_2d *Ui,
 }
 
 link_internal b32
-ToggledOn(renderer_2d* Group, interactable_handle *Interaction)
+ToggledOn(renderer_2d* Ui, ui_id Id)
 {
   b32 Result = False;
 
-  maybe_ui_toggle Maybe = GetById(&Group->ToggleTable, Interaction->Id);
+  maybe_ui_toggle Maybe = GetById(&Ui->ToggleTable, Id);
   if (Maybe.Tag) { Result = Maybe.Value.ToggledOn; }
 
   return Result;
 }
 
 link_internal b32
-ToggledOn(renderer_2d *Ui, ui_toggle_button_handle *Button)
+ToggledOn(renderer_2d* Ui, interactable_handle *Interaction)
 {
-  interactable_handle Handle = { Button->Id };
-  b32 Result = ToggledOn(Ui, &Handle);
+  b32 Result = ToggledOn(Ui, Interaction->Id);
   return Result;
 }
 
 link_internal b32
-GetToggleState(renderer_2d* Group, ui_id Id)
+ToggledOn(renderer_2d *Ui, ui_toggle_button_handle *Button)
+{
+  b32 Result = ToggledOn(Ui, Button->Id);
+  return Result;
+}
+
+link_internal b32
+GetToggleState(renderer_2d* Ui, ui_id Id)
 {
   interactable_handle Handle = {Id};
-  b32 Result = ToggledOn(Group, &Handle);
+  b32 Result = ToggledOn(Ui, &Handle);
   return Result;
 }
 
