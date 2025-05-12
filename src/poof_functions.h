@@ -2277,6 +2277,18 @@ poof(
     }
 
     link_internal void
+    RemoveOrdered( block_array_t *Array, index_t Index)
+    {
+      NotImplemented;
+    }
+
+    link_internal void
+    RemoveOrdered( block_array_t *Array, element_t.name *Element )
+    {
+      NotImplemented;
+    }
+
+    link_internal void
     RemoveUnordered( block_array_t *Array, index_t Index)
     {
       index_t LastI = LastIndex(Array);

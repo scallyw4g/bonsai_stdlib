@@ -1604,24 +1604,24 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id Intera
 
 
 link_internal void
-BeginTextEdit(renderer_2d *Group, char *Text, umm TextBufferLen, ui_id InteractionId)
+BeginTextEdit(renderer_2d *Group, char *Dest, umm DestLen, ui_id InteractionId)
 {
-  ZeroMemory(Cast(void*, Text), TextBufferLen);
+  ZeroMemory(Cast(void*, Dest), DestLen);
 
   Group->TextEdit.Id = InteractionId;
-  Group->TextEdit.Text = Text;
-  Group->TextEdit.TextBufferLen = TextBufferLen;
+  Group->TextEdit.Text = Dest;
+  Group->TextEdit.TextBufferLen = DestLen;
 }
 
 link_internal void
-TextBox(renderer_2d* Group, cs Name, cs Text, u32 TextBufferLen, ui_id ButtonId, ui_render_params *Params = &DefaultUiRenderParams_Button)
+TextBox(renderer_2d* Group, cs Label, cs Dest, u32 DestLen, ui_id ButtonId, ui_render_params *Params = &DefaultUiRenderParams_Button)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  if (Name.Count) { PushColumn(Group, Name); }
+  if (Label.Count) { PushColumn(Group, Label); }
 
-  if (Button( Group, Text, ButtonId, FStyle, BStyle, Padding, AlignFlags ))
+  if (Button( Group, Dest, ButtonId, FStyle, BStyle, Padding, AlignFlags ))
   {
-    BeginTextEdit(Group, Cast(char*, Text.Start), TextBufferLen, ButtonId);
+    BeginTextEdit(Group, Cast(char*, Dest.Start), DestLen, ButtonId);
   }
 }
 

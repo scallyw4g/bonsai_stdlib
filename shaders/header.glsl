@@ -322,7 +322,7 @@ float white_noise(v3 P)
 }
 
 link_internal v3
-voronoi_noise(v3 Texel, f32 Squareness = 0.f)
+voronoi_noise(v3 Texel, f32 Squareness)
 {
   v3 baseCell = Floor(Texel);
 
@@ -404,6 +404,12 @@ voronoi_noise(v3 Texel, f32 Squareness = 0.f)
   }
 
   return V3(minEdgeDistance, minDistToCellSq, closestCell);
+}
+
+link_internal v3
+voronoi_noise(v3 Texel)
+{
+  return voronoi_noise(Texel, 1.f);
 }
 
 

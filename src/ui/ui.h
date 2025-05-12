@@ -257,7 +257,9 @@ enum ui_layer_toolbar_actions
   LayerToolbarActions_New,
   LayerToolbarActions_Delete,
   LayerToolbarActions_Rename,
-  // ?
+  LayerToolbarActions_Duplicate
+  //
+  // .. ?
 };
 
 enum ui_brush_layer_actions
