@@ -5,7 +5,7 @@ VaporizeArena(memory_arena *Arena)
   TIMED_FUNCTION();
   DEBUG_UNREGISTER_ARENA(Arena);
 
-  Info("Vaporizing Arena (0x%x)", Arena);
+  /* Info("Vaporizing Arena (0x%x)", Arena); */
   b32 Result = True;
 
   if (Arena)
