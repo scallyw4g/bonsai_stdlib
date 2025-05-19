@@ -32,6 +32,6 @@ struct heap_allocator
   // used by any thread.  If the futex is not initialized, it asserts the accessor
   // is the thread that allocated this heap.
   bonsai_futex Futex;
-  s32 OwnedByThread;
+           s32 OwnedByThread;
 };
 

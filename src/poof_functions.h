@@ -2277,18 +2277,6 @@ poof(
     }
 
     link_internal void
-    RemoveOrdered( block_array_t *Array, index_t Index)
-    {
-      NotImplemented;
-    }
-
-    link_internal void
-    RemoveOrdered( block_array_t *Array, element_t.name *Element )
-    {
-      NotImplemented;
-    }
-
-    link_internal void
     RemoveUnordered( block_array_t *Array, index_t Index)
     {
       index_t LastI = LastIndex(Array);
@@ -2328,6 +2316,41 @@ poof(
 
           Assert(Current->Next == LastB || Current->Next == 0);
           Array->Current = Current;
+        }
+      }
+    }
+
+    link_internal void
+    RemoveOrdered( block_array_t *Array, index_t Index)
+    {
+      auto End = AtElements(Array);
+      auto   AtI = Index;
+      auto NextI = Index;
+         ++NextI;
+
+      while (NextI < End)
+      {
+        auto At    =  GetPtr(Array, AtI);
+        auto NextV = *GetPtr(Array, NextI);
+
+        *At = NextV;
+
+        ++AtI;
+        ++NextI;
+      }
+
+      RemoveUnordered(Array, NextI);
+    }
+
+    link_internal void
+    RemoveOrdered( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Element )
+    {
+      IterateOver(Array, E, I)
+      {
+        if (E == Element)
+        {
+          RemoveOrdered(Array, I);
+          break;
         }
       }
     }
