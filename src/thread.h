@@ -8,6 +8,8 @@ typedef THREAD_MAIN_RETURN (*thread_main_callback_type)(void*);
 #define INVALID_THREAD_LOCAL_THREAD_INDEX (-1)
 #define FUTEX_UNSIGNALLED_VALUE (u32_MAX) // The signal value is the thread holding the futex so we have to use the max
 
+#define FUTEX_INITIALIZE(F) if ((F)->Initialized == False) { InitializeFutex(F); }
+
 struct bonsai_futex
 {
   volatile u32 SignalValue = FUTEX_UNSIGNALLED_VALUE;
@@ -15,7 +17,6 @@ struct bonsai_futex
   b32 Initialized;
 };
 
-#define ENSURE_FUTEX_INITIALIZED(F) if ((F)->Initialized == False) { InitializeFutex(F); }
 
 link_internal void WaitOnFutex(bonsai_futex *Futex, b32 DoSleep = True);
 link_internal u32 GetWorkerThreadCount();
@@ -25,8 +26,8 @@ link_internal void SignalAndWaitForWorkers(bonsai_futex *);
 
 
 
-global_variable thread_local
-s32 ThreadLocal_ThreadIndex = INVALID_THREAD_LOCAL_THREAD_INDEX;
+global_variable thread_local s32
+ThreadLocal_ThreadIndex = INVALID_THREAD_LOCAL_THREAD_INDEX;
 
 
 link_internal void
@@ -36,11 +37,10 @@ InitializeFutex(bonsai_futex *Futex)
   Futex->Initialized = True;
 }
 
-
 link_internal b32
 UnsignalFutex(bonsai_futex *Futex, s32 SignallingThread)
 {
-  ENSURE_FUTEX_INITIALIZED(Futex);
+  FUTEX_INITIALIZE(Futex);
   Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX);
   Assert(Futex->SignalValue == u32(SignallingThread));
   b32 Result = AtomicCompareExchange(&Futex->SignalValue, FUTEX_UNSIGNALLED_VALUE, u32(SignallingThread));
@@ -50,7 +50,7 @@ UnsignalFutex(bonsai_futex *Futex, s32 SignallingThread)
 link_internal b32
 UnsignalFutex(bonsai_futex *Futex)
 {
-  ENSURE_FUTEX_INITIALIZED(Futex);
+  FUTEX_INITIALIZE(Futex);
   Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX);
   Assert(Futex->SignalValue == (u32)ThreadLocal_ThreadIndex);
   b32 Result = UnsignalFutex(Futex, ThreadLocal_ThreadIndex);
@@ -60,7 +60,7 @@ UnsignalFutex(bonsai_futex *Futex)
 link_internal b32
 SignalFutex(bonsai_futex *Futex)
 {
-  ENSURE_FUTEX_INITIALIZED(Futex);
+  FUTEX_INITIALIZE(Futex);
   Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX);
   b32 Result = AtomicCompareExchange(&Futex->SignalValue, (u32)ThreadLocal_ThreadIndex, FUTEX_UNSIGNALLED_VALUE);
   return Result;
@@ -69,7 +69,7 @@ SignalFutex(bonsai_futex *Futex)
 link_internal b32
 FutexNotSignaled(bonsai_futex *Futex)
 {
-  ENSURE_FUTEX_INITIALIZED(Futex);
+  FUTEX_INITIALIZE(Futex);
   b32 Result = Futex->SignalValue == FUTEX_UNSIGNALLED_VALUE;
   return Result;
 }
@@ -77,7 +77,7 @@ FutexNotSignaled(bonsai_futex *Futex)
 link_internal b32
 FutexIsSignaled(bonsai_futex *Futex)
 {
-  ENSURE_FUTEX_INITIALIZED(Futex);
+  FUTEX_INITIALIZE(Futex);
   b32 Result = Futex->SignalValue != FUTEX_UNSIGNALLED_VALUE;
   return Result;
 }
@@ -85,7 +85,7 @@ FutexIsSignaled(bonsai_futex *Futex)
 link_internal void
 AcquireFutex(bonsai_futex *Futex)
 {
-  ENSURE_FUTEX_INITIALIZED(Futex);
+  FUTEX_INITIALIZE(Futex);
   while (SignalFutex(Futex) == False)
   {
     WaitOnFutex(Futex, False);
@@ -96,7 +96,7 @@ AcquireFutex(bonsai_futex *Futex)
 link_internal void
 ReleaseFutex(bonsai_futex *Futex)
 {
-  ENSURE_FUTEX_INITIALIZED(Futex);
+  FUTEX_INITIALIZE(Futex);
   Ensure( UnsignalFutex(Futex) );
   /* printf("(%d) released %p\n", ThreadLocal_ThreadIndex, Futex); */
 }
