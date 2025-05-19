@@ -1,9 +1,9 @@
 
 
 link_internal b32
-Hover(renderer_2d* Group, interactable_handle *Interaction, v2 *Offset_out = 0)
+Hover(renderer_2d* Group, ui_id *Id, v2 *Offset_out = 0)
 {
-  b32 Result = Group->Hover.ID == Interaction->Id;
+  b32 Result = Group->Hover.ID == *Id;
 
   if (Result && Offset_out)
   {
@@ -12,6 +12,13 @@ Hover(renderer_2d* Group, interactable_handle *Interaction, v2 *Offset_out = 0)
     *Offset_out = RelativeOffset;
   }
 
+  return Result;
+}
+
+link_internal b32
+Hover(renderer_2d* Group, interactable_handle *Handle, v2 *Offset_out = 0)
+{
+  b32 Result = Hover(Group, &Handle->Id);
   return Result;
 }
 
