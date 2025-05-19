@@ -312,19 +312,19 @@ FileExists(cs Path)
   return Result;
 }
 
-global_variable bonsai_futex Lock = {};
+global_variable bonsai_futex Global_StdoutPrintLock = {};
 
 link_internal void
 PrintToStdout(cs Output)
 {
   if (Stdout.Handle == 0) { PlatformInitializeStdout(&Stdout); }
 
-  if (Lock.Initialized == False) { InitializeFutex(&Lock); }
+  if (Global_StdoutPrintLock.Initialized == False) { InitializeFutex(&Global_StdoutPrintLock); }
 
   // TODO(Jesse): What's a better way than printf of notifying the user an error occurred if we can't write to stdout???
-  if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX) { AcquireFutex(&Lock); }
+  if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX) { AcquireFutex(&Global_StdoutPrintLock); }
   if (!WriteToFile(&Stdout, Output)) { printf("Error writing to stdout."); }
-  if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX) { ReleaseFutex(&Lock); }
+  if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX) { ReleaseFutex(&Global_StdoutPrintLock); }
 
 #if BONSAI_WIN32
   /* temp_memory_handle TMH = BeginTemporaryMemory(GetTranArena(), False); */
