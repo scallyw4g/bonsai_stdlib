@@ -1507,12 +1507,12 @@ PushSimpleButton(  renderer_2d* Group,
 }
 
 link_internal b32
-Button(  renderer_2d* Group,
-      counted_string  ButtonName,
-               ui_id  ButtonId,
-            ui_style* FStyle,
-            ui_style* BStyle  = &DefaultButtonBackgroundStyle,
-                  v4  Padding = DefaultButtonPadding,
+Button( renderer_2d* Group,
+                 cs  ButtonName,
+              ui_id  ButtonId,
+           ui_style* FStyle,
+           ui_style* BStyle  = &DefaultButtonBackgroundStyle,
+                 v4  Padding = DefaultButtonPadding,
     ui_element_alignment_flags AlignFlags = UiElementAlignmentFlag_RightAlign)
 {
   interactable_handle Button = PushSimpleButton(Group, ButtonName, ButtonId, FStyle, BStyle, Padding, AlignFlags);
@@ -1521,10 +1521,10 @@ Button(  renderer_2d* Group,
 }
 
 link_internal interactable_handle
-PushSimpleButton(    renderer_2d *Group,
-                    cs  ButtonName,
-                 ui_id  ButtonId,
-        ui_render_params *Params = &DefaultUiRenderParams_Button)
+PushSimpleButton( renderer_2d *Group,
+                           cs  ButtonName,
+                        ui_id  ButtonId,
+             ui_render_params *Params = &DefaultUiRenderParams_Button)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
   interactable_handle Result = PushSimpleButton( Group, ButtonName, ButtonId, FStyle, BStyle, Padding, AlignFlags );
@@ -1532,10 +1532,10 @@ PushSimpleButton(    renderer_2d *Group,
 }
 
 link_internal b32
-Button(    renderer_2d *Group,
-                    cs  ButtonName,
-                 ui_id  ButtonId,
-        ui_render_params *Params = &DefaultUiRenderParams_Button)
+Button( renderer_2d *Group,
+                 cs  ButtonName,
+              ui_id  ButtonId,
+   ui_render_params *Params = &DefaultUiRenderParams_Button)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
   b32 Result = Button( Group, ButtonName, ButtonId, FStyle, BStyle, Padding, AlignFlags );
