@@ -23,16 +23,16 @@ Hover(renderer_2d* Group, interactable_handle *Handle, v2 *Offset_out = 0)
 }
 
 link_internal b32
-Clicked(renderer_2d* Group, interactable_handle *Interaction)
+Clicked(renderer_2d* Group, interactable_handle *Handle)
 {
-  b32 Result = Group->Clicked.ID == Interaction->Id;
+  b32 Result = Group->Clicked.ID == Handle->Id;
   return Result;
 }
 
 link_internal b32
-Pressed(renderer_2d* Group, interactable_handle *Interaction, v2 *Offset_out = 0)
+Pressed(renderer_2d* Group, interactable_handle *Handle, v2 *Offset_out = 0)
 {
-  b32 Result = Group->Pressed.ID == Interaction->Id;
+  b32 Result = Group->Pressed.ID == Handle->Id;
 
   if (Result && Offset_out)
   {
@@ -75,6 +75,15 @@ Clicked(renderer_2d* Group, interactable *Interaction)
   {
     Group->Pressed.ID = Interaction->ID;
     Result = True;
+
+    if (GetUiDebug)
+    {
+      if (GetUiDebug()->LogClickEvents)
+      {
+        auto Id = &Interaction->ID;
+        Info("Click (%d)(%d)(%d)(%d)", Id->_Reserved, Id->WindowBits, Id->InteractionBits, Id->ElementBits);
+      }
+    }
   }
 
   return Result;
