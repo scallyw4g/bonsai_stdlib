@@ -26,12 +26,13 @@ enum ui_toggle_button_group_flags
 {
   ToggleButtonGroupFlags_None               = 0,
 
-  // NOTE(Jesse): One and only one of these two must be set
+  // NOTE(Jesse): One and only one of these must be set
   ToggleButtonGroupFlags_TypeRadioButton       = (1 << 0),
   ToggleButtonGroupFlags_TypeMultiSelectButton = (1 << 1),
   ToggleButtonGroupFlags_TypeClickButton       = (1 << 2),
 
   ToggleButtonGroupFlags_DrawVertical       = (1 << 3),
+  ToggleButtonGroupFlags_NoNewRow           = (1 << 4),
 
   ToggleButtonGroupFlags_ButtonTypes = ToggleButtonGroupFlags_TypeRadioButton       |
                                        ToggleButtonGroupFlags_TypeMultiSelectButton |
@@ -1867,8 +1868,11 @@ ToggleRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *Toggle
   SetRadioButton(Group, MaybeInputToggle, ToggleHandle, ToggleState);
 }
 
-link_internal void //ui_element_reference
-DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *ElementParams, ui_render_params *GroupParams)
+link_internal void
+DrawButtonGroup( ui_toggle_button_group *Group,
+                                     cs  Name,
+                       ui_render_params *ElementParams,
+                       ui_render_params *GroupParams )
 {
   UNPACK_UI_RENDER_PARAMS(ElementParams);
 
@@ -1888,66 +1892,70 @@ DrawButtonGroup(ui_toggle_button_group *Group, cs Name, ui_render_params *Elemen
 #endif
 
   u32 ColumnIndex = StartColumn(Ui, GroupParams);
-    if (Name.Count)
+  if (Name.Count)
+  {
+    PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column);
+    if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
     {
-      PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column);
-      if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
-      {
-        PushNewRow(Ui);
-        PushNewRow(Ui);
-      }
+      PushNewRow(Ui);
+      PushNewRow(Ui);
+    }
+  }
+
+  IterateOver(ButtonBuffer, UiButton, ButtonIndex)
+  {
+    interactable_handle ButtonHandle = {UiButton->Id};
+
+    ui_style *ThisStyle = FStyle;
+
+    b32 ButtonClicked = Clicked(Ui, &ButtonHandle);
+
+    if (ButtonClicked) {
+      Group->AnyElementClicked = True;
     }
 
-    IterateOver(ButtonBuffer, UiButton, ButtonIndex)
+    switch (Group->Flags & ToggleButtonGroupFlags_ButtonTypes)
     {
-      interactable_handle ButtonHandle = {UiButton->Id};
-
-      ui_style *ThisStyle = FStyle;
-
-      b32 ButtonClicked = Clicked(Ui, &ButtonHandle);
-
-      if (ButtonClicked) {
-        Group->AnyElementClicked = True;
-      }
-
-      switch (Group->Flags & ToggleButtonGroupFlags_ButtonTypes)
+      case ToggleButtonGroupFlags_TypeClickButton:
+      case ToggleButtonGroupFlags_TypeRadioButton:
       {
-        case ToggleButtonGroupFlags_TypeClickButton:
-        case ToggleButtonGroupFlags_TypeRadioButton:
-        {
-          Assert((Group->Flags & ToggleButtonGroupFlags_TypeMultiSelectButton) == 0);
+        Assert((Group->Flags & ToggleButtonGroupFlags_TypeMultiSelectButton) == 0);
 
-          ThisStyle = (*Group->EnumStorage == UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
-          if (ButtonClicked) { *Group->EnumStorage = UiButton->Value; }
-        } break;
+        ThisStyle = (*Group->EnumStorage == UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
+        if (ButtonClicked) { *Group->EnumStorage = UiButton->Value; }
+      } break;
 
-        case ToggleButtonGroupFlags_TypeMultiSelectButton:
-        {
-          Assert((Group->Flags & ToggleButtonGroupFlags_TypeRadioButton) == 0);
-          Assert((Group->Flags & ToggleButtonGroupFlags_TypeClickButton) == 0);
-
-          ThisStyle = (*Group->EnumStorage & UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
-          if (ButtonClicked) { ToggleBitfieldValue(*Group->EnumStorage, UiButton->Value); }
-        } break;
-
-        InvalidDefaultCase;
-      }
-
-      if (Hover(Ui, &UiButton->Id))
+      case ToggleButtonGroupFlags_TypeMultiSelectButton:
       {
-        /* Info("%S", UiButton->Tooltip); */
-        PushTooltip(Ui, UiButton->Tooltip);
-      }
+        Assert((Group->Flags & ToggleButtonGroupFlags_TypeRadioButton) == 0);
+        Assert((Group->Flags & ToggleButtonGroupFlags_TypeClickButton) == 0);
 
-      Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, BStyle, ElementParams->Padding, ElementParams->AlignFlags);
+        ThisStyle = (*Group->EnumStorage & UiButton->Value) ? &DefaultSelectedStyle : ThisStyle;
+        if (ButtonClicked) { ToggleBitfieldValue(*Group->EnumStorage, UiButton->Value); }
+      } break;
 
-      if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
-      {
-        PushNewRow(Ui);
-      }
+      InvalidDefaultCase;
     }
-    EndColumn(Ui, ColumnIndex);
-  PushNewRow(Ui);
+
+    if (Hover(Ui, &UiButton->Id))
+    {
+      /* Info("%S", UiButton->Tooltip); */
+      PushTooltip(Ui, UiButton->Tooltip);
+    }
+
+    Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, BStyle, ElementParams->Padding, ElementParams->AlignFlags);
+
+    if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
+    {
+      PushNewRow(Ui);
+    }
+  }
+  EndColumn(Ui, ColumnIndex);
+
+  if ( (Group->Flags & ToggleButtonGroupFlags_NoNewRow) == 0)
+  {
+    PushNewRow(Ui);
+  }
 }
 
 link_internal maybe_file_traversal_node

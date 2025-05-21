@@ -255,36 +255,6 @@ struct text_box_edit_state
 };
 
 
-enum ui_layer_toolbar_actions
-{
-  LayerToolbarActions_NoAction    poof(@ui_skip),
-
-  LayerToolbarActions_Rename     poof(@ui_display_name(CSz("R"))),
-  LayerToolbarActions_Duplicate  poof(@ui_display_name(CSz("D"))),
-  LayerToolbarActions_Delete     poof(@ui_display_name(CSz("X"))),
-  //
-  // .. ?
-};
-
-enum ui_brush_actions
-{
-  UiBrushAction_NoAction poof(@ui_skip),
-
-  UiBrushAction_New,
-  UiBrushAction_Save,
-  UiBrushAction_Duplicate,
-  /* UiBrushAction_Import, */
-};
-
-enum ui_brush_layer_actions
-{
-  UiBrushLayerAction_NoAction  poof(@ui_skip),
-
-  UiBrushLayerAction_MoveUp,
-  UiBrushLayerAction_MoveDown,
-  UiBrushLayerAction_Duplicate,
-  UiBrushLayerAction_Delete,
-};
 
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
@@ -318,10 +288,6 @@ struct renderer_2d
   b32 RequestedForceCapture;
 
   text_box_edit_state TextEdit;
-
-  ui_layer_toolbar_actions LayerToolbarAction;
-  ui_brush_actions         BrushAction;
-  ui_brush_layer_actions   BrushLayerAction;
 
   untextured_2d_geometry_buffer Geo;
   shader TexturedQuadShader;
