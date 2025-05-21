@@ -32,6 +32,8 @@ struct ui_debug
 
   b8 DebugBreakOnElementClick;
   b8 DebugBreakUiCommand;
+
+  b8 LogClickEvents;
 };
 
 link_weak ui_debug *GetUiDebug();
@@ -158,6 +160,7 @@ poof(are_equal(ui_toggle))
 struct ui_toggle_button_handle
 {
   cs Text;
+  cs Tooltip;
   ui_id Id;
   u32 Value; // NOTE(Jesse): This is typically the associated enum value
 };
@@ -216,9 +219,9 @@ UiId(window_layout *Window, const char *Interaction, void *Element)
 }
 
 link_internal ui_toggle_button_handle
-UiToggle(cs Text, ui_id Id, u32 Value)
+UiToggle(cs Text, cs Tooltip, ui_id Id, u32 Value)
 {
-  ui_toggle_button_handle Result = { Text, Id, Value };
+  ui_toggle_button_handle Result = { Text, Tooltip, Id, Value };
   return Result;
 }
 
@@ -254,10 +257,11 @@ struct text_box_edit_state
 
 enum ui_layer_toolbar_actions
 {
-  LayerToolbarActions_New,
-  LayerToolbarActions_Delete,
-  LayerToolbarActions_Rename,
-  LayerToolbarActions_Duplicate,
+  LayerToolbarActions_NoAction    poof(@ui_skip),
+
+  LayerToolbarActions_Rename     poof(@ui_display_name(CSz("R"))),
+  LayerToolbarActions_Duplicate  poof(@ui_display_name(CSz("D"))),
+  LayerToolbarActions_Delete     poof(@ui_display_name(CSz("X"))),
   //
   // .. ?
 };
@@ -611,8 +615,6 @@ global_variable ui_render_params DefaultUiRenderParams_Button =
   UiElementLayoutFlag_Default,
 };
 
-global_variable ui_render_params DefaultUiRenderParams_Toolbar = DefaultUiRenderParams_Button;
-
 global_variable ui_render_params DefaultUiRenderParams_Checkbox =
 {
   {},
@@ -668,6 +670,12 @@ global_variable ui_render_params DefaultUiRenderParams_Blank =
   {},
   UiElementLayoutFlag_Default,
 };
+
+
+// NOTE(Jesse): We use blank styling because the toolbar is just a container
+// .. it's got buttons inside that already have their own padding/spacing.
+global_variable ui_render_params DefaultUiRenderParams_Toolbar = DefaultUiRenderParams_Blank;
+
 
 link_internal r32
 CharHeights(u32 N)
