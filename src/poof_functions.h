@@ -932,6 +932,12 @@ poof(
       }
       return Result;
     }
+
+    link_inline Type.name *
+    TryGetPtr((Type.name)_hashtable *Hashtable, (Type.name)_hashtable_iterator Iterator)
+    {
+      return GetPtr(Hashtable, Iterator);
+    }
   }
 )
 
@@ -1148,6 +1154,12 @@ poof(
       return Result;
     }
 
+    link_inline (Type.name)*
+    TryGetPtr( TypeName *Buf, umm Index)
+    {
+      return GetPtr(Buf, Index);
+    }
+
     link_inline (Type.name)
     Get( TypeName *Buf, umm Index)
     {
@@ -1262,6 +1274,12 @@ poof(
       Type.name *Result = 0;
       if (Index < Buf->Count) { Result = Buf->Start + Index; }
       return Result;
+    }
+
+    link_inline (Type.name) *
+    TryGetPtr((Type.name)_buffer *Buf, count_type.name Index)
+    {
+      return GetPtr(Buf, Index);
     }
 
     link_inline (Type.name) *
@@ -1455,6 +1473,12 @@ poof(
       Type.name *Result = {};
       if (ElementIndex < AtElements(Cursor)) { Result = Cursor->Start+ElementIndex; }
       return Result;
+    }
+
+    link_internal (Type.name)*
+    TryGetPtr((Type.name)_cursor *Cursor, umm ElementIndex)
+    {
+      return GetPtr(Cursor, ElementIndex);
     }
 
     link_internal (Type.name)*
@@ -2049,7 +2073,7 @@ poof(
 
 
 poof(
-  func block_array_h(element_t, type_poof_symbol n_elements, type_poof_symbol extra_members)
+  func block_array_h(element_t, type_poof_symbol n_elements_per_block, type_poof_symbol extra_members)
   {
     @var block_array_t (element_t.name)_block_array
     @var block_t       (element_t.name)_block
@@ -2057,23 +2081,24 @@ poof(
 
     struct block_t
     {
-      u32 Index;
-      u32 At;
-      element_t.name *Elements;
-      block_t *Next;
+      /* u32 Index; */
+      umm At;
+      element_t.name Elements[n_elements_per_block];
     };
 
     struct index_t
     {
-      block_t *Block;
-      u32 BlockIndex;
-      u32 ElementIndex;
+      umm Index; /// TODO(Jesse): Should this be u32?
+      /* block_t *Block; */
+      /* u32 BlockIndex; */
+      /* u32 ElementIndex; */
     };
 
     struct block_array_t
     {
-      block_t *First;
-      block_t *Current;
+      block_t **BlockPtrs; poof(@array_length(Element->BlockCount))
+          u32   BlockCount;
+          u32   ElementCount;
       memory_arena *Memory; poof(@no_serialize)
       extra_members
     };
@@ -2093,170 +2118,152 @@ poof(
     link_internal index_t
     operator++( index_t &I0 )
     {
-      if (I0.Block)
-      {
-        if (I0.ElementIndex == n_elements-1)
-        {
-          I0.ElementIndex = 0;
-          I0.BlockIndex++;
-          I0.Block = I0.Block->Next;
-        }
-        else
-        {
-          I0.ElementIndex++;
-        }
-      }
-      else
-      {
-        I0.ElementIndex++;
-      }
+      I0.Index++;
       return I0;
     }
 
     link_internal b32
     operator<( index_t I0, index_t I1 )
     {
-      b32 Result = I0.BlockIndex < I1.BlockIndex || (I0.BlockIndex == I1.BlockIndex & I0.ElementIndex < I1.ElementIndex);
+      b32 Result = I0.Index < I1.Index;
+      return Result;
+    }
+
+    link_internal b32
+    operator==( index_t I0, index_t I1 )
+    {
+      b32 Result = I0.Index == I1.Index;
       return Result;
     }
 
     link_inline umm
     GetIndex( index_t *Index)
     {
-      umm Result = Index->ElementIndex + (Index->BlockIndex*n_elements);
+      umm Result = Index->Index;
+      return Result;
+    }
+
+    /// TODO(Jesse): Remove this globally
+    link_internal index_t
+    ZerothIndex( block_array_t *Arr )
+    {
+      return {};
+    }
+
+    link_internal index_t
+    Capacity( block_array_t *Arr )
+    {
+      index_t Result = {Arr->BlockCount * n_elements_per_block};
       return Result;
     }
 
     link_internal index_t
-    ZerothIndex( block_array_t *Arr)
+    AtElements( block_array_t *Arr )
     {
-      (element_t.name)_block_array_index Result = {};
-      Result.Block = Arr->First;
+      index_t Result = {Arr->ElementCount};
+      return Result;
+    }
+
+    /// TODO(Jesse): Remove this globally.  It used to be necessary but is superfluous now.
+    link_internal umm
+    TotalElements( block_array_t *Arr )
+    {
+      umm Result = AtElements(Arr).Index;
+      return Result;
+    }
+
+    /// TODO(Jesse): Remove?
+    link_internal index_t
+    LastIndex( block_array_t *Arr )
+    {
+      index_t Result = {};
+      umm Count = AtElements(Arr).Index;
+      if (Count) Result.Index = Count-1;
       return Result;
     }
 
     link_internal umm
-    TotalElements( block_array_t *Arr)
+    Count( block_array_t *Arr )
     {
-      umm Result = 0;
-      if (Arr->Current)
-      {
-        Result = (Arr->Current->Index * n_elements) + Arr->Current->At;
-      }
+      auto Result = AtElements(Arr).Index;
       return Result;
     }
 
-    link_internal index_t
-    LastIndex( block_array_t *Arr)
+    link_internal block_t *
+    GetBlock( block_array_t *Arr, index_t Index )
     {
-      index_t Result = {};
-      if (Arr->Current)
-      {
-        Result.Block = Arr->Current;
-        Result.BlockIndex = Arr->Current->Index;
-        Result.ElementIndex = Arr->Current->At;
-        Assert(Result.ElementIndex);
-        Result.ElementIndex--;
-      }
-      return Result;
+      umm BlockIndex   = Index.Index / n_elements_per_block;
+      Assert(BlockIndex < Arr->BlockCount);
+      block_t *Block = Arr->BlockPtrs[BlockIndex];
+      return Block;
     }
 
-    link_internal index_t
-    AtElements( block_array_t *Arr)
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    GetPtr( block_array_t *Arr, index_t Index )
     {
-      index_t Result = {};
-      if (Arr->Current)
-      {
-        Result.Block = Arr->Current;
-        Result.BlockIndex = Arr->Current->Index;
-        Result.ElementIndex = Arr->Current->At;
-      }
-      return Result;
-    }
+      Assert(Arr->BlockPtrs);
+      Assert(Index.Index < Capacity(Arr).Index);
 
-    link_internal umm
-    Count( block_array_t *Arr)
-    {
-      auto Index = AtElements(Arr);
-      umm Result = GetIndex(&Index);
+      block_t *Block = GetBlock(Arr, Index);
+
+      umm ElementIndex = Index.Index % n_elements_per_block;
+      element_t.name element_t.is_pointer?{}{*}Result = element_t.is_pointer?{*}(Block->Elements + ElementIndex);
       return Result;
     }
 
     link_internal element_t.name element_t.is_pointer?{}{*}
-    GetPtr((element_t.name)_block_array *Arr, (element_t.name)_block_array_index Index)
+    TryGetPtr((element_t.name)_block_array *Arr, index_t Index)
     {
-      element_t.name element_t.is_pointer?{}{*}Result = {};
-      if (Index.Block) { Result = element_t.is_pointer?{*}(Index.Block->Elements + Index.ElementIndex); }
-      return Result;
-    }
-
-    link_internal element_t.name element_t.is_pointer?{}{*}
-    GetPtr((element_t.name)_block *Block, umm Index)
-    {
-      element_t.name element_t.is_pointer?{}{*}Result = {};
-      if (Index < Block->At) { Result = element_t.is_pointer?{*}(Block->Elements + Index); }
-      return Result;
-    }
-
-    link_internal element_t.name element_t.is_pointer?{}{*}
-    GetPtr((element_t.name)_block_array *Arr, umm Index)
-    {
-      umm BlockIndex = Index / n_elements;
-      umm ElementIndex = Index % n_elements;
-
-      umm AtBlock = 0;
-      (element_t.name)_block *Block = Arr->First;
-      while (AtBlock++ < BlockIndex)
+      element_t.name element_t.is_pointer?{}{*} Result = {};
+      if (Arr->BlockPtrs && Index.Index < Capacity(Arr).Index)
       {
-        Block = Block->Next;
+        Result = GetPtr(Arr, Index);
       }
-
-      element_t.name element_t.is_pointer?{}{*}Result = element_t.is_pointer?{*}(Block->Elements+ElementIndex);
       return Result;
+    }
+
+
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    GetPtr( block_array_t *Arr, umm Index )
+    {
+      index_t I = {Index};
+      return GetPtr(Arr, I);
     }
 
     link_internal element_t.name element_t.is_pointer?{}{*}
     TryGetPtr((element_t.name)_block_array *Arr, umm Index)
     {
-      umm BlockIndex = Index / n_elements;
-      umm ElementIndex = Index % n_elements;
-
-      auto AtE = AtElements(Arr);
-      umm Total = GetIndex(&AtE);
-      element_t.name element_t.is_pointer?{}{*}Result = {};
-      if (Index < Total) { Result = GetPtr(Arr, Index); }
+      element_t.name element_t.is_pointer?{}{*} Result = {};
+      if (Arr->BlockPtrs && Index < AtElements(Arr).Index)
+      {
+        index_t I = {Index};
+        Result = GetPtr(Arr, I);
+      }
       return Result;
-    }
-
-    link_internal u32
-    AtElements((element_t.name)_block *Block)
-    {
-      return Block->At;
     }
   }
 )
 
-#define INVALID_BLOCK_ARRAY_INDEX {0, u32_MAX, u32_MAX}
+#define INVALID_BLOCK_ARRAY_INDEX {umm_MAX}
 
 poof(
-  func block_array_c(element_t, type_poof_symbol n_elements)
+  func block_array_c(element_t, type_poof_symbol n_elements_per_block)
   {
     @var block_array_t (element_t.name)_block_array
     @var block_t       (element_t.name)_block
     @var index_t       (element_t.name)_block_array_index
 
-    link_internal block_t *
-    Allocate_(element_t.name)_block(memory_arena *Memory)
-    {
-      block_t *Result = Allocate( block_t, Memory, 1);
-      Result->Elements = Allocate( element_t.name, Memory, n_elements);
-      return Result;
-    }
+    /* link_internal block_t * */
+    /* Allocate_(element_t.name)_block(memory_arena *Memory) */
+    /* { */
+    /*   block_t *Result = Allocate( block_t, Memory, 1); */
+    /*   return Result; */
+    /* } */
 
     link_internal cs
     CS( index_t Index )
     {
-      return FSz("(%u)(%u)", Index.BlockIndex, Index.ElementIndex);
+      return FSz("(%u)", Index.Index);
     }
 
     link_internal element_t.name element_t.is_pointer?{}{*}
@@ -2264,82 +2271,63 @@ poof(
          element_t.name element_t.is_pointer?{}{*}Element,
          index_t Index )
     {
-      element_t.name element_t.is_pointer?{}{*}Result = {};
-      if (Index.Block)
-      {
-        element_t.name *Slot = &Index.Block->Elements[Index.ElementIndex];
-        *Slot = element_t.is_pointer?{}{*}Element;
+      Assert(Arr->BlockPtrs);
+      Assert(Index.Index < Capacity(Arr).Index);
+      block_t *Block = GetBlock(Arr, Index);
+      umm ElementIndex = Index.Index % n_elements_per_block;
+      auto Slot = Block->Elements+ElementIndex;
+      *Slot = element_t.is_pointer?{}{*}Element;
+      return element_t.is_pointer?{*}{}Slot;
+    }
 
-        Result = element_t.is_pointer?{*}{}Slot;
+    link_internal void
+    NewBlock( block_array_t *Arr )
+    {
+      block_t  *NewBlock     = Allocate( block_t , Arr->Memory,                 1);
+      block_t **NewBlockPtrs = Allocate( block_t*, Arr->Memory, Arr->BlockCount+1);
+
+      RangeIterator_t(u32, BlockI, Arr->BlockCount)
+      {
+        NewBlockPtrs[BlockI] = Arr->BlockPtrs[BlockI];
       }
 
-      return Result;
+      NewBlockPtrs[Arr->BlockCount] = NewBlock;
+
+      /// NOTE(Jesse): We leak the old array of block pointers here .. it would
+      /// be better to allocate them on a global heap and free ..?
+      Arr->BlockPtrs = NewBlockPtrs;
+      Arr->BlockCount += 1;
     }
 
     link_internal void
     RemoveUnordered( block_array_t *Array, index_t Index)
     {
-      index_t LastI = LastIndex(Array);
-
-      element_t.name element_t.is_pointer?{}{*}Element = GetPtr(Array, Index);
-      element_t.name element_t.is_pointer?{}{*}LastElement = GetPtr(Array, LastI);
-
+      auto LastElement = GetPtr(Array, LastIndex(Array));
       Set(Array, LastElement, Index);
-
-      Assert(Array->Current->At);
-      Array->Current->At -= 1;
-
-      if (Array->Current->At == 0)
-      {
-        // TODO(Jesse): There's obviously a way better way to do this ..
-        auto AtE = AtElements(Array);
-        s32 Count = s32(GetIndex(&AtE));
-
-        if (Count == 0)
-        {
-          // Nothing to be done, we've popping the last thing off the array
-          Assert(Index.Block == Array->First);
-          Assert(Index.Block == Array->Current);
-          Assert(Index.BlockIndex == 0);
-          Assert(Index.ElementIndex == 0);
-        }
-        else
-        {
-          // Walk the chain till we get to the second-last one
-          block_t *Current = Array->First;
-          block_t *LastB = LastI.Block;
-
-          while (Current->Next && Current->Next != LastB)
-          {
-            Current = Current->Next;
-          }
-
-          Assert(Current->Next == LastB || Current->Next == 0);
-          Array->Current = Current;
-        }
-      }
+      Array->ElementCount -= 1;
     }
 
     link_internal void
-    RemoveOrdered( block_array_t *Array, index_t Index)
+    RemoveOrdered( block_array_t *Array, index_t IndexToRemove)
     {
-      auto End = AtElements(Array);
-      auto   AtI = Index;
-      auto NextI = Index;
-         ++NextI;
+      Assert(IndexToRemove.Index < Array->ElementCount);
 
-      while (NextI < End)
+      element_t.name element_t.is_pointer?{}{*}Prev = {};
+
+      index_t Max = AtElements(Array);
+      RangeIteratorRange_t(umm, Index, Max.Index, IndexToRemove.Index)
       {
-        auto At    =  GetPtr(Array, AtI);
-        auto NextV = *GetPtr(Array, NextI);
+        element_t.name element_t.is_pointer?{}{*}E = GetPtr(Array, Index);
 
-        *At = NextV;
+        if (Prev)
+        {
+          *Prev = *E;
+        }
 
-        ++AtI;
-        ++NextI;
+        Prev = E;
       }
 
-      RemoveUnordered(Array, NextI);
+      Array->ElementCount -= 1;
     }
 
     link_internal void
@@ -2378,43 +2366,49 @@ poof(
       return Result;
     }
 
-    link_internal element_t.name *
-    Push( block_array_t *Array, element_t.name *Element)
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    Push( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Element)
     {
       Assert(Array->Memory);
 
-      if (Array->First == 0) { Array->First = Allocate_(element_t.name)_block(Array->Memory); Array->Current = Array->First; }
-
-      if (Array->Current->At == n_elements)
+      if (AtElements(Array) == Capacity(Array))
       {
-        if (Array->Current->Next)
-        {
-          Array->Current = Array->Current->Next;
-          Assert(Array->Current->At == 0);
-        }
-        else
-        {
-          block_t *Next = Allocate_(element_t.name)_block(Array->Memory);
-          Next->Index = Array->Current->Index + 1;
-
-          Array->Current->Next = Next;
-          Array->Current = Next;
-        }
+        NewBlock(Array);
       }
 
-      element_t.name *Result = Array->Current->Elements + Array->Current->At;
+      element_t.name element_t.is_pointer?{}{*}Result = Set(Array, Element, AtElements(Array));
 
-      Array->Current->Elements[Array->Current->At++] = *Element;
+      Array->ElementCount += 1;
 
       return Result;
     }
 
-    link_internal element_t.name *
+    link_internal element_t.name element_t.is_pointer?{}{*}
     Push( block_array_t *Array )
     {
       element_t.name Element = {};
-      auto Result = Push(Array, &Element);
+      auto Result = Push(Array, element_t.is_pointer?{}{&}Element);
       return Result;
+    }
+
+    link_internal void
+    Shift( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Element )
+    {
+      Assert(Array->Memory);
+      element_t.name element_t.is_pointer?{}{*}Prev = {};
+
+      // Alocate a new thingy
+      Push(Array);
+
+      auto End = AtElements(Array);
+      RangeIteratorReverse(Index, s32(End.Index))
+      {
+        auto E = GetPtr(Array, umm(Index));
+        if (Prev) { *Prev = *E; }
+        Prev = E;
+      }
+
+      *Prev = *Element;
     }
   }
 )
@@ -2442,7 +2436,7 @@ poof(
 
 // nocheckin -- fix poof here.
 poof(
-  func block_array(type, type_poof_symbol n_elements)
+  func block_array(type, type_poof_symbol n_elements_per_block)
   {
     (block_array_h( type, {8}, {} ))
     (block_array_c( type, {8} ))

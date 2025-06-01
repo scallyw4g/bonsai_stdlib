@@ -304,6 +304,13 @@ Max(u64 A, u64 B)
   return Result;
 }
 
+inline s64
+Max(s64 A, s64 B)
+{
+  s64 Result = A > B ? A : B;
+  return Result;
+}
+
 inline s32
 Max(s32 A, s32 B)
 {

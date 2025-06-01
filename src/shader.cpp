@@ -217,7 +217,7 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
     Stdlib->AllShaders.Memory = AllocateArena();
   }
 
-  Push(&Stdlib->AllShaders, &Shader);
+  Push(&Stdlib->AllShaders, Shader);
 }
 
 link_internal s32
