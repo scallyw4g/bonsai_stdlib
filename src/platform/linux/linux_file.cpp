@@ -68,18 +68,12 @@ PlatformRemoveFile(cs Filepath)
   return Result;
 }
 
-link_internal b32
-Remove(cs Filepath)
-{
-  return PlatformRemoveFile(Filepath);
-}
-
-
 link_internal native_file
 PlatformOpenFile(const char* FilePath, file_permission Permissions)
 {
   native_file Result = {
-    .Path = CS(FilePath)
+    .Path = CS(FilePath),
+    .Handle = {},
   };
 
   const char *PermissionChars = 0;

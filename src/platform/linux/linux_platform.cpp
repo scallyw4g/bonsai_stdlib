@@ -86,7 +86,7 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
   Os->Window = xWindow;
 
   /* InitializeOpenglFunctions(); */
-  SetVSync(Os, VSyncFrames);
+  /* SetVSync(Os, VSyncFrames); */
 
   return True;
 }
@@ -306,6 +306,13 @@ PlatformMakeRenderContextCurrent(os *Os)
   glXMakeCurrent(Os->Display, Os->Window, Os->GlContext);
 }
 
+
+link_internal void
+PlatformReleaseRenderContext(os *Os)
+{
+  glXMakeCurrent(Os->Display, None, NULL);
+}
+
 /* #endif */
 
 // TODO(Jesse): This has different semantics than the Windows one .. do we care?
@@ -377,4 +384,14 @@ ConnectToServer(network_connection *Connection)
   return;
 }
 #endif
+
+
+link_internal void
+PlatformInitializeStdout(native_file *StandardOutputFile, native_file *Log)
+{
+  StandardOutputFile->Handle = stdout;
+  StandardOutputFile->Path = CSz("stdout");
+
+  if (Log) { *Log = OpenFile("log.txt", FilePermission_Write); }
+}
 

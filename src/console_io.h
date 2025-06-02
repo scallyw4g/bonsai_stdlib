@@ -14,6 +14,7 @@ poof(string_and_value_tables(log_level));
 #include <generated/string_and_value_tables_log_level.h>
 
 global_variable native_file Stdout = {};
+global_variable native_file Global_StdoutLogfile = {};
 
 link_internal void
 DumpValidLogLevelOptions()

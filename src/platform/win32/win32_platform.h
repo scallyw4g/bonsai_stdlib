@@ -57,7 +57,7 @@ link_internal void
 Win32PrintLastError();
 
 link_internal void
-PlatformInitializeStdout(native_file *Stdout)
+PlatformInitializeStdout(native_file *Stdout, native_file *LogFileHandle)
 {
   Stdout->Handle = CreateFileA("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
   Stdout->Path = CSz("stdout");

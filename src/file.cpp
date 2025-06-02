@@ -317,13 +317,18 @@ global_variable bonsai_futex Global_StdoutPrintLock = {};
 link_internal void
 PrintToStdout(cs Output)
 {
-  if (Stdout.Handle == 0) { PlatformInitializeStdout(&Stdout); }
+  if (Stdout.Handle == 0) { PlatformInitializeStdout(&Stdout, &Global_StdoutLogfile); }
 
   if (Global_StdoutPrintLock.Initialized == False) { InitializeFutex(&Global_StdoutPrintLock); }
 
   // TODO(Jesse): What's a better way than printf of notifying the user an error occurred if we can't write to stdout???
   if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX) { AcquireFutex(&Global_StdoutPrintLock); }
   if (!WriteToFile(&Stdout, Output)) { printf("Error writing to stdout."); }
+
+  if (Global_StdoutLogfile.Handle)
+  {
+    if (!WriteToFile(&Global_StdoutLogfile, Output)) { printf("Error writing to stdout log file."); }
+  }
   if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX) { ReleaseFutex(&Global_StdoutPrintLock); }
 
 #if BONSAI_WIN32

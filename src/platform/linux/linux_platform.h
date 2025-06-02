@@ -979,13 +979,6 @@ GetCurrentThreadId()
   return Result;
 }
 
-link_internal void
-PlatformInitializeStdout(native_file *Stdout)
-{
-  Stdout->Handle = stdout;
-  Stdout->Path = CSz("stdout");
-}
-
 link_internal b32
 PlatformChangeDirectory(const char *Dir)
 {
@@ -993,3 +986,5 @@ PlatformChangeDirectory(const char *Dir)
   return Result;
 }
 
+link_internal void
+PlatformInitializeStdout(native_file *Stdout, native_file *Log);

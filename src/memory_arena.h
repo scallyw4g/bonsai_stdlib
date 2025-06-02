@@ -418,7 +418,7 @@ ProtectPage(u8* Mem)
 #define LOCATION ()
 
 #ifndef POOF_PREPROCESSOR
-#define AllocateArena( ... ) AllocateArena_( __FILE__ ":" S2(__LINE__), __VA_ARGS__ )
+#define AllocateArena( ... ) AllocateArena_( __FILE__ ":" S2(__LINE__), ##__VA_ARGS__ )
 #else
 #define AllocateArena( ... )
 #endif

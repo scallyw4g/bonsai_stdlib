@@ -10,7 +10,7 @@ GetTotalThreadCount()
   /* u32 Result = PlatformGetLogicalCoreCount() / 2 + (PlatformGetLogicalCoreCount()/4); */
   /* u32 Result = 4; */
   /* u32 Result = PlatformGetLogicalCoreCount(); */
-  u32 Result = PlatformGetLogicalCoreCount()/2;
+  u32 Result = Min(4u, PlatformGetLogicalCoreCount()/2);
   Assert(Result >= 4);
   return Result;
 }
