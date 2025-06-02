@@ -12,7 +12,7 @@
 #include <bonsai_stdlib/src/assert.h>
 #include <bonsai_stdlib/src/primitives.h>
 
-#include <intrin.h>
+#include <x86intrin.h>
 #include <immintrin.h>
 #include <smmintrin.h>
 /* #include <ymmintrin.h> */
