@@ -19,6 +19,16 @@ struct rect3
 
 
 
+link_internal rect3
+InvertedInfinityRectangle_rect3()
+{
+  rect3 Result = {
+    .Min = V3(f32_MAX),
+    .Max = V3(-f32_MAX),
+  };
+  return Result;
+}
+
 link_internal rect2
 InvertedInfinityRectangle()
 {
