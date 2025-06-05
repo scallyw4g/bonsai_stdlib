@@ -345,9 +345,26 @@ AABBMinDim(v3 Min, v3 Dim)
   return RectMinDim(Min, Dim);
 }
 
-inline rect3i
-Union(rect3i *First, rect3i *Second)
+
+link_inline void
+AssertValid(rect3i *Rect)
 {
+  Assert(Rect->Min <= Rect->Max);
+}
+
+link_inline void
+AssertValid(aabb *Rect)
+{
+  Assert(Rect->Min <= Rect->Max);
+}
+
+inline rect3i
+Intersection(rect3i *First, rect3i *Second)
+{
+  // NOTE(Jesse): Doesnt' work if we pass a rect with negative volume
+  AssertValid(First);
+  AssertValid(Second);
+
   v3i ResultMin = Max(First->Min, Second->Min);
   v3i ResultMax = Min(First->Max, Second->Max);
   rect3i Result = Rect3iMinMax(ResultMin, ResultMax);
@@ -356,20 +373,28 @@ Union(rect3i *First, rect3i *Second)
 }
 
 inline aabb
-Union(aabb *First, aabb *Second)
+Intersection(aabb *First, aabb *Second)
 {
-  v3 FirstMin = GetMin(First);
-  v3 SecondMin = GetMin(Second);
+  // NOTE(Jesse): Doesnt' work if we pass a rect with negative volume
+  AssertValid(First);
+  AssertValid(Second);
 
-  v3 FirstMax = GetMax(First);
-  v3 SecondMax = GetMax(Second);
+  v3 ResMin = Max(First->Min, Second->Min);
+  v3 ResMax = Min(First->Max, Second->Max);
 
-  v3 ResultMin = Max(FirstMin, SecondMin);
-  v3 ResultMax = Min(FirstMax, SecondMax);
-  aabb Result = AABBMinMax(ResultMin, ResultMax);
-
+  aabb Result = AABBMinMax(ResMin, ResMax);
   return Result;
 }
+
+inline aabb
+Union(aabb *First, aabb *Second)
+{
+  v3 ResMin = Min(First->Min, Second->Min);
+  v3 ResMax = Max(First->Max, Second->Max);
+  aabb Result = AABBMinMax(ResMin, ResMax);
+  return Result;
+}
+
 
 link_internal rect2
 operator+(rect2 R1, v2 P)
