@@ -938,6 +938,7 @@ poof(
     {
       return GetPtr(Hashtable, Iterator);
     }
+
   }
 )
 
@@ -945,18 +946,24 @@ poof(
   func hashtable_get(Type, type_poof_symbol key_type, type_poof_symbol key_name)
   {
     (Type.name)_linked_list_node*
-    GetBucketBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
+    GetBucketBy(key_name)( (Type.name)_hashtable *Table, key_type Query )
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
 
       (Type.name)_linked_list_node* Result = {};
 
-      auto *Bucket = GetHashBucket(umm(Hash(&key_name)), Table);
+      auto *Bucket = GetHashBucket(umm(Hash(&Query)), Table);
       while (Bucket)
       {
         auto E = &Bucket->Element;
 
-        if (Bucket->Tombstoned == False && AreEqual(E->key_name, key_name))
+        Type.is_primitive?
+        {
+        if (Bucket->Tombstoned == False && AreEqual(*E, Query))
+        }
+        {
+        if (Bucket->Tombstoned == False && AreEqual(E->key_name, Query))
+        }
         {
           Result = Bucket;
           break;
@@ -971,13 +978,13 @@ poof(
     }
 
     maybe_(Type.name)
-    GetBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
+    GetBy(key_name)( (Type.name)_hashtable *Table, key_type Query )
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
 
       maybe_(Type.name) Result = {};
 
-      (Type.name)_linked_list_node *Bucket = GetBucketBy(key_name)(Table, key_name);
+      (Type.name)_linked_list_node *Bucket = GetBucketBy(key_name)(Table, Query);
       if (Bucket)
       {
         Result.Tag = Maybe_Yes;
@@ -987,6 +994,7 @@ poof(
       return Result;
     }
 
+    /// TODO(Jesse): Remove memory from here.
     link_internal b32
     Tombstone((key_type) Key, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
@@ -1000,6 +1008,12 @@ poof(
       }
       return Result;
     }
+
+    link_internal b32
+    Drop( (Type.name)_hashtable *Table, (key_type) Key )
+    {
+      return Tombstone(Key, Table, 0);
+    }
   }
 );
 
@@ -1007,18 +1021,18 @@ poof(
   func hashtable_get_ptr(Type, type_poof_symbol key_type, type_poof_symbol key_name)
   {
     maybe_(Type.name)_ptr
-    GetPtrBy(key_name)( (Type.name)_hashtable *Table, key_type key_name )
+    GetPtrBy(key_name)( (Type.name)_hashtable *Table, key_type Query )
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
 
       maybe_(Type.name)_ptr Result = {};
 
-      auto *Bucket = GetHashBucket(umm(Hash(&key_name)), Table);
+      auto *Bucket = GetHashBucket(umm(Hash(&Query)), Table);
       while (Bucket)
       {
         auto E = &Bucket->Element;
 
-        if (Bucket->Tombstoned == False && AreEqual(E->key_name, key_name))
+        if (Bucket->Tombstoned == False && AreEqual(E->key_name, Query))
         {
           Result.Tag = Maybe_Yes;
           Result.Value = E;
@@ -2244,7 +2258,7 @@ poof(
   }
 )
 
-#define INVALID_BLOCK_ARRAY_INDEX {umm_MAX}
+#define INVALID_BLOCK_ARRAY_INDEX umm_MAX
 
 poof(
   func block_array_c(element_t, type_poof_symbol n_elements_per_block)
@@ -2346,7 +2360,7 @@ poof(
     link_internal index_t
     Find( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Query)
     {
-      index_t Result = INVALID_BLOCK_ARRAY_INDEX;
+      index_t Result = {INVALID_BLOCK_ARRAY_INDEX};
       IterateOver(Array, E, Index)
       {
         if ( E == Query)
@@ -2361,7 +2375,7 @@ poof(
     link_internal b32
     IsValid((element_t.name)_block_array_index *Index)
     {
-      index_t Test = INVALID_BLOCK_ARRAY_INDEX;
+      index_t Test = {INVALID_BLOCK_ARRAY_INDEX};
       b32 Result = (AreEqual(Index, &Test) == False);
       return Result;
     }
