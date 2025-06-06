@@ -2316,7 +2316,10 @@ poof(
     link_internal void
     RemoveUnordered( block_array_t *Array, index_t Index)
     {
-      auto LastElement = GetPtr(Array, LastIndex(Array));
+      auto LastI = LastIndex(Array);
+      Assert(Index.Index <= LastI.Index);
+
+      auto LastElement = GetPtr(Array, LastI);
       Set(Array, LastElement, Index);
       Array->ElementCount -= 1;
     }
