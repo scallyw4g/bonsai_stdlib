@@ -2267,13 +2267,6 @@ poof(
     @var block_t       (element_t.name)_block
     @var index_t       (element_t.name)_block_array_index
 
-    /* link_internal block_t * */
-    /* Allocate_(element_t.name)_block(memory_arena *Memory) */
-    /* { */
-    /*   block_t *Result = Allocate( block_t, Memory, 1); */
-    /*   return Result; */
-    /* } */
-
     link_internal cs
     CS( index_t Index )
     {
@@ -2366,13 +2359,31 @@ poof(
       index_t Result = {INVALID_BLOCK_ARRAY_INDEX};
       IterateOver(Array, E, Index)
       {
-        if ( E == Query)
+        if ( E == Query )
         {
           Result = Index;
           break;
         }
       }
       return Result;
+    }
+
+    element_t.has_tag(block_array_IndexOfValue)?
+    {
+      link_internal index_t
+      IndexOfValue( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Query)
+      {
+        index_t Result = {INVALID_BLOCK_ARRAY_INDEX};
+        IterateOver(Array, E, Index)
+        {
+          if (AreEqual(E, Query))
+          {
+            Result = Index;
+            break;
+          }
+        }
+        return Result;
+      }
     }
 
     link_internal b32
