@@ -194,22 +194,6 @@ AdvanceSpaces(u32 N, layout *Layout, v2 FontSize)
 link_internal void AdvanceLayoutStackBy(v2 Delta, layout* Layout);
 
 
-link_internal b32
-WithinTolerance(f32 Epsilon, v3 A, v3 B)
-{
-  b32 Result = (A.x+Epsilon > B.x && A.x-Epsilon < B.x) &&
-               (A.y+Epsilon > B.y && A.y-Epsilon < B.y) &&
-               (A.z+Epsilon > B.z && A.z-Epsilon < B.z);
-  return Result;
-}
-
-link_internal b32
-WithinTolerance(f32 Epsilon, f32 A, f32 B)
-{
-  b32 Result = (A+Epsilon > B && A-Epsilon < B);
-  return Result;
-}
-
 link_internal void
 NewRow(layout *Layout)
 {

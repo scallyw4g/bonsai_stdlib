@@ -203,6 +203,21 @@ Voxel_Position(v3 Offset)
   return Result;
 }
 
+link_internal b32
+WithinTolerance(f32 Epsilon, v3 A, v3 B)
+{
+  b32 Result = (A.x+Epsilon > B.x && A.x-Epsilon < B.x) &&
+               (A.y+Epsilon > B.y && A.y-Epsilon < B.y) &&
+               (A.z+Epsilon > B.z && A.z-Epsilon < B.z);
+  return Result;
+}
+
+link_internal b32
+WithinTolerance(f32 Epsilon, f32 A, f32 B)
+{
+  b32 Result = (A+Epsilon > B && A-Epsilon < B);
+  return Result;
+}
 
 
 poof(gen_vector_operators(v2))
@@ -374,6 +389,14 @@ V3(v2 XY, f32 z)
   v3 Result = {{ XY.x, XY.y, z }};
   return Result;
 }
+
+inline v3
+V3(f32 x, v2 YZ)
+{
+  v3 Result = {{x, YZ.x, YZ.y}};
+  return Result;
+}
+
 
 inline v3
 V3(v2i XY, s32 z)

@@ -289,6 +289,13 @@ poof(
           return Result;
         }
 
+        inline E.type
+        Sum( Type.name P1 )
+        {
+          E.type Result = ( E.map_array(Index).sep(+) { P1.(E.name)[Index]  });
+          return Result;
+        }
+
         gen_vector_comparator(Type, E, {<})
 
         gen_vector_comparator(Type, E, {<=})
