@@ -2110,9 +2110,6 @@ poof(
     struct index_t
     {
       umm Index; /// TODO(Jesse): Should this be u32?
-      /* block_t *Block; */
-      /* u32 BlockIndex; */
-      /* u32 ElementIndex; */
     };
 
     struct block_array_t
