@@ -2229,17 +2229,6 @@ poof(
       return Result;
     }
 
-    link_internal element_t.name element_t.is_pointer?{}{*}
-    TryGetPtr((element_t.name)_block_array *Arr, index_t Index)
-    {
-      element_t.name element_t.is_pointer?{}{*} Result = {};
-      if (Arr->BlockPtrs && Index.Index < Capacity(Arr).Index)
-      {
-        Result = GetPtr(Arr, Index);
-      }
-      return Result;
-    }
-
 
     link_internal element_t.name element_t.is_pointer?{}{*}
     GetPtr( block_array_t *Arr, umm Index )
@@ -2248,15 +2237,22 @@ poof(
       return GetPtr(Arr, I);
     }
 
+
     link_internal element_t.name element_t.is_pointer?{}{*}
-    TryGetPtr((element_t.name)_block_array *Arr, umm Index)
+    TryGetPtr( (element_t.name)_block_array *Arr, index_t Index)
     {
       element_t.name element_t.is_pointer?{}{*} Result = {};
-      if (Arr->BlockPtrs && Index < AtElements(Arr).Index)
+      if (Arr->BlockPtrs && Index < AtElements(Arr))
       {
-        index_t I = {Index};
-        Result = GetPtr(Arr, I);
+        Result = GetPtr(Arr, Index);
       }
+      return Result;
+    }
+
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    TryGetPtr( (element_t.name)_block_array *Arr, umm Index)
+    {
+      auto Result = TryGetPtr(Arr, index_t{Index});
       return Result;
     }
   }
@@ -2441,6 +2437,11 @@ poof(
       }
 
       *Prev = *Element;
+    }
+
+    element_t.has_tag(do_editor_ui)?
+    {
+      do_editor_ui_for_container(block_array_t)
     }
   }
 )
