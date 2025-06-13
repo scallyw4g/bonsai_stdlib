@@ -296,6 +296,19 @@ poof(
           return Result;
         }
 
+        /// NOTE(Jesse): This does an extra Max operation for the 0th element.
+        /// Any way we can avoid that?  Hopefully the compiler notices and elides it
+        inline E.type
+        MaxChannel( Type.name P1 )
+        {
+          E.type Result = P1.(E.name)[0];
+          E.map_array(Index)
+          {
+            Result = Cast((E.type), Max(Result, P1.(E.name)[Index]));
+          };
+          return Result;
+        }
+
         gen_vector_comparator(Type, E, {<})
 
         gen_vector_comparator(Type, E, {<=})
