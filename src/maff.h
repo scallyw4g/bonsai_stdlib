@@ -96,7 +96,9 @@ Truncate(r32 Input)
 link_internal f32
 Mod(f32 Dividend, f32 Divisor)
 {
-  return Dividend - Truncate(Dividend / Divisor) * Divisor;
+  r32 Truncated = Truncate(Dividend / Divisor);
+  f32 Result = Dividend - Truncated * Divisor;
+  return Result;
 }
 
 link_internal umm
@@ -200,18 +202,23 @@ Cos(f32 x)
   // Sub two because xMapped can be 1.f, which will map to TableSize
   s32 TableSize = s32(ArrayCount(CosineTable))-2;
 
+  f32 twoPI = 2.f*PI32;
+  f32 inv2PI = 1.f/(2.f*PI32);
+
   f32 xAbs = Abs(x);
-  f32 xMapped = Mod(xAbs, 2.f*PI32)/(2.f*PI32);
+  f32 xMapped = Mod(xAbs, twoPI)*inv2PI;
+
   Assert(xMapped >= 0.f);
   Assert(xMapped <= 1.f);
 
-  f32 i = xMapped * TableSize;
+  f32 i = xMapped * f32(TableSize);
   s32 index = s32(i);
   Assert(u64(index) < ArrayCount(CosineTable));
 
-  r32 Result = Lerp(i - index,
-                    CosineTable[index],
-                    CosineTable[index + 1] );
+  r32 Blend = i - f32(index);
+  r32 Value0 = CosineTable[index];
+  r32 Value1 = CosineTable[index+1];
+  r32 Result = Lerp(Blend, Value0, Value1);
 
 #else  // BONSAI_FAST_MATH__COS
   r32 Result = (r32)cos(double(x));
@@ -538,9 +545,17 @@ ArcCos(r32 x)
 
   s32 index = s32(i);
   Assert(u64(index+1) < ArrayCount(ArcCosineTable)); // just to be safe.
+                                                     //
+#if 1
+  r32 Blend  = i - f32(index);
+  r32 Value0 = ArcCosineTable[index];
+  r32 Value1 = ArcCosineTable[index+1];
+  r32 Result = Lerp(Blend, Value0, Value1);
+#else
   r32 Result = Lerp(i - index,
                     ArcCosineTable[index],
                     ArcCosineTable[index + 1] );
+#endif
 
   return Result;
 #else
