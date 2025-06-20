@@ -6,7 +6,12 @@ poof(
   func shader_magic(shader_struct)
   {
     link_internal void
-    Initialize(shader_struct.name.to_capital_case)( shader_struct.name *Struct shader_struct.map(member) { member.has_tag(uniform)?  {  , member.type member.is_pointer?{*}member.name } })
+    Initialize(shader_struct.name.to_capital_case)( shader_struct.name *Struct
+      shader_struct.map(member)
+      {
+          member.has_tag(uniform)?  {, member.type member.is_pointer?{*}member.name}
+      }
+    )
     {
       shader_struct.has_tag(vert_source_file)?
       {
@@ -26,9 +31,10 @@ poof(
             }
           }
 
-          if (UniformIndex != shader_struct.member(1, (Uniforms) { Uniforms.array }) )
+          u32 Expected = shader_struct.member(1, (Uniforms) { Uniforms.array });
+          if (UniformIndex != Expected )
           {
-            Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots!");
+            Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots! Expected (%d), Got (%d)", Expected, UniformIndex);
           }
         }
         {
