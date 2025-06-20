@@ -45,6 +45,8 @@ poof(
         poof_error { Poof func shader_magic requires tag @vert_source_file }
       }
 
+      AssertNoGlErrors;
+
       RegisterShaderForHotReload(GetStdlib(), &Struct->Program);
     }
 
@@ -122,7 +124,7 @@ poof(buffer_h(shader_uniform, u32))
 
 struct shader
 {
-  u32 ID;
+  u32 ID = INVALID_SHADER;
   shader_uniform_buffer Uniforms;
 
   cs VertexSourceFilename;

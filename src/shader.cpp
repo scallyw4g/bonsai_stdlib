@@ -244,8 +244,9 @@ ReloadShaderUniform(shader *Shader, shader_uniform *Uniform)
   auto PrevLoc = Uniform->ID;
   Uniform->ID = GetShaderUniform(Shader, Uniform->Name);
 
-  Info("Reloaded Shader Uniform (%s) at location (%d), previously (%d)", Uniform->Name, Uniform->ID, PrevLoc);
-  return Uniform->ID != INVALID_SHADER_UNIFORM;
+  b32 Result = Uniform->ID != INVALID_SHADER_UNIFORM;
+  if (Result) { Info("Reloaded Shader Uniform (%s) at location (%d), previously (%d)", Uniform->Name, Uniform->ID, PrevLoc); }
+  return Result;
 }
 
 
@@ -278,15 +279,12 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
       if (LoadedShader.ID == INVALID_SHADER)
       {
-        // Hit an error loading the shader
-
-        IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
-        {
-          Uniform->ID = INVALID_SHADER_UNIFORM;
-        }
+        // Hit an error loading the shader .. leave the old stuff intact.
       }
       else
       {
+        // Delete old shader, and replace with new
+        //
         GL.DeleteProgram(Shader->ID);
 
         auto Uniforms = Shader->Uniforms;
