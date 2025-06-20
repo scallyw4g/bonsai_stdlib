@@ -11,7 +11,7 @@ struct shader_compile_result
 };
 
 link_internal shader_compile_result
-CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
+CompileShader(ansi_stream Header, ansi_stream Code, u32 Type, b32 DumpErrors)
 {
   const int InfoLogLength = 0;
 
@@ -33,7 +33,7 @@ CompileShader(ansi_stream Header, ansi_stream Code, u32 Type)
 
   // TODO(Jesse): We should probably return a flag from this function that indicates
   // the compilation failed..?  Or reinstate CheckShaderCompilationStatus?
-  if (CompileSuccess == GL_FALSE)
+  if (DumpErrors && CompileSuccess == GL_FALSE)
   {
     char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength);
     s32 ActualLength = 0;
@@ -126,7 +126,7 @@ DumpShaderSource(u32 ShaderId)
 }
 
 link_internal shader
-CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
+CompileShaderPair(cs VertShaderPath, cs FragShaderPath, b32 DumpErrors = True)
 {
   Info("Creating shader : %S | %S", VertShaderPath, FragShaderPath);
 
@@ -138,10 +138,10 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
 
   int InfoLogLength;
 
-  shader_compile_result VertexResult = CompileShader(HeaderCode, VertexShaderCode, GL_VERTEX_SHADER);
+  shader_compile_result VertexResult = CompileShader(HeaderCode, VertexShaderCode, GL_VERTEX_SHADER, DumpErrors);
   AssertNoGlErrors;
 
-  shader_compile_result FragResult = CompileShader(HeaderCode, FragShaderCode, GL_FRAGMENT_SHADER);
+  shader_compile_result FragResult = CompileShader(HeaderCode, FragShaderCode, GL_FRAGMENT_SHADER, DumpErrors);
   AssertNoGlErrors;
 
   memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
@@ -169,19 +169,19 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
     GL.GetProgramiv(ProgramID, GL_ACTIVE_UNIFORMS, &ActiveUniformSlots);
     AssertNoGlErrors;
 
-    if (VertexResult.Success == False)
+    if (DumpErrors && VertexResult.Success == False)
     {
       DumpShaderSource(VertexResult.ShaderId);
     }
 
-    if (FragResult.Success == False)
+    if (DumpErrors && FragResult.Success == False)
     {
       DumpShaderSource(FragResult.ShaderId);
     }
 
     Info("Shader program (%d) reported (%d) active uniform slots.", ProgramID, ActiveUniformSlots);
 
-    if (LinkResult == GL_FALSE)
+    if (DumpErrors && LinkResult == GL_FALSE)
     {
       char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
       GL.GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
@@ -196,7 +196,12 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath)
     GL.DeleteShader(FragResult.ShaderId);
     AssertNoGlErrors;
 
-    if (LinkResult == GL_FALSE) { ProgramID = INVALID_SHADER; }
+    if (LinkResult == GL_FALSE)
+    {
+      GL.DeleteProgram(ProgramID);
+      ProgramID = INVALID_SHADER;
+    }
+
     Shader.ID = ProgramID;
 
     // NOTE(Jesse): Kind of a hack to set the last modified times on the shader.  Should
@@ -259,15 +264,16 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
       auto T1 = Shader->VertexTimeModifiedWhenLoaded;
       auto T2 = Shader->FragmentTimeModifiedWhenLoaded;
-      shader LoadedShader = CompileShaderPair(Shader->VertexSourceFilename, Shader->FragSourceFilename);
 
-      b32 RetryCount = 0;
-      while (LoadedShader.ID == INVALID_SHADER)
+      s32 MaxRetryCount = 5;
+      shader LoadedShader = {};
+      RangeIterator(RetryCount, MaxRetryCount)
       {
-        SleepMs(5);
-        LoadedShader = CompileShaderPair(Shader->VertexSourceFilename, Shader->FragSourceFilename);
+        b32 DumpErrors = (RetryCount == MaxRetryCount-1);
+        LoadedShader = CompileShaderPair(Shader->VertexSourceFilename, Shader->FragSourceFilename, DumpErrors);
+        if (LoadedShader.ID != INVALID_SHADER) { break; }
 
-        if (++RetryCount > 5) { break; } // If it doesn't work after 5 tries, it's probably a syntax error.
+        SleepMs(5);
       }
 
       if (LoadedShader.ID == INVALID_SHADER)
@@ -276,8 +282,7 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
         IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
         {
-          *Uniform = {};
-          Assert(Uniform->ID == INVALID_SHADER_UNIFORM);
+          Uniform->ID = INVALID_SHADER_UNIFORM;
         }
       }
       else
