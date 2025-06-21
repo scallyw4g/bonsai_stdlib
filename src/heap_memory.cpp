@@ -3,9 +3,6 @@ InitHeap(umm AllocationSize, b32 Multithreaded = False)
 {
   heap_allocator Result = {};
 
-  if (Multithreaded) { InitializeFutex(&Result.Futex); }
-  else { Result.OwnedByThread = ThreadLocal_ThreadIndex; }
-
   Result.FirstBlock = (heap_allocation_block*)PlatformAllocateSize(AllocationSize);
   Assert(Result.FirstBlock);
 
@@ -126,14 +123,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
 #if 0
   u8* Result = (u8*)calloc(1, RequestedSize);
 #else
-  if (Allocator->Futex.Initialized == True)
-  {
-    AcquireFutex(&Allocator->Futex);
-  }
-  else
-  {
-    Assert(Allocator->OwnedByThread == ThreadLocal_ThreadIndex);
-  }
+  AcquireFutex(&Allocator->Futex);
 
   Assert(Allocator->FirstBlock && Allocator->Size);
 
@@ -181,10 +171,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
     }
   }
 
-  if (Allocator->Futex.Initialized == True)
-  {
-    ReleaseFutex(&Allocator->Futex);
-  }
+  ReleaseFutex(&Allocator->Futex);
 
 #endif
   return Result;
@@ -196,14 +183,7 @@ HeapDeallocate(heap_allocator *Allocator, void* Allocation)
 #if 0
   free(Allocation);
 #else
-  if (Allocator->Futex.Initialized == True)
-  {
-    AcquireFutex(&Allocator->Futex);
-  }
-  else
-  {
-    Assert(Allocator->OwnedByThread == ThreadLocal_ThreadIndex);
-  }
+  AcquireFutex(&Allocator->Futex);
 
   Assert(Allocation);
 
@@ -223,7 +203,7 @@ HeapDeallocate(heap_allocator *Allocator, void* Allocation)
 
   AllocationBlock->Type = AllocationType_Free;
 
-  if (Allocator->Futex.Initialized == True) { ReleaseFutex(&Allocator->Futex); }
+  ReleaseFutex(&Allocator->Futex);
 #endif
 
   return;

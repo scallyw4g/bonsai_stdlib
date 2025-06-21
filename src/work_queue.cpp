@@ -211,8 +211,6 @@ InitQueue(work_queue* Queue, memory_arena* Memory)
   Queue->DequeueIndex = 0;
 
   Queue->Entries = Allocate(work_queue_entry, Memory, WORK_QUEUE_SIZE);
-
-  InitializeFutex(&Queue->EnqueueFutex);
 }
 
 link_weak void

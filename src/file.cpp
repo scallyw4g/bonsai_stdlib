@@ -320,8 +320,6 @@ PrintToStdout(cs Output)
 {
   if (Stdout.Handle == 0) { PlatformInitializeStdout(&Stdout, &Global_StdoutLogfile); }
 
-  if (Global_StdoutPrintLock.Initialized == False) { InitializeFutex(&Global_StdoutPrintLock); }
-
   // TODO(Jesse): What's a better way than printf of notifying the user an error occurred if we can't write to stdout???
   if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX) { AcquireFutex(&Global_StdoutPrintLock); }
   if (!WriteToFile(&Stdout, Output)) { printf("Error writing to stdout."); }

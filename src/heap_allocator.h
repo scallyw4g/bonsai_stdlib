@@ -27,11 +27,6 @@ struct heap_allocator
 {
   heap_allocation_block* FirstBlock;
   umm Size;
-
-  // NOTE(Jesse): Mutually exclusive.  If the futex is initialized, it can be
-  // used by any thread.  If the futex is not initialized, it asserts the accessor
-  // is the thread that allocated this heap.
   bonsai_futex Futex;
-           s32 OwnedByThread;
 };
 

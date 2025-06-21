@@ -112,7 +112,7 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 
 // @temp-string-builder-memory
 // TODO(Jesse, id: 98, tags: robustness, api_improvement): Make allocating these on the stack work!
-link_internal memory_arena*
+link_internal memory_arena *
 AllocateArena_(const char *Id, umm RequestedBytes /* = Megabytes(1) */, b32 MemProtect /* = True */, b32 DebugRegister)
 {
   RequestedBytes = Max(RequestedBytes, Megabytes(1));
@@ -136,6 +136,7 @@ AllocateArena_(const char *Id, umm RequestedBytes /* = Megabytes(1) */, b32 MemP
 #endif
 
   memory_arena *Result = (memory_arena*)ArenaBytes;
+  *Result = {};
 
   u8 *Bytes = PlatformAllocateSize(AllocationSize);
   Result->Start = Bytes;
@@ -158,10 +159,6 @@ AllocateArena_(const char *Id, umm RequestedBytes /* = Megabytes(1) */, b32 MemP
 #else
   Assert(OnPageBoundary(Result, PageSize));
   Assert(Remaining(Result) >= RequestedBytes);
-#endif
-
-#if BONSAI_INTERNAL
-  InitializeFutex(&Result->DebugFutex);
 #endif
 
   if (DebugRegister)
