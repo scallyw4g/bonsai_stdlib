@@ -69,7 +69,8 @@ DefaultWorkerThread(void *Input)
   Thread->Index = ThreadParams->ThreadIndex;
 
 
-  if (ThreadParams->AppApi->WorkerInit) { ThreadParams->AppApi->WorkerInit(Global_ThreadStates, ThreadParams->ThreadIndex); }
+  auto Stdlib = GetStdlib();
+  if (Stdlib->AppApi.WorkerInit) { Stdlib->AppApi.WorkerInit(Global_ThreadStates, ThreadParams->ThreadIndex); }
 
   while (FutexNotSignaled(ThreadParams->WorkerThreadsExitFutex))
   {
@@ -105,10 +106,10 @@ DefaultWorkerThread(void *Input)
     // NOTE(Jesse): This is here to ensure the game lib (and, by extesion, the debug lib)
     // has ThreadLocal_ThreadIndex set.  This is super annoying and I want a better solution.
     WorkerThread_BeforeJobStart(ThreadParams);
-    ThreadParams->AppApi->WorkerBeforeJob(Thread, ThreadParams);
+    GetStdlib()->AppApi.WorkerBeforeJob(Thread, ThreadParams);
 
     AtomicIncrement(ThreadParams->HighPriorityWorkerCount);
-    DrainQueue( ThreadParams->HighPriority, Thread, ThreadParams->AppApi );
+    DrainQueue( ThreadParams->HighPriority, Thread, &GetStdlib()->AppApi );
     AtomicDecrement(ThreadParams->HighPriorityWorkerCount);
 
 #if 1
@@ -151,7 +152,7 @@ DefaultWorkerThread(void *Input)
       {
         volatile work_queue_entry *Entry = LowPriority->Entries+DequeueIndex;
 
-        HandleJob(Entry, Thread, ThreadParams->AppApi);
+        HandleJob(Entry, Thread, &GetStdlib()->AppApi);
 
         Ensure( RewindArena(Thread->TempMemory) );
       }
@@ -176,7 +177,7 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callbac
 
     // TODO(Jesse): This could probably be smoothed out a bit..
     engine_resources *Engine = 0;
-    InitThreadStartupParams(Engine, Plat, Thread, ThreadIndex, AppApi);
+    InitThreadStartupParams(Engine, Plat, Thread, ThreadIndex);
 
     umm CallbackProcIndex = umm(ThreadIndex-1);
     if (WorkerThreadCallbackProcs &&  CallbackProcIndex < WorkerThreadCallbackProcs->Count)

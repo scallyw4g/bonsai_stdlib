@@ -19,6 +19,8 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
                                      void *ThreadState_UserData,
          thread_main_callback_type_buffer *WorkerThreadCallbackProcs = 0)
 {
+  Global_Stdlib = Stdlib;
+
   Info("Initializing Bonsai");
 
   UNPACK_STDLIB(Stdlib);

@@ -179,9 +179,11 @@ struct application_api
   bonsai_main_thread_callback OnLibraryLoad; // Anytime the game library is loaded
 };
 
+struct bonsai_stdlib;
+
 struct thread_startup_params
 {
-  application_api *AppApi;
+  bonsai_stdlib   *Stdlib;
 
   volatile u32 *HighPriorityWorkerCount;
 

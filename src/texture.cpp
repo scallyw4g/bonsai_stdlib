@@ -133,28 +133,25 @@ GenTexture(v2i Dim, cs DebugName, texture_storage_format StorageFormat, u32 Chan
 
   texture Result = InitTexture(Dim, DebugName, StorageFormat, Channels, Slices, IsDepthTexture);
 
-  GetStdlib()->GL.GenTextures(1, &Result.ID);
-  GetStdlib()->GL.BindTexture(TextureDimensionality, Result.ID);
+  GetGL()->GenTextures(1, &Result.ID);
+  GetGL()->BindTexture(TextureDimensionality, Result.ID);
 
-  if (GetStdlib)
-  {
-    bonsai_stdlib *Stdlib = GetStdlib();
-    Stdlib->AllTextures.Memory = &Global_PermMemory;
-    Push(&GetStdlib()->AllTextures, &Result);
-  }
+  bonsai_stdlib *Stdlib = GetStdlib();
+  Stdlib->AllTextures.Memory = &Global_PermMemory;
+  Push(&GetStdlib()->AllTextures, &Result);
 
   // Note(Jesse): This is required to be set if mipmapping is off.  The default
   // behavior is to lerp between the two closest mipmap levels, and when there
   // is only one level that fails, at least on my GL implementation.
-  GetStdlib()->GL.TexParameteri(TextureDimensionality, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   //
 
-  GetStdlib()->GL.TexParameteri(TextureDimensionality, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  GetStdlib()->GL.TexParameteri(TextureDimensionality, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  GetStdlib()->GL.TexParameteri(TextureDimensionality, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  GetStdlib()->GL.TexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+  GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   /* glTexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE); */
-  GetStdlib()->GL.TexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+  GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 
   AssertNoGlErrors;
 
@@ -166,7 +163,7 @@ DeleteTexture(texture *Texture)
 {
   /* if (GetStdlib) { RemoveUnordered(&GetStdlib()->AllTextures, Texture); } */
 
-  GetStdlib()->GL.DeleteTextures(1, &Texture->ID);
+  GetGL()->DeleteTextures(1, &Texture->ID);
   Clear(Texture);
 }
 
@@ -188,7 +185,7 @@ MakeTexture_RGBA(    v2i  Dim,
   if (Slices == 1)
   {
     Assert(Data == 0); // Unsupported ..??  Shouldn't this just work ..?
-    GetStdlib()->GL.TexImage2D(GL_TEXTURE_2D, 0, (s32)InternalFormat,
+    GetGL()->TexImage2D(GL_TEXTURE_2D, 0, (s32)InternalFormat,
         Result.Dim.x, Result.Dim.y, 0, TextureFormat, ElementType, Data);
   }
   else
@@ -197,7 +194,7 @@ MakeTexture_RGBA(    v2i  Dim,
     // able to be glTexImage3D, but the driver is throwing an error .. why?!
     //
 #if 1
-    GetStdlib()->GL.TexImage3D(
+    GetGL()->TexImage3D(
         GL_TEXTURE_2D_ARRAY,
         0,
         s32(InternalFormat),
@@ -209,7 +206,7 @@ MakeTexture_RGBA(    v2i  Dim,
 #else
 
     s32 Mips = 0; //(s32)Slices;
-    GetStdlib()->GL.TexStorage3D(GL_TEXTURE_2D_ARRAY, Mips, InternalFormat,
+    GetGL()->TexStorage3D(GL_TEXTURE_2D_ARRAY, Mips, InternalFormat,
                     Dim.x, Dim.x, (s32)Slices);
 
 #endif
@@ -221,7 +218,7 @@ MakeTexture_RGBA(    v2i  Dim,
     if (Data)
     {
       s32 TextureDepth = 1;
-      GetStdlib()->GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
+      GetGL()->TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
                         xOffset, yOffset, zOffset,
                         Result.Dim.x, Result.Dim.y, TextureDepth,
                         TextureFormat, ElementType, Data);
@@ -248,10 +245,10 @@ MakeTexture_RGBA(    v2i  Dim,
 
   s32 InternalFormat = StorageFormat;
   u32 TextureFormat = GL_RGBA;
-  GetStdlib()->GL.TexImage2D(GL_TEXTURE_2D, 0, InternalFormat,
+  GetGL()->TexImage2D(GL_TEXTURE_2D, 0, InternalFormat,
       Result.Dim.x, Result.Dim.y, 0,  TextureFormat, GL_FLOAT, Data);
 
-  GetStdlib()->GL.BindTexture(GL_TEXTURE_2D, 0);
+  GetGL()->BindTexture(GL_TEXTURE_2D, 0);
 
   return Result;
 }
@@ -266,13 +263,13 @@ MakeTexture_SingleChannel( v2i  Dim,
   u32 Slices = 1;
   texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices, IsDepthTexture);
 
-  GetStdlib()->GL.TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
+  GetGL()->TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
       Result.Dim.x, Result.Dim.y, 0,  GL_RED, GL_FLOAT, 0);
 
-  GetStdlib()->GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  GetStdlib()->GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  GetStdlib()->GL.BindTexture(GL_TEXTURE_2D, 0);
+  GetGL()->BindTexture(GL_TEXTURE_2D, 0);
 
   return Result;
 }
@@ -291,13 +288,13 @@ MakeTexture_RGB(     v2i  Dim,
   u32 Channels = 3;
   texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices);
 
-  GetStdlib()->GL.TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
+  GetGL()->TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
       Result.Dim.x, Result.Dim.y, 0,  GL_RGB, GL_FLOAT, Data);
 
-  GetStdlib()->GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  GetStdlib()->GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  GetStdlib()->GL.BindTexture(GL_TEXTURE_2D, 0);
+  GetGL()->BindTexture(GL_TEXTURE_2D, 0);
 
   AssertNoGlErrors;
 
@@ -313,14 +310,14 @@ MakeDepthTexture(v2i Dim, cs DebugName)
   texture_storage_format StorageFormat = TextureStorageFormat_Depth32;
   texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices, IsDepthTexture);
 
-  GetStdlib()->GL.TexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F,
+  GetGL()->TexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F,
     Result.Dim.x, Result.Dim.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
-  GetStdlib()->GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-  GetStdlib()->GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
   r32 BorderColors[4] = {1, 1, 1, 1};
-  GetStdlib()->GL.TexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BorderColors);
+  GetGL()->TexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, BorderColors);
 
   Result.IsDepthTexture = True;
 
@@ -347,7 +344,7 @@ MakeDepthTexture(v2i Dim, cs DebugName)
 link_internal void
 FramebufferDepthTexture(texture *Tex)
 {
-  GetStdlib()->GL.FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, Tex->ID, 0);
+  GetGL()->FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, Tex->ID, 0);
 }
 
 link_internal void
@@ -355,7 +352,7 @@ FramebufferTexture(framebuffer *FBO, texture *Tex)
 {
   Assert(Tex->ID != INVALID_TEXTURE_HANDLE);
   u32 Attachment = FBO->Attachments++;
-  GetStdlib()->GL.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, GL_TEXTURE_2D, Tex->ID, 0);
+  GetGL()->FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, GL_TEXTURE_2D, Tex->ID, 0);
 }
 
 link_internal texture
@@ -434,7 +431,7 @@ CreateTextureArrayFromBitmapBlockArray(bitmap_block_array *Bitmaps, v2i TextureA
 
     s32 xOffset = (TextureArrayXY.x - Bitmap->Dim.x) / 2;
     s32 yOffset = (TextureArrayXY.y - Bitmap->Dim.y) / 2;
-    GetStdlib()->GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
+    GetGL()->TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
                       xOffset, yOffset, zOffset,
                       Bitmap->Dim.x, Bitmap->Dim.y,
                       TextureDepth,
@@ -475,7 +472,7 @@ CreateTextureArrayFromBitmapBufferArray(bitmap_buffer *BitmapBuffers, u32 Buffer
 
       s32 xOffset = (TextureArrayXY.x - Bitmap->Dim.x) / 2;
       s32 yOffset = (TextureArrayXY.y - Bitmap->Dim.y) / 2;
-      GetStdlib()->GL.TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
+      GetGL()->TexSubImage3D( GL_TEXTURE_2D_ARRAY, 0,
                         xOffset, yOffset, zOffset,
                         Bitmap->Dim.x, Bitmap->Dim.y,
                         TextureDepth,

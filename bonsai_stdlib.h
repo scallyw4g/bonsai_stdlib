@@ -135,7 +135,7 @@ struct camera;
 struct bonsai_stdlib;
 struct debug_state;
 
-link_weak bonsai_stdlib *GetStdlib();
+link_internal bonsai_stdlib *GetStdlib();
 link_internal debug_state *GetDebugState();
 
 
@@ -149,10 +149,11 @@ link_internal debug_state *GetDebugState();
 
 struct bonsai_stdlib
 {
-  os Os;
-  platform Plat;
+                  os  Os;
+            platform  Plat;
+     application_api  AppApi;
   thread_local_state *ThreadStates;
-  opengl GL;
+              opengl  GL;
 
   //
   // Debug
@@ -162,11 +163,39 @@ struct bonsai_stdlib
   texture_block_array AllTextures;
   shader_ptr_block_array AllShaders;
 
-  // TODO(Jesse): wtf?
 #if BONSAI_DEBUG_SYSTEM_API
   debug_state DebugState;
 #else
+  // NOTE(Jesse): This is a crutch for the UI .. barf ..
   void *DebugState;
 #endif
 };
+
+global_variable bonsai_stdlib *Global_Stdlib;
+
+link_internal opengl *
+GetGL()
+{
+  return &Global_Stdlib->GL;
+}
+
+link_internal bonsai_stdlib *
+GetStdlib()
+{
+  return Global_Stdlib;
+}
+
+link_internal debug_state *
+GetDebugState()
+{
+  debug_state *Result = 0;
+#if BONSAI_DEBUG_SYSTEM_API
+  bonsai_stdlib *Stdlib = GetStdlib();
+  if (Stdlib && Stdlib->DebugState.Initialized)
+  {
+    Result = &Stdlib->DebugState;
+  }
+#endif
+  return Result;
+}
 

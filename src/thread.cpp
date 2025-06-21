@@ -53,12 +53,13 @@ WaitOnFutex(bonsai_futex *Futex, b32 DoSleep)
 }
 
 link_internal void
-InitThreadStartupParams(engine_resources *Engine, platform *Plat, thread_local_state *Thread, s32 ThreadIndex, application_api *AppApi)
+InitThreadStartupParams(engine_resources *Engine, platform *Plat, thread_local_state *Thread, s32 ThreadIndex)
 {
   thread_startup_params *Params = &Thread->StartupParams;
 
+  Assert(Global_Stdlib);
+  Params->Stdlib                    = Global_Stdlib;
   Params->ThreadIndex               = ThreadIndex;
-  Params->AppApi                    = AppApi;
   Params->HighPriority              = &Plat->HighPriority;
   Params->LowPriority               = &Plat->LowPriority;
   Params->HighPriorityWorkerCount   = &Plat->HighPriorityWorkerCount;
@@ -90,7 +91,7 @@ DefaultThreadLocalState(s32 ThreadIndex, platform *Plat, application_api *AppApi
   DEBUG_REGISTER_NAMED_ARENA(Thread.PermMemory, ThreadIndex, FormatCountedString(Thread.PermMemory, CSz("Thread (%d) Perm Memory"), ThreadIndex).Start);
 
   engine_resources *Engine = 0;
-  InitThreadStartupParams(Engine, Plat, &Thread, ThreadIndex, AppApi);
+  InitThreadStartupParams(Engine, Plat, &Thread, ThreadIndex);
 
   return Thread;
 }
@@ -111,6 +112,9 @@ Initialize_ThreadLocal_ThreadStates(platform *Plat, application_api *AppApi, s32
 link_internal void
 WorkerThread_BeforeJobStart(thread_startup_params *StartupParams)
 {
+  Global_Stdlib = StartupParams->Stdlib;
+  Assert(Global_Stdlib);
+
   if (ThreadLocal_ThreadIndex == INVALID_THREAD_LOCAL_THREAD_INDEX) { SetThreadLocal_ThreadIndex(StartupParams->ThreadIndex); }
 
 #if BONSAI_DEBUG_SYSTEM_API

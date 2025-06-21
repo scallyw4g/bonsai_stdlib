@@ -4,7 +4,7 @@
 /* #define AssertNoGlErrors */
 
 #define AssertNoGlErrors do { \
-    u32 glErrorNo = GetStdlib()->GL.GetError();         \
+    u32 glErrorNo = GetGL()->GetError();         \
     DumpGlErrorEnum(glErrorNo);            \
   } while (0)
 
@@ -595,8 +595,6 @@ struct opengl
   // Platform specific (wgl / glX)
   /* OpenglSwapInterval SwapInterval; */
 };
-
-/* global_variable opengl GL = {}; */
 
 link_internal b32 InitializeOpenglFunctions();
 
