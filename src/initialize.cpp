@@ -14,6 +14,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
                           application_api *AppApi,
                             bonsai_stdlib *Stdlib,
                              memory_arena *Memory,
+                                     void *ThreadState_UserData,
          thread_main_callback_type_buffer *WorkerThreadCallbackProcs = 0)
 {
   Info("Initializing Bonsai");
@@ -27,15 +28,14 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
     u32 WorkerThreadCount = GetWorkerThreadCount();
     u32 TotalThreadCount  = GetTotalThreadCount();
-    Info("Detected %u Logical cores, creating %u threads", LogicalCoreCount, WorkerThreadCount);
+    Info("Detected (%u) Logical cores, creating (%u) worker threads of (%u) total threads", LogicalCoreCount, WorkerThreadCount, TotalThreadCount);
 
-    Plat->Threads = Allocate(thread_startup_params, Plat->Memory, TotalThreadCount);
-    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates((s32)GetTotalThreadCount(), Memory);
+    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, AppApi, s32(TotalThreadCount), ThreadState_UserData, Memory);
     Stdlib->ThreadStates = Global_ThreadStates;
   }
   else
   {
-    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, Memory);
+    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, AppApi, 1, ThreadState_UserData, Memory);
   }
 
   // NOTE(Jesse): This has to be set after Global_ThreadStates is set so we
@@ -45,17 +45,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   if (Flags & BonsaiInit_InitDebugSystem)
   {
 #if BONSAI_DEBUG_SYSTEM_API
-    /* auto DebugSystem = &Stdlib->DebugSystem; */
-    /* { */
-      /* DebugSystem->Lib = OpenLibrary("./bin/lib_debug_system_loadable" PLATFORM_RUNTIME_LIB_EXTENSION); */
-      /* if (!DebugSystem->Lib) { Error("Loading DebugLib :( "); return 1; } */
-
-      /* if (!InitBonsaiDebug(DebugSystem->Lib, &DebugSystem->Api, &DebugSystem->DebugState)) { Error("Initializing Debug Bootstrap Api :( "); return 1; } */
-    /* } */
-
-    /* BonsaiDebug_OnLoad(GetDebugState(), Global_ThreadStates, BONSAI_INTERNAL); */
     Ensure( InitDebugState(&Stdlib->DebugState) );
-
     MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(0.0f);
 #else
     Error("Asked to init debug system when BONSAI_DEBUG_SYSTEM_API was not compiled in!");

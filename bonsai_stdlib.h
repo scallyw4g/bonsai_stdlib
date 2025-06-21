@@ -152,6 +152,7 @@ struct bonsai_stdlib
   os Os;
   platform Plat;
   thread_local_state *ThreadStates;
+  opengl GL;
 
   //
   // Debug
@@ -161,6 +162,7 @@ struct bonsai_stdlib
   texture_block_array AllTextures;
   shader_ptr_block_array AllShaders;
 
+  // TODO(Jesse): wtf?
 #if BONSAI_DEBUG_SYSTEM_API
   debug_state DebugState;
 #else

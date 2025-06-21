@@ -15,8 +15,6 @@ struct platform
   bonsai_futex WorkerThreadsSuspendFutex;
   bonsai_futex WorkerThreadsExitFutex;
 
-  thread_startup_params *Threads;
-
   v2 MouseP;
   v2 MouseDP;
 

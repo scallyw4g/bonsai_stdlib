@@ -4,7 +4,7 @@
 /* #define AssertNoGlErrors */
 
 #define AssertNoGlErrors do { \
-    u32 glErrorNo = GL.GetError();         \
+    u32 glErrorNo = GetStdlib()->GL.GetError();         \
     DumpGlErrorEnum(glErrorNo);            \
   } while (0)
 
@@ -596,7 +596,7 @@ struct opengl
   /* OpenglSwapInterval SwapInterval; */
 };
 
-global_variable opengl GL = {};
+/* global_variable opengl GL = {}; */
 
 link_internal b32 InitializeOpenglFunctions();
 
@@ -607,38 +607,6 @@ CheckOpenglVersion(s32 Major, s32 Minor)
   if (Major > 3) { Result = True; }
   else if (Major == 3) { Result = Minor >= 3; }
   return Result;
-}
-
-link_internal void
-SetVSync(os *Os, s32 VSyncFrames)
-{
-  AssertNoGlErrors;
-
-#if BONSAI_LINUX
-  // TODO(Jesse, id: 151, tags: open_question, platform_linux): Not getting vsync on my arch laptop.
-  PFNSWAPINTERVALPROC glSwapInterval = (PFNSWAPINTERVALPROC)PlatformGetGlFunction("glXSwapIntervalEXT");
-  if ( glSwapInterval )
-  { glSwapInterval(Os->Display, Os->Window, VSyncFrames); }
-  else
-  { Info("No Vsync"); }
-#elif BONSAI_WIN32
-  PFNSWAPINTERVALPROC glSwapInterval = (PFNSWAPINTERVALPROC)PlatformGetGlFunction("wglSwapIntervalEXT");
-  if ( glSwapInterval )
-  { glSwapInterval(VSyncFrames); }
-  else
-  { Info("No Vsync"); }
-#elif EMCC
-  // TODO(Jesse id: 368): How do we get vsync here?
-  // @emcc_vsync
-#endif
-
-}
-
-inline void
-SetDefaultFramebufferClearColors()
-{
-  GL.ClearDepth(1.0); // NOTE(Jesse): Depth 1.0 is the furthest from the camera
-  GL.ClearColor(0.f, 0.f, 0.f, 1.f);
 }
 
 

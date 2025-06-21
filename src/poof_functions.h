@@ -2602,11 +2602,15 @@ poof(
     {
        (type.name) *First;
       memory_arena *Memory;
+      bonsai_futex  Lock;
     };
 
     link_internal type.name *
     GetOrAllocate((type.name)_freelist *Freelist)
     {
+      /// TODO(Jeses): Make this lockless ..?
+
+      AcquireFutex(&Freelist->Lock);
       type.name *Result = Freelist->First;
 
       if (Result)
@@ -2617,6 +2621,7 @@ poof(
       {
         Result = Allocate( (type.name), Freelist->Memory, 1 );
       }
+      ReleaseFutex(&Freelist->Lock);
 
       return Result;
     }
@@ -2624,8 +2629,10 @@ poof(
     link_internal void
     Free((type.name)_freelist *Freelist, type.name *Element)
     {
+      AcquireFutex(&Freelist->Lock);
       Element->Next = Freelist->First;
       Freelist->First = Element;
+      ReleaseFutex(&Freelist->Lock);
     }
   }
 )

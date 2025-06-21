@@ -53,7 +53,7 @@ poof(
     link_internal void
     UseShader( shader_struct.name *Struct )
     {
-      GL.UseProgram(Struct->Program.ID);
+      GetStdlib()->GL.UseProgram(Struct->Program.ID);
 
       s32 TextureUnit = 0;
       s32 UniformIndex = 0;

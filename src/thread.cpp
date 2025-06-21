@@ -52,12 +52,27 @@ WaitOnFutex(bonsai_futex *Futex, b32 DoSleep)
   AtomicDecrement(&Futex->ThreadsWaiting);
 }
 
+link_internal void
+InitThreadStartupParams(engine_resources *Engine, platform *Plat, thread_local_state *Thread, s32 ThreadIndex, application_api *AppApi)
+{
+  thread_startup_params *Params = &Thread->StartupParams;
+
+  Params->ThreadIndex               = ThreadIndex;
+  Params->AppApi                    = AppApi;
+  Params->HighPriority              = &Plat->HighPriority;
+  Params->LowPriority               = &Plat->LowPriority;
+  Params->HighPriorityWorkerCount   = &Plat->HighPriorityWorkerCount;
+  Params->HighPriorityModeFutex     = &Plat->HighPriorityModeFutex;
+  Params->WorkerThreadsSuspendFutex = &Plat->WorkerThreadsSuspendFutex;
+  Params->WorkerThreadsExitFutex    = &Plat->WorkerThreadsExitFutex;
+}
+
 link_internal thread_local_state
-DefaultThreadLocalState(s32 ThreadId)
+DefaultThreadLocalState(s32 ThreadIndex, platform *Plat, application_api *AppApi, void *UserData)
 {
   thread_local_state Thread = {};
 
-  /* Thread.EngineResources = EngineResources; */
+  Thread.UserData = UserData;
 
   Thread.TempMemory = AllocateArena();
   Thread.PermMemory = AllocateArena(Megabytes(8));
@@ -71,20 +86,23 @@ DefaultThreadLocalState(s32 ThreadId)
   // constructing the debug arena stats, so we can't ever free memory allocated
   // on debug registered arenas on threads outside the main one.
   //
-  DEBUG_REGISTER_NAMED_ARENA(Thread.TempMemory, ThreadId, FormatCountedString(Thread.PermMemory, CSz("Thread (%d) Temp Memory"), ThreadId).Start);
-  DEBUG_REGISTER_NAMED_ARENA(Thread.PermMemory, ThreadId, FormatCountedString(Thread.PermMemory, CSz("Thread (%d) Perm Memory"), ThreadId).Start);
+  DEBUG_REGISTER_NAMED_ARENA(Thread.TempMemory, ThreadIndex, FormatCountedString(Thread.PermMemory, CSz("Thread (%d) Temp Memory"), ThreadIndex).Start);
+  DEBUG_REGISTER_NAMED_ARENA(Thread.PermMemory, ThreadIndex, FormatCountedString(Thread.PermMemory, CSz("Thread (%d) Perm Memory"), ThreadIndex).Start);
+
+  engine_resources *Engine = 0;
+  InitThreadStartupParams(Engine, Plat, &Thread, ThreadIndex, AppApi);
 
   return Thread;
 }
 
-link_internal thread_local_state*
-Initialize_ThreadLocal_ThreadStates(s32 TotalThreadCount, memory_arena* Memory)
+link_internal thread_local_state *
+Initialize_ThreadLocal_ThreadStates(platform *Plat, application_api *AppApi, s32 TotalThreadCount, void *ThreadState_UserData, memory_arena* Memory)
 {
   thread_local_state *Result = AllocateAligned(thread_local_state, Memory, TotalThreadCount, CACHE_LINE_SIZE);
 
   for ( s32 ThreadIndex = 0; ThreadIndex < TotalThreadCount; ++ThreadIndex )
   {
-    Result[ThreadIndex] = DefaultThreadLocalState(ThreadIndex);
+    Result[ThreadIndex] = DefaultThreadLocalState(ThreadIndex, Plat, AppApi, ThreadState_UserData);
   }
 
   return Result;

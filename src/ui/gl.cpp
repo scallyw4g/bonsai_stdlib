@@ -3,14 +3,14 @@ link_internal void
 FramebufferTextureLayer(framebuffer *FBO, texture *Tex, debug_texture_array_slice Layer)
 {
   u32 Attachment = FBO->Attachments++;
-  GL.FramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, Tex->ID, 0, Layer);
+  GetStdlib()->GL.FramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, Tex->ID, 0, Layer);
   return;
 }
 
 link_internal void
 DrawUiBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 *ScreenDim)
 {
-  GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
+  GetStdlib()->GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
 
   u32 AttributeIndex = 0;
   BufferVertsToCard( TextGroup->SolidUIVertexBuffer, Geo, &AttributeIndex);
@@ -20,9 +20,9 @@ DrawUiBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 
   if (Geo->At) { Draw(Geo->At); }
   Geo->At = 0;
 
-  GL.DisableVertexAttribArray(0);
-  GL.DisableVertexAttribArray(1);
-  GL.DisableVertexAttribArray(2);
+  GetStdlib()->GL.DisableVertexAttribArray(0);
+  GetStdlib()->GL.DisableVertexAttribArray(1);
+  GetStdlib()->GL.DisableVertexAttribArray(2);
 
   AssertNoGlErrors;
 }
@@ -34,7 +34,7 @@ DrawUiBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer
 
   if (TextGroup)
   {
-    GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
+    GetStdlib()->GL.BindFramebuffer(GL_FRAMEBUFFER, 0);
     AssertNoGlErrors;
     /* UseShader(&TextGroup->SolidUIShader); */
 
@@ -48,8 +48,8 @@ DrawUiBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer
     if (Buffer->At) { Draw(Buffer->At); }
     Buffer->At = 0;
 
-    GL.DisableVertexAttribArray(0);
-    GL.DisableVertexAttribArray(1);
+    GetStdlib()->GL.DisableVertexAttribArray(0);
+    GetStdlib()->GL.DisableVertexAttribArray(1);
 
     AssertNoGlErrors;
   }
@@ -67,31 +67,31 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   Assert(UiGroup->TextGroup);
   auto TextGroup = UiGroup->TextGroup;
 
-  GL.Disable(GL_CULL_FACE);
+  GetStdlib()->GL.Disable(GL_CULL_FACE);
 
   SetViewport(*ScreenDim);
 
-  GL.UseProgram(TextGroup->SolidUIShader.ID);
+  GetStdlib()->GL.UseProgram(TextGroup->SolidUIShader.ID);
 
     DrawUiBuffer(TextGroup, &UiGroup->Geo, ScreenDim);
   /* UiGroup->Geo.At = 0; */
 
 
 
-  GL.UseProgram(TextGroup->Text2DShader.ID);
-  GL.ActiveTexture(GL_TEXTURE0);
-  GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray.ID);
-  GL.Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
+  GetStdlib()->GL.UseProgram(TextGroup->Text2DShader.ID);
+  GetStdlib()->GL.ActiveTexture(GL_TEXTURE0);
+  GetStdlib()->GL.BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray.ID);
+  GetStdlib()->GL.Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
 
-  GL.Enable(GL_BLEND);
-  GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  GetStdlib()->GL.Enable(GL_BLEND);
+  GetStdlib()->GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     DrawUiBuffer(UiGroup->TextGroup, &UiGroup->TextGroup->Geo, ScreenDim);
 
-  GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+  GetStdlib()->GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
-  GL.Disable(GL_BLEND);
-  GL.Enable(GL_CULL_FACE);
+  GetStdlib()->GL.Disable(GL_BLEND);
+  GetStdlib()->GL.Enable(GL_CULL_FACE);
 }
 
 link_internal shader

@@ -172,25 +172,20 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callbac
   // This loop is for worker threads; it's skipping thread index 0, the main thread
   for ( s32 ThreadIndex = 1; ThreadIndex < TotalThreadCount; ++ThreadIndex )
   {
-    thread_startup_params *Params = &Plat->Threads[ThreadIndex];
+    thread_local_state *Thread =  GetThreadLocalState(ThreadIndex);
 
-    Params->ThreadIndex               = ThreadIndex;
-    Params->AppApi                    = AppApi;
-    Params->HighPriority              = &Plat->HighPriority;
-    Params->LowPriority               = &Plat->LowPriority;
-    Params->HighPriorityWorkerCount   = &Plat->HighPriorityWorkerCount;
-    Params->HighPriorityModeFutex     = &Plat->HighPriorityModeFutex;
-    Params->WorkerThreadsSuspendFutex = &Plat->WorkerThreadsSuspendFutex;
-    Params->WorkerThreadsExitFutex    = &Plat->WorkerThreadsExitFutex;
-    Params->EngineResources           = GetEngineResources();
+    // TODO(Jesse): This could probably be smoothed out a bit..
+    engine_resources *Engine = 0;
+    InitThreadStartupParams(Engine, Plat, Thread, ThreadIndex, AppApi);
 
-    if (WorkerThreadCallbackProcs && umm(ThreadIndex-1) < WorkerThreadCallbackProcs->Count)
+    umm CallbackProcIndex = umm(ThreadIndex-1);
+    if (WorkerThreadCallbackProcs &&  CallbackProcIndex < WorkerThreadCallbackProcs->Count)
     {
-      PlatformCreateThread( WorkerThreadCallbackProcs->Start[ThreadIndex-1], (void*)Params, ThreadIndex );
+      PlatformCreateThread( WorkerThreadCallbackProcs->Start[CallbackProcIndex], Cast(void*, &Thread->StartupParams), ThreadIndex );
     }
     else
     {
-      PlatformCreateThread( DefaultWorkerThread, (void*)Params, ThreadIndex );
+      PlatformCreateThread( DefaultWorkerThread, Cast(void*, &Thread->StartupParams), ThreadIndex );
     }
   }
 

@@ -3136,19 +3136,19 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             Assert(Group->TextGroup->Geo.At == 0);
 
             shader *Shader = &Group->TexturedQuadShader;
-            GL.UseProgram(Shader->ID);
+            GetStdlib()->GL.UseProgram(Shader->ID);
 
             if (TypedCommand->TextureSlice < 0)
             {
               Assert(TypedCommand->Texture->Slices == 1);
               BindUniformByName(Shader, "Texture", TypedCommand->Texture, 0);
-              GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+              GetStdlib()->GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
             }
             else
             {
               Assert(TypedCommand->Texture->Slices > 1);
               BindUniformByName(Shader, "TextureArray", TypedCommand->Texture, 0);
-              GL.BindTexture(GL_TEXTURE_2D, 0);
+              GetStdlib()->GL.BindTexture(GL_TEXTURE_2D, 0);
             }
 
             BindUniformByName(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
@@ -3165,17 +3165,17 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
 
 #if 1
-            GL.Enable(GL_BLEND);
-            GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            GetStdlib()->GL.Enable(GL_BLEND);
+            GetStdlib()->GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
               DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
-            GL.Disable(GL_BLEND);
+            GetStdlib()->GL.Disable(GL_BLEND);
 #else
             Group->TextGroup->Geo.At = 0;
 #endif
 
-            /* GL.ActiveTexture(GL_TEXTURE0); */
-            GL.BindTexture(GL_TEXTURE_2D, 0);
-            GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+            /* GetStdlib()->GL.ActiveTexture(GL_TEXTURE0); */
+            GetStdlib()->GL.BindTexture(GL_TEXTURE_2D, 0);
+            GetStdlib()->GL.BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
             AssertNoGlErrors;
           }
@@ -3253,13 +3253,13 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   {
     auto TextGroup = Renderer->TextGroup;
     TextGroup->DebugTextureArray = LoadBitmap("texture_atlas_0.bmp", DebugTextureArraySlice_Count, GetTranArena());
-    GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
-    GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
-    GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
+    GetStdlib()->GL.GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
+    GetStdlib()->GL.GenBuffers(1, &TextGroup->SolidUIColorBuffer);
+    GetStdlib()->GL.GenBuffers(1, &TextGroup->SolidUIUVBuffer);
 
     TextGroup->Text2DShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "TextVertexShader.vertexshader"), CSz(STDLIB_SHADER_PATH "TextVertexShader.fragmentshader") );
 
-    TextGroup->TextTextureUniform = GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
+    TextGroup->TextTextureUniform = GetStdlib()->GL.GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
 
     Renderer->TextGroup->SolidUIShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") );
 
