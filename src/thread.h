@@ -117,7 +117,7 @@ ReleaseFutex(bonsai_futex *Futex)
 #define BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS      volatile work_queue_entry* Entry, thread_local_state* Thread
 
 #define BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_NAME      WorkerThreadBeforeJobCallback
-#define BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_PARAMS    thread_local_state* Thread, thread_startup_params *StartupParams
+#define BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_PARAMS    thread_local_state* Thread
 
 #define BONSAI_API_WORKER_THREAD_INIT_CALLBACK_NAME   InitWorkerThreadCallback
 #define BONSAI_API_WORKER_THREAD_INIT_CALLBACK_PARAMS thread_local_state* AllThreads, s32 ThreadIndex
@@ -152,7 +152,6 @@ struct platform;
 struct game_state;
 struct engine_resources;
 struct thread_local_state;
-struct thread_startup_params;
 
 struct work_queue;
 struct work_queue_entry;
@@ -165,7 +164,7 @@ typedef bool        (*bonsai_worker_thread_callback)    (BONSAI_API_WORKER_THREA
 typedef game_state* (*bonsai_main_thread_init_callback) (BONSAI_API_MAIN_THREAD_INIT_CALLBACK_PARAMS);
 
 typedef b32 (*bonsai_engine_callback)            (engine_resources*);
-typedef b32 (*bonsai_engine_init_callback)       (engine_resources*, thread_startup_params*);
+typedef b32 (*bonsai_engine_init_callback)       (engine_resources*, thread_local_state*);
 
 struct application_api
 {
@@ -180,30 +179,14 @@ struct application_api
 };
 
 struct bonsai_stdlib;
-
-struct thread_startup_params
-{
-  bonsai_stdlib   *Stdlib;
-
-  volatile u32 *HighPriorityWorkerCount;
-
-  bonsai_futex *HighPriorityModeFutex;
-  bonsai_futex *WorkerThreadsSuspendFutex;
-  bonsai_futex *WorkerThreadsExitFutex;
-
-  work_queue *LowPriority;
-  work_queue *HighPriority;
-
-  volatile s32 ThreadIndex;
-};
-
 struct thread_main_callback_type_buffer;
 
 struct memory_arena;
 
 struct thread_local_state
 {
-  thread_startup_params StartupParams;
+  bonsai_stdlib *Stdlib;
+   volatile s32  ThreadIndex;
 
   memory_arena *PermMemory;
   memory_arena *TempMemory;

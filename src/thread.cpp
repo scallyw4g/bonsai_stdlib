@@ -52,32 +52,19 @@ WaitOnFutex(bonsai_futex *Futex, b32 DoSleep)
   AtomicDecrement(&Futex->ThreadsWaiting);
 }
 
-link_internal void
-InitThreadStartupParams(engine_resources *Engine, platform *Plat, thread_local_state *Thread, s32 ThreadIndex)
-{
-  thread_startup_params *Params = &Thread->StartupParams;
-
-  Assert(Global_Stdlib);
-  Params->Stdlib                    = Global_Stdlib;
-  Params->ThreadIndex               = ThreadIndex;
-  Params->HighPriority              = &Plat->HighPriority;
-  Params->LowPriority               = &Plat->LowPriority;
-  Params->HighPriorityWorkerCount   = &Plat->HighPriorityWorkerCount;
-  Params->HighPriorityModeFutex     = &Plat->HighPriorityModeFutex;
-  Params->WorkerThreadsSuspendFutex = &Plat->WorkerThreadsSuspendFutex;
-  Params->WorkerThreadsExitFutex    = &Plat->WorkerThreadsExitFutex;
-}
-
 link_internal thread_local_state
-DefaultThreadLocalState(s32 ThreadIndex, platform *Plat, application_api *AppApi, void *UserData)
+DefaultThreadLocalState(s32 ThreadIndex, platform *Plat, void *UserData)
 {
+  Assert(Global_Stdlib);
+
   thread_local_state Thread = {};
 
-  Thread.UserData = UserData;
-
+  Thread.Stdlib = Global_Stdlib;
+  Thread.ThreadIndex = ThreadIndex;
   Thread.TempMemory = AllocateArena();
   Thread.PermMemory = AllocateArena(Megabytes(8));
   Thread.TempStdoutFormatStringBuffer = Allocate(char, Thread.PermMemory, TempStdoutFormatStringBufferSize);
+  Thread.UserData = UserData;
 
   // TODO(Jesse)(safety): Given the below, how exactly is it safe to register
   // the PermMemory?  Seems to me like that's still just as liable to cause bad
@@ -90,36 +77,33 @@ DefaultThreadLocalState(s32 ThreadIndex, platform *Plat, application_api *AppApi
   DEBUG_REGISTER_NAMED_ARENA(Thread.TempMemory, ThreadIndex, FormatCountedString(Thread.PermMemory, CSz("Thread (%d) Temp Memory"), ThreadIndex).Start);
   DEBUG_REGISTER_NAMED_ARENA(Thread.PermMemory, ThreadIndex, FormatCountedString(Thread.PermMemory, CSz("Thread (%d) Perm Memory"), ThreadIndex).Start);
 
-  engine_resources *Engine = 0;
-  InitThreadStartupParams(Engine, Plat, &Thread, ThreadIndex);
-
   return Thread;
 }
 
 link_internal thread_local_state *
-Initialize_ThreadLocal_ThreadStates(platform *Plat, application_api *AppApi, s32 TotalThreadCount, void *ThreadState_UserData, memory_arena* Memory)
+Initialize_ThreadLocal_ThreadStates(platform *Plat, s32 TotalThreadCount, void *ThreadState_UserData, memory_arena* Memory)
 {
   thread_local_state *Result = AllocateAligned(thread_local_state, Memory, TotalThreadCount, CACHE_LINE_SIZE);
 
   for ( s32 ThreadIndex = 0; ThreadIndex < TotalThreadCount; ++ThreadIndex )
   {
-    Result[ThreadIndex] = DefaultThreadLocalState(ThreadIndex, Plat, AppApi, ThreadState_UserData);
+    Result[ThreadIndex] = DefaultThreadLocalState(ThreadIndex, Plat, ThreadState_UserData);
   }
 
   return Result;
 }
 
 link_internal void
-WorkerThread_BeforeJobStart(thread_startup_params *StartupParams)
+WorkerThread_BeforeJobStart(thread_local_state *Thread)
 {
-  Global_Stdlib = StartupParams->Stdlib;
+  Global_Stdlib = Thread->Stdlib;
   Assert(Global_Stdlib);
 
-  if (ThreadLocal_ThreadIndex == INVALID_THREAD_LOCAL_THREAD_INDEX) { SetThreadLocal_ThreadIndex(StartupParams->ThreadIndex); }
+  if (ThreadLocal_ThreadIndex == INVALID_THREAD_LOCAL_THREAD_INDEX) { SetThreadLocal_ThreadIndex(Thread->ThreadIndex); }
 
 #if BONSAI_DEBUG_SYSTEM_API
   Assert(GetDebugState());
-  DEBUG_REGISTER_THREAD(StartupParams);
+  DEBUG_REGISTER_THREAD(Thread);
 #endif
 }
 

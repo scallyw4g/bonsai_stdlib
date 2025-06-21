@@ -42,9 +42,9 @@ link_weak void LaunchWorkerThreads(platform *Plat, application_api *AppApi, thre
 link_weak void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
 link_weak void WorkerThread_BeforeSleep();
 
-link_internal void WorkerThread_BeforeJobStart(thread_startup_params *StartupParams);
+link_internal void WorkerThread_BeforeJobStart(thread_local_state *StartupParams);
 
 BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK()
 {
-  WorkerThread_BeforeJobStart(StartupParams);
+  WorkerThread_BeforeJobStart(Thread);
 }

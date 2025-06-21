@@ -59,26 +59,31 @@ DrainQueue(work_queue* Queue, thread_local_state* Thread, application_api *GameA
 link_internal THREAD_MAIN_RETURN
 DefaultWorkerThread(void *Input)
 {
-  thread_startup_params *ThreadParams = (thread_startup_params *)Input;
-  WorkerThread_BeforeJobStart(ThreadParams);
+  thread_local_state *Thread = (thread_local_state *)Input;
+  Assert(Thread->ThreadIndex > 0);
+
+  WorkerThread_BeforeJobStart(Thread);
   Assert(ThreadLocal_ThreadIndex > 0);
 
-  /* Info("Starting Thread (%d)", ThreadLocal_ThreadIndex); */
+  auto Stdlib =  GetStdlib();
+  auto Plat   = &Stdlib->Plat;
+  work_queue* LowPriority = &Plat->LowPriority;
+  work_queue* HighPriority = &Plat->HighPriority;
 
-  thread_local_state *Thread = GetThreadLocalState(ThreadLocal_ThreadIndex);
-  Thread->Index = ThreadParams->ThreadIndex;
+  auto WorkerThreadsExitFutex    = &Plat->WorkerThreadsExitFutex;
+  auto WorkerThreadsSuspendFutex = &Plat->WorkerThreadsSuspendFutex;
+  auto HighPriorityModeFutex     = &Plat->HighPriorityModeFutex;
+  auto HighPriorityWorkerCount   = &Plat->HighPriorityWorkerCount;
 
+  if (Stdlib->AppApi.WorkerInit) { Stdlib->AppApi.WorkerInit(Global_ThreadStates, Thread->ThreadIndex); }
 
-  auto Stdlib = GetStdlib();
-  if (Stdlib->AppApi.WorkerInit) { Stdlib->AppApi.WorkerInit(Global_ThreadStates, ThreadParams->ThreadIndex); }
-
-  while (FutexNotSignaled(ThreadParams->WorkerThreadsExitFutex))
+  while (FutexNotSignaled(WorkerThreadsExitFutex))
   {
 #if 0
     // This is a pointer to a single semaphore for all queues, so only sleeping
     // on one is sufficient, and equal to sleeping on all, because they all
     // point to the same semaphore
-    ThreadSleep( ThreadParams->HighPriority->GlobalQueueSemaphore );
+    ThreadSleep( Thread->HighPriority->GlobalQueueSemaphore );
 #else
     for (;;)
     {
@@ -86,14 +91,14 @@ DefaultWorkerThread(void *Input)
 
       /* TIMED_NAMED_BLOCK("CheckForWorkAndSleep"); */
 
-      if (!QueueIsEmpty(ThreadParams->HighPriority)) break;
+      if (!QueueIsEmpty(HighPriority)) break;
 
-      if ( ! FutexIsSignaled(ThreadParams->HighPriorityModeFutex) &&
-           ! QueueIsEmpty(ThreadParams->LowPriority) ) break;
+      if ( ! FutexIsSignaled(HighPriorityModeFutex) &&
+           ! QueueIsEmpty(LowPriority) ) break;
 
-      if ( FutexIsSignaled(ThreadParams->WorkerThreadsSuspendFutex) ) break;
+      if ( FutexIsSignaled(WorkerThreadsSuspendFutex) ) break;
 
-      if ( FutexIsSignaled(ThreadParams->WorkerThreadsExitFutex) ) break;
+      if ( FutexIsSignaled(WorkerThreadsExitFutex) ) break;
 
       if (WorkerThread_BeforeSleep) WorkerThread_BeforeSleep();
 
@@ -101,19 +106,19 @@ DefaultWorkerThread(void *Input)
     }
 #endif
 
-    WaitOnFutex(ThreadParams->WorkerThreadsSuspendFutex);
+    WaitOnFutex(WorkerThreadsSuspendFutex);
 
     // NOTE(Jesse): This is here to ensure the game lib (and, by extesion, the debug lib)
     // has ThreadLocal_ThreadIndex set.  This is super annoying and I want a better solution.
-    WorkerThread_BeforeJobStart(ThreadParams);
-    GetStdlib()->AppApi.WorkerBeforeJob(Thread, ThreadParams);
+    WorkerThread_BeforeJobStart(Thread);
+    GetStdlib()->AppApi.WorkerBeforeJob(Thread);
 
-    AtomicIncrement(ThreadParams->HighPriorityWorkerCount);
-    DrainQueue( ThreadParams->HighPriority, Thread, &GetStdlib()->AppApi );
-    AtomicDecrement(ThreadParams->HighPriorityWorkerCount);
+    AtomicIncrement(HighPriorityWorkerCount);
+    DrainQueue( HighPriority, Thread, &GetStdlib()->AppApi );
+    AtomicDecrement(HighPriorityWorkerCount);
 
 #if 1
-    if ( ! FutexIsSignaled(ThreadParams->HighPriorityModeFutex) )
+    if ( ! FutexIsSignaled(HighPriorityModeFutex) )
     {
       Ensure( RewindArena(Thread->TempMemory) );
     }
@@ -125,18 +130,17 @@ DefaultWorkerThread(void *Input)
     Ensure( Thread.TempMemory = AllocateArena() );
 #endif
 
-    work_queue* LowPriority = ThreadParams->LowPriority;
     for (;;)
     {
       WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
 
-      if ( ! QueueIsEmpty(ThreadParams->HighPriority)) break;
+      if ( ! QueueIsEmpty(HighPriority)) break;
 
-      if ( FutexIsSignaled(ThreadParams->HighPriorityModeFutex) ) break;
+      if ( FutexIsSignaled(HighPriorityModeFutex) ) break;
 
-      if ( FutexIsSignaled(ThreadParams->WorkerThreadsExitFutex) ) break;
+      if ( FutexIsSignaled(WorkerThreadsExitFutex) ) break;
 
-      if ( FutexIsSignaled(ThreadParams->WorkerThreadsSuspendFutex) ) break;
+      if ( FutexIsSignaled(WorkerThreadsSuspendFutex) ) break;
 
       // NOTE(Jesse): Must read and comared DequeueIndex instead of calling QueueIsEmpty
       u32 DequeueIndex = LowPriority->DequeueIndex;
@@ -159,8 +163,8 @@ DefaultWorkerThread(void *Input)
     }
   }
 
-  Info("Exiting Worker Thread (%d)", ThreadParams->ThreadIndex);
-  WaitOnFutex(ThreadParams->WorkerThreadsExitFutex);
+  Info("Exiting Worker Thread (%d)", Thread->ThreadIndex);
+  WaitOnFutex(WorkerThreadsExitFutex);
 
   return 0;
 }
@@ -175,18 +179,14 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callbac
   {
     thread_local_state *Thread =  GetThreadLocalState(ThreadIndex);
 
-    // TODO(Jesse): This could probably be smoothed out a bit..
-    engine_resources *Engine = 0;
-    InitThreadStartupParams(Engine, Plat, Thread, ThreadIndex);
-
     umm CallbackProcIndex = umm(ThreadIndex-1);
     if (WorkerThreadCallbackProcs &&  CallbackProcIndex < WorkerThreadCallbackProcs->Count)
     {
-      PlatformCreateThread( WorkerThreadCallbackProcs->Start[CallbackProcIndex], Cast(void*, &Thread->StartupParams), ThreadIndex );
+      PlatformCreateThread( WorkerThreadCallbackProcs->Start[CallbackProcIndex], Cast(void*, Thread), ThreadIndex );
     }
     else
     {
-      PlatformCreateThread( DefaultWorkerThread, Cast(void*, &Thread->StartupParams), ThreadIndex );
+      PlatformCreateThread( DefaultWorkerThread, Cast(void*, Thread), ThreadIndex );
     }
   }
 

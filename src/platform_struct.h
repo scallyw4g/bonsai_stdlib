@@ -1,4 +1,3 @@
-struct thread_startup_params;
 struct graphics;
 struct server_state;
 

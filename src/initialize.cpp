@@ -34,12 +34,12 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     u32 TotalThreadCount  = GetTotalThreadCount();
     Info("Detected (%u) Logical cores, creating (%u) worker threads of (%u) total threads", LogicalCoreCount, WorkerThreadCount, TotalThreadCount);
 
-    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, AppApi, s32(TotalThreadCount), ThreadState_UserData, Memory);
+    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, s32(TotalThreadCount), ThreadState_UserData, Memory);
     Stdlib->ThreadStates = Global_ThreadStates;
   }
   else
   {
-    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, AppApi, 1, ThreadState_UserData, Memory);
+    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, 1, ThreadState_UserData, Memory);
   }
 
   // NOTE(Jesse): This has to be set after Global_ThreadStates is set so we
