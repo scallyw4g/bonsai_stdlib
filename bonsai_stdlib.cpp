@@ -1,4 +1,3 @@
-
 #ifndef BONSAI_SHADER_PATH
 #define BONSAI_SHADER_PATH "shaders/"
 #endif
@@ -7,8 +6,10 @@
 #define STDLIB_SHADER_PATH "external/bonsai_stdlib/shaders/"
 #endif
 
+
 #include <bonsai_stdlib/src/perlin.cpp>
 
+#include <bonsai_stdlib/src/assert.cpp>
 #include <bonsai_stdlib/src/memory_arena.cpp>
 #include <bonsai_stdlib/src/vector.cpp>
 #include <bonsai_stdlib/src/debug_print.cpp>  // TODO(Jesse, id: 91, tags: cleanup, metaprogramming, format_counted_string): Jettison this .. Can it be metaprogrammed?

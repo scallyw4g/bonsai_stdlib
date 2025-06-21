@@ -8,8 +8,8 @@
 
 #include <bonsai_stdlib/src/poof_functions.h>
 #include <bonsai_stdlib/src/iterators.h>
-#include <bonsai_stdlib/src/assert.h>
 #include <bonsai_stdlib/src/primitives.h>
+#include <bonsai_stdlib/src/assert.h>
 
 struct bonsai_stdlib;
 link_internal bonsai_stdlib * GetStdlib();

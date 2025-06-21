@@ -75,7 +75,6 @@ PlatformInitializeStdout(native_file *Stdout, native_file *LogFileHandle)
 
   Stdout->Path = CSz("stdout");
 
-
   Assert(Stdout->Handle != INVALID_HANDLE_VALUE);
 }
 

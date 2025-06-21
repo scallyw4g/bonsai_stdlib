@@ -1,3 +1,6 @@
+#define CAssert(condition) static_assert((condition), #condition )
+#define OffsetOf(member_name, type_name) offsetof(type_name, member_name)
+
 #define PI64 (3.1415926535897932384626433832795028841971693993)
 #define PI32 ((float)PI64)
 

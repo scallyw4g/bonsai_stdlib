@@ -1,27 +1,17 @@
-#define CAssert(condition) static_assert((condition), #condition )
-#define OffsetOf(member_name, type_name) offsetof(type_name, member_name)
-
 #if BONSAI_INTERNAL
 
 #  define Ensure(condition) Assert((condition))
-/* #  define Ensure(condition) condition */
 
-/* #  define Assert(condition)                                                   \ */
+
+
+void assert_fail(cs, const char *);
+
+#define STRINGIZE2(x) #x
+#define STRINGIZE(x) STRINGIZE2(x)
+#define LINE_STRING STRINGIZE(__LINE__)
 
 #  define Assert(condition)                                                    \
-    do {                                                                       \
-      if (!(condition)) {                                                      \
-        LogDirect(CSz("%S ! FAILED%S  - `Assert(%s)` during %s() %s:%u:0" Newline), \
-                  TerminalColors.Red,                                          \
-                  TerminalColors.White,                                        \
-                  #condition,                                                  \
-                  __FUNCTION__,                                                \
-                  __FILE__,                                                    \
-                  __LINE__);                                                   \
-                                                                               \
-        RuntimeBreak();                                                        \
-      }                                                                        \
-    } while (false)
+    do { if (!(condition)) { assert_fail(CSz("Assert(" #condition ") during %s()" __FILE__ ":" LINE_STRING), __FUNCTION__); } } while (false)
 
 #  define InvalidCodePath() Error("Invalid Code Path - Panic! " __FILE__ ":" STRINGIZE(__LINE__)); Assert(False)
 

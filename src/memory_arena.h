@@ -155,10 +155,6 @@ struct memory_arena
 // TODO(Jesse, globals_cleanup): Put this on stdlib ..?
 global_variable memory_arena Global_PermMemory = {};
 
-#define STRINGIZE(x) STRINGIZE2(x)
-#define STRINGIZE2(x) #x
-#define LINE_STRING STRINGIZE(__LINE__)
-
 #if BONSAI_DEBUG_SYSTEM_API
 
 #define AllocateProtection(Type, Arena, Number, Protection)                                                                                              \
