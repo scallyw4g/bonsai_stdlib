@@ -152,6 +152,7 @@ struct memory_arena
 #endif
 };
 
+// TODO(Jesse, globals_cleanup): Put this on stdlib ..?
 global_variable memory_arena Global_PermMemory = {};
 
 #define STRINGIZE(x) STRINGIZE2(x)

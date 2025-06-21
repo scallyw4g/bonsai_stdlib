@@ -395,3 +395,9 @@ PlatformInitializeStdout(native_file *StandardOutputFile, native_file *Log)
   if (Log) { *Log = OpenFile("log.txt", FilePermission_Write); }
 }
 
+
+link_internal void
+Platform_EnableContextSwitchTracing()
+{
+  Warn("Context switch tracing not supported on Linux!");
+}

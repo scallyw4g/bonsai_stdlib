@@ -1,11 +1,13 @@
+void Platform_EnableContextSwitchTracing();
 
 enum bonsai_init_flags
 {
   BonsaiInit_Default = 0,
 
-  BonsaiInit_LaunchThreadPool = (1 << 0),
-  BonsaiInit_OpenWindow       = (1 << 1),
-  BonsaiInit_InitDebugSystem  = (1 << 2),
+  BonsaiInit_LaunchThreadPool       = (1 << 0),
+  BonsaiInit_OpenWindow             = (1 << 1),
+  BonsaiInit_InitDebugSystem        = (1 << 2),
+  BonsaiInit_ProfileContextSwitches = (1 << 3),
 };
 
 
@@ -71,6 +73,11 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   {
     if (AppApi->WorkerInit) { AppApi->WorkerInit(Global_ThreadStates, 0); }
     LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
+  }
+
+  if (Flags & BonsaiInit_ProfileContextSwitches)
+  {
+    Platform_EnableContextSwitchTracing();
   }
 
   return True;

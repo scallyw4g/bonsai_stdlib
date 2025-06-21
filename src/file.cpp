@@ -312,6 +312,7 @@ FileExists(cs Path)
   return Result;
 }
 
+// TODO(Jesse, global_cleanup): Put this on stdlib ..?
 global_variable bonsai_futex Global_StdoutPrintLock = {};
 
 link_internal void

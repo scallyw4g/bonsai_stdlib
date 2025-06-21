@@ -173,6 +173,8 @@ Rewind(native_file *File)
   rewind(File->Handle);
 }
 
+
+// TODO(Jesse, globals_cleanup): Make a linux_platform struct for this stuff .. ?
 global_variable directory_traversal_callback *Global_CurrentDirectoryTraversalCallback;
 global_variable                          u64  Global_CurrentDirectoryTraversalUserData;
 global_variable    maybe_file_traversal_node  Global_CurrentDirectoryTraversalResult;

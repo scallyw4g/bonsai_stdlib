@@ -235,6 +235,7 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
 }
 
 
+// TODO(Jesse, globals_cleanup)
 global_variable const u32 Global_CwdBufferLength = 4096;
 global_variable char Global_CwdBuffer[Global_CwdBufferLength];
 

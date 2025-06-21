@@ -75,6 +75,7 @@ CheckShaderCompilationStatus(cs ShaderPath, u32 ShaderId)
 }
 #endif
 
+// TODO(Jesse, globals_cleanup)
 global_variable ansi_stream Global_ShaderHeaderCode;
 
 link_internal cs

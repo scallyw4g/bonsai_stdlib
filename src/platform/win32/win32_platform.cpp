@@ -1,4 +1,6 @@
-/* #include <bonsai_stdlib/platform/win32_etw.cpp> */
+
+/* #include <bonsai_debug/src/platform/win32_etw.cpp> */
+/* #include <bonsai_debug/src/platform/win32_pmc.cpp> */
 
 #include "win32_file.cpp"
 

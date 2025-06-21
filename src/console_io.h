@@ -13,6 +13,7 @@
 poof(string_and_value_tables(log_level));
 #include <generated/string_and_value_tables_log_level.h>
 
+// TODO(Jesse, globals_cleanup): Put these on stdlib ..?
 global_variable native_file Stdout = {};
 global_variable native_file Global_StdoutLogfile = {};
 
