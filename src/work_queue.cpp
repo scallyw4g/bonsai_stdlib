@@ -75,7 +75,7 @@ DefaultWorkerThread(void *Input)
   auto HighPriorityModeFutex     = &Plat->HighPriorityModeFutex;
   auto HighPriorityWorkerCount   = &Plat->HighPriorityWorkerCount;
 
-  if (Stdlib->AppApi.WorkerInit) { Stdlib->AppApi.WorkerInit(Global_ThreadStates, Thread->ThreadIndex); }
+  if (Stdlib->AppApi.WorkerInit) { Stdlib->AppApi.WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
 
   while (FutexNotSignaled(WorkerThreadsExitFutex))
   {

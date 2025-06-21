@@ -32,18 +32,17 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
     u32 WorkerThreadCount = GetWorkerThreadCount();
     u32 TotalThreadCount  = GetTotalThreadCount();
+    // TODO(Jesse): Move this into the actual creation code?
     Info("Detected (%u) Logical cores, creating (%u) worker threads of (%u) total threads", LogicalCoreCount, WorkerThreadCount, TotalThreadCount);
 
-    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, s32(TotalThreadCount), ThreadState_UserData, Memory);
-    Stdlib->ThreadStates = Global_ThreadStates;
+    Stdlib->ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, s32(TotalThreadCount), ThreadState_UserData, Memory);
   }
   else
   {
-    Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, 1, ThreadState_UserData, Memory);
+    Stdlib->ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, 1, ThreadState_UserData, Memory);
   }
 
-  // NOTE(Jesse): This has to be set after Global_ThreadStates is set so we
-  // can do GetTranArena during printing
+  // Must come after ThreadStates are valid
   SetThreadLocal_ThreadIndex(0);
 
   if (Flags & BonsaiInit_InitDebugSystem)
@@ -73,7 +72,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   // Intentionally last such that the render thread has a window to make the render context current on.
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
-    if (AppApi->WorkerInit) { AppApi->WorkerInit(Global_ThreadStates, 0); }
+    if (AppApi->WorkerInit) { AppApi->WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
     LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
   }
 

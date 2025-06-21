@@ -7,10 +7,16 @@
 #include <bonsai_stdlib/src/poof_crutches.h>
 
 #include <bonsai_stdlib/src/poof_functions.h>
-
 #include <bonsai_stdlib/src/iterators.h>
 #include <bonsai_stdlib/src/assert.h>
 #include <bonsai_stdlib/src/primitives.h>
+
+struct bonsai_stdlib;
+link_internal bonsai_stdlib * GetStdlib();
+
+struct debug_state;
+link_internal debug_state * GetDebugState();
+
 
 #include <x86intrin.h>
 #include <immintrin.h>
@@ -132,11 +138,6 @@ struct camera;
 
 #include <bonsai_stdlib/src/debug_ui.h>
 
-struct bonsai_stdlib;
-struct debug_state;
-
-link_internal bonsai_stdlib *GetStdlib();
-link_internal debug_state *GetDebugState();
 
 
 #include <bonsai_debug/debug.h>

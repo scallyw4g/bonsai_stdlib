@@ -120,7 +120,7 @@ ReleaseFutex(bonsai_futex *Futex)
 #define BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_PARAMS    thread_local_state* Thread
 
 #define BONSAI_API_WORKER_THREAD_INIT_CALLBACK_NAME   InitWorkerThreadCallback
-#define BONSAI_API_WORKER_THREAD_INIT_CALLBACK_PARAMS thread_local_state* AllThreads, s32 ThreadIndex
+#define BONSAI_API_WORKER_THREAD_INIT_CALLBACK_PARAMS thread_local_state* Thread
 
 #define BONSAI_API_ON_GAME_LIB_LOAD_CALLBACK_NAME     OnGameLibLoad
 #define BONSAI_API_ON_GAME_LIB_LOAD_CALLBACK_PARAMS   BONSAI_API_MAIN_THREAD_CALLBACK_PARAMS
@@ -201,33 +201,15 @@ struct thread_local_state
 // TODO(Jesse): Reenable this nopush
 /* CAssert( (sizeof(thread_local_state) % CACHE_LINE_SIZE) == 0 ); */
 
-// TODO(Jesse): Remove this asap.
-global_variable
-thread_local_state *Global_ThreadStates;
-
 link_internal void
 SetThreadLocal_ThreadIndex(s32 Index)
 {
   Assert(ThreadLocal_ThreadIndex == -1);
   ThreadLocal_ThreadIndex = Index;
-
-  /* printf("Setting ThreadLocal_ThreadIndex (%d)\n", Index); */
 }
 
 link_internal thread_local_state *
-GetThreadLocalState(s32 ThreadIndex)
-{
-  Assert(ThreadIndex >= 0);
-  Assert(ThreadIndex < (s32)GetTotalThreadCount());
-
-  Assert(Global_ThreadStates);
-
-  return Global_ThreadStates + ThreadIndex;
-}
+GetThreadLocalState(s32 ThreadIndex);
 
 link_internal memory_arena*
-GetTranArena()
-{
-  thread_local_state *Thread = GetThreadLocalState(ThreadLocal_ThreadIndex);
-  return Thread->TempMemory;
-}
+GetTranArena();
