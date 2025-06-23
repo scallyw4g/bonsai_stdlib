@@ -298,6 +298,26 @@ Grad8x_fast(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
   return Result;
 }
 
+// @Pannoniae on discord suggested this alternative formulation for Grad8x,
+// which produced a ~13.5% speedup, but may produce less entropy.
+//
+// > Pannoniae - Yesterday at 10:19 PM
+// > well yeah, the only drawback is that this one only generates 8 unique grads
+// > instead of the original one where you have 12 real ones and 4 repeated
+// > ones slapped on the end lol
+//
+link_internal f32_8x
+Grad8x_pannoniae(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
+{
+  u32_8x sx = (hash & U32_8X(1)) << 31;
+  u32_8x sy = (hash & U32_8X(2)) << 30;
+  u32_8x sz = (hash & U32_8X(4)) << 29;
+
+  return (x ^ Cast_f32_8x(sx)) +
+         (y ^ Cast_f32_8x(sy)) +
+         (z ^ Cast_f32_8x(sz));
+}
+
 link_internal f32_8x
 Grad8x(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
 {
