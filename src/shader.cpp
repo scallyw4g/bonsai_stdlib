@@ -340,6 +340,7 @@ poof(set_shader_uniform(r32));
 #include <generated/gen_shader_uniform_push_r32.h>
 
 
+#if 0
 shader
 MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
@@ -355,6 +356,7 @@ MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 
   return Shader;
 }
+#endif
 
 shader
 MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)

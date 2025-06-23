@@ -1256,7 +1256,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   }
   else if (Pressed(Group, &TitleBarHandle))
   {
-    Window->Basis -= *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
+    Window->Basis += *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
     Window->Flags &= ~(WindowLayoutFlag_Align_BottomRight);
   }
   else if (!Window->Minimized && Clicked(Group, &MinimizeButtonHandle))
