@@ -255,6 +255,21 @@ struct text_box_edit_state
 };
 
 
+struct textured_quad_render_pass
+poof(
+    @vert_source_file(STDLIB_SHADER_PATH "FullPassthrough.vertexshader")
+    @frag_source_file(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader")
+  )
+{
+  shader Program;
+  shader_uniform Uniforms[4];
+
+  b32 IsDepthTexture;    poof(@uniform)
+  b32 HasAlphaChannel;   poof(@uniform)
+  s32 TextureSlice;      poof(@uniform)
+   v3 Tint;              poof(@uniform)
+};
+
 
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
@@ -273,7 +288,7 @@ struct renderer_2d
      v2 *ScreenDim;
   input *Input;
 
-  ui_toggle_hashtable ToggleTable;
+      ui_toggle_hashtable ToggleTable;
   window_layout_hashtable WindowTable;
 
 
@@ -290,7 +305,8 @@ struct renderer_2d
   text_box_edit_state TextEdit;
 
   untextured_2d_geometry_buffer Geo;
-  shader TexturedQuadShader;
+  /* shader TexturedQuadShader; */
+  textured_quad_render_pass TexturedQuadRenderPass;
 
   ui_render_command_buffer *CommandBuffer;
 

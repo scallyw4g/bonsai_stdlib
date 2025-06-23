@@ -16,7 +16,7 @@ void main()
   if (IsDepthTexture)
   {
     // Linearize Depth texture
-    float Far = 5000.0f;
+    float Far = 500.0f;
     float Near = 0.1f;
     float ZDepth = texture(Texture, UV).x;
     color = vec4( vec3(Linearize(ZDepth, Far, Near)), 1.f );

@@ -1,3 +1,6 @@
+poof(shader_magic(textured_quad_render_pass))
+#include <generated/shader_magic_textured_quad_render_pass.h>
+
 #define u32_COUNT_PER_QUAD (6)
 
 
@@ -3134,27 +3137,28 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           if (TypedCommand->Texture)
           {
             Assert(Group->TextGroup->Geo.At == 0);
+            auto GL = GetGL();
+            GL->BindTexture(GL_TEXTURE_2D, 0);
+            GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
-            shader *Shader = &Group->TexturedQuadShader;
-            GetGL()->UseProgram(Shader->ID);
+            auto *RenderPass = &Group->TexturedQuadRenderPass;
+            RenderPass->IsDepthTexture  = TypedCommand->IsDepthTexture;
+            RenderPass->HasAlphaChannel = TypedCommand->HasAlphaChannel;
+            RenderPass->TextureSlice    = TypedCommand->TextureSlice;
+            RenderPass->Tint            = TypedCommand->Tint;
+
+            UseShader(RenderPass);
 
             if (TypedCommand->TextureSlice < 0)
             {
               Assert(TypedCommand->Texture->Slices == 1);
-              BindUniformByName(Shader, "Texture", TypedCommand->Texture, 0);
-              GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+              BindUniformByName(&RenderPass->Program, "Texture", TypedCommand->Texture, 0);
             }
             else
             {
               Assert(TypedCommand->Texture->Slices > 1);
-              BindUniformByName(Shader, "TextureArray", TypedCommand->Texture, 0);
-              GetGL()->BindTexture(GL_TEXTURE_2D, 0);
+              BindUniformByName(&RenderPass->Program, "TextureArray", TypedCommand->Texture, 0);
             }
-
-            BindUniformByName(Shader, "IsDepthTexture",  TypedCommand->IsDepthTexture  );
-            BindUniformByName(Shader, "HasAlphaChannel", TypedCommand->HasAlphaChannel );
-            BindUniformByName(Shader, "TextureSlice",    TypedCommand->TextureSlice   );
-            BindUniformByName(Shader, "Tint",            &TypedCommand->Tint   );
 
             // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
             // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
@@ -3165,17 +3169,17 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
 
 #if 1
-            GetGL()->Enable(GL_BLEND);
-            GetGL()->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            GL->Enable(GL_BLEND);
+            GL->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
               DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
-            GetGL()->Disable(GL_BLEND);
+            GL->Disable(GL_BLEND);
 #else
             Group->TextGroup->Geo.At = 0;
 #endif
 
-            /* GetGL()->ActiveTexture(GL_TEXTURE0); */
-            GetGL()->BindTexture(GL_TEXTURE_2D, 0);
-            GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+            /* GL->ActiveTexture(GL_TEXTURE0); */
+            GL->BindTexture(GL_TEXTURE_2D, 0);
+            GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
             AssertNoGlErrors;
           }
@@ -3264,7 +3268,8 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     Renderer->TextGroup->SolidUIShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") );
 
     // Generic shader that gets reused to draw simple textured quads
-    Renderer->TexturedQuadShader = MakeFullTextureShader(0, PermMemory);
+    /* Renderer->TexturedQuadShader = MakeFullTextureShader(0, PermMemory); */
+    InitializeTexturedQuadRenderPass( &Renderer->TexturedQuadRenderPass,  0, 0, 0, {});
 
     AssertNoGlErrors;
   }
