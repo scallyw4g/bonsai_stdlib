@@ -11,7 +11,7 @@ uniform vec3 Tint;
 
 void main()
 {
-  color = V4(0.f, 0.f, 0.f, 1.f);
+  color = V4(1.f, 0.f, 0.f, 1.f);
 
   if (IsDepthTexture)
   {
@@ -37,6 +37,8 @@ void main()
     color.rgb = C.rgb * Tint;
     color.a = 1.f;
 
+    // TODO(Jesse): Shouldn't this "just work" without the boolean?  I think
+    // the Alpha channel defaults to 1.f if the source tex doesn't have alpha..
     if (HasAlphaChannel)
     {
       color.a = C.a;
