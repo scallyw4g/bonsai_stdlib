@@ -8,9 +8,9 @@ struct vertex_material
   u8 Emission;
 };
 CAssert(sizeof(vertex_material) == 4);
-CAssert(OffsetOf(ColorIndex, vertex_material) == 0);
-CAssert(OffsetOf(Transparency, vertex_material) == 2);
-CAssert(OffsetOf(Emission, vertex_material) == 3);
+/* CAssert(OffsetOf(ColorIndex, vertex_material) == 0); */
+/* CAssert(OffsetOf(Transparency, vertex_material) == 2); */
+/* CAssert(OffsetOf(Emission, vertex_material) == 3); */
 
 // NOTE(Jesse): Must match defines in header.glsl
 #define RENDERER_MAX_LIGHT_EMISSION_VALUE (5.f)

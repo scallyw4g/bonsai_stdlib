@@ -3294,6 +3294,13 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   return Result;
 }
 
+link_internal b32
+InitRenderer2D(renderer_2d *Renderer, platform *Plat, memory_arena *PermMemory)
+{
+  b32 Result = InitRenderer2D(Renderer, 0, PermMemory, &Plat->MouseP, &Plat->MouseDP, &Plat->ScreenDim, &Plat->Input);
+  return Result;
+}
+
 link_internal void
 UiFrameBegin(renderer_2d *Ui)
 {

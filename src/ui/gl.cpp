@@ -68,12 +68,16 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   auto TextGroup = UiGroup->TextGroup;
 
   GetGL()->Disable(GL_CULL_FACE);
+  AssertNoGlErrors;
 
   SetViewport(*ScreenDim);
+  AssertNoGlErrors;
 
   GetGL()->UseProgram(TextGroup->SolidUIShader.ID);
+  AssertNoGlErrors;
 
     DrawUiBuffer(TextGroup, &UiGroup->Geo, ScreenDim);
+  AssertNoGlErrors;
   /* UiGroup->Geo.At = 0; */
 
 

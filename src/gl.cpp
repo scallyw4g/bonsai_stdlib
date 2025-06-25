@@ -505,6 +505,7 @@ InitializeOpenglFunctions()
     Warn("If you experience issues, please upgrade to an OpenGL 3.3 compliant driver.");
   }
 
+  AssertNoGlErrors;
   b32 Result = GetGL()->Initialized;
   return Result;
 }
@@ -566,9 +567,12 @@ BufferFloatDataToCard(u32 BufferId, u32 Stride, u32 ByteCount, void *Data, u32 *
 #endif
 
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, BufferId);
+  AssertNoGlErrors;
   GetGL()->BufferData(GL_ARRAY_BUFFER, ByteCount, Data, GL_STATIC_DRAW);
+  AssertNoGlErrors;
 
   GetGL()->EnableVertexAttribArray(*AttributeIndex);
+  AssertNoGlErrors;
   GetGL()->VertexAttribPointer(*AttributeIndex, (s32)Stride, GL_FLOAT, GL_FALSE, 0, (void*)0);
   *AttributeIndex += 1;
   AssertNoGlErrors;

@@ -83,3 +83,46 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
   return True;
 }
+
+link_internal void
+OpenAndInitializeWindow(u32 VSyncFrames = 0)
+{
+  auto Stdlib = GetStdlib();
+  OpenAndInitializeWindow(&Stdlib->Os, &Stdlib->Plat, 0);
+}
+
+link_internal void
+BonsaiFrameBegin(bonsai_stdlib *Stdlib, renderer_2d *Ui)
+{
+  UNPACK_STDLIB(Stdlib);
+
+  Plat->dt = GetDt();
+
+  auto GL = GetGL();
+  GL->BindFramebuffer(GL_FRAMEBUFFER, 0);
+  GL->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  ResetInputForFrameStart(&Plat->Input, 0);
+  ProcessOsMessages(&Stdlib->Os, &Stdlib->Plat);
+
+  DEBUG_FRAME_BEGIN(Ui, Plat->dt, Plat->Input.F1.Clicked, Plat->Input.F2.Clicked);
+}
+
+link_internal void
+BonsaiFrameEnd(bonsai_stdlib *Stdlib, renderer_2d *Ui)
+{
+  UNPACK_STDLIB(Stdlib);
+
+  {
+    layout DefaultLayout = {};
+    render_state RenderState = {};
+    RenderState.Layout = &DefaultLayout;
+
+    SetWindowZDepths(Ui->CommandBuffer);
+    FlushCommandBuffer(Ui, &RenderState, Ui->CommandBuffer, &DefaultLayout);
+    UiFrameEnd(Ui);
+  }
+
+  BonsaiSwapBuffers(&Stdlib->Os);
+  MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(Plat->dt);
+}
