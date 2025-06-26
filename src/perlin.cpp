@@ -427,8 +427,12 @@ PerlinNoise_8x_avx2(perlin_params *perlinX, perlin_params *perlinY, perlin_param
 
   auto Res = Lerp8x(perlinZ->Fade, L4, L5) * F32_8X(Amplitude);
 
+#if 1
   f32_8x Current = {{ _mm256_load_ps(Dest) }};
   f32_8x Total = Res + Current;
+#else
+  f32_8x Total = Res ;
+#endif
   _mm256_store_ps(Dest, Total.Sse);
 }
 

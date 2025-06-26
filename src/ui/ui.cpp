@@ -3239,6 +3239,8 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
 {
   b32 Result = True;
 
+  Init_Global_QuadVertexBuffer();
+
   Renderer->TextGroup     = Allocate(render_buffers_2d, PermMemory, 1);
   Renderer->CommandBuffer = Allocate(ui_render_command_buffer, PermMemory, 1);
 
