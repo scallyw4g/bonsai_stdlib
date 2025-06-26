@@ -255,6 +255,7 @@ MakeTexture_RGBA(    v2i  Dim,
 
 link_internal texture
 MakeTexture_SingleChannel( v2i  Dim,
+                     const f32 *Data,
                             cs  DebugName,
                            b32  IsDepthTexture, 
         texture_storage_format  StorageFormat = TextureStorageFormat_R32F)
@@ -264,10 +265,7 @@ MakeTexture_SingleChannel( v2i  Dim,
   texture Result = GenTexture(Dim, DebugName, StorageFormat, Channels, Slices, IsDepthTexture);
 
   GetGL()->TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
-      Result.Dim.x, Result.Dim.y, 0,  GL_RED, GL_FLOAT, 0);
-
-  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      Result.Dim.x, Result.Dim.y, 0,  GL_RED, GL_FLOAT, Data);
 
   GetGL()->BindTexture(GL_TEXTURE_2D, 0);
 
@@ -290,9 +288,6 @@ MakeTexture_RGB(     v2i  Dim,
 
   GetGL()->TexImage2D(GL_TEXTURE_2D, 0, StorageFormat,
       Result.Dim.x, Result.Dim.y, 0,  GL_RGB, GL_FLOAT, Data);
-
-  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  GetGL()->TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
   GetGL()->BindTexture(GL_TEXTURE_2D, 0);
 
