@@ -4,14 +4,14 @@
 
 
 
-void assert_fail(cs, const char *);
+void assert_fail(cs, cs, const char *);
 
 #define STRINGIZE2(x) #x
 #define STRINGIZE(x) STRINGIZE2(x)
 #define LINE_STRING STRINGIZE(__LINE__)
 
 #  define Assert(condition)                                                    \
-    do { if (!(condition)) { assert_fail(CSz("Assert(" #condition ") during %s()" __FILE__ ":" LINE_STRING), __FUNCTION__); } } while (false)
+    do { if (!(condition)) { assert_fail(CSz("Assert(%S) during %s()" __FILE__ ":" LINE_STRING), CSz(#condition), __FUNCTION__); } } while (false)
 
 #  define InvalidCodePath() Error("Invalid Code Path - Panic! " __FILE__ ":" STRINGIZE(__LINE__)); Assert(False)
 
