@@ -334,11 +334,15 @@ Grad8x(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
 
   u32_8x uSel = h < _8;
   u32_8x vSel = h < _4;
-  /* u32_8x xSel = (h == _12 | h == _14 ); */
-
   f32_8x u  = Select(uSel, x, y);
-  /* f32_8x xz = Select(xSel, x, z); */
+
+#if 1
+  u32_8x xSel = (h == _12 | h == _14 );
+  f32_8x xz = Select(xSel, x, z);
+  f32_8x v  = Select(vSel, y, xz);
+#else
   f32_8x v  = Select(vSel, y, z);
+#endif
 
   auto h1 = hash << 31;
   auto h2 = (hash & U32_8X(2)) << 30 ;

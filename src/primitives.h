@@ -209,6 +209,11 @@ Clear(T *Struct)
   Fill(Struct, 0);
 }
 
+link_internal void
+Clear(u8 *Buf, u32 Size)
+{
+  memset((void*)Buf, 0, Size);
+}
 
 
 poof(

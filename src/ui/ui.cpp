@@ -2115,7 +2115,7 @@ ProcessButtonStart(renderer_2d* Group, render_state* RenderState, ui_id ButtonId
   }
   if (ButtonId == Group->Clicked.ID)
   {
-    Group->Clicked = {};;
+    Group->Clicked = {};
     RenderState->Clicked = True;
   }
   if (ButtonId == Group->Pressed.ID)

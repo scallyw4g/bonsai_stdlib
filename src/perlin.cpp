@@ -578,6 +578,7 @@ AllocatePerlinParams(v3i NoiseDim, memory_arena *Arena)
 link_internal void
 PerlinNoise(   f32 *NoiseValues,
                 v3  Period,
+               f32  Amplitude,
                v3i  NoiseDim,
                v3i  NoiseBasis,
                s32  OctaveCount,
@@ -634,8 +635,6 @@ PerlinNoise(   f32 *NoiseValues,
       }
     }
 
-    f32 Amplitude = 1.f;
-
     {
       for ( s32 zNoise = 0; zNoise < NoiseDim.z; ++ zNoise)
       {
@@ -648,7 +647,7 @@ PerlinNoise(   f32 *NoiseValues,
             auto zParam = zParams+zNoise;
             auto yParam = yParams+yNoise;
             auto xParam = xParams+xNoise;
-            PerlinNoise_8x_avx2_pannoniae(xParam, yParam, zParam, NoiseValues+NoiseIndex, Amplitude);
+            PerlinNoise_8x_avx2(xParam, yParam, zParam, NoiseValues+NoiseIndex, Amplitude);
           }
         }
       }
