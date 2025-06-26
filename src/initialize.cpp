@@ -103,7 +103,12 @@ BonsaiFrameBegin(bonsai_stdlib *Stdlib, renderer_2d *Ui)
   GL->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   ResetInputForFrameStart(&Plat->Input, 0);
+
+  v2 LastMouseP = Plat->MouseP;
   ProcessOsMessages(&Stdlib->Os, &Stdlib->Plat);
+  Plat->MouseDP = Plat->MouseP - LastMouseP;
+
+  UiFrameBegin(Ui);
 
   DEBUG_FRAME_BEGIN(Ui, Plat->dt, Plat->Input.F1.Clicked, Plat->Input.F2.Clicked);
 }
@@ -124,5 +129,6 @@ BonsaiFrameEnd(bonsai_stdlib *Stdlib, renderer_2d *Ui)
   }
 
   BonsaiSwapBuffers(&Stdlib->Os);
+  DEBUG_FRAME_END(Plat->dt);
   MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(Plat->dt);
 }
