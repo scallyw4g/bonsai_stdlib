@@ -633,7 +633,7 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
         default:
         {
           va_arg(Args, void*);
-          Error("Invalid Format String");
+          Error("Invalid Format character (%c) in format string (%S)", CursorAt, FS);
         } break;
 
       }
