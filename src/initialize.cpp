@@ -84,12 +84,14 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   return True;
 }
 
+#if PLATFORM_WINDOW_IMPLEMENTATIONS
 link_internal void
 OpenAndInitializeWindow(u32 VSyncFrames = 0)
 {
   auto Stdlib = GetStdlib();
   OpenAndInitializeWindow(&Stdlib->Os, &Stdlib->Plat, 0);
 }
+#endif
 
 link_internal void
 BonsaiFrameBegin(bonsai_stdlib *Stdlib, renderer_2d *Ui)

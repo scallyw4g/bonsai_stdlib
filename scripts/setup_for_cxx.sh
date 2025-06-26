@@ -35,7 +35,7 @@ elif [[ "$Platform" == "Windows" ]] ; then
   # advapi32 : tracelogging
   # winmm : timePeriodBegin // timePeriodEnd (scheduling)
 
-  PLATFORM_LINKER_OPTIONS="-lAdvapi32 -lWinmm -lgdi32 -luser32 -lopengl32 -lglu32 -fuse-ld=lld -W1,/debug,/pdb:name.pdb"
+  PLATFORM_LINKER_OPTIONS="-lAdvapi32 -lWinmm -lgdi32 -luser32 -lopengl32 -lglu32 -W1,/debug,/pdb:name.pdb"
 
 
   PLATFORM_DEFINES="-D _CRT_SECURE_NO_WARNINGS -D BONSAI_WIN32"
