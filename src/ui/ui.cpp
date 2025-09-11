@@ -801,7 +801,12 @@ PushNewRow(renderer_2d *Group)
 }
 
 link_internal void
-Text(renderer_2d* Group, counted_string String, ui_style *Style = &DefaultStyle, ui_element_layout_flags RenderParams = UiElementLayoutFlag_Default, v2 Offset = {}, rect2 Clip = {})
+Text(        renderer_2d* Group,
+                      cs  String,
+                ui_style *Style = &DefaultStyle,
+ ui_element_layout_flags  RenderParams = UiElementLayoutFlag_Default,
+                      v2  Offset = {},
+                   rect2  Clip = {})
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_text,
