@@ -597,6 +597,18 @@ global_variable ui_render_params DefaultUiRenderParams_Button =
   UiElementLayoutFlag_Default,
 };
 
+
+global_variable ui_render_params DefaultUiRenderParams_ButtonSelected =
+{
+  {},
+  &DefaultSelectedStyle,
+  &DefaultButtonBackgroundStyle,
+  {},
+  DefaultButtonPadding,
+  UiElementAlignmentFlag_LeftAlign,
+  UiElementLayoutFlag_Default,
+};
+
 global_variable ui_render_params DefaultUiRenderParams_Checkbox =
 {
   {},

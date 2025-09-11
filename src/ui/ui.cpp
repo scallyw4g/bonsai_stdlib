@@ -1538,6 +1538,19 @@ Button( renderer_2d *Group,
   return Result;
 }
 
+link_internal b32
+Button( renderer_2d *Group,
+                 cs  ButtonName,
+              ui_id  ButtonId,
+                b32  Selected )
+{
+  auto Params = Selected ? &DefaultUiRenderParams_ButtonSelected : &DefaultUiRenderParams_Button;
+  UNPACK_UI_RENDER_PARAMS(Params);
+  b32 Result = Button( Group, ButtonName, ButtonId, FStyle, BStyle, Padding, AlignFlags );
+  return Result;
+}
+
+
 
 /*********************************           *********************************/
 /*********************************  Toggles  *********************************/
