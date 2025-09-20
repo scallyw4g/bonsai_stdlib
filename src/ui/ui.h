@@ -174,6 +174,13 @@ typedef void (*modal_callback)(void*);
 #define UiMaskAndCastPointer(p) u32(u64(p)&0xffffffff)
 
 link_internal ui_id
+UiId(const char *Label)
+{
+  ui_id Result = {0, 0, 0, UiMaskAndCastPointer(Label)};
+  return Result;
+}
+
+link_internal ui_id
 UiId(void *Window, void *Interaction, void *Element, void *Index)
 {
   ui_id Result = {UiMaskAndCastPointer(Index), UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};

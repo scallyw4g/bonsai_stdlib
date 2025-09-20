@@ -1,4 +1,8 @@
+#if BONSAI_DEBUG_SYSTEM_API
 void Platform_EnableContextSwitchTracing();
+#else
+void Platform_EnableContextSwitchTracing() { SoftError("Context switch tracing not compiled in!"); }
+#endif
 
 enum bonsai_init_flags
 {
@@ -16,7 +20,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
                           application_api *AppApi,
                             bonsai_stdlib *Stdlib,
                              memory_arena *Memory,
-                                     void *ThreadState_UserData,
+                                     void *ThreadState_UserData      = 0,
          thread_main_callback_type_buffer *WorkerThreadCallbackProcs = 0)
 {
   Global_Stdlib = Stdlib;

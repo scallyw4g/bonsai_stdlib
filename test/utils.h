@@ -16,20 +16,29 @@ global_variable u32 TestsPassed = 0;
 
 global_variable log_level PrevGlobalLogLevel = LogLevel_Debug;
 
-void
+bonsai_stdlib
 TestSuiteBegin(const char *TestSuite, s32 ArgCount, const char** Args)
 {
   memory_arena *Memory = AllocateArena();
-  Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, Memory);
-  SetThreadLocal_ThreadIndex(0);
 
-  SetupStdout((u32)ArgCount, Args);
+
+  auto Flags = bonsai_init_flags( BonsaiInit_OpenWindow            |
+                                  BonsaiInit_LaunchThreadPool      |
+                                  BonsaiInit_InitDebugSystem       );
+
+  bonsai_stdlib Stdlib = {};
+  Ensure( InitializeBonsaiStdlib( Flags, 0, &Stdlib, Memory) );
+
+  /* Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, Memory); */
+  /* SetThreadLocal_ThreadIndex(0); */
+
+  /* SetupStdout((u32)ArgCount, Args); */
 
   LogDirect("%S   Start   %S- %s Tests" Newline, TerminalColors.Blue, TerminalColors.White, TestSuite);
 
   /* if (!SearchForProjectRoot()) { Error("Couldn't find root dir."); } */
 
-  return;
+  return Stdlib;
 }
 
 void

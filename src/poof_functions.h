@@ -1477,7 +1477,6 @@ poof(
       // TODO(Jesse)(immediate): For the love of fucksakes change these to indices
       Type.name *At;
       Type.name *End;
-      /* OWNED_BY_THREAD_MEMBER(); */
     };
 
   }
@@ -1492,10 +1491,11 @@ poof(
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
       Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name))*ElementCount, 1, 0);
-      (Type.name)_cursor Result = {};
-      Result.Start = Start;
-      Result.End = Start+ElementCount;
-      Result.At = Start;
+      (Type.name)_cursor Result = {
+        .Start = Start,
+        .End = Start+ElementCount,
+        .At = Start,
+      };
       return Result;
     }
 
