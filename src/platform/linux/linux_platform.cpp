@@ -396,8 +396,10 @@ PlatformInitializeStdout(native_file *StandardOutputFile, native_file *Log)
 }
 
 
+#if BONSAI_DEBUG_SYSTEM_API
 link_internal void
 Platform_EnableContextSwitchTracing()
 {
   Warn("Context switch tracing not supported on Linux!");
 }
+#endif
