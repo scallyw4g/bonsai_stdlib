@@ -562,8 +562,13 @@ DrawTexturedQuadImmediate( renderer_2d *Group,
 }
 
 link_internal clip_result
-BufferUntexturedQuad(renderer_2d *Group, untextured_2d_geometry_buffer *Geo,
-                     v2 MinP, v2 Dim, v3 Color, r32 Z, rect2 Clip)
+BufferUntexturedQuad( renderer_2d *Group,
+    untextured_2d_geometry_buffer *Geo,
+                               v2  MinP,
+                               v2 Dim,
+                               v3 Color,
+                               r32 Z,
+                               rect2 Clip)
 {
   // @streaming_ui_render_memory
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
@@ -1031,7 +1036,14 @@ PushUntexturedQuadAt(renderer_2d* Group, v2 AbsoluteP, v2 QuadDim, z_depth zDept
 }
 
 link_internal void
-PushUntexturedQuad(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui_style *Style = 0, v4 Padding = V4(0), ui_element_layout_flags Params = UiElementLayoutFlag_Default )
+PushUntexturedQuad( renderer_2d* Group,
+                             v2  Offset,
+                             v2 QuadDim,
+                             z_depth zDepth,
+                             ui_style *Style = 0,
+                             v4 Padding = V4(0),
+                             ui_element_layout_flags Params = UiElementLayoutFlag_Default,
+                             shader *CustomShader = 0)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_untextured_quad,
@@ -1042,6 +1054,7 @@ PushUntexturedQuad(renderer_2d* Group, v2 Offset, v2 QuadDim, z_depth zDepth, ui
       .Params  = Params,
       .zDepth  = zDepth,
       .Style   = Style? *Style : DefaultStyle,
+      .Shader  = CustomShader,
       .Layout  =
       {
         .At = {},
@@ -1264,7 +1277,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   }
   else if (Pressed(Group, &TitleBarHandle))
   {
-    Window->Basis += *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
+    Window->Basis -= *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
     Window->Flags &= ~(WindowLayoutFlag_Align_BottomRight);
   }
   else if (!Window->Minimized && Clicked(Group, &MinimizeButtonHandle))
@@ -2189,8 +2202,8 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
 
   // There's a second pass that draws all discrete textures
-  Command->Clip = Clip;
-  Command->Z = Z;
+  Command->LayoutZ = Z;
+  Command->LayoutClip = Clip;
 
   if (Command->Texture == 0) { BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, UiElementLayoutFlag_NoAdvance); }
 
@@ -2239,7 +2252,17 @@ ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad 
   v3 Color   = SelectColorState(RenderState, &Command->Style);
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
 
-  BufferUntexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
+
+  if (Command->Shader == 0)
+  {
+    BufferUntexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
+  }
+  else
+  {
+    // There's a second pass that draws special shader .. stuff
+    Command->LayoutZ = Z;
+    Command->LayoutClip = Clip;
+  }
 
   if (Command->Params & UiElementLayoutFlag_AdvanceClip)
   {
@@ -2981,6 +3004,8 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_untextured_quad:
       {
         ui_render_command_untextured_quad* TypedCommand = RenderCommandAs(untextured_quad, Command);
+        if (TypedCommand->Shader) { break; }
+
         TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState->Layout);
 
         v2 PadOffset = V2(TypedCommand->Layout.Padding.Left, TypedCommand->Layout.Padding.Top);
@@ -2989,8 +3014,8 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         b32 UpdateDrawBound = True;
         b32 AdvanceLayoutStack = True;
 #else
-        b32 UpdateDrawBound = TypedCommand->Params & UiElementLayoutFlag_AdvanceClip;
-        b32 AdvanceLayoutStack = TypedCommand->Params & UiElementLayoutFlag_AdvanceLayout;
+        b32 UpdateDrawBound = (TypedCommand->Params & UiElementLayoutFlag_AdvanceClip) == UiElementLayoutFlag_AdvanceClip;
+        b32 AdvanceLayoutStack = (TypedCommand->Params & UiElementLayoutFlag_AdvanceLayout) == UiElementLayoutFlag_AdvanceLayout;
         if (UpdateDrawBound == False)
         {
           TypedCommand->Layout.Basis += PadOffset;
@@ -3110,9 +3135,22 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
   Group->SolidGeoCountLastFrame = Group->Geo.At;
   Group->TextGeoCountLastFrame = Group->TextGroup->Geo.At;
-  DrawUiBuffers(Group, Group->ScreenDim); // Draws text and solid UI buffers
+
+  // Draws text and solid UI buffers that were populated with FlushCommandBuffer
+  DrawUiBuffers(Group, Group->ScreenDim);
 
   // Draw textured quads
+  // 
+  // This is pretty braindead; we do a seperate draw call for each textured
+  // quad.  It's wasteful, but I only call this sparingly, so it's not a
+  // problem in practice.
+  //
+  // Should use instancing and instance params ..?  Although I'm not sure how
+  // to do bindless textures in that sort of setup..
+
+  auto *TexturedQuadRP = &Group->TexturedQuadRenderPass;
+  auto GL = GetGL();
+
   u32 NextCommandIndex = 0;
   ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
   while (Command)
@@ -3129,7 +3167,6 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_column_end:
       case type_ui_render_command_text:
       case type_ui_render_command_text_at:
-      case type_ui_render_command_untextured_quad:
       case type_ui_render_command_untextured_quad_at:
       case type_ui_render_command_new_row:
       case type_ui_render_command_button_start:
@@ -3142,6 +3179,26 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_debug:
         { break; }
 
+      case type_ui_render_command_untextured_quad: \
+      {
+#if 1
+        ui_render_command_untextured_quad* TypedCommand = RenderCommandAs(untextured_quad, Command);
+        if (TypedCommand->Shader)
+        {
+          v2 MinP    = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
+          v2 Dim     = TypedCommand->QuadDim;
+          r32 Z      = TypedCommand->LayoutZ;
+          rect2 Clip = TypedCommand->LayoutClip;
+          v3 Color = V3(1, 0, 0);
+
+          UseShader(TypedCommand->Shader);
+          BufferUntexturedQuad(Group, &Group->Geo, RectMinDim(MinP, Dim), Color, Z, Clip);
+          DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
+        }
+
+#endif
+      } break;
+
       case type_ui_render_command_textured_quad:
       {
         ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
@@ -3149,33 +3206,31 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
         {
           v2 MinP    = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
           v2 Dim     = TypedCommand->QuadDim;
-          r32 Z      = TypedCommand->Z;
-          rect2 Clip = TypedCommand->Clip;
+          r32 Z      = TypedCommand->LayoutZ;
+          rect2 Clip = TypedCommand->LayoutClip;
 
           if (TypedCommand->Texture)
           {
             Assert(Group->TextGroup->Geo.At == 0);
-            auto GL = GetGL();
             GL->BindTexture(GL_TEXTURE_2D, 0);
             GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
-            auto *RenderPass = &Group->TexturedQuadRenderPass;
-            RenderPass->IsDepthTexture  = TypedCommand->IsDepthTexture;
-            RenderPass->HasAlphaChannel = TypedCommand->HasAlphaChannel;
-            RenderPass->TextureSlice    = TypedCommand->TextureSlice;
-            RenderPass->Tint            = TypedCommand->Tint;
+            TexturedQuadRP->IsDepthTexture  = TypedCommand->IsDepthTexture;
+            TexturedQuadRP->HasAlphaChannel = TypedCommand->HasAlphaChannel;
+            TexturedQuadRP->TextureSlice    = TypedCommand->TextureSlice;
+            TexturedQuadRP->Tint            = TypedCommand->Tint;
 
-            UseShader(RenderPass);
+            UseShader(TexturedQuadRP);
 
             if (TypedCommand->TextureSlice < 0)
             {
               Assert(TypedCommand->Texture->Slices == 1);
-              BindUniformByName(&RenderPass->Program, "Texture", TypedCommand->Texture, 0);
+              BindUniformByName(&TexturedQuadRP->Program, "Texture", TypedCommand->Texture, 0);
             }
             else
             {
               Assert(TypedCommand->Texture->Slices > 1);
-              BindUniformByName(&RenderPass->Program, "TextureArray", TypedCommand->Texture, 0);
+              BindUniformByName(&TexturedQuadRP->Program, "TextureArray", TypedCommand->Texture, 0);
             }
 
             // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
@@ -3186,14 +3241,10 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             Group->TextGeoCountLastFrame  += Group->TextGroup->Geo.At;
 
 
-#if 1
             GL->Enable(GL_BLEND);
             GL->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-              DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
+            DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
             GL->Disable(GL_BLEND);
-#else
-            Group->TextGroup->Geo.At = 0;
-#endif
 
             /* GL->ActiveTexture(GL_TEXTURE0); */
             GL->BindTexture(GL_TEXTURE_2D, 0);
@@ -3459,6 +3510,17 @@ DoTextEditInteraction(renderer_2d *Ui)
 link_internal void
 UiFrameEnd(renderer_2d *Ui)
 {
+#if 0
+  {
+    layout DefaultLayout = {};
+    render_state RenderState = {};
+    RenderState.Layout = &DefaultLayout;
+
+    SetWindowZDepths(Ui->CommandBuffer);
+    FlushCommandBuffer(Ui, &RenderState, Ui->CommandBuffer, &DefaultLayout);
+  }
+#endif
+
   input *Input = Ui->Input;
 
   Ui->HighestWindow = GetHighestWindow(Ui, Ui->CommandBuffer);

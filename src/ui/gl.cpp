@@ -76,7 +76,7 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   GetGL()->UseProgram(TextGroup->SolidUIShader.ID);
   AssertNoGlErrors;
 
-    DrawUiBuffer(TextGroup, &UiGroup->Geo, ScreenDim);
+  DrawUiBuffer(TextGroup, &UiGroup->Geo, ScreenDim);
   AssertNoGlErrors;
   /* UiGroup->Geo.At = 0; */
 

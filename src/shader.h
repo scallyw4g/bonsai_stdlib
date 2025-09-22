@@ -53,22 +53,29 @@ poof(
     link_internal void
     UseShader( shader_struct.name *Struct )
     {
-      GetGL()->UseProgram(Struct->Program.ID);
-
-      s32 TextureUnit = 0;
-      s32 UniformIndex = 0;
-      shader_struct.map(member)
+      if (Struct->Program.ID != INVALID_SHADER)
       {
-        member.has_tag(uniform)?
+        GetGL()->UseProgram(Struct->Program.ID);
+
+        s32 TextureUnit = 0;
+        s32 UniformIndex = 0;
+        shader_struct.map(member)
         {
-          BindUniformById(Struct->Uniforms+UniformIndex, &TextureUnit);
-          ++UniformIndex;
+          member.has_tag(uniform)?
+          {
+            BindUniformById(Struct->Uniforms+UniformIndex, &TextureUnit);
+            ++UniformIndex;
+          }
+        }
+
+        if (UniformIndex != shader_struct.member(1, (Uniforms) { Uniforms.array }) )
+        {
+          Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots!");
         }
       }
-
-      if (UniformIndex != shader_struct.member(1, (Uniforms) { Uniforms.array }) )
+      else
       {
-        Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots!");
+        SoftError("Attempted to bind uncompiled Shader ((shader_struct.tag_value(vert_source_file))) | ((shader_struct.tag_value(frag_source_file)))");
       }
     }
   }

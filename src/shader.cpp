@@ -724,6 +724,13 @@ CleanupTextureBindings(shader *Shader)
 void
 UseShader(shader *Shader)
 {
-  GetGL()->UseProgram(Shader->ID);
-  BindShaderUniforms(Shader);
+  if (Shader->ID != INVALID_SHADER)
+  {
+    GetGL()->UseProgram(Shader->ID);
+    BindShaderUniforms(Shader);
+  }
+  else
+  {
+    SoftError("Attempted to bind uncompiled Shader (%S) | (%S)", Shader->VertexSourceFilename, Shader->FragSourceFilename);
+  }
 }

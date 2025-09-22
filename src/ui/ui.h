@@ -793,6 +793,11 @@ struct ui_render_command_untextured_quad
   v2 QuadDim;
   z_depth zDepth;
   ui_element_layout_flags Params;
+  shader *Shader;
+
+  // @render_command_layout_engine_crutch
+  r32 LayoutZ;
+  rect2 LayoutClip;
 };
 
 struct ui_render_command_untextured_quad_at
@@ -803,16 +808,6 @@ struct ui_render_command_untextured_quad_at
   ui_style Style;
   layout Layout;
 };
-
-/* enum textured_quad_source */
-/* { */
-/*   TexturedQuadSource_Undefined, */
-
-/*   // Are we referring to a slice in the pre-loaded texture array, or a discrete */
-/*   // texture we rendered to? */
-/*   TexturedQuadSource_ArraySlice, */
-/*   TexturedQuadSource_Discrete, */
-/* }; */
 
 struct ui_render_command_textured_quad
 {
@@ -833,8 +828,10 @@ struct ui_render_command_textured_quad
 
   // NOTE(Jesse): Written to by the layout engine, not for use by external code
   // At the moment, only valid for TexturedQuadSource_Discrete
-  r32 Z;
-  rect2 Clip;
+  //
+  // @render_command_layout_engine_crutch
+  r32 LayoutZ;
+  rect2 LayoutClip;
 };
 
 

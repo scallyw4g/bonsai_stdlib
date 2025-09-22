@@ -124,6 +124,9 @@ BonsaiFrameEnd(bonsai_stdlib *Stdlib, renderer_2d *Ui)
 {
   UNPACK_STDLIB(Stdlib);
 
+  // TODO(Jesse)(yikes): the following produces flickering artifacts when moved
+  // inside UiFrameEnd.. why??
+#if 1
   {
     layout DefaultLayout = {};
     render_state RenderState = {};
@@ -131,8 +134,10 @@ BonsaiFrameEnd(bonsai_stdlib *Stdlib, renderer_2d *Ui)
 
     SetWindowZDepths(Ui->CommandBuffer);
     FlushCommandBuffer(Ui, &RenderState, Ui->CommandBuffer, &DefaultLayout);
-    UiFrameEnd(Ui);
   }
+#endif
+
+  UiFrameEnd(Ui);
 
   BonsaiSwapBuffers(&Stdlib->Os);
   DEBUG_FRAME_END(Plat->dt);
