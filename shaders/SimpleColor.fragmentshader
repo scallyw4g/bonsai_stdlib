@@ -4,6 +4,7 @@ in vec3 VertexColor;
 
 void main()
 {
+  /* Color = V3(1.f, 0.f, 0.f); */
   Color = VertexColor;
 }
 

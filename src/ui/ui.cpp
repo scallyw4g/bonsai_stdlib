@@ -3004,7 +3004,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_untextured_quad:
       {
         ui_render_command_untextured_quad* TypedCommand = RenderCommandAs(untextured_quad, Command);
-        if (TypedCommand->Shader) { break; }
+        /* if (TypedCommand->Shader) { break; } */
 
         TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState->Layout);
 
@@ -3179,7 +3179,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_debug:
         { break; }
 
-      case type_ui_render_command_untextured_quad: \
+      case type_ui_render_command_untextured_quad:
       {
 #if 1
         ui_render_command_untextured_quad* TypedCommand = RenderCommandAs(untextured_quad, Command);
@@ -3189,11 +3189,11 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           v2 Dim     = TypedCommand->QuadDim;
           r32 Z      = TypedCommand->LayoutZ;
           rect2 Clip = TypedCommand->LayoutClip;
-          v3 Color = V3(1, 0, 0);
+          v3 Color = V3(1, 0, 1);
 
           UseShader(TypedCommand->Shader);
           BufferUntexturedQuad(Group, &Group->Geo, RectMinDim(MinP, Dim), Color, Z, Clip);
-          DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
+          DrawUiBuffer(Group->TextGroup, &Group->Geo, Group->ScreenDim);
         }
 
 #endif
