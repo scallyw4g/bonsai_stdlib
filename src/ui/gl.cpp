@@ -8,7 +8,7 @@ FramebufferTextureLayer(framebuffer *FBO, texture *Tex, debug_texture_array_slic
 }
 
 link_internal void
-DrawUiBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 *ScreenDim)
+DrawUiBuffer(render_buffers_2d *TextGroup, ui_geometry_buffer *Geo, v2 *ScreenDim)
 {
   GetGL()->BindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -27,8 +27,9 @@ DrawUiBuffer(render_buffers_2d *TextGroup, textured_2d_geometry_buffer *Geo, v2 
   AssertNoGlErrors;
 }
 
+#if 0
 link_internal void
-DrawUiBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer, v2 *ScreenDim)
+DrawUiBuffer(render_buffers_2d *TextGroup, ui_geometry_buffer *Buffer, v2 *ScreenDim)
 {
   TIMED_FUNCTION();
 
@@ -60,6 +61,7 @@ DrawUiBuffer(render_buffers_2d *TextGroup, untextured_2d_geometry_buffer *Buffer
 
   return;
 }
+#endif
 
 link_internal void
 DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)

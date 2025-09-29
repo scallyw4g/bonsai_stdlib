@@ -283,7 +283,7 @@ SelectColorState(render_state* RenderState, ui_style *Style)
 
 
 link_internal void
-BufferQuadUVs(textured_2d_geometry_buffer* Geo, rect2 UV, s32 Slice)
+BufferQuadUVs(ui_geometry_buffer* Geo, rect2 UV, s32 Slice)
 {
   // @streaming_ui_render_memory
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
@@ -515,7 +515,7 @@ BufferTexturedQuad( renderer_2d *Group,
                           rect2  Clip,
                           rect2 *ClipOptional )
 {
-  textured_2d_geometry_buffer* Geo = &Group->TextGroup->Geo;
+  ui_geometry_buffer* Geo = &Group->TextGroup->Geo;
 
   rect2 WindowClip = RectMinMax(V2(0), *Group->ScreenDim);
   clip_result Result = ClipRect3AgainstRect2(MinP, Dim, Z, &UV, WindowClip);
@@ -553,6 +553,30 @@ BufferTexturedQuad( renderer_2d *Group,
   return Result;
 }
 
+link_internal clip_result
+BufferTexturedQuad( renderer_2d *Group,
+             ui_geometry_buffer *Geo,
+                             v2  MinP,
+                             v2  Dim,
+                             v3  Color,
+                            r32  Z,
+                          rect2  Clip)
+{
+  return BufferTexturedQuad( Group, 0, MinP, Dim, UVsForFullyCoveredQuad(), Color, Z, Clip, 0);
+}
+
+link_internal clip_result
+BufferTexturedQuad( renderer_2d *Group,
+             ui_geometry_buffer *Geo,
+                          rect2  Rect,
+                             v3  Color,
+                            r32  Z,
+                          rect2  Clip)
+{
+  return BufferTexturedQuad( Group, 0, Rect.Min, GetDim(Rect), UVsForFullyCoveredQuad(), Color, Z, Clip, 0);
+}
+
+
 link_internal void
 DrawTexturedQuadImmediate( renderer_2d *Group,
                            texture *Tex,
@@ -561,9 +585,10 @@ DrawTexturedQuadImmediate( renderer_2d *Group,
 {
 }
 
+#if 0
 link_internal clip_result
 BufferUntexturedQuad( renderer_2d *Group,
-    untextured_2d_geometry_buffer *Geo,
+    ui_geometry_buffer *Geo,
                                v2  MinP,
                                v2 Dim,
                                v3 Color,
@@ -595,7 +620,7 @@ BufferUntexturedQuad( renderer_2d *Group,
 }
 
 link_internal clip_result
-BufferUntexturedQuad(renderer_2d *Group, untextured_2d_geometry_buffer *Geo,
+BufferUntexturedQuad(renderer_2d *Group, ui_geometry_buffer *Geo,
                          rect2 Rect, v3 Color, r32 Z, rect2 Clip)
 {
   v2 MinP = Rect.Min;
@@ -603,6 +628,7 @@ BufferUntexturedQuad(renderer_2d *Group, untextured_2d_geometry_buffer *Geo,
   clip_result Result = BufferUntexturedQuad(Group, Geo, MinP, Dim, Color, Z, Clip);
   return Result;
 }
+#endif
 
 link_internal void
 BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, v3 Color, r32 Z, rect2 ClipWindow, rect2 *ClipOptional)
@@ -639,20 +665,20 @@ BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip, v4 Thi
   rect2 LeftRect   = RectMinMax(TopLeft-Thickness.Left ,    BottomLeft);
   rect2 RightRect  = RectMinMax(TopRight,    BottomRight + V2(Thickness.Right, 0));
 
-  BufferUntexturedQuad(Group, &Group->Geo, TopRect,    Color, Z, Clip);
-  BufferUntexturedQuad(Group, &Group->Geo, LeftRect,   Color, Z, Clip);
-  BufferUntexturedQuad(Group, &Group->Geo, RightRect,  Color, Z, Clip);
-  BufferUntexturedQuad(Group, &Group->Geo, BottomRect, Color, Z, Clip);
+  BufferTexturedQuad(Group, &Group->Geo, TopRect,    Color, Z, Clip);
+  BufferTexturedQuad(Group, &Group->Geo, LeftRect,   Color, Z, Clip);
+  BufferTexturedQuad(Group, &Group->Geo, RightRect,  Color, Z, Clip);
+  BufferTexturedQuad(Group, &Group->Geo, BottomRect, Color, Z, Clip);
 
   rect2 TopRightCorner    = RectMinMax(TopRight,    TopRight    + V2( Thickness.Right, -Thickness.Top));
   rect2 TopLeftCorner     = RectMinMax(TopLeft,     TopLeft     + V2(-Thickness.Left,  -Thickness.Top));
   rect2 BottomRightCorner = RectMinMax(BottomRight, BottomRight + V2( Thickness.Right,  Thickness.Bottom));
   rect2 BottomLeftCorner  = RectMinMax(BottomLeft,  BottomLeft  + V2(-Thickness.Left,   Thickness.Bottom));
 
-  BufferUntexturedQuad(Group, &Group->Geo, TopRightCorner,    Color, Z, Clip);
-  BufferUntexturedQuad(Group, &Group->Geo, TopLeftCorner,     Color, Z, Clip);
-  BufferUntexturedQuad(Group, &Group->Geo, BottomRightCorner, Color, Z, Clip);
-  BufferUntexturedQuad(Group, &Group->Geo, BottomLeftCorner,  Color, Z, Clip);
+  BufferTexturedQuad(Group, &Group->Geo, TopRightCorner,    Color, Z, Clip);
+  BufferTexturedQuad(Group, &Group->Geo, TopLeftCorner,     Color, Z, Clip);
+  BufferTexturedQuad(Group, &Group->Geo, BottomRightCorner, Color, Z, Clip);
+  BufferTexturedQuad(Group, &Group->Geo, BottomLeftCorner,  Color, Z, Clip);
 }
 
 link_internal void
@@ -2235,7 +2261,7 @@ ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_qua
     Clip = DISABLE_CLIPPING;
   }
 
-  BufferUntexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
+  BufferTexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
 
   UpdateDrawBounds(&Command->Layout, MinP);
   UpdateDrawBounds(&Command->Layout, MinP + Dim);
@@ -2255,7 +2281,7 @@ ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad 
 
   if (Command->Shader == 0)
   {
-    BufferUntexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
+    BufferTexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
   }
   else
   {
@@ -3076,13 +3102,13 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         if (ButtonResult.Hover && ButtonStart->BStyle.HoverColor != UI_HOVER_HIGHLIGHT_DISABLED)
         {
-          BufferUntexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
+          BufferTexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
               ButtonStart->BStyle.HoverColor, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
         }
 
         if (ButtonStart->ID == Group->TextEdit.Id)
         {
-          BufferUntexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
+          BufferTexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
               UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
         }
 
@@ -3192,10 +3218,9 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           v3 Color = V3(1, 0, 1);
 
           UseShader(TypedCommand->Shader);
-          BufferUntexturedQuad(Group, &Group->Geo, RectMinDim(MinP, Dim), Color, Z, Clip);
+          BufferTexturedQuad(Group, &Group->Geo, RectMinDim(MinP, Dim), Color, Z, Clip);
           DrawUiBuffer(Group->TextGroup, &Group->Geo, Group->ScreenDim);
         }
-
 #endif
       } break;
 
@@ -3280,7 +3305,7 @@ BasisRightOf(window_layout* Window, v2 WindowSpacing = V2(50, 0))
 }
 
 link_internal void
-AllocateAndInitGeoBuffer(textured_2d_geometry_buffer *Geo, u32 ElementCount, memory_arena *DebugArena)
+AllocateAndInitGeoBuffer(ui_geometry_buffer *Geo, u32 ElementCount, memory_arena *DebugArena)
 {
   Geo->Verts  = Allocate(v3, DebugArena, ElementCount);
   Geo->Colors = Allocate(v3, DebugArena, ElementCount);
@@ -3290,6 +3315,7 @@ AllocateAndInitGeoBuffer(textured_2d_geometry_buffer *Geo, u32 ElementCount, mem
   Geo->At = 0;
 }
 
+#if 0
 link_internal void
 AllocateAndInitGeoBuffer(untextured_2d_geometry_buffer *Geo, u32 ElementCount, memory_arena *DebugArena)
 {
@@ -3300,6 +3326,7 @@ AllocateAndInitGeoBuffer(untextured_2d_geometry_buffer *Geo, u32 ElementCount, m
   Geo->At = 0;
   return;
 }
+#endif
 
 link_internal texture LoadBitmap(const char* FilePath, u32 SliceCount, memory_arena *Arena);
 

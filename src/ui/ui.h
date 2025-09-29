@@ -54,7 +54,7 @@ struct render_buffers_2d
   shader Text2DShader;
   shader SolidUIShader;
 
-  textured_2d_geometry_buffer Geo;
+  ui_geometry_buffer Geo;
 };
 
 enum window_layout_flags
@@ -311,7 +311,7 @@ struct renderer_2d
 
   text_box_edit_state TextEdit;
 
-  untextured_2d_geometry_buffer Geo;
+  ui_geometry_buffer Geo;
   /* shader TexturedQuadShader; */
   textured_quad_render_pass TexturedQuadRenderPass;
 
@@ -1184,3 +1184,7 @@ GetDim(window_layout *Window)
 
 
 link_internal void DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer);
+
+link_internal clip_result BufferTexturedQuad( renderer_2d *Group, ui_geometry_buffer *Geo, v2  MinP, v2 Dim, v3 Color, r32 Z, rect2 Clip);
+link_internal clip_result BufferTexturedQuad( renderer_2d *Group, ui_geometry_buffer *Geo, rect2, v3 Color, r32 Z, rect2 Clip);
+link_internal clip_result BufferTexturedQuad( renderer_2d *Group, s32  TextureSlice, v2  MinP, v2  Dim, rect2  UV, v3  Color, r32  Z, rect2  Clip, rect2 *ClipOptional );
