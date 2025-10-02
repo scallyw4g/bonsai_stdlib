@@ -639,12 +639,12 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, v3 Color, r32 Z, r
   {
     v3 ShadowColor = V3(0.0f);
     v2 ShadowOffset = 0.10f*FontSize;
-    BufferTexturedQuad( Group, DebugTextureArraySlice_Font,
+    BufferTexturedQuad( Group, UiTextureSlice_Font,
                       MinP+ShadowOffset, FontSize, UV, ShadowColor, Z, ClipWindow, ClipOptional);
   }
 
 
-  BufferTexturedQuad( Group, DebugTextureArraySlice_Font,
+  BufferTexturedQuad( Group, UiTextureSlice_Font,
                       MinP, FontSize, UV, Color, Z, ClipWindow, ClipOptional);
 }
 
@@ -3354,7 +3354,11 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   if (Headless == False)
   {
     auto TextGroup = Renderer->TextGroup;
-    TextGroup->DebugTextureArray = LoadBitmap("texture_atlas_0.bmp", DebugTextureArraySlice_Count, GetTranArena());
+
+    TextGroup->DebugTextureArray = MakeTexture_RGBA(V2i(512), Cast(u32*, 0), CSz("ui textures"), UiTextureSlice_Count);
+    Ensure(LoadBitmap("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White));
+    Ensure(LoadBitmap("texture_atlas_0.bmp", GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font));
+
     GetGL()->GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
     GetGL()->GenBuffers(1, &TextGroup->SolidUIColorBuffer);
     GetGL()->GenBuffers(1, &TextGroup->SolidUIUVBuffer);

@@ -91,7 +91,7 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
     // For now, we only support reading bitmaps that are bottom-up ie. Origin in top-left corner
     PixelCount = (u32)Header.Image.WidthInPixels * (u32)Header.Image.HeightInPixels;
   }
-  else { Error("Opening %s for reading", Filename); }
+  else { SoftError("Opening %s for reading", Filename); }
 
   Assert( Header.OffsetToPixelData < TotalElements(&Buf));
   Buf.At = Buf.Start+Header.OffsetToPixelData;
@@ -102,20 +102,25 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
   {
     case BitmapCompressionType_RGB:
     {
-      u32 TmpPixelsSize = PixelCount*3;
-      Assert(TmpPixelsSize == Header.Image.SizeInBytes);
+      // Sanity check .. I'd assume bits-per-pixel would always be mod-8 ?
+      Assert( (Header.Image.BPP % 8) == 0);
+
+      u32 BytesPerPixel = Header.Image.BPP / 8;
+
+      u32 PixelBufferSize = PixelCount*BytesPerPixel;
+      Assert(PixelBufferSize == Header.Image.SizeInBytes);
 
       DestPixels = Allocate(u32, Arena, PixelCount);
 
       u8 A = 0xFF;
       RangeIterator_t(u32, PixelIndex, PixelCount)
       {
-        u32 rOffset = 0 + (PixelIndex*3);
-        u32 gOffset = 1 + (PixelIndex*3);
-        u32 bOffset = 2 + (PixelIndex*3);
-        Assert(rOffset < TmpPixelsSize);
-        Assert(gOffset < TmpPixelsSize);
-        Assert(bOffset < TmpPixelsSize);
+        u32 rOffset = 0 + (PixelIndex*BytesPerPixel);
+        u32 gOffset = 1 + (PixelIndex*BytesPerPixel);
+        u32 bOffset = 2 + (PixelIndex*BytesPerPixel);
+        Assert(rOffset < PixelBufferSize);
+        Assert(gOffset < PixelBufferSize);
+        Assert(bOffset < PixelBufferSize);
 
         u8 R = SrcPixels[rOffset];
         u8 G = SrcPixels[gOffset];
@@ -142,39 +147,41 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
       SoftError("Unsupported Bitmap compression format encountered (%S)", ToString(bitmap_compression_type(Header.Image.CompressionType)));
     } break;
   }
-  /* CloseFile(&File); */
-
-  /* Assert(Header.Image.CompressionType == 3); */
-  if (Buf.At != Buf.End)
-  {
-    Warn("(%s) loaded successfully, but we detected unsupported metadata during loading.", Filename);
-  }
-
 
   bitmap Result = {};
-  Result.Dim = V2i(Header.Image.WidthInPixels, Header.Image.HeightInPixels);
-  Result.Pixels = U32Cursor(DestPixels, DestPixels+PixelCount);
-
-
-  if (Header.Image.RedMask == 0xFF)
+  if (DestPixels)
   {
-    Assert(Header.Image.GreenMask == 0xFF00    );
-    Assert(Header.Image.BlueMask  == 0xFF0000  );
-    /* Assert(Header.Image.AlphaMask == 0xFF000000); */
-  }
-  else if (Header.Image.BlueMask == 0xFF)
-  {
-    Assert(Header.Image.GreenMask == 0xFF00    );
-    Assert(Header.Image.RedMask   == 0xFF0000  );
-    /* Assert(Header.Image.AlphaMask == 0xFF000000); */
+    Result.Dim = V2i(Header.Image.WidthInPixels, Header.Image.HeightInPixels);
+    Result.Pixels = U32Cursor(DestPixels, DestPixels+PixelCount);
 
-    SwizzleRedToBlueChannel(&Result.Pixels);
+    if (Buf.At != Buf.End)
+    {
+      Warn("(%s) loaded successfully, but we detected unsupported metadata during loading. (%d) bytes remaining unparsed.", Filename, Buf.End - Buf.At);
+    }
+
+    if (Header.Image.RedMask == 0xFF)
+    {
+      Assert(Header.Image.GreenMask == 0xFF00    );
+      Assert(Header.Image.BlueMask  == 0xFF0000  );
+      /* Assert(Header.Image.AlphaMask == 0xFF000000); */
+    }
+    else if (Header.Image.BlueMask == 0xFF)
+    {
+      Assert(Header.Image.GreenMask == 0xFF00    );
+      Assert(Header.Image.RedMask   == 0xFF0000  );
+      /* Assert(Header.Image.AlphaMask == 0xFF000000); */
+
+      SwizzleRedToBlueChannel(&Result.Pixels);
+    }
+    else
+    {
+      Warn("(%s) loaded successfully, but detected unsupported pixel masking during loading.", Filename);
+    }
   }
   else
   {
-    Warn("(%s) loaded successfully, but detected unsupported pixel masking during loading.", Filename);
+    SoftError("(%s) encountered an error while loading.", Filename);
   }
-
 
   return Result;
 }

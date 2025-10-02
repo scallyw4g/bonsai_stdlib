@@ -1,6 +1,6 @@
 
 link_internal void
-FramebufferTextureLayer(framebuffer *FBO, texture *Tex, debug_texture_array_slice Layer)
+FramebufferTextureLayer(framebuffer *FBO, texture *Tex, ui_texture_slice Layer)
 {
   u32 Attachment = FBO->Attachments++;
   GetGL()->FramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, Tex->ID, 0, Layer);

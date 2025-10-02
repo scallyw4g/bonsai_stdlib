@@ -190,11 +190,13 @@ MakeTexture_RGBA(    v2i  Dim,
   }
   else
   {
+#if 1
     // TODO(Jesse, id: 137, tags: robustness, open_question): This _should_ be
     // able to be glTexImage3D, but the driver is throwing an error .. why?!
     //
-#if 1
-    GetGL()->TexImage3D(
+    // UPDATE(Jesse): Looks like this is working on my INTEL/NVIDIA laptop, so
+    // I'm going to switch back for now..
+     GetGL()->TexImage3D(
         GL_TEXTURE_2D_ARRAY,
         0,
         s32(InternalFormat),
@@ -366,9 +368,41 @@ LoadBitmap(const char* FilePath, memory_arena *Arena)
   return Result;
 }
 
+link_internal b32
+LoadBitmap(const char* FilePath, memory_arena *Arena, texture* Dest, s32 Slice)
+{
+  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, Arena);
+  Assert(TexBitmap.Dim == Dest->Dim);
+
+  b32 Result = False;
+  if (TexBitmap.Pixels.Start)
+  {
+    Result = True;
+    u32 TextureFormat = GL_RGBA;
+    u32 ElementType = GL_UNSIGNED_BYTE;
+    s32 TextureDepth = 1;
+
+    GetGL()->TexSubImage3D(
+        GL_TEXTURE_2D_ARRAY,
+        0, // mip level
+
+        0,     // x offset
+        0,     // y offset
+        Slice, // z offset
+
+        Dest->Dim.x, Dest->Dim.y, TextureDepth,
+
+        TextureFormat, ElementType, TexBitmap.Pixels.Start);
+  }
+
+  return Result;
+}
+
 link_internal bitmap
 LoadBitmap(file_traversal_node *Node, memory_arena *Arena)
 {
+  Assert(EndsWith(Node->Dir, CSz("/")) == False);
+
   cs Path = Concat(Node->Dir, CSz("/"), Node->Name, GetTranArena(), 1);
   bitmap Result = ReadBitmapFromDisk((const char*)Path.Start, Arena);
   return Result;

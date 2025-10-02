@@ -385,12 +385,11 @@ struct render_state
 
 
 
-enum debug_texture_array_slice
+enum ui_texture_slice
 {
-  DebugTextureArraySlice_Font,
-  DebugTextureArraySlice_Viewport,
-
-  DebugTextureArraySlice_Count,
+  UiTextureSlice_White,
+  UiTextureSlice_Font,
+  UiTextureSlice_Count,
 };
 
 enum ui_element_alignment_flags
