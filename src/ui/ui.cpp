@@ -3364,7 +3364,7 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
 
     GetGL()->GenBuffers(3, TextGroup->Buf.Handles.Handles);
 
-    TextGroup->Text2DShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "TextVertexShader.vertexshader"), CSz(STDLIB_SHADER_PATH "TextVertexShader.fragmentshader") );
+    TextGroup->Text2DShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "ui.vertexshader"), CSz(STDLIB_SHADER_PATH "ui.fragmentshader") );
 
     TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
 
