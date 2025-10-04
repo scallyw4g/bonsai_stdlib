@@ -64,13 +64,30 @@ enum gpu_element_buffer_flags
 {
 };
 
+
+enum mesh_element_buffer_handles
+{
+  mesh_VertexHandle,
+  mesh_NormalHandle,
+  mesh_MatHandle,
+};
+
+enum ui_element_buffer_handles
+{
+  ui_VertexHandle,
+  ui_UVHandle,
+  ui_ColorHandle,
+};
+
 struct gpu_element_buffer_handles
 {
   // NOTE(Jesse): VertexHandle has to come first because it's the one that gets passed to GL.DeleteBuffers
   // @vertex_handle_primal
-  u32 VertexHandle;
-  u32 NormalHandle;
-  u32    MatHandle;
+  /* u32 VertexHandle; */
+  /* u32 NormalHandle; */
+  /* u32    MatHandle; */
+
+  u32 Handles[3];
 
   u32 ElementCount;
   data_type ElementType;
@@ -89,6 +106,13 @@ struct gpu_element_buffer_handles
   // TODO(Jesse): Remove this typedef by changing the name everywhere.
   typedef gpu_mapped_element_buffer gpu_mapped_untextured_3d_geometry_buffer;
 // }
+
+struct gpu_mapped_ui_buffer
+{
+  gpu_element_buffer_handles Handles;
+  ui_geometry_buffer         Buffer;
+};
+
 
 /* struct gpu_mapped_jorld_chunk_geometry_buffer */
 /* { */
@@ -127,7 +151,6 @@ struct render_entity_to_texture_group
 #include <bonsai_stdlib/src/binary_parser.h>
 #include <bonsai_stdlib/src/rect.h>
 #include <bonsai_stdlib/src/xml.h>
-#include <bonsai_stdlib/src/geometry_buffer.h>
 struct light;
 struct camera;
 #include <bonsai_stdlib/src/ui/interactable.h>

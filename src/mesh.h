@@ -58,6 +58,7 @@ u32 DataTypeToElementSize[] = {
 };
 
 
+#include <bonsai_stdlib/src/geometry_buffer.h>
 
 struct geometry_buffer_stub_v3
 {

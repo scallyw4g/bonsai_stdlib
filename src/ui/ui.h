@@ -44,17 +44,11 @@ link_weak ui_debug *GetUiDebug();
 
 struct render_buffers_2d
 {
-  u32 SolidUIVertexBuffer;
-  u32 SolidUIUVBuffer;
-  u32 SolidUIColorBuffer;
-
   texture DebugTextureArray;
   s32 TextTextureUniform;
 
   shader Text2DShader;
-  shader SolidUIShader;
-
-  ui_geometry_buffer Geo;
+  gpu_mapped_ui_buffer Buf;
 };
 
 enum window_layout_flags
@@ -278,6 +272,10 @@ poof(
 };
 
 
+struct ui_render_pass
+{
+};
+
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
 struct input;
@@ -312,7 +310,6 @@ struct renderer_2d
   text_box_edit_state TextEdit;
 
   ui_geometry_buffer Geo;
-  /* shader TexturedQuadShader; */
   textured_quad_render_pass TexturedQuadRenderPass;
 
   ui_render_command_buffer *CommandBuffer;

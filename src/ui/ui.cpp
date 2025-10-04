@@ -515,7 +515,7 @@ BufferTexturedQuad( renderer_2d *Group,
                           rect2  Clip,
                           rect2 *ClipOptional )
 {
-  ui_geometry_buffer* Geo = &Group->TextGroup->Geo;
+  ui_geometry_buffer* Geo = &Group->TextGroup->Buf.Buffer;
 
   rect2 WindowClip = RectMinMax(V2(0), *Group->ScreenDim);
   clip_result Result = ClipRect3AgainstRect2(MinP, Dim, Z, &UV, WindowClip);
@@ -1429,6 +1429,14 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     PushUntexturedQuadAt(Group, ResizeHandleMin, ResizeHandleDim, zDepth_Border, &SaturatedWindowBezelStyle, UiElementLayoutFlag_DisableClipping);
   PushButtonEnd(Group);
 
+  // Title bar
+  PushButtonStart(Group, TitleBarInteractionId);
+    PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &DefaultWindowBezelStyle);
+  PushButtonEnd(Group);
+
+  // Window Background
+  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle);
+
   PushForceAdvance(Group, V2(Global_TitleBarPadding));
 
   Text(Group, TitleText, &DefaultStyle, UiElementLayoutFlag_DisableClipping );
@@ -1440,11 +1448,6 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     PushButtonEnd(Group);
   }
 
-  PushButtonStart(Group, TitleBarInteractionId);
-    PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &DefaultWindowBezelStyle);
-  PushButtonEnd(Group);
-
-  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle);
   PushNewRow(Group);
 
 /*   PushResetDrawBounds(Group); */
@@ -3160,7 +3163,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
   TIMED_FUNCTION();
 
   Group->SolidGeoCountLastFrame = Group->Geo.At;
-  Group->TextGeoCountLastFrame = Group->TextGroup->Geo.At;
+  Group->TextGeoCountLastFrame = Group->TextGroup->Buf.Buffer.At;
 
   // Draws text and solid UI buffers that were populated with FlushCommandBuffer
   DrawUiBuffers(Group, Group->ScreenDim);
@@ -3236,7 +3239,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
           if (TypedCommand->Texture)
           {
-            Assert(Group->TextGroup->Geo.At == 0);
+            Assert(Group->TextGroup->Buf.Buffer.At == 0);
             GL->BindTexture(GL_TEXTURE_2D, 0);
             GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
@@ -3263,12 +3266,12 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             BufferTexturedQuad(Group, TypedCommand->TextureSlice, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
 
             Group->SolidGeoCountLastFrame += Group->Geo.At;
-            Group->TextGeoCountLastFrame  += Group->TextGroup->Geo.At;
+            Group->TextGeoCountLastFrame  += Group->TextGroup->Buf.Buffer.At;
 
 
             GL->Enable(GL_BLEND);
             GL->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Geo, Group->ScreenDim);
+            DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Buf.Buffer, Group->ScreenDim);
             GL->Disable(GL_BLEND);
 
             /* GL->ActiveTexture(GL_TEXTURE0); */
@@ -3344,7 +3347,7 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   // we should have a system that streams blocks of memory in as-necessary
   // @streaming_ui_render_memory
   u32 ElementCount = (u32)Megabytes(2);
-  AllocateAndInitGeoBuffer(&Renderer->TextGroup->Geo, ElementCount, PermMemory);
+  AllocateAndInitGeoBuffer(&Renderer->TextGroup->Buf.Buffer, ElementCount, PermMemory);
   AllocateAndInitGeoBuffer(&Renderer->Geo, ElementCount, PermMemory);
 
   Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
@@ -3359,15 +3362,13 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     Ensure(LoadBitmap("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White));
     Ensure(LoadBitmap("texture_atlas_0.bmp", GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font));
 
-    GetGL()->GenBuffers(1, &TextGroup->SolidUIVertexBuffer);
-    GetGL()->GenBuffers(1, &TextGroup->SolidUIColorBuffer);
-    GetGL()->GenBuffers(1, &TextGroup->SolidUIUVBuffer);
+    GetGL()->GenBuffers(3, TextGroup->Buf.Handles.Handles);
 
     TextGroup->Text2DShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "TextVertexShader.vertexshader"), CSz(STDLIB_SHADER_PATH "TextVertexShader.fragmentshader") );
 
     TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
 
-    Renderer->TextGroup->SolidUIShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") );
+    /* Renderer->TextGroup->SolidUIShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") ); */
 
     // Generic shader that gets reused to draw simple textured quads
     /* Renderer->TexturedQuadShader = MakeFullTextureShader(0, PermMemory); */

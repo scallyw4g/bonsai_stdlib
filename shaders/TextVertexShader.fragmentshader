@@ -4,14 +4,15 @@ in vec3 VertColor;
 out vec4 color;
 
 uniform highp sampler2DArray TextTextureSampler;
-uniform f32 TexelStep;
+/* uniform f32 TexelStep; */
 
 void main()
 {
-  float Step = TexelStep;
+  /* float Step = TexelStep; */
 
   vec4 BitmapTexel = texture( TextTextureSampler, UV );
 
+#if 0
   {
     vec3 UVx     = UV + vec3(Step, 0.f, 0.f);
     BitmapTexel += texture(TextTextureSampler, UVx);
@@ -33,6 +34,7 @@ void main()
   }
 
   BitmapTexel /= 5.f;
+#endif
 
   color = vec4(VertColor * BitmapTexel.rgb, BitmapTexel.a);
 }

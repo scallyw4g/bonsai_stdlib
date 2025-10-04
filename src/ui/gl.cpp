@@ -13,9 +13,9 @@ DrawUiBuffer(render_buffers_2d *TextGroup, ui_geometry_buffer *Geo, v2 *ScreenDi
   GetGL()->BindFramebuffer(GL_FRAMEBUFFER, 0);
 
   u32 AttributeIndex = 0;
-  BufferVertsToCard( TextGroup->SolidUIVertexBuffer, Geo, &AttributeIndex);
-  BufferUVsToCard(   TextGroup->SolidUIUVBuffer,     Geo, &AttributeIndex);
-  BufferColorsToCard(TextGroup->SolidUIColorBuffer,  Geo, &AttributeIndex);
+  BufferVertsToCard( TextGroup->Buf.Handles.Handles[ui_VertexHandle], Geo, &AttributeIndex);
+  BufferUVsToCard(   TextGroup->Buf.Handles.Handles[ui_UVHandle],     Geo, &AttributeIndex);
+  BufferColorsToCard(TextGroup->Buf.Handles.Handles[ui_ColorHandle],  Geo, &AttributeIndex);
 
   if (Geo->At) { Draw(Geo->At); }
   Geo->At = 0;
@@ -75,16 +75,17 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   SetViewport(*ScreenDim);
   AssertNoGlErrors;
 
-  GetGL()->UseProgram(TextGroup->SolidUIShader.ID);
-  AssertNoGlErrors;
+  /* GetGL()->UseProgram(TextGroup->SolidUIShader.ID); */
+  /* AssertNoGlErrors; */
 
-  DrawUiBuffer(TextGroup, &UiGroup->Geo, ScreenDim);
-  AssertNoGlErrors;
+  /* DrawUiBuffer(TextGroup, &UiGroup->Geo, ScreenDim); */
+  /* AssertNoGlErrors; */
   /* UiGroup->Geo.At = 0; */
 
 
 
   GetGL()->UseProgram(TextGroup->Text2DShader.ID);
+
   GetGL()->ActiveTexture(GL_TEXTURE0);
   GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray.ID);
   GetGL()->Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
@@ -92,7 +93,7 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   GetGL()->Enable(GL_BLEND);
   GetGL()->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    DrawUiBuffer(UiGroup->TextGroup, &UiGroup->TextGroup->Geo, ScreenDim);
+  DrawUiBuffer(UiGroup->TextGroup, &UiGroup->TextGroup->Buf.Buffer, ScreenDim);
 
   GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
