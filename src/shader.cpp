@@ -100,6 +100,27 @@ ValueFromSetting(shader_language_setting ShaderLanguage)
 }
 
 link_internal void
+RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
+{
+  Assert(Shader->ID != INVALID_SHADER);
+
+  if (Stdlib->AllShaders.Memory == 0)
+  {
+    Stdlib->AllShaders.Memory = AllocateArena();
+  }
+
+  if (Find(&Stdlib->AllShaders, Shader).Index == INVALID_BLOCK_ARRAY_INDEX)
+  {
+    Shader("(%S|%S) successfully registered for hot-reload at Index (%d).", Shader->VertexSourceFilename, Shader->FragSourceFilename, AtElements(&Stdlib->AllShaders));
+    Push(&Stdlib->AllShaders, Shader);
+  }
+  else
+  {
+    Warn("Shader pair (%S|%S) already registered for hot-reload, not registering duplicate.", Shader->VertexSourceFilename, Shader->FragSourceFilename);
+  }
+}
+
+link_internal void
 LoadGlobalShaderHeaderCode(shader_language_setting ShaderLanguage)
 {
   cs ShaderVersion = ValueFromSetting(ShaderLanguage);
@@ -126,10 +147,11 @@ DumpShaderSource(u32 ShaderId)
   }
 }
 
-link_internal shader
-CompileShaderPair(cs VertShaderPath, cs FragShaderPath, b32 DumpErrors = True)
+link_internal b32
+CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 DumpErrors = True, b32 RegisterForHotReload = True)
 {
-  Info("Creating shader : %S | %S", VertShaderPath, FragShaderPath);
+  Shader("Creating : (%S | %S", VertShaderPath, FragShaderPath);
+
 
   if (Global_ShaderHeaderCode.Start == 0) { LoadGlobalShaderHeaderCode(ShaderLanguageSetting_330core); } // Default to 330 core if nobody did this already
 
@@ -146,11 +168,11 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath, b32 DumpErrors = True)
   AssertNoGlErrors;
 
   memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
-  shader Shader = { INVALID_SHADER, {}, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0, False};
+  *Shader = { INVALID_SHADER, {}, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0, False};
 
   // NOTE(Jesse): Not doing this because the errors come through when you go to link the program.  Of course ..
   /* if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER) */
-  {
+  /* { */
     // Link the program
     u32 ProgramID = GetGL()->CreateProgram();
     Assert(ProgramID);
@@ -159,30 +181,33 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath, b32 DumpErrors = True)
     GetGL()->LinkProgram(ProgramID);
     AssertNoGlErrors;
 
+
+
     // Check the program linked
     s32 LinkResult = GL_FALSE;
     GetGL()->GetProgramiv(ProgramID, GL_LINK_STATUS, &LinkResult);
     GetGL()->GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
     AssertNoGlErrors;
 
+    b32 CompileSucceeded = (LinkResult == GL_TRUE);
 
     s32 ActiveUniformSlots;
     GetGL()->GetProgramiv(ProgramID, GL_ACTIVE_UNIFORMS, &ActiveUniformSlots);
     AssertNoGlErrors;
 
-    if (DumpErrors && VertexResult.Success == False)
+    if (VertexResult.Success == False && DumpErrors)
     {
       DumpShaderSource(VertexResult.ShaderId);
     }
 
-    if (DumpErrors && FragResult.Success == False)
+    if (FragResult.Success == False && DumpErrors)
     {
       DumpShaderSource(FragResult.ShaderId);
     }
 
-    Info("Shader program (%d) reported (%d) active uniform slots.", ProgramID, ActiveUniformSlots);
+    Shader("Program (%d) reported (%d) active uniform slots.", ProgramID, ActiveUniformSlots);
 
-    if (DumpErrors && LinkResult == GL_FALSE)
+    if (CompileSucceeded == False && DumpErrors)
     {
       char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
       GetGL()->GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
@@ -197,33 +222,27 @@ CompileShaderPair(cs VertShaderPath, cs FragShaderPath, b32 DumpErrors = True)
     GetGL()->DeleteShader(FragResult.ShaderId);
     AssertNoGlErrors;
 
-    if (LinkResult == GL_FALSE)
+    // NOTE(Jesse): Kind of a hack to set the last modified times on the shader.  Should
+    // really be able to do this when reading the source code into buffers, but .. meh ..
+    FileIsNew(GetNullTerminated(Shader->VertexSourceFilename), &Shader->VertexTimeModifiedWhenLoaded);
+    FileIsNew(GetNullTerminated(Shader->FragSourceFilename), &Shader->FragmentTimeModifiedWhenLoaded);
+
+    if (CompileSucceeded == False)
     {
       GetGL()->DeleteProgram(ProgramID);
       ProgramID = INVALID_SHADER;
     }
 
-    Shader.ID = ProgramID;
+    Shader->ID = ProgramID;
+  /* } */
 
-    // NOTE(Jesse): Kind of a hack to set the last modified times on the shader.  Should
-    // really be able to do this when reading the source code into buffers, but .. meh ..
-    FileIsNew(GetNullTerminated(Shader.VertexSourceFilename), &Shader.VertexTimeModifiedWhenLoaded);
-    FileIsNew(GetNullTerminated(Shader.FragSourceFilename), &Shader.FragmentTimeModifiedWhenLoaded);
+  if (CompileSucceeded && RegisterForHotReload)
+  {
+    RegisterShaderForHotReload(GetStdlib(), Shader);
   }
 
   AssertNoGlErrors;
-  return Shader;
-}
-
-link_internal void
-RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
-{
-  if (Stdlib->AllShaders.Memory == 0)
-  {
-    Stdlib->AllShaders.Memory = AllocateArena();
-  }
-
-  Push(&Stdlib->AllShaders, Shader);
+  return CompileSucceeded;
 }
 
 link_internal s32
@@ -246,7 +265,7 @@ ReloadShaderUniform(shader *Shader, shader_uniform *Uniform)
   Uniform->ID = GetShaderUniform(Shader, Uniform->Name);
 
   b32 Result = Uniform->ID != INVALID_SHADER_UNIFORM;
-  if (Result) { Info("Reloaded Shader Uniform (%s) at location (%d), previously (%d)", Uniform->Name, Uniform->ID, PrevLoc); }
+  if (Result) { Shader("Reloaded Uniform (%s) at location (%d), previously (%d)", Uniform->Name, Uniform->ID, PrevLoc); }
   return Result;
 }
 
@@ -269,11 +288,14 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
       s32 MaxRetryCount = 5;
       shader LoadedShader = {};
+      b32 RegisterForHotReload = False; // We're hot reloading now ..
       RangeIterator(RetryCount, MaxRetryCount)
       {
         b32 DumpErrors = (RetryCount == MaxRetryCount-1);
-        LoadedShader = CompileShaderPair(Shader->VertexSourceFilename, Shader->FragSourceFilename, DumpErrors);
-        if (LoadedShader.ID != INVALID_SHADER) { break; }
+        if (CompileShaderPair(&LoadedShader, Shader->VertexSourceFilename, Shader->FragSourceFilename, DumpErrors, RegisterForHotReload))
+        {
+          break;
+        }
 
         SleepMs(5);
       }
@@ -358,6 +380,7 @@ MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 }
 #endif
 
+#if 0
 shader
 MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 {
@@ -372,6 +395,7 @@ MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 
   return Shader;
 }
+#endif
 
 b32
 CheckAndClearFramebuffer()

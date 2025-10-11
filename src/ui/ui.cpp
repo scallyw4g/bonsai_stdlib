@@ -3308,6 +3308,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
         if (TypedCommand->Shader)
         {
+          MapGpuBuffer(&Group->CustomQuadGeometryBuffer);
           UseShader(TypedCommand->Shader);
           BufferUiQuad(*Group->ScreenDim, &Group->CustomQuadGeometryBuffer, RectMinDim(MinP, Dim), TypedCommand->Style.Color, Z, Clip);
           DrawUiBuffer(&Group->CustomQuadGeometryBuffer, Group->ScreenDim);
@@ -3453,7 +3454,7 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     Ensure(LoadBitmap("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White));
     Ensure(LoadBitmap("texture_atlas_0.bmp", GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font));
 
-    TextGroup->UiShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "ui.vertexshader"), CSz(STDLIB_SHADER_PATH "ui.fragmentshader") );
+    CompileShaderPair(&TextGroup->UiShader, CSz(STDLIB_SHADER_PATH "ui.vertexshader"), CSz(STDLIB_SHADER_PATH "ui.fragmentshader") );
 
     TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->UiShader.ID, "TextTextureSampler");
 

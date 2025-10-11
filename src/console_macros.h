@@ -196,6 +196,14 @@ link_internal char * GetTempFmtBuffer();
 } while (false)
 
 
+#define Shader(fmt, ...) do {                                                                                      \
+                                                                                                                 \
+  if (Global_LogLevel <= LogLevel_Info) {                                                                        \
+    LogDirect(CSz("%S   Shader  %S- " fmt Newline), TerminalColors.Purple, TerminalColors.White, ##__VA_ARGS__); \
+  }                                                                                                              \
+                                                                                                                 \
+} while (false)
+
 #define Perf(fmt, ...) do {                                                                                      \
                                                                                                                  \
   if (Global_LogLevel <= LogLevel_Info) {                                                                        \

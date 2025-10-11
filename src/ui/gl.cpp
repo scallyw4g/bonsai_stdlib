@@ -7,14 +7,18 @@ FramebufferTextureLayer(framebuffer *FBO, texture *Tex, ui_texture_slice Layer)
   return;
 }
 
-link_internal shader
-MakeRenderToTextureShader(memory_arena *Memory, m4 *ViewProjection, texture *ColorPalette)
+link_internal b32
+MakeRenderToTextureShader(shader *Shader, memory_arena *Memory, m4 *ViewProjection, texture *ColorPalette)
 {
-  shader Shader = CompileShaderPair( CSz(BONSAI_SHADER_PATH "RenderToTexture.vertexshader"), CSz(BONSAI_SHADER_PATH "RenderToTexture.fragmentshader") );
-  Shader.Uniforms = ShaderUniformBuffer(2, Memory);
+  b32 Result = CompileShaderPair(Shader, CSz(BONSAI_SHADER_PATH "RenderToTexture.vertexshader"), CSz(BONSAI_SHADER_PATH "RenderToTexture.fragmentshader") );
 
-  SetShaderUniform(&Shader, 0, ViewProjection, "ViewProjection");
-  SetShaderUniform(&Shader, 1, ColorPalette,  "ColorPalette");
+  if (Result)
+  {
+    Shader->Uniforms = ShaderUniformBuffer(2, Memory);
 
-  return Shader;
+    SetShaderUniform(Shader, 0, ViewProjection, "ViewProjection");
+    SetShaderUniform(Shader, 1, ColorPalette,  "ColorPalette");
+  }
+
+  return Result;
 }

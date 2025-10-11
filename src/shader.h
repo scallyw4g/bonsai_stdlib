@@ -5,8 +5,9 @@
 poof(
   func shader_magic(shader_struct)
   {
-    link_internal void
-    Initialize(shader_struct.name.to_capital_case)( shader_struct.name *Struct
+    link_internal b32
+    Initialize(shader_struct.name.to_capital_case)(
+      shader_struct.name *Struct
       shader_struct.map(member)
       {
           member.has_tag(uniform)?  {, member.type member.is_pointer?{*}member.name}
@@ -17,24 +18,28 @@ poof(
       {
         shader_struct.has_tag(frag_source_file)?
         {
-          Struct->Program = CompileShaderPair(CSz((shader_struct.tag_value(vert_source_file))), CSz((shader_struct.tag_value(frag_source_file))));
-          Struct->Program.Uniforms = ShaderUniformBuffer(Struct->Uniforms, ArrayCount(Struct->Uniforms));
+          b32 Result = CompileShaderPair(&Struct->Program, CSz((shader_struct.tag_value(vert_source_file))), CSz((shader_struct.tag_value(frag_source_file))));
 
-          u32 UniformIndex = 0;
-
-          shader_struct.map(member)
+          if (Result)
           {
-            member.has_tag(uniform)?
+            Struct->Program.Uniforms = ShaderUniformBuffer(Struct->Uniforms, ArrayCount(Struct->Uniforms));
+
+            u32 UniformIndex = 0;
+
+            shader_struct.map(member)
             {
-              Struct->member.name = member.name;
-              SetShaderUniform(&Struct->Program, UniformIndex++, member.is_pointer?{}{&}Struct->member.name, "member.name");
+              member.has_tag(uniform)?
+              {
+                Struct->member.name = member.name;
+                SetShaderUniform(&Struct->Program, UniformIndex++, member.is_pointer?{}{&}Struct->member.name, "member.name");
+              }
             }
-          }
 
-          u32 Expected = shader_struct.member(1, (Uniforms) { Uniforms.array });
-          if (UniformIndex != Expected )
-          {
-            Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots! Expected (%d), Got (%d)", Expected, UniformIndex);
+            u32 Expected = shader_struct.member(1, (Uniforms) { Uniforms.array });
+            if (UniformIndex != Expected )
+            {
+              Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots! Expected (%d), Got (%d)", Expected, UniformIndex);
+            }
           }
         }
         {
@@ -46,8 +51,7 @@ poof(
       }
 
       AssertNoGlErrors;
-
-      RegisterShaderForHotReload(GetStdlib(), &Struct->Program);
+      return Result;
     }
 
     link_internal void
