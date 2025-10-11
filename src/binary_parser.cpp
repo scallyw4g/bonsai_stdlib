@@ -42,7 +42,7 @@ poof(generate_cursor(v3))
 
 
 
-u32_cursor
+link_internal u32_cursor
 U32Cursor(u32* Start, u32* End)
 {
   u32_cursor Result = {
@@ -54,20 +54,7 @@ U32Cursor(u32* Start, u32* End)
   return Result;
 }
 
-template <typename stream_t, typename element_t>inline stream_t
-AllocateBuffer(u32 Count, memory_arena* Memory)
-{
-  element_t* Start = Allocate(element_t, Memory, Count);
-  stream_t Result = {
-    .Start = Start,
-    .At = Start,
-    .End = Start + Count,
-  };
-
-  return Result;
-}
-
-r32_stream
+link_internal r32_stream
 R32_Stream(u32 Count, memory_arena *Memory)
 {
   r32 *Elements = Allocate(r32, Memory, Count);
@@ -110,23 +97,22 @@ V3Cursor(u32 Count, memory_arena *Memory)
 }
 #endif
 
-u8_stream
-U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
+link_internal u8_stream
+U8_StreamFromFile(native_file *File, memory_arena *Memory)
 {
   TIMED_FUNCTION();
 
   u8_stream Result = {};
 
-  native_file File = PlatformOpenFile(SourceFile, FilePermission_Read);
-  if (File.Handle)
+  if (File->Handle)
   {
-    umm FileSize = PlatformGetFileSize(&File);
+    umm FileSize = PlatformGetFileSize(File);
     if (FileSize)
     {
       if (FileSize != INVALID_FILE_SIZE)
       {
         u8 *FileContents = (u8*)AllocateProtection(u8, Memory, FileSize, False);
-        ReadBytesIntoBuffer(&File, FileContents, FileSize);
+        ReadBytesIntoBuffer(File, FileContents, FileSize);
 
         Result = {
           FileContents,
@@ -136,32 +122,41 @@ U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
       }
       else
       {
-        SoftError("PlatformGetFileSize failed on file (%s).", SourceFile);
+        SoftError("PlatformGetFileSize failed on file (%S).", File->Path);
       }
     }
     else
     {
-      Warn("File %s is empty!", SourceFile);
+      Warn("File %S is empty!", File->Path);
     }
 
-    CloseFile(&File);
+    CloseFile(File);
   }
   else
   {
-    SoftError("Opening %s", SourceFile);
+    SoftError("Opening %S", File->Path);
   }
 
   return Result;
 }
 
-u8_stream
+link_internal u8_stream
+U8_StreamFromFile(const char* SourceFile, memory_arena *Memory)
+{
+  TIMED_FUNCTION();
+  native_file File = PlatformOpenFile(SourceFile, FilePermission_Read);
+  u8_stream Result = U8_StreamFromFile(&File, Memory);
+  return Result;
+}
+
+link_internal u8_stream
 U8_StreamFromFile(counted_string SourceFile, memory_arena *Memory)
 {
   u8_stream Result = U8_StreamFromFile( GetNullTerminated(SourceFile), Memory );
   return Result;
 }
 
-ansi_stream
+link_internal ansi_stream
 AnsiStreamFromFile(const char* SourceFile, memory_arena *Memory)
 {
   TIMED_FUNCTION();
@@ -173,7 +168,7 @@ AnsiStreamFromFile(const char* SourceFile, memory_arena *Memory)
   return Result;
 }
 
-ansi_stream
+link_internal ansi_stream
 AnsiStreamFromFile(counted_string SourceFile, memory_arena *Memory)
 {
   const char* NullTerminated = GetNullTerminated(SourceFile, Memory);
@@ -181,14 +176,14 @@ AnsiStreamFromFile(counted_string SourceFile, memory_arena *Memory)
   return Result;
 }
 
-ansi_stream
+link_internal ansi_stream
 ReadEntireFileIntoAnsiStream(counted_string SourceFile, memory_arena *Memory)
 {
   ansi_stream Stream = AnsiStreamFromFile(SourceFile, Memory);
   return Stream;
 }
 
-counted_string
+link_internal cs
 CS(u8_stream Stream)
 {
   counted_string Result = {
@@ -198,14 +193,29 @@ CS(u8_stream Stream)
   return Result;
 }
 
-counted_string
-ReadEntireFileIntoString(counted_string SourceFile, memory_arena *Memory)
+link_internal cs
+ReadEntireFileIntoString(native_file *File, memory_arena *Memory)
 {
-  counted_string Stream = CS(U8_StreamFromFile(SourceFile, Memory));
-  return Stream;
+  cs Result = CS(U8_StreamFromFile(File, Memory));
+  return Result;
 }
 
-char *
+link_internal cs
+ReadEntireFileIntoString(cs SourceFile, memory_arena *Memory)
+{
+  cs Result = CS(U8_StreamFromFile(SourceFile, Memory));
+  return Result;
+}
+
+
+
+
+
+
+
+
+
+link_internal char *
 ReadUntilTerminatorList(ansi_stream *Cursor, const char *TerminatorList, memory_arena *Arena)
 {
   /* TODO(Jesse, id: 146, tags: robustness, cleanup): Make this return a
@@ -221,7 +231,7 @@ ReadUntilTerminatorList(ansi_stream *Cursor, const char *TerminatorList, memory_
   return Result;
 }
 
-char *
+link_internal char *
 PopWord(ansi_stream *Cursor, memory_arena *Arena, const char *Delimeters = 0)
 {
   if (!Delimeters)
@@ -233,7 +243,7 @@ PopWord(ansi_stream *Cursor, memory_arena *Arena, const char *Delimeters = 0)
   return Result;
 }
 
-r32
+link_internal r32
 PopFloat(ansi_stream *Cursor, memory_arena *Arena)
 {
   char *Float = PopWord(Cursor, Arena);
@@ -241,7 +251,7 @@ PopFloat(ansi_stream *Cursor, memory_arena *Arena)
   return Result;
 }
 
-u32
+link_internal u32
 PopU32(ansi_stream *Cursor, memory_arena *Arena, const char* Delim = 0)
 {
   char *Str = PopWord(Cursor, Arena, Delim);
@@ -249,7 +259,7 @@ PopU32(ansi_stream *Cursor, memory_arena *Arena, const char* Delim = 0)
   return Result;
 }
 
-counted_string
+link_internal cs
 PopQuotedCharLiteral(ansi_stream* Cursor, b32 IncludeQuotes = False)
 {
   if (*Cursor->At == '\'')
@@ -283,7 +293,7 @@ PopQuotedCharLiteral(ansi_stream* Cursor, b32 IncludeQuotes = False)
   return Result;
 }
 
-counted_string
+link_internal cs
 PopQuotedString(ansi_stream* Cursor, b32 IncludeQuotes = False)
 {
   if (*Cursor->At == '"' || *Cursor->At == '\'' )
@@ -316,7 +326,7 @@ PopQuotedString(ansi_stream* Cursor, b32 IncludeQuotes = False)
   return Result;
 }
 
-char *
+link_internal char *
 PopLine(ansi_stream *Cursor, memory_arena *Arena)
 {
   char *Result = ReadUntilTerminatorList(Cursor, "\n", Arena);
@@ -324,7 +334,7 @@ PopLine(ansi_stream *Cursor, memory_arena *Arena)
   return Result;
 }
 
-v3_cursor
+link_internal v3_cursor
 ParseV3Array(u32 ElementCount, ansi_stream FloatStream, memory_arena* Memory)
 {
   v3_cursor Result = V3Cursor(ElementCount, Memory);
@@ -346,7 +356,7 @@ ParseV3Array(u32 ElementCount, ansi_stream FloatStream, memory_arena* Memory)
   return Result;
 }
 
-r32_stream
+link_internal r32_stream
 ParseFloatArray(u32 TotalFloatCount, ansi_stream FloatStream, memory_arena* Memory)
 {
   r32_stream Result = R32_Stream(TotalFloatCount, Memory);
@@ -440,21 +450,21 @@ poof(
   {
     PrimitiveTypes.map(prim)
     {
-      inline prim.name
+      link_internal prim.name
       Read_(prim.name)(u8 *Source)
       {
         prim.name Result = *((prim.name)*)Source;
         return Result;
       }
 
-      inline prim.name
+      link_internal prim.name
       Read_(prim.name)((prim.name) *Source)
       {
         prim.name Result = *Source;
         return Result;
       }
 
-      inline prim.name
+      link_internal prim.name
       Read_(prim.name)(u8_stream *Source)
       {
         prim.name Result = Read_(prim.name)(Source->At);
@@ -463,7 +473,7 @@ poof(
         return Result;
       }
 
-      inline prim.name*
+      link_internal prim.name*
       ReadArray_(prim.name)(u8_stream *Source, u32 Count)
       {
         prim.name *Result = ((prim.name)*)Source->At;
@@ -475,14 +485,14 @@ poof(
   }
 )
 
-inline u8
+link_internal u8
 Read_u8(u8 *Source)
 {
   u8 Result = *Source;
   return Result;
 }
 
-inline u8
+link_internal u8
 Read_u8(u8_stream *Source)
 {
   u8 Result = Read_u8(Source->At);
@@ -491,7 +501,7 @@ Read_u8(u8_stream *Source)
   return Result;
 }
 
-inline u8*
+link_internal u8*
 ReadArray_u8(u8_stream *Source, u32 Count)
 {
   u8 *Result = (u8*)Source->At;
@@ -681,56 +691,56 @@ Read_cs(u8_cursor *Cursor, cs *Dest)
 
 
 
-inline u8
+link_internal u8
 Read_u8_be(u8* Source)
 {
   u8 Result = Read_u8(Source);
   return Result;
 }
 
-inline s16
+link_internal s16
 Read_s16_be(s16* Source)
 {
   s16 Result = (((u8*)Source)[0]*256) + ((u8*)Source)[1];
   return Result;
 }
 
-inline s16
+link_internal s16
 Read_s16_be(u8* Source)
 {
   s16 Result = (Source[0]*256) + Source[1];
   return Result;
 }
 
-inline u16
+link_internal u16
 Read_u16_be(u16* Source)
 {
   u16 Result = (((u8*)Source)[0]*256) + ((u8*)Source)[1];
   return Result;
 }
 
-inline u16
+link_internal u16
 Read_u16_be(u8* Source)
 {
   u16 Result = (Source[0]*256) + Source[1];
   return Result;
 }
 
-inline s64
+link_internal s64
 Read_s64_be(u8* Source)
 {
   s64 Result = (s64)( ((u64)Source[0]<<56) + ((u64)Source[1]<<48) + ((u64)Source[2]<<40) + ((u64)Source[3]<<32) + ((u64)Source[4]<<24) + ((u64)Source[5]<<16) + ((u64)Source[6]<<8) + ((u64)Source[7]) );
   return Result;
 }
 
-inline u32
+link_internal u32
 Read_u32_be(u8* Source)
 {
   u32 Result = (u32)( (Source[0]<<24) + (Source[1]<<16) + (Source[2]<<8) + Source[3] );
   return Result;
 }
 
-inline u8*
+link_internal u8*
 ReadArray_u8_be(u8_stream *Source, u32 Count)
 {
   u8 *Result = Source->At;
@@ -739,7 +749,7 @@ ReadArray_u8_be(u8_stream *Source, u32 Count)
   return Result;
 }
 
-inline u16*
+link_internal u16*
 ReadArray_u16_be(u8_stream *Source, u32 Count)
 {
   u16 *Result = (u16*)Source->At;
@@ -748,7 +758,7 @@ ReadArray_u16_be(u8_stream *Source, u32 Count)
   return Result;
 }
 
-inline s16*
+link_internal s16*
 ReadArray_s16_be(u8_stream *Source, u32 Count)
 {
   s16 *Result = (s16*)Source->At;
@@ -757,7 +767,7 @@ ReadArray_s16_be(u8_stream *Source, u32 Count)
   return Result;
 }
 
-inline u8
+link_internal u8
 Read_u8_be(u8_stream *Source)
 {
   u8 Result = Read_u8_be(Source->At);
@@ -766,7 +776,7 @@ Read_u8_be(u8_stream *Source)
   return Result;
 }
 
-inline s16
+link_internal s16
 Read_s16_be(u8_stream *Source)
 {
   s16 Result = Read_s16_be(Source->At);
@@ -775,7 +785,7 @@ Read_s16_be(u8_stream *Source)
   return Result;
 }
 
-inline u16
+link_internal u16
 Read_u16_be(u8_stream *Source)
 {
   u16 Result = Read_u16_be(Source->At);
@@ -784,7 +794,7 @@ Read_u16_be(u8_stream *Source)
   return Result;
 }
 
-inline s64
+link_internal s64
 Read_s64_be(u8_stream *Source)
 {
   s64 Result = Read_s64_be(Source->At);
@@ -793,7 +803,7 @@ Read_s64_be(u8_stream *Source)
   return Result;
 }
 
-inline u32
+link_internal u32
 Read_u32_be(u8_stream *Source)
 {
   u32 Result = Read_u32_be(Source->At);

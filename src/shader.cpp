@@ -75,8 +75,6 @@ CheckShaderCompilationStatus(cs ShaderPath, u32 ShaderId)
 }
 #endif
 
-// TODO(Jesse, globals_cleanup)
-global_variable ansi_stream Global_ShaderHeaderCode;
 
 link_internal cs
 ValueFromSetting(shader_language_setting ShaderLanguage)
@@ -121,11 +119,15 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
 }
 
 link_internal void
-LoadGlobalShaderHeaderCode(shader_language_setting ShaderLanguage)
+ReloadShaderHeaderCode(bonsai_stdlib *Stdlib, shader_language_setting ShaderLanguage)
 {
   cs ShaderVersion = ValueFromSetting(ShaderLanguage);
-  cs HeaderCode    = ReadEntireFileIntoString(CSz(STDLIB_SHADER_PATH "/header.glsl"), GetTranArena());
-  Global_ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
+
+  Stdlib->ShaderHeaderFile = OpenHotReloadableFile(CSz(STDLIB_SHADER_PATH "header.glsl"), FilePermission_Read); 
+  cs HeaderCode =  ReadEntireFileIntoString(&Stdlib->ShaderHeaderFile.File, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory);
+  Stdlib->ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
+
+  CloseFile(&Stdlib->ShaderHeaderFile.File);
 }
 
 link_internal void
@@ -153,18 +155,18 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
   Shader("Creating : (%S | %S", VertShaderPath, FragShaderPath);
 
 
-  if (Global_ShaderHeaderCode.Start == 0) { LoadGlobalShaderHeaderCode(ShaderLanguageSetting_330core); } // Default to 330 core if nobody did this already
+  auto Stdlib = GetStdlib();
+  if (Stdlib->ShaderHeaderCode.Start == 0) { ReloadShaderHeaderCode(Stdlib, ShaderLanguageSetting_330core); } // Default to 330 core if nobody did this already
 
-  ansi_stream HeaderCode       = Global_ShaderHeaderCode;
   ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
   ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(FragShaderPath, GetTranArena());
 
   int InfoLogLength;
 
-  shader_compile_result VertexResult = CompileShader(HeaderCode, VertexShaderCode, GL_VERTEX_SHADER, DumpErrors);
+  shader_compile_result VertexResult = CompileShader(Stdlib->ShaderHeaderCode, VertexShaderCode, GL_VERTEX_SHADER, DumpErrors);
   AssertNoGlErrors;
 
-  shader_compile_result FragResult = CompileShader(HeaderCode, FragShaderCode, GL_FRAGMENT_SHADER, DumpErrors);
+  shader_compile_result FragResult = CompileShader(Stdlib->ShaderHeaderCode, FragShaderCode, GL_FRAGMENT_SHADER, DumpErrors);
   AssertNoGlErrors;
 
   memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
@@ -273,13 +275,20 @@ ReloadShaderUniform(shader *Shader, shader_uniform *Uniform)
 link_internal void
 HotReloadShaders(bonsai_stdlib *Stdlib)
 {
+  b32 HeaderIsNew = FileIsNew(STDLIB_SHADER_PATH "header.glsl", &Stdlib->ShaderHeaderFile.LastModified);
+
+  if (HeaderIsNew)
+  {
+    ReloadShaderHeaderCode(Stdlib, ShaderLanguageSetting_330core);
+  }
+
   IterateOver(&Stdlib->AllShaders, Shader, ShaderIndex)
   {
     Shader->HotReloaded = False;
 
     b32 VertIsNew = FileIsNew(GetNullTerminated(Shader->VertexSourceFilename), &Shader->VertexTimeModifiedWhenLoaded);
     b32 FragIsNew = FileIsNew(GetNullTerminated(Shader->FragSourceFilename),   &Shader->FragmentTimeModifiedWhenLoaded);
-    if (VertIsNew || FragIsNew)
+    if (HeaderIsNew || VertIsNew || FragIsNew)
     {
       SleepMs(5);
 

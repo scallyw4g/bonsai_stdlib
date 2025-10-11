@@ -487,10 +487,23 @@ vec4 gradient_noise_derivs( in vec3 x )
 
 // https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L94
 link_internal f32
-Smoothstep(f32 N)
+CubicInterpolate(f32 N)
 {
   f32 Result = N * N * (3.f - 2.f * N);
   return Result;
+}
+
+link_internal f32
+Smoothstep(f32 N)
+{
+  return CubicInterpolate(N);
+}
+
+link_internal f32
+QuinticInterpolate(f32 N)
+{
+  f32 u = N*N*N*(N*(N*6.0-15.0)+10.0);
+  return u;
 }
 
 float
@@ -505,106 +518,82 @@ CosineInterpolate( float t, f32 y1, f32 y2 )
 }
 
 
-#if 0
-#extension GL_NV_shader_buffer_load : enable
-// tx should be range 0-1
-f32 CosineInterpolatePointSet(f32 tx)
+f32 MapToFinal(f32 SampleX)
 {
-  /* Assert(Value <= 1.f); */
-  /* Assert(Value >= 0.f); */
 
-  // NOTE(Jesse): Descending order so we can scan from the front and find the interval we care about
-
-  /* v2 Points[] = */
-  /* { */
-  /*   {{1.0f, 1.0f }}, */
-  /*   {{0.7f, 0.85f }}, */
-  /*   {{0.6f, 0.5f }}, */
-  /*   {{0.3f, 0.4f }}, */
-  /*   {{0.2f, 0.1f }}, */
-  /*   {{0.0f, 0.0f }}, */
-  /* }; */
-
-  /* v2 Points[] = */
-  /* { */
-  /*   {{1.0f, 1.0f }}, */
-  /*   {{0.5f, 0.7f }}, */
-  /*   {{0.35f, 0.43f }}, */
-  /*   {{0.3f, 0.4f }}, */
-  /*   {{0.2f, 0.1f }}, */
-  /*   {{0.0f, 0.0f }}, */
-  /* }; */
-
-  const s32 PointCount = 2;
-  v2 Points[PointCount];
-  Points[0] = v2(0.f, 0.0f);
-  Points[1] = v2(1.0f, 1.0f);
-
-  /* const s32 PointCount = 4; */
+  /* const s32 PointCount = 2; */
   /* v2 Points[PointCount]; */
-  /* Points[3] = v2(0.0f, 0.0f); */
-  /* Points[2] = v2(0.1f, 0.2f); */
-  /* Points[1] = v2(0.8f, 1.0f); */
-  /* Points[0] = v2(1.0f, 1.0f); */
+  /* Points[0] = v2(0.f, 0.0f); */
+  /* Points[1] = v2(1.0f, 1.0f); */
 
-  // Pretty nice
+  /* const s32 PointCount = 5; */
+  /* v2 Points[PointCount]; */
+  /* Points[0] = v2(0.0f, 0.0f); */
+  /* Points[1] = v2(0.25f, 0.25f); */
+  /* Points[2] = v2(0.5f, 0.5f); */
+  /* Points[3] = v2(0.75f, 0.75f); */
+  /* Points[4] = v2(1.0f, 1.0f); */
 
-  /* s32 PointCount = 6; */
-  /* v2 Points[6]; */
-  /* Points[0] = v2(1.0f, 1.0f); */
-  /* Points[1] = v2(0.7f, 0.7f); */
-  /* Points[2] = v2(0.65f, 0.43f); */
-  /* Points[3] = v2(0.6f, 0.4f); */
-  /* Points[4] = v2(0.5f, 0.2f); */
-  /* Points[5] = v2(0.0f, 0.1f); */
-
-  // Pillar-y
-  /* v2 Points[] = */
-  /* { */
-  /*   {{2.0f, 0.5f }}, */
-  /*   {{0.6f, 0.3f }}, */
-  /*   {{0.1f, 0.2f }}, */
-  /*   {{0.05f, 0.45f }}, */
-  /*   {{0.0f , 0.5f }}, */
-  /* }; */
-
-/*   v2 Points[] = */
-/*   { */
-/*     {{1.0f, 0.0f }}, */
-/*     {{0.9f, 1.0f }}, */
-/*     {{0.6f, 0.3f }}, */
-/*     {{0.1f, 0.1f }}, */
-/*     {{0.05f, 0.45f }}, */
-/*     {{0.0f , 0.5f }}, */
-/*   }; */
+  const s32 PointCount = 5;
+  v2 Points[PointCount];
+  Points[0] = v2(0.0f, 0.0f);
+  Points[1] = v2(0.2f, 0.5f);
+  Points[2] = v2(0.6f, 0.6f);
+  Points[3] = v2(0.8f, 0.95f);
+  Points[4] = v2(1.0f, 1.0f);
 
 
+  /* const s32 PointCount = 5; */
+  /* v2 Points[PointCount]; */
+  /* Points[0] = v2(0.0f, 0.0f); */
+  /* Points[1] = v2(0.2f, 0.5f); */
+  /* Points[2] = v2(0.22f,0.46f); */
+  /* Points[3] = v2(0.4f, 0.8f); */
+  /* Points[4] = v2(1.0f, 1.0f); */
 
-  r32 Result = Points[0].x;
-  for (int PointIndex = 0; PointIndex < PointCount-1; ++PointIndex)
+  /* const s32 PointCount = 7; */
+  /* v2 Points[PointCount]; */
+  /* Points[0] = v2(0.0f, 0.0f); */
+  /* Points[1] = v2(0.2f, 0.5f); */
+  /* Points[2] = v2(0.22f,0.46f); */
+  /* Points[3] = v2(0.4f, 0.8f); */
+  /* Points[4] = v2(0.8f, 1.0f); */
+  /* Points[5] = v2(0.9f, 0.0f); */
+  /* Points[6] = v2(1.0f, 1.0f); */
+
+  f32 Result = -1.f;
+  v2 PrevP = Points[0];
+  for (int PointIndex = 1; PointIndex < PointCount; ++PointIndex)
   {
-    v2 P = Points[PointIndex];
+    v2 NextP = Points[PointIndex];
 
-    if (tx >= P.x)
+    if (SampleX >= PrevP.x && SampleX < NextP.x)
     {
-      v2 PNext = Points[PointIndex + 1];
-      v2 Tmp = P;
 
-      P = PNext;
-      PNext = Tmp;
 
-      r32 Range = PNext.x - P.x;
-      r32 t = Clamp01((tx-P.x) / Range);
-      Result = CosineInterpolate(t, P.y, PNext.y);
-      /* Result = mix(P.y, PNext.y, t); */
+      r32 Range = PrevP.x - NextP.x;
+      r32 t = Clamp01((SampleX-NextP.x) / Range);
+
+      Result = CosineInterpolate(t, NextP.y, PrevP.y);
+
+      /* Result = mix(NextP.y, PrevP.y, t); */
+
+      /* Result = QuinticInterpolate(Result); */
+      /* Result = QuinticInterpolate(Result); */
+
+      /* Result = CubicInterpolate(Result); */
+      /* Result = Smoothstep(Result); */
+      /* Result = Smoothstep(Result); */
+
       break;
     }
+
+    PrevP = NextP;
   }
 
   /* Result = abs(max(Result, 1.0)); */
   return Result;
 }
-#endif
 
 
 

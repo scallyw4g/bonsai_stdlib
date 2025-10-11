@@ -152,7 +152,7 @@ AtomicCompareExchange( volatile u32 *Source, u32 NewValue, u32 Comparator )
 
 struct native_file
 {
-  FILE* Handle;
+  FILE *Handle;
   counted_string Path;
 
 #if 0

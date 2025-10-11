@@ -10,6 +10,37 @@ enum file_permission
   FilePermission_Write = (1 << 1),
 };
 
+enum file_traversal_type
+{
+  FileTraversalType_None,
+
+  FileTraversalType_Dir,
+  FileTraversalType_File,
+};
+
+struct file_traversal_node
+{
+  file_traversal_type Type;
+  cs Dir;
+  cs Name;
+};
+
+poof(are_equal(file_traversal_node))
+#include <generated/are_equal_file_traversal_node.h>
+
+poof(maybe(file_traversal_node))
+#include <generated/maybe_file_traversal_node.h>
+
+typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node, u64 UserData);
+
+struct hot_reloadable_file
+{
+  native_file File;
+  s64 LastModified;
+};
+
+
+
 link_internal b32 CloseFile(native_file* File);
 
 link_internal b32 Rename(counted_string CurrentFilePath, counted_string NewFilePath);
@@ -39,25 +70,3 @@ link_internal b32 FileExists(counted_string Path);
 link_internal b32 ReadBytesIntoBuffer(native_file *Src, u8* Dest, umm BytesToRead);
 
 
-enum file_traversal_type
-{
-  FileTraversalType_None,
-
-  FileTraversalType_Dir,
-  FileTraversalType_File,
-};
-
-struct file_traversal_node
-{
-  file_traversal_type Type;
-  cs Dir;
-  cs Name;
-};
-
-poof(are_equal(file_traversal_node))
-#include <generated/are_equal_file_traversal_node.h>
-
-poof(maybe(file_traversal_node))
-#include <generated/maybe_file_traversal_node.h>
-
-typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node, u64 UserData);

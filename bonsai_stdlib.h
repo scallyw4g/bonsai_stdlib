@@ -173,6 +173,9 @@ struct bonsai_stdlib
   thread_local_state *ThreadStates;
               opengl  GL;
 
+  hot_reloadable_file ShaderHeaderFile;
+          ansi_stream ShaderHeaderCode;
+
   //
   // Debug
   //

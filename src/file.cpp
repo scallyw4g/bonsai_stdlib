@@ -1,5 +1,7 @@
 #define TMP_DIR_ROOT "tmp/"
 
+#include <sys/stat.h>
+
 poof(buffer(file_traversal_node))
 #include <generated/buffer_file_traversal_node.h>
 
@@ -106,6 +108,31 @@ TryDeleteDirectory(cs Filepath)
 
 
 link_internal b32
+FileIsNew(const char *Filepath, s64 *LastTime)
+{
+  b32 Result = False;
+  struct stat StatStruct;
+
+  if (stat(Filepath, &StatStruct) == 0)
+  {
+    if (StatStruct.st_mtime > *LastTime)
+    {
+      *LastTime = StatStruct.st_mtime;
+      Result = True;
+    }
+  }
+
+  return Result;
+}
+
+/* link_internal b32 */
+/* FileIsNew(hot_reloadable_file *File, s64 *LastTime) */
+/* { */
+/*   b32 Result = */ 
+/*   return Result; */
+/* } */
+
+link_internal b32
 Remove(cs FilePath)
 {
   return PlatformRemoveFile(FilePath);
@@ -120,8 +147,35 @@ OpenFile(const char *FilePath, file_permission Permissions)
 link_internal native_file
 OpenFile(cs FilePath, file_permission Permissions)
 {
-  const char* NullTerminatedFilePath = GetNullTerminated(FilePath);
+  const char *NullTerminatedFilePath = GetNullTerminated(FilePath);
   native_file Result = PlatformOpenFile(NullTerminatedFilePath, Permissions);
+  return Result;
+}
+
+link_internal hot_reloadable_file
+OpenHotReloadableFile(cs FilePath, file_permission Permissions)
+{
+  const char *NullTerminatedFilePath = GetNullTerminated(FilePath);
+
+  hot_reloadable_file Result = {};
+
+  s32 MaxRetries = 5;
+  RangeIterator(Iteration, MaxRetries)
+  {
+    Result = { .File = OpenFile(NullTerminatedFilePath, Permissions), .LastModified = 0 };
+
+    if (Result.File.Handle == 0)
+    {
+      SleepMs(5);
+    }
+    else
+    {
+      break;
+    }
+  }
+
+  FileIsNew(NullTerminatedFilePath, &Result.LastModified);
+
   return Result;
 }
 
@@ -278,26 +332,6 @@ FileExists(const char* Path)
     {
       Error("Opened %s, but could not close it.", Path);
       Result = False;
-    }
-  }
-
-  return Result;
-}
-
-#include <sys/stat.h>
-
-link_internal b32
-FileIsNew(const char *Filepath, s64 *LastTime)
-{
-  b32 Result = False;
-  struct stat StatStruct;
-
-  if (stat(Filepath, &StatStruct) == 0)
-  {
-    if (StatStruct.st_mtime > *LastTime)
-    {
-      *LastTime = StatStruct.st_mtime;
-      Result = True;
     }
   }
 
