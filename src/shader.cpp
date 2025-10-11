@@ -111,7 +111,7 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
 
   if (Find(&Stdlib->AllShaders, Shader).Index == INVALID_BLOCK_ARRAY_INDEX)
   {
-    Shader("(%S|%S) successfully registered for hot-reload at Index (%d).", Shader->VertexSourceFilename, Shader->FragSourceFilename, AtElements(&Stdlib->AllShaders));
+    Shader("Registered (%S|%S) successfully for hot-reload at Index (%d).", Shader->VertexSourceFilename, Shader->FragSourceFilename, AtElements(&Stdlib->AllShaders));
     Push(&Stdlib->AllShaders, Shader);
   }
   else
