@@ -1,3 +1,12 @@
+link_internal void
+AllocateGpuElementBuffer(gpu_element_buffer_handles *Handles, data_type Type, u32 ElementCount);
+
+link_internal void
+AllocateGpuElementBuffer(gpu_mapped_element_buffer *GpuMap, data_type Type, u32 ElementCount);
+
+link_internal void
+AllocateGpuElementBuffer(gpu_mapped_ui_buffer *GpuMap, data_type Type, u32 ElementCount);
+
 poof(shader_magic(textured_quad_render_pass))
 #include <generated/shader_magic_textured_quad_render_pass.h>
 
@@ -283,15 +292,20 @@ SelectColorState(render_state* RenderState, ui_style *Style)
 
 
 link_internal void
-BufferQuadUVs(ui_geometry_buffer* Geo, rect2 UV, s32 Slice)
+BufferQuadUVs(ui_geometry_buffer* Geo, rect2 UV, s32 Slice, quad_shaping_op ShapeOp)
 {
   // @streaming_ui_render_memory
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
 
-  v3 LeftTop     = V3(UV.Min.x, UV.Min.y, r32(Slice));
-  v3 RightTop    = V3(UV.Max.x, UV.Min.y, r32(Slice));
-  v3 RightBottom = V3(UV.Max.x, UV.Max.y, r32(Slice));
-  v3 LeftBottom  = V3(UV.Min.x, UV.Max.y, r32(Slice));
+  Assert(u32(Slice) < u16_MAX);
+  Assert(u32(ShapeOp) < u16_MAX);
+
+  s32 PackedZ = Slice | (ShapeOp << 16);
+
+  v3 LeftTop     = V3(UV.Min.x, UV.Min.y, intBitsToFloat(PackedZ));
+  v3 RightTop    = V3(UV.Max.x, UV.Min.y, intBitsToFloat(PackedZ));
+  v3 RightBottom = V3(UV.Max.x, UV.Max.y, intBitsToFloat(PackedZ));
+  v3 LeftBottom  = V3(UV.Min.x, UV.Max.y, intBitsToFloat(PackedZ));
 
   u32 StartingIndex = Geo->At;
   Geo->UVs[StartingIndex++] = LeftTop;
@@ -356,7 +370,7 @@ BufferColorsDirect(T* Geo, v3 Color)
 
 // TODO(Jesse): This is just wasteful .. BufferColorsDirect does this check!
 template <typename T> link_internal void
-BufferColors(renderer_2d *Group, T *Geo, v3 Color)
+BufferColors(T *Geo, v3 Color)
 {
   // @streaming_ui_render_memory
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
@@ -466,11 +480,11 @@ ClipRect3AgainstRect2(v2 MinP, v2 Dim, r32 Z, rect2 *UV, rect2 Clip)
 
 
 template <typename T> link_internal void
-BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
+BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 ScreenDim)
 {
   Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
 
-  if (ScreenDim->x > 0 && ScreenDim->y > 0)
+  if (ScreenDim.x > 0 && ScreenDim.y > 0)
   {
     r32 Left   = MinP.x;
     r32 Right  = Left+Dim.x;
@@ -484,7 +498,7 @@ BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
 
 
     #define TO_NDC(P) ((P * ToNDC) - 1.0f)
-    v3 ToNDC = 2.0f/V3(ScreenDim->x, ScreenDim->y, 1.0f);
+    v3 ToNDC = 2.0f/V3(ScreenDim.x, ScreenDim.y, 1.0f);
 
     // Native OpenGL screen coordinates are {0,0} at the bottom-left corner. This
     // maps the origin to the top-left of the screen.
@@ -505,19 +519,19 @@ BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 *ScreenDim)
 }
 
 link_internal clip_result
-BufferTexturedQuad( renderer_2d *Group,
-                            s32  TextureSlice,
-                             v2  MinP,
-                             v2  Dim,
-                          rect2  UV,
-                             v3  Color,
-                            r32  Z,
-                          rect2  Clip,
-                          rect2 *ClipOptional )
+BufferUiQuad(          v2  ScreenDim,
+     gpu_mapped_ui_buffer *Dest,
+                      s32  TextureSlice,
+          quad_shaping_op  ShapeOp,
+                       v2  MinP,
+                       v2  Dim,
+                    rect2  UV,
+                       v3  Color,
+                      r32  Z,
+                    rect2  Clip,
+                    rect2 *ClipOptional )
 {
-  ui_geometry_buffer* Geo = &Group->TextGroup->Buf.Buffer;
-
-  rect2 WindowClip = RectMinMax(V2(0), *Group->ScreenDim);
+  rect2 WindowClip = RectMinMax(V2(0), ScreenDim);
   clip_result Result = ClipRect3AgainstRect2(MinP, Dim, Z, &UV, WindowClip);
   if (Result.ClipStatus != ClipStatus_FullyClipped)
   {
@@ -533,12 +547,14 @@ BufferTexturedQuad( renderer_2d *Group,
     case ClipStatus_NoClipping:
     case ClipStatus_PartialClipping:
     {
+      auto Geo = &Dest->Buffer;
+
       // @streaming_ui_render_memory
       Assert(BufferHasRoomFor(Geo, u32_COUNT_PER_QUAD));
 
-      BufferQuadDirect(Geo, Result.ClippedMin, Result.ClippedMax-Result.ClippedMin, Z, Group->ScreenDim);
-      BufferQuadUVs(Geo, UV, TextureSlice);
-      BufferColors(Group, Geo, Color);
+      BufferQuadDirect(Geo, Result.ClippedMin, Result.ClippedMax-Result.ClippedMin, Z, ScreenDim);
+      BufferQuadUVs(Geo, UV, TextureSlice, ShapeOp);
+      BufferColors(Geo, Color);
       Geo->At += u32_COUNT_PER_QUAD;
     } break;
 
@@ -554,26 +570,26 @@ BufferTexturedQuad( renderer_2d *Group,
 }
 
 link_internal clip_result
-BufferTexturedQuad( renderer_2d *Group,
-             ui_geometry_buffer *Geo,
-                             v2  MinP,
-                             v2  Dim,
-                             v3  Color,
-                            r32  Z,
-                          rect2  Clip)
+BufferUiQuad(          v2  ScreenDim,
+     gpu_mapped_ui_buffer *Dest,
+                       v2  MinP,
+                       v2  Dim,
+                       v3  Color,
+                      r32  Z,
+                    rect2  Clip)
 {
-  return BufferTexturedQuad( Group, 0, MinP, Dim, UVsForFullyCoveredQuad(), Color, Z, Clip, 0);
+  return BufferUiQuad( ScreenDim, Dest, UiTextureSlice_White, QuadShapingOp_None, MinP, Dim, UVsForFullyCoveredQuad(), Color, Z, Clip, 0);
 }
 
 link_internal clip_result
-BufferTexturedQuad( renderer_2d *Group,
-             ui_geometry_buffer *Geo,
-                          rect2  Rect,
-                             v3  Color,
-                            r32  Z,
-                          rect2  Clip)
+BufferUiQuad(          v2  ScreenDim,
+     gpu_mapped_ui_buffer *Dest,
+                    rect2  Rect,
+                       v3  Color,
+                      r32  Z,
+                    rect2  Clip)
 {
-  return BufferTexturedQuad( Group, 0, Rect.Min, GetDim(Rect), UVsForFullyCoveredQuad(), Color, Z, Clip, 0);
+  return BufferUiQuad( ScreenDim, Dest, UiTextureSlice_White, QuadShapingOp_None, Rect.Min, GetDim(Rect), UVsForFullyCoveredQuad(), Color, Z, Clip, 0);
 }
 
 
@@ -639,12 +655,12 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, v3 Color, r32 Z, r
   {
     v3 ShadowColor = V3(0.0f);
     v2 ShadowOffset = 0.10f*FontSize;
-    BufferTexturedQuad( Group, UiTextureSlice_Font,
+    BufferUiQuad( *Group->ScreenDim, &Group->TextGroup->Buf, UiTextureSlice_Font, QuadShapingOp_None,
                       MinP+ShadowOffset, FontSize, UV, ShadowColor, Z, ClipWindow, ClipOptional);
   }
 
 
-  BufferTexturedQuad( Group, UiTextureSlice_Font,
+  BufferUiQuad( *Group->ScreenDim, &Group->TextGroup->Buf, UiTextureSlice_Font, QuadShapingOp_None,
                       MinP, FontSize, UV, Color, Z, ClipWindow, ClipOptional);
 }
 
@@ -665,20 +681,20 @@ BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip, v4 Thi
   rect2 LeftRect   = RectMinMax(TopLeft-Thickness.Left ,    BottomLeft);
   rect2 RightRect  = RectMinMax(TopRight,    BottomRight + V2(Thickness.Right, 0));
 
-  BufferTexturedQuad(Group, &Group->Geo, TopRect,    Color, Z, Clip);
-  BufferTexturedQuad(Group, &Group->Geo, LeftRect,   Color, Z, Clip);
-  BufferTexturedQuad(Group, &Group->Geo, RightRect,  Color, Z, Clip);
-  BufferTexturedQuad(Group, &Group->Geo, BottomRect, Color, Z, Clip);
+  BufferUiQuad( *Group->ScreenDim, &Group->SolidQuadGeometryBuffer, TopRect,    Color, Z, Clip);
+  BufferUiQuad( *Group->ScreenDim, &Group->SolidQuadGeometryBuffer, LeftRect,   Color, Z, Clip);
+  BufferUiQuad( *Group->ScreenDim, &Group->SolidQuadGeometryBuffer, RightRect,  Color, Z, Clip);
+  BufferUiQuad( *Group->ScreenDim, &Group->SolidQuadGeometryBuffer, BottomRect, Color, Z, Clip);
 
   rect2 TopRightCorner    = RectMinMax(TopRight,    TopRight    + V2( Thickness.Right, -Thickness.Top));
   rect2 TopLeftCorner     = RectMinMax(TopLeft,     TopLeft     + V2(-Thickness.Left,  -Thickness.Top));
   rect2 BottomRightCorner = RectMinMax(BottomRight, BottomRight + V2( Thickness.Right,  Thickness.Bottom));
   rect2 BottomLeftCorner  = RectMinMax(BottomLeft,  BottomLeft  + V2(-Thickness.Left,   Thickness.Bottom));
 
-  BufferTexturedQuad(Group, &Group->Geo, TopRightCorner,    Color, Z, Clip);
-  BufferTexturedQuad(Group, &Group->Geo, TopLeftCorner,     Color, Z, Clip);
-  BufferTexturedQuad(Group, &Group->Geo, BottomRightCorner, Color, Z, Clip);
-  BufferTexturedQuad(Group, &Group->Geo, BottomLeftCorner,  Color, Z, Clip);
+  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, TopRightCorner,    Color, Z, Clip);
+  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, TopLeftCorner,     Color, Z, Clip);
+  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, BottomRightCorner, Color, Z, Clip);
+  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, BottomLeftCorner,  Color, Z, Clip);
 }
 
 link_internal void
@@ -2264,7 +2280,7 @@ ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_qua
     Clip = DISABLE_CLIPPING;
   }
 
-  BufferTexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
+  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, MinP, Dim, Color, Z, Clip);
 
   UpdateDrawBounds(&Command->Layout, MinP);
   UpdateDrawBounds(&Command->Layout, MinP + Dim);
@@ -2284,7 +2300,7 @@ ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad 
 
   if (Command->Shader == 0)
   {
-    BufferTexturedQuad(Group, &Group->Geo, MinP, Dim, Color, Z, Clip);
+    BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, MinP, Dim, Color, Z, Clip);
   }
   else
   {
@@ -2774,6 +2790,9 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
     RenderState->Layout = DefaultLayout;
   }
 
+  Assert(Group->SolidQuadGeometryBuffer.Handles.Mapped);
+  Assert(Group->TextGroup->Buf.Handles.Mapped);
+
   u32 NextCommandIndex = 0;
   ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
   while (Command)
@@ -3105,13 +3124,13 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         if (ButtonResult.Hover && ButtonStart->BStyle.HoverColor != UI_HOVER_HIGHLIGHT_DISABLED)
         {
-          BufferTexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
+          BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
               ButtonStart->BStyle.HoverColor, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
         }
 
         if (ButtonStart->ID == Group->TextEdit.Id)
         {
-          BufferTexturedQuad(Group, &Group->Geo, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
+          BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
               UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
         }
 
@@ -3158,12 +3177,81 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 }
 
 link_internal void
+DrawUiBuffer(gpu_mapped_ui_buffer *Buffer, v2 *ScreenDim)
+{
+  Assert(Buffer->Handles.Mapped);
+
+  GetGL()->BindFramebuffer(GL_FRAMEBUFFER, 0);
+
+#if 1
+  u32 AttributeIndex = 0;
+  BufferVertsToCard( Buffer->Handles.Handles[ui_VertexHandle], &Buffer->Buffer, &AttributeIndex);
+  BufferUVsToCard(   Buffer->Handles.Handles[ui_UVHandle],     &Buffer->Buffer, &AttributeIndex);
+  BufferColorsToCard(Buffer->Handles.Handles[ui_ColorHandle],  &Buffer->Buffer, &AttributeIndex);
+#else
+
+
+  GetGL()->EnableVertexAttribArray(VERTEX_POSITION_LAYOUT_LOCATION);
+  GetGL()->EnableVertexAttribArray(VERTEX_UV_LAYOUT_LOCATION);
+  GetGL()->EnableVertexAttribArray(VERTEX_COLOR_LAYOUT_LOCATION);
+
+
+#endif
+
+
+  if (Buffer->Buffer.At) { Draw(Buffer->Buffer.At); }
+  Buffer->Buffer.At = 0;
+  Buffer->Handles.Mapped = False;
+
+  GetGL()->DisableVertexAttribArray(VERTEX_POSITION_LAYOUT_LOCATION);
+  GetGL()->DisableVertexAttribArray(VERTEX_UV_LAYOUT_LOCATION);
+  GetGL()->DisableVertexAttribArray(VERTEX_COLOR_LAYOUT_LOCATION);
+
+
+  AssertNoGlErrors;
+}
+
+link_internal void
+DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
+{
+  Assert(UiGroup->TextGroup);
+  auto TextGroup = UiGroup->TextGroup;
+
+  GetGL()->Disable(GL_CULL_FACE);
+  AssertNoGlErrors;
+
+  SetViewport(*ScreenDim);
+  AssertNoGlErrors;
+
+  GetGL()->UseProgram(TextGroup->UiShader.ID);
+  AssertNoGlErrors;
+
+
+
+
+  GetGL()->ActiveTexture(GL_TEXTURE0);
+  GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray.ID);
+  GetGL()->Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
+
+  GetGL()->Enable(GL_BLEND);
+  GetGL()->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  DrawUiBuffer(&UiGroup->SolidQuadGeometryBuffer, ScreenDim);
+  AssertNoGlErrors;
+
+  DrawUiBuffer(&UiGroup->TextGroup->Buf, ScreenDim);
+  AssertNoGlErrors;
+
+  GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+
+  GetGL()->Disable(GL_BLEND);
+  GetGL()->Enable(GL_CULL_FACE);
+}
+
+link_internal void
 DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 {
   TIMED_FUNCTION();
-
-  Group->SolidGeoCountLastFrame = Group->Geo.At;
-  Group->TextGeoCountLastFrame = Group->TextGroup->Buf.Buffer.At;
 
   // Draws text and solid UI buffers that were populated with FlushCommandBuffer
   DrawUiBuffers(Group, Group->ScreenDim);
@@ -3211,18 +3299,22 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_untextured_quad:
       {
 #if 1
-        ui_render_command_untextured_quad* TypedCommand = RenderCommandAs(untextured_quad, Command);
+        ui_render_command_untextured_quad *TypedCommand = RenderCommandAs(untextured_quad, Command);
+
+        v2    MinP = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
+        v2     Dim = TypedCommand->QuadDim;
+        r32      Z = TypedCommand->LayoutZ;
+        rect2 Clip = TypedCommand->LayoutClip;
+
         if (TypedCommand->Shader)
         {
-          v2 MinP    = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
-          v2 Dim     = TypedCommand->QuadDim;
-          r32 Z      = TypedCommand->LayoutZ;
-          rect2 Clip = TypedCommand->LayoutClip;
-          v3 Color = V3(1, 0, 1);
-
           UseShader(TypedCommand->Shader);
-          BufferTexturedQuad(Group, &Group->Geo, RectMinDim(MinP, Dim), Color, Z, Clip);
-          DrawUiBuffer(Group->TextGroup, &Group->Geo, Group->ScreenDim);
+          BufferUiQuad(*Group->ScreenDim, &Group->CustomQuadGeometryBuffer, RectMinDim(MinP, Dim), TypedCommand->Style.Color, Z, Clip);
+          DrawUiBuffer(&Group->CustomQuadGeometryBuffer, Group->ScreenDim);
+        }
+        else
+        {
+          BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, RectMinDim(MinP, Dim), TypedCommand->Style.Color, Z, Clip);
         }
 #endif
       } break;
@@ -3232,9 +3324,9 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
         ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
 
         {
-          v2 MinP    = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
-          v2 Dim     = TypedCommand->QuadDim;
-          r32 Z      = TypedCommand->LayoutZ;
+          v2    MinP = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
+          v2     Dim = TypedCommand->QuadDim;
+          r32      Z = TypedCommand->LayoutZ;
           rect2 Clip = TypedCommand->LayoutClip;
 
           if (TypedCommand->Texture)
@@ -3263,15 +3355,12 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
             // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
             // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
-            BufferTexturedQuad(Group, TypedCommand->TextureSlice, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
-
-            Group->SolidGeoCountLastFrame += Group->Geo.At;
-            Group->TextGeoCountLastFrame  += Group->TextGroup->Buf.Buffer.At;
+            BufferUiQuad(*Group->ScreenDim, &Group->TextGroup->Buf, TypedCommand->TextureSlice, QuadShapingOp_None, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
 
 
             GL->Enable(GL_BLEND);
             GL->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            DrawUiBuffer(Group->TextGroup, &Group->TextGroup->Buf.Buffer, Group->ScreenDim);
+            DrawUiBuffer(&Group->TextGroup->Buf, Group->ScreenDim);
             GL->Disable(GL_BLEND);
 
             /* GL->ActiveTexture(GL_TEXTURE0); */
@@ -3343,16 +3432,18 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   Renderer->TextGroup     = Allocate(render_buffers_2d, PermMemory, 1);
   Renderer->CommandBuffer = Allocate(ui_render_command_buffer, PermMemory, 1);
 
-  // TODO(Jesse, memory): Instead of allocate insanely massive buffers (these are ~400x overkill)
+  // TODO(Jesse, memory): Instead of allocate insanely massive buffers
   // we should have a system that streams blocks of memory in as-necessary
   // @streaming_ui_render_memory
-  u32 ElementCount = (u32)Megabytes(2);
-  AllocateAndInitGeoBuffer(&Renderer->TextGroup->Buf.Buffer, ElementCount, PermMemory);
-  AllocateAndInitGeoBuffer(&Renderer->Geo, ElementCount, PermMemory);
+  u32 ElementCount = (u32)Kilobytes(256);
+
+  AllocateGpuUiBuffer(&Renderer->SolidQuadGeometryBuffer, ElementCount);
+  AllocateGpuUiBuffer(&Renderer->TextGroup->Buf,          ElementCount);
+
+  AllocateGpuUiBuffer(&Renderer->CustomQuadGeometryBuffer, u32_COUNT_PER_QUAD);
 
   Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
   Renderer->WindowTable = Allocate_window_layout_hashtable(256, PermMemory); // 256 windows should be enough for anybody?
-
 
   if (Headless == False)
   {
@@ -3362,11 +3453,9 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     Ensure(LoadBitmap("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White));
     Ensure(LoadBitmap("texture_atlas_0.bmp", GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font));
 
-    GetGL()->GenBuffers(3, TextGroup->Buf.Handles.Handles);
+    TextGroup->UiShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "ui.vertexshader"), CSz(STDLIB_SHADER_PATH "ui.fragmentshader") );
 
-    TextGroup->Text2DShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "ui.vertexshader"), CSz(STDLIB_SHADER_PATH "ui.fragmentshader") );
-
-    TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->Text2DShader.ID, "TextTextureSampler");
+    TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->UiShader.ID, "TextTextureSampler");
 
     /* Renderer->TextGroup->SolidUIShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") ); */
 

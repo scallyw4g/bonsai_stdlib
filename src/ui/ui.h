@@ -47,7 +47,7 @@ struct render_buffers_2d
   texture DebugTextureArray;
   s32 TextTextureUniform;
 
-  shader Text2DShader;
+  shader UiShader;
   gpu_mapped_ui_buffer Buf;
 };
 
@@ -283,6 +283,10 @@ struct ui_render_command_buffer;
 struct renderer_2d
 {
   render_buffers_2d *TextGroup;
+  gpu_mapped_ui_buffer SolidQuadGeometryBuffer;
+
+  textured_quad_render_pass TexturedQuadRenderPass;
+  gpu_mapped_ui_buffer CustomQuadGeometryBuffer;
 
   texture SpriteTextureArray;
 
@@ -309,9 +313,6 @@ struct renderer_2d
 
   text_box_edit_state TextEdit;
 
-  ui_geometry_buffer Geo;
-  textured_quad_render_pass TexturedQuadRenderPass;
-
   ui_render_command_buffer *CommandBuffer;
 
   memory_arena RenderCommandArena;
@@ -320,9 +321,6 @@ struct renderer_2d
 
 #define RANDOM_COLOR_COUNT 128
   v3 DebugColors[RANDOM_COLOR_COUNT];
-
-  u32 SolidGeoCountLastFrame;
-  u32 TextGeoCountLastFrame;
 
   v3_cursor *ColorPalette;
 };
@@ -929,6 +927,11 @@ struct ui_render_command_buffer
 /******************************               ********************************/
 
 
+enum quad_shaping_op
+{
+  QuadShapingOp_None,
+  QuadShapingOp_Circle,
+};
 
 enum clip_status
 {

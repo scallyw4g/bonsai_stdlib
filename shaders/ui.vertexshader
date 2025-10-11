@@ -4,10 +4,20 @@ layout(location = 2) in vec3 InColor;
 
 out vec3 UV;
 out vec3 VertColor;
+flat out s32 ShapeOp;
 
 void main()
 {
+
+#if 1
+  s32 PackedUVz = floatBitsToInt(vertexUV.z);
+
+  f32 UVz = f32(PackedUVz & 0xFFFF);
+  ShapeOp = (PackedUVz >> 16) & 0xFFFF;
+  UV = V3(vertexUV.x, vertexUV.y, UVz);
+#else
   UV = vertexUV;
+#endif
   VertColor = InColor;
   gl_Position = vec4(VertP_NDC, 1.0f);
 }

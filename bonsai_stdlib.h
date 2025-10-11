@@ -81,12 +81,6 @@ enum ui_element_buffer_handles
 
 struct gpu_element_buffer_handles
 {
-  // NOTE(Jesse): VertexHandle has to come first because it's the one that gets passed to GL.DeleteBuffers
-  // @vertex_handle_primal
-  /* u32 VertexHandle; */
-  /* u32 NormalHandle; */
-  /* u32    MatHandle; */
-
   u32 Handles[3];
 
   u32 ElementCount;

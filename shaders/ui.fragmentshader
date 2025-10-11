@@ -1,5 +1,6 @@
 in vec3 UV;
 in vec3 VertColor;
+flat in s32 ShapeOp;
 
 out vec4 color;
 
@@ -10,7 +11,23 @@ void main()
 {
   /* float Step = TexelStep; */
 
+  /* vec4 BitmapTexel = V4(1,0,1,1); */
   vec4 BitmapTexel = texture( TextTextureSampler, UV );
+
+#if 0
+  if (ShapeOp == 0)
+  {
+    BitmapTexel.rgb = V3(0,0,0);
+  }
+  else if (ShapeOp == 1)
+  {
+    BitmapTexel.rgb = V3(1,1,0);
+  }
+  else
+  {
+    BitmapTexel.rgb = V3(1,0,0);
+  }
+#endif
 
 #if 0
   {
@@ -37,4 +54,6 @@ void main()
 #endif
 
   color = vec4(VertColor * BitmapTexel.rgb, BitmapTexel.a);
+  /* color = BitmapTexel; */
+  /* color = V4(UV.xy, 0.f, 1.f); */
 }

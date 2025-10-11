@@ -558,7 +558,7 @@ HandleGlDebugMessage(GLenum Source, GLenum Type, GLuint Id, GLenum Severity,
   return;
 }
 
-inline void
+inline b32
 BufferFloatDataToCard(u32 BufferId, u32 Stride, u32 ByteCount, void *Data, u32 *AttributeIndex)
 {
 #if BONSAI_DEBUG_SYSTEM_API
@@ -568,7 +568,8 @@ BufferFloatDataToCard(u32 BufferId, u32 Stride, u32 ByteCount, void *Data, u32 *
 
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, BufferId);
   AssertNoGlErrors;
-  GetGL()->BufferData(GL_ARRAY_BUFFER, ByteCount, Data, GL_STATIC_DRAW);
+  b32 BufferUnmapped = GetGL()->UnmapBuffer(GL_ARRAY_BUFFER);
+  /* GetGL()->BufferData(GL_ARRAY_BUFFER, ByteCount, Data, GL_STATIC_DRAW); */
   AssertNoGlErrors;
 
   GetGL()->EnableVertexAttribArray(*AttributeIndex);
@@ -577,55 +578,51 @@ BufferFloatDataToCard(u32 BufferId, u32 Stride, u32 ByteCount, void *Data, u32 *
   *AttributeIndex += 1;
   AssertNoGlErrors;
 
-  return;
+  return BufferUnmapped;
 }
 
-template <typename T> inline void
+template <typename T> inline b32
 BufferVertsToCard(u32 BufferId, T *Mesh, u32 *AttributeIndex)
 {
   TIMED_FUNCTION();
   u32 ByteCount = Mesh->At*sizeof(*Mesh->Verts);
   u32 Stride = sizeof(*Mesh->Verts)/sizeof(Mesh->Verts[0].E[0]);
 
-  BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Verts, AttributeIndex);
-
-  return;
+  b32 Result = BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Verts, AttributeIndex);
+  return Result;
 }
 
 #if 1
-template <typename T> inline void
+template <typename T> inline b32
 BufferColorsToCard(u32 BufferId, T *Mesh, u32* AttributeIndex)
 {
   TIMED_FUNCTION();
   u32 Stride = sizeof(*Mesh->Colors)/sizeof(Mesh->Colors[0].E[0]);
   u32 ByteCount = Mesh->At*sizeof(*Mesh->Colors);
 
-  BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Colors, AttributeIndex);
-
-  return;
+  b32 Result = BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Colors, AttributeIndex);
+  return Result;
 }
 #endif
 
-template <typename T> inline void
+template <typename T> inline b32
 BufferNormalsToCard(u32 BufferId, T *Mesh, u32 *AttributeIndex)
 {
   TIMED_FUNCTION();
   u32 Stride = sizeof(*Mesh->Normals)/sizeof(Mesh->Normals[0].E[0]);
   u32 ByteCount = Mesh->At*sizeof(*Mesh->Normals);
 
-  BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Normals, AttributeIndex);
-
-  return;
+  b32 Result = BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->Normals, AttributeIndex);
+  return Result;
 }
 
-template <typename T> inline void
+template <typename T> inline b32
 BufferUVsToCard(u32 BufferId, T *Mesh, u32 *AttributeIndex)
 {
   TIMED_FUNCTION();
   u32 ByteCount = Mesh->At*sizeof(*Mesh->UVs);
   u32 Stride = sizeof(*Mesh->UVs)/sizeof(Mesh->UVs[0].x);
 
-  BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->UVs, AttributeIndex);
-
-  return;
+  b32 Result = BufferFloatDataToCard(BufferId, Stride, ByteCount, (void*)Mesh->UVs, AttributeIndex);
+  return Result;
 }

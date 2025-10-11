@@ -30,11 +30,25 @@
 #include <bonsai_stdlib/src/file.cpp>
 #include <bonsai_stdlib/src/filesystem.cpp>
 
+// NOTE(Jesse): Must match defines in header.glsl
+#define VERTEX_POSITION_LAYOUT_LOCATION    0
+
+// NOTE(Jesse): Normals and UVs are mutually exclusive, so we use slot 1 for either/or;
+// We never draw 3D geometry with UVs and 2D UI doesn't need normals
+#define VERTEX_NORMAL_LAYOUT_LOCATION      1
+#define VERTEX_UV_LAYOUT_LOCATION          1
+
+#define VERTEX_COLOR_LAYOUT_LOCATION       2
+#define VERTEX_TRANS_EMISS_LAYOUT_LOCATION 3
+
+
 #include <bonsai_stdlib/src/gl.cpp>
 #include <bonsai_stdlib/src/texture.cpp>
 #include <bonsai_stdlib/src/shader.cpp>
 #include <bonsai_stdlib/src/2d_render_utils.cpp>
 #include <bonsai_stdlib/src/ui/gl.cpp>
+
+#include <bonsai_stdlib/src/gpu_mapped_buffer.cpp>
 
 #include <bonsai_stdlib/src/to_string.cpp>
 

@@ -187,3 +187,18 @@ NextPowerOfTwo(u32 Input)
   Assert(CountBitsSet_Kernighan(Result) == 1);
   return Result;
 }
+
+link_inline f32
+intBitsToFloat(s32 Input)
+{
+  union int_to_float_helper
+  {
+    f32 F;
+    s32 S;
+  };
+
+  int_to_float_helper H;
+  H.S = Input;
+  f32 Result = H.F;
+  return Result;
+}
