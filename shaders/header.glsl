@@ -518,7 +518,7 @@ CosineInterpolate( float t, f32 y1, f32 y2 )
 }
 
 
-f32 MapToFinal(f32 SampleX)
+f32 RemapSample(f32 SampleX)
 {
 
   /* const s32 PointCount = 2; */

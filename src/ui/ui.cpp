@@ -1719,6 +1719,19 @@ GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId)
   return Result;
 }
 
+link_internal window_layout *
+GetOrCreateWindow(renderer_2d *Ui, const char *WindowName)
+{
+  ui_id ID = UiId(WindowName);
+  window_layout *Result = GetOrCreateWindow(Ui, ID);
+
+  if (Result)
+  {
+    Result->Title = CS(WindowName);
+  }
+
+  return Result;
+}
 
 
 /*********************************           *********************************/
