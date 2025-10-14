@@ -1085,7 +1085,8 @@ PushUntexturedQuad( renderer_2d* Group,
                              ui_style *Style = 0,
                              v4 Padding = V4(0),
                              ui_element_layout_flags Params = UiElementLayoutFlag_Default,
-                             shader *CustomShader = 0)
+                             shader_setup_callback *ShaderSetupCallback = 0,
+                             void *ShaderSetupArgs = 0)
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_untextured_quad,
@@ -1096,7 +1097,8 @@ PushUntexturedQuad( renderer_2d* Group,
       .Params  = Params,
       .zDepth  = zDepth,
       .Style   = Style? *Style : DefaultStyle,
-      .Shader  = CustomShader,
+      .ShaderSetupCallback  = ShaderSetupCallback,
+      .ShaderSetupArgs      = ShaderSetupArgs,
       .Layout  =
       {
         .At = {},
@@ -2311,7 +2313,7 @@ ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad 
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
 
 
-  if (Command->Shader == 0)
+  if (Command->ShaderSetupCallback == 0)
   {
     BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer, MinP, Dim, Color, Z, Clip);
   }
@@ -3319,10 +3321,10 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
         r32      Z = TypedCommand->LayoutZ;
         rect2 Clip = TypedCommand->LayoutClip;
 
-        if (TypedCommand->Shader)
+        if (TypedCommand->ShaderSetupCallback)
         {
           MapGpuBuffer(&Group->CustomQuadGeometryBuffer);
-          UseShader(TypedCommand->Shader);
+          TypedCommand->ShaderSetupCallback(TypedCommand->ShaderSetupArgs);
           BufferUiQuad(*Group->ScreenDim, &Group->CustomQuadGeometryBuffer, RectMinDim(MinP, Dim), TypedCommand->Style.Color, Z, Clip);
           DrawUiBuffer(&Group->CustomQuadGeometryBuffer, Group->ScreenDim);
         }

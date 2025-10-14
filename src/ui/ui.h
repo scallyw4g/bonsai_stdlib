@@ -780,6 +780,8 @@ struct ui_render_command_text_at
   /* font Font; */
 };
 
+typedef void (shader_setup_callback)(void*);
+
 struct ui_render_command_untextured_quad
 {
   layout Layout;
@@ -787,7 +789,9 @@ struct ui_render_command_untextured_quad
   v2 QuadDim;
   z_depth zDepth;
   ui_element_layout_flags Params;
-  shader *Shader;
+
+  shader_setup_callback *ShaderSetupCallback;
+  void *ShaderSetupArgs;
 
   // @render_command_layout_engine_crutch
   r32 LayoutZ;

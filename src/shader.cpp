@@ -767,3 +767,10 @@ UseShader(shader *Shader)
     SoftError("Attempted to bind uncompiled Shader (%S) | (%S)", Shader->VertexSourceFilename, Shader->FragSourceFilename);
   }
 }
+
+void
+UseShader(void *Shader)
+{
+  UseShader(Cast(shader *, Shader));
+}
+

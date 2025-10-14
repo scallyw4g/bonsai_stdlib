@@ -1170,4 +1170,7 @@ poof(maybe(v3))
 poof(maybe(v3i))
 #include <generated/maybe_v3i.h>
 
+poof(static_cursor(v2, {16}))
+#include <generated/static_cursor_v2_0_986190493.h>
+
 

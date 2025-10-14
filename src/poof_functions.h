@@ -1220,6 +1220,62 @@ poof(
 )
 
 poof(
+  func static_cursor(Type, type_poof_symbol StaticCount)
+  {
+    @var type_name (Type)_static_cursor_(StaticCount)
+    struct type_name
+    {
+      Type.name Start[StaticCount];
+      u32 At;
+    };
+
+    link_inline (Type.name)*
+    GetPtr( type_name *Buf, umm Index)
+    {
+      Type.name *Result = {};
+      if ( Index < umm((StaticCount)) )
+      {
+        Result = Buf->Start+Index;
+      }
+      return Result;
+    }
+
+    link_inline (Type.name)*
+    TryGetPtr( type_name *Buf, umm Index)
+    {
+      return GetPtr(Buf, Index);
+    }
+
+    link_inline (Type.name)
+    Get( type_name *Buf, umm Index)
+    {
+      Assert(Index < umm((StaticCount)));
+      Assert(Index < umm((Buf->At)));
+      Type.name Result = Buf->Start[Index];
+      return Result;
+    }
+
+    link_internal umm
+    AtElements( type_name  *Buf)
+    {
+      return Buf->At;
+    }
+
+    link_internal umm
+    TotalElements( type_name *Buf)
+    {
+      return StaticCount;
+    }
+
+    link_inline void
+    Push( type_name *Buf, Type *E )
+    {
+      Assert(AtElements(Buf) < TotalElements(Buf));
+      Buf->Start[Buf->At++] = *E;
+    }
+  }
+)
+poof(
   func deep_copy(Type)
   {
     /* link_internal void */
