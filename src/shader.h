@@ -3,11 +3,13 @@
 
 
 poof(
-  func shader_magic(shader_struct)
+  func shader_magic(shader_struct, type_poof_symbol async_tag)
   {
     link_internal b32
-    Initialize(shader_struct.name.to_capital_case)(
-      shader_struct.name *Struct
+    poof((async_tag))
+    Initialize(shader_struct.name.to_capital_case)
+    (
+      shader_struct.name *Element
       shader_struct.map(member)
       {
           member.has_tag(uniform)?  {, member.type member.is_pointer?{*}member.name}
@@ -18,11 +20,11 @@ poof(
       {
         shader_struct.has_tag(frag_source_file)?
         {
-          b32 Result = CompileShaderPair(&Struct->Program, CSz((shader_struct.tag_value(vert_source_file))), CSz((shader_struct.tag_value(frag_source_file))));
+          b32 Result = CompileShaderPair(&Element->Program, CSz((shader_struct.tag_value(vert_source_file))), CSz((shader_struct.tag_value(frag_source_file))));
 
           if (Result)
           {
-            Struct->Program.Uniforms = ShaderUniformBuffer(Struct->Uniforms, ArrayCount(Struct->Uniforms));
+            Element->Program.Uniforms = ShaderUniformBuffer(Element->Uniforms, ArrayCount(Element->Uniforms));
 
             u32 UniformIndex = 0;
 
@@ -30,8 +32,8 @@ poof(
             {
               member.has_tag(uniform)?
               {
-                Struct->member.name = member.name;
-                SetShaderUniform(&Struct->Program, UniformIndex++, member.is_pointer?{}{&}Struct->member.name, "member.name");
+                Element->member.name = member.name;
+                InitShaderUniform(&Element->Program, UniformIndex++, member.is_pointer?{}{&}Element->member.name, "member.name" member.has_tag(array_length)? {, member.tag_value(array_length)});
               }
             }
 
@@ -55,11 +57,12 @@ poof(
     }
 
     link_internal void
-    UseShader( shader_struct.name *Struct )
+    UseRenderPass_(shader_struct.name)
+    ( shader_struct.name *Element )
     {
-      if (Struct->Program.ID != INVALID_SHADER)
+      if (Element->Program.ID != INVALID_SHADER)
       {
-        GetGL()->UseProgram(Struct->Program.ID);
+        GetGL()->UseProgram(Element->Program.ID);
 
         s32 TextureUnit = 0;
         s32 UniformIndex = 0;
@@ -67,7 +70,7 @@ poof(
         {
           member.has_tag(uniform)?
           {
-            BindUniformById(Struct->Uniforms+UniformIndex, &TextureUnit);
+            BindUniformById(Element->Uniforms+UniformIndex, &TextureUnit);
             ++UniformIndex;
           }
         }
@@ -82,6 +85,26 @@ poof(
         SoftError("Attempted to bind uncompiled Shader ((shader_struct.tag_value(vert_source_file))) | ((shader_struct.tag_value(frag_source_file)))");
       }
     }
+
+    // NOTE(Jesse): This is for binding when passing a custom RP through the UI 
+    link_internal void
+    UseRenderPass_(shader_struct.name)( void *Element )
+    {
+      UseRenderPass_(shader_struct.name)( Cast((shader_struct.name) *, Element) );
+    }
+
+    link_internal void
+    UseRenderPass( shader_struct.name *Element )
+    {
+      UseRenderPass_(shader_struct.name)(Element);
+    }
+
+    // TODO(Jesse): Remove in favor of UseRenderPass
+    link_internal void
+    UseShader( shader_struct.name *Element )
+    {
+      UseRenderPass_(shader_struct.name)(Element);
+    }
   }
 )
 
@@ -89,6 +112,9 @@ poof(
 // NOTE(Jesse): These are the basic types you could imagine passing to a shader
 // There are extended types in the engine 
 enum shader_uniform_type
+#ifndef POOF_PREPROCESSOR
+: u16
+#endif
 {
   ShaderUniform_Undefined,
   ShaderUniform_M4,
@@ -113,6 +139,8 @@ struct camera;
 struct shader_uniform
 {
   shader_uniform_type Type;
+  u16 Count;
+
   union {
     texture *Texture;
     m4 *M4;

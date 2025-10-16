@@ -150,6 +150,7 @@ DumpShaderSource(u32 ShaderId)
 }
 
 link_internal b32
+poof(@async @render)
 CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 DumpErrors = True, b32 RegisterForHotReload = True)
 {
   Shader("Creating : (%S | %S", VertShaderPath, FragShaderPath);

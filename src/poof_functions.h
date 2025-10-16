@@ -13,9 +13,11 @@
 poof(
   func set_shader_uniform(uniform_t)
   {
+
     b32
-    SetShaderUniform(shader *Shader, u32 Index, uniform_t.name *Value, const char *Name)
+    InitShaderUniform(shader *Shader, u32 Index, uniform_t.name *Value, const char *Name, u16 Count)
     {
+      /* Assert(Count); */
       Assert(Index < Shader->Uniforms.Count);
 
       shader_uniform *Uniform = Shader->Uniforms.Start + Index;
@@ -23,10 +25,17 @@ poof(
       Uniform->Type = ShaderUniform_(uniform_t.name.to_capital_case);
       Uniform->uniform_t.name.to_capital_case = Value;
       Uniform->Name = Name;
+      Uniform->Count = Count;
 
       Uniform->ID = GetShaderUniform(Shader, Name);
 
       return Uniform->ID != INVALID_SHADER_UNIFORM;
+    }
+
+    b32
+    InitShaderUniform(shader *Shader, u32 Index, uniform_t.name *Value, const char *Name)
+    {
+      return InitShaderUniform(Shader, Index, Value, Name, 1);
     }
   }
 );

@@ -7,7 +7,7 @@ AllocateGpuElementBuffer(gpu_mapped_element_buffer *GpuMap, data_type Type, u32 
 link_internal void
 AllocateGpuElementBuffer(gpu_mapped_ui_buffer *GpuMap, data_type Type, u32 ElementCount);
 
-poof(shader_magic(textured_quad_render_pass))
+poof(shader_magic(textured_quad_render_pass, {}))
 #include <generated/shader_magic_textured_quad_render_pass.h>
 
 #define u32_COUNT_PER_QUAD (6)
