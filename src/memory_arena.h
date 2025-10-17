@@ -148,8 +148,9 @@ struct memory_arena
 
 #if BONSAI_INTERNAL
   umm Pushes;
-  bonsai_futex DebugFutex;
 #endif
+
+  bonsai_futex DebugFutex;
 };
 
 // TODO(Jesse, globals_cleanup): Put this on stdlib ..?
@@ -461,7 +462,10 @@ ReallocateArena(memory_arena *Arena, umm MinSize, b32 MemProtect)
   /* memory_arena *NewArena = AllocateArena_(__FILE__, AllocationSize, MemProtect); */
 
   memory_arena OldArena = *Arena;
+
   *Arena = *NewArena;
+   Arena->DebugFutex = OldArena.DebugFutex;
+
   *NewArena = OldArena;
 
   Arena->Prev = NewArena;
@@ -554,6 +558,11 @@ PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect)
 {
   Assert(Arena->At <= Arena->End);              // Sanity checks
   Assert(Remaining(Arena) <= TotalSize(Arena));
+
+  if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX)
+  {
+    AcquireFutex(&Arena->DebugFutex);
+  }
 
   umm ExtraPageBytes = 0;
 #if MEMPROTECT
@@ -653,6 +662,12 @@ PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect)
   Assert((umm)Result % Alignment == 0);
 
   Assert(Remaining(Arena) <= TotalSize(Arena)); // Sanity Check
+
+  if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX)
+  {
+    ReleaseFutex(&Arena->DebugFutex);
+  }
+
   return Result;
 }
 
