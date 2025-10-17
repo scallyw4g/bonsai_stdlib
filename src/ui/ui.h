@@ -84,7 +84,7 @@ struct window_layout
   b32 Minimized;
   u32 MinimizeIndex;
 
-  s32 Flags; // window_layout_flags
+  s32 Flags = WindowLayoutFlag_Default; // window_layout_flags
 
   v2 Basis;   // Absolute offset from (0,0)
   v2 MaxClip; // Basis-relative maximum corner of the window
