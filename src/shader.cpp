@@ -647,6 +647,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit, u16 Count)
       {
         TIMED_BLOCK("ShaderUniform_Texture");
         Assert(*TextureUnit > -1);
+        Assert(Uniform->Count == 1);
 
         if (*TextureUnit > 8)
         {
@@ -665,6 +666,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit, u16 Count)
       case ShaderUniform_U32:
       {
         TIMED_BLOCK("ShaderUniform_U32");
+        Assert(Uniform->Count == 1);
         GL->Uniform1ui(Uniform->ID, *Uniform->U32);
         END_BLOCK();
       } break;
@@ -672,6 +674,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit, u16 Count)
       case ShaderUniform_R32:
       {
         TIMED_BLOCK("ShaderUniform_R32");
+        Assert(Uniform->Count == 1);
         GL->Uniform1f(Uniform->ID, *Uniform->R32);
         END_BLOCK();
       } break;
@@ -679,6 +682,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit, u16 Count)
       case ShaderUniform_S32:
       {
         TIMED_BLOCK("ShaderUniform_S32");
+        Assert(Uniform->Count == 1);
         GL->Uniform1i(Uniform->ID, *Uniform->S32);
         END_BLOCK();
       } break;
@@ -686,7 +690,8 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit, u16 Count)
       case ShaderUniform_M4:
       {
         TIMED_BLOCK("ShaderUniform_M4");
-        GL->UniformMatrix4fv(Uniform->ID, 1, GL_FALSE, (r32*)Uniform->M4);
+        Assert(Uniform->Count);
+        GL->UniformMatrix4fv(Uniform->ID, Uniform->Count, GL_FALSE, (r32*)Uniform->M4);
         END_BLOCK();
       } break;
 
@@ -694,7 +699,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit, u16 Count)
       {
         TIMED_BLOCK("ShaderUniform_V2");
 
-        Assert(Count);
+        Assert(Uniform->Count);
         GL->Uniform2fv(Uniform->ID, Uniform->Count, (r32*)Uniform->V2);
         END_BLOCK();
       } break;
@@ -702,7 +707,9 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit, u16 Count)
       case ShaderUniform_V3:
       {
         TIMED_BLOCK("ShaderUniform_V3");
-        GL->Uniform3fv(Uniform->ID, 1, (r32*)Uniform->V3);
+
+        Assert(Uniform->Count);
+        GL->Uniform3fv(Uniform->ID, Uniform->Count, (r32*)Uniform->V3);
         END_BLOCK();
       } break;
 
