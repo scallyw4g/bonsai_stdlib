@@ -1282,6 +1282,13 @@ poof(
       Assert(AtElements(Buf) < TotalElements(Buf));
       Buf->Start[Buf->At++] = *E;
     }
+
+    link_inline void
+    Push( type_name *Buf, Type E )
+    {
+      Assert(AtElements(Buf) < TotalElements(Buf));
+      Buf->Start[Buf->At++] = E;
+    }
   }
 )
 poof(
