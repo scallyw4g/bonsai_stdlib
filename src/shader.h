@@ -77,7 +77,7 @@ poof(
           {
             {
               shader_uniform *Uniform = Element->Uniforms+UniformIndex;
-              BindUniformById(Uniform, &TextureUnit, Uniform->Count);
+              BindUniformById(Uniform, &TextureUnit);
               ++UniformIndex;
               AssertNoGlErrors;
             }

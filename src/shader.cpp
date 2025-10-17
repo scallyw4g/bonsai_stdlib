@@ -633,7 +633,7 @@ BindUniformByName(shader *Shader, const char *Name, m4 *Matrix)
 }
 
 link_internal void
-BindUniformById(shader_uniform *Uniform, s32 *TextureUnit, u16 Count)
+BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
 {
   auto GL = GetGL();
 
@@ -754,7 +754,7 @@ BindUniformByName(shader *Shader, shader_uniform *Uniform, s32 *TextureUnit)
     Uniform->ID = GetGL()->GetUniformLocation(Shader->ID, Uniform->Name);
     if (Uniform->ID != INVALID_SHADER_UNIFORM)
     {
-      BindUniformById(Uniform, TextureUnit, Uniform->Count);
+      BindUniformById(Uniform, TextureUnit);
     }
   }
 }
@@ -767,7 +767,7 @@ BindShaderUniforms(shader *Shader)
   s32 TextureUnit = 0;
   IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
   {
-    BindUniformById(Uniform, &TextureUnit, Uniform->Count);
+    BindUniformById(Uniform, &TextureUnit);
     AssertNoGlErrors;
   }
 
