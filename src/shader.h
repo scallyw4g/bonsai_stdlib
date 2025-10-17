@@ -33,7 +33,12 @@ poof(
               member.has_tag(uniform)?
               {
                 Element->member.name = member.name;
-                InitShaderUniform(&Element->Program, UniformIndex++, member.is_pointer?{}{&}Element->member.name, "member.name" member.has_tag(array_length)? {, member.tag_value(array_length)});
+                InitShaderUniform(
+                    &Element->Program,
+                     UniformIndex++,
+                     member.is_pointer?{}{&}Element->member.name,
+                     "member.name"
+                     member.has_tag(array_length)? {, Cast(u16, member.tag_value(array_length))});
               }
             }
 
@@ -70,8 +75,12 @@ poof(
         {
           member.has_tag(uniform)?
           {
-            BindUniformById(Element->Uniforms+UniformIndex, &TextureUnit);
-            ++UniformIndex;
+            {
+              shader_uniform *Uniform = Element->Uniforms+UniformIndex;
+              BindUniformById(Uniform, &TextureUnit, Uniform->Count);
+              ++UniformIndex;
+              AssertNoGlErrors;
+            }
           }
         }
 
@@ -84,6 +93,8 @@ poof(
       {
         SoftError("Attempted to bind uncompiled Shader ((shader_struct.tag_value(vert_source_file))) | ((shader_struct.tag_value(frag_source_file)))");
       }
+
+      AssertNoGlErrors;
     }
 
     // NOTE(Jesse): This is for binding when passing a custom RP through the UI 

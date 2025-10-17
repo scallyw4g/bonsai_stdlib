@@ -13,22 +13,24 @@ struct shader_compile_result
 link_internal shader_compile_result
 CompileShader(ansi_stream Header, ansi_stream Code, u32 Type, b32 DumpErrors)
 {
+  auto GL = GetGL();
+
   const int InfoLogLength = 0;
 
-  u32 ShaderID = GetGL()->CreateShader(Type);
+  u32 ShaderID = GL->CreateShader(Type);
 
   const char *Sources[2] = {Header.Start, Code.Start};
   const s32 Lengths[2] = {(s32)TotalSize(&Header), (s32)TotalSize(&Code)};
 
 
   // Compile
-  GetGL()->ShaderSource(ShaderID, 2, Sources, Lengths);
-  GetGL()->CompileShader(ShaderID);
+  GL->ShaderSource(ShaderID, 2, Sources, Lengths);
+  GL->CompileShader(ShaderID);
 
   // Check Status
   s32 CompileSuccess = GL_FALSE;
-  GetGL()->GetShaderiv(ShaderID, GL_COMPILE_STATUS, &CompileSuccess);
-  GetGL()->GetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, (s32*)&InfoLogLength);
+  GL->GetShaderiv(ShaderID, GL_COMPILE_STATUS, &CompileSuccess);
+  GL->GetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, (s32*)&InfoLogLength);
   AssertNoGlErrors;
 
   // TODO(Jesse): We should probably return a flag from this function that indicates
@@ -37,11 +39,11 @@ CompileShader(ansi_stream Header, ansi_stream Code, u32 Type, b32 DumpErrors)
   {
     char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength);
     s32 ActualLength = 0;
-    GetGL()->GetShaderInfoLog(ShaderID, InfoLogLength, &ActualLength, ProgramErrorMessage);
+    GL->GetShaderInfoLog(ShaderID, InfoLogLength, &ActualLength, ProgramErrorMessage);
     SoftError("Compiling Shader : ApparentLogLength(%d) ActualLogLength(%d) DriverInfoMessage (%S)", InfoLogLength, ActualLength, CS(ProgramErrorMessage, umm(ActualLength)));
 
     // NOTE(Jesse): Need this to get the actual error message later ... sigh ...
-    /* GetGL()->DeleteShader(ShaderID); */
+    /* GL->DeleteShader(ShaderID); */
     /* ShaderID = INVALID_SHADER; */
   }
 
@@ -54,15 +56,18 @@ link_internal void
 CheckShaderCompilationStatus(cs ShaderPath, u32 ShaderId)
 {
   s32 Success = GL_FALSE;
-  GetGL()->GetShaderiv(ShaderId, GL_COMPILE_STATUS, &Success);
+
+  auto GL = GetGL();
+
+  GL->GetShaderiv(ShaderId, GL_COMPILE_STATUS, &Success);
 
   if (Success == GL_FALSE)
   {
     s32 InfoLogLength;
-    GetGL()->GetProgramiv(ShaderId, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    GL->GetProgramiv(ShaderId, GL_INFO_LOG_LENGTH, &InfoLogLength);
     // Apparently the log length includes the null terminator
     char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength);
-    GetGL()->GetShaderInfoLog(ShaderId, InfoLogLength, NULL, ProgramErrorMessage);
+    GL->GetShaderInfoLog(ShaderId, InfoLogLength, NULL, ProgramErrorMessage);
 
     SoftError("Error Compiling shader (%S)", ShaderPath);
     Error("%d (%s)", InfoLogLength, ProgramErrorMessage);
@@ -155,8 +160,9 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
 {
   Shader("Creating : (%S | %S", VertShaderPath, FragShaderPath);
 
-
   auto Stdlib = GetStdlib();
+  auto GL = GetGL();
+
   if (Stdlib->ShaderHeaderCode.Start == 0) { ReloadShaderHeaderCode(Stdlib, ShaderLanguageSetting_330core); } // Default to 330 core if nobody did this already
 
   ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
@@ -177,25 +183,25 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
   /* if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER) */
   /* { */
     // Link the program
-    u32 ProgramID = GetGL()->CreateProgram();
+    u32 ProgramID = GL->CreateProgram();
     Assert(ProgramID);
-    GetGL()->AttachShader(ProgramID, VertexResult.ShaderId);
-    GetGL()->AttachShader(ProgramID, FragResult.ShaderId);
-    GetGL()->LinkProgram(ProgramID);
+    GL->AttachShader(ProgramID, VertexResult.ShaderId);
+    GL->AttachShader(ProgramID, FragResult.ShaderId);
+    GL->LinkProgram(ProgramID);
     AssertNoGlErrors;
 
 
 
     // Check the program linked
     s32 LinkResult = GL_FALSE;
-    GetGL()->GetProgramiv(ProgramID, GL_LINK_STATUS, &LinkResult);
-    GetGL()->GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    GL->GetProgramiv(ProgramID, GL_LINK_STATUS, &LinkResult);
+    GL->GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
     AssertNoGlErrors;
 
     b32 CompileSucceeded = (LinkResult == GL_TRUE);
 
     s32 ActiveUniformSlots;
-    GetGL()->GetProgramiv(ProgramID, GL_ACTIVE_UNIFORMS, &ActiveUniformSlots);
+    GL->GetProgramiv(ProgramID, GL_ACTIVE_UNIFORMS, &ActiveUniformSlots);
     AssertNoGlErrors;
 
     if (VertexResult.Success == False && DumpErrors)
@@ -213,16 +219,16 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
     if (CompileSucceeded == False && DumpErrors)
     {
       char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
-      GetGL()->GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
+      GL->GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
       SoftError("Linking shader pair %S | %S", VertShaderPath, FragShaderPath);
       SoftError("\n%s", ProgramErrorMessage);
       AssertNoGlErrors;
     }
 
-    GetGL()->DetachShader(ProgramID, VertexResult.ShaderId);
-    GetGL()->DetachShader(ProgramID, FragResult.ShaderId);
-    GetGL()->DeleteShader(VertexResult.ShaderId);
-    GetGL()->DeleteShader(FragResult.ShaderId);
+    GL->DetachShader(ProgramID, VertexResult.ShaderId);
+    GL->DetachShader(ProgramID, FragResult.ShaderId);
+    GL->DeleteShader(VertexResult.ShaderId);
+    GL->DeleteShader(FragResult.ShaderId);
     AssertNoGlErrors;
 
     // NOTE(Jesse): Kind of a hack to set the last modified times on the shader.  Should
@@ -232,7 +238,7 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
 
     if (CompileSucceeded == False)
     {
-      GetGL()->DeleteProgram(ProgramID);
+      GL->DeleteProgram(ProgramID);
       ProgramID = INVALID_SHADER;
     }
 
@@ -251,7 +257,9 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
 link_internal s32
 GetShaderUniform(shader *Shader, const char *Name)
 {
-  s32 Result = GetGL()->GetUniformLocation(Shader->ID, Name);
+  auto GL = GetGL();
+
+  s32 Result = GL->GetUniformLocation(Shader->ID, Name);
   if (Result == INVALID_SHADER_UNIFORM)
   {
     Warn("Couldn't retreive %s shader uniform - was it optimized out?", Name);
@@ -276,6 +284,8 @@ ReloadShaderUniform(shader *Shader, shader_uniform *Uniform)
 link_internal void
 HotReloadShaders(bonsai_stdlib *Stdlib)
 {
+  auto GL = GetGL();
+
   b32 HeaderIsNew = FileIsNew(STDLIB_SHADER_PATH "header.glsl", &Stdlib->ShaderHeaderFile.LastModified);
 
   if (HeaderIsNew)
@@ -318,7 +328,7 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
       {
         // Delete old shader, and replace with new
         //
-        GetGL()->DeleteProgram(Shader->ID);
+        GL->DeleteProgram(Shader->ID);
 
         auto Uniforms = Shader->Uniforms;
         *Shader = LoadedShader;
@@ -410,7 +420,9 @@ MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
 b32
 CheckAndClearFramebuffer()
 {
-  u32 FramebufferStatus = GetGL()->CheckFramebufferStatus(GL_FRAMEBUFFER);
+  auto GL = GetGL();
+
+  u32 FramebufferStatus = GL->CheckFramebufferStatus(GL_FRAMEBUFFER);
 
   switch (FramebufferStatus)
   {
@@ -452,8 +464,8 @@ CheckAndClearFramebuffer()
   }
 
   SetDefaultFramebufferClearColors();
-  GetGL()->Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-  GetGL()->BindFramebuffer(GL_FRAMEBUFFER, 0);
+  GL->Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+  GL->BindFramebuffer(GL_FRAMEBUFFER, 0);
 
   b32 Result = (FramebufferStatus == GL_FRAMEBUFFER_COMPLETE);
   return Result;
@@ -470,10 +482,12 @@ link_weak void BindEngineUniform(shader_uniform*);
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, s32 Value)
 {
-  s32 Uniform = GetGL()->GetUniformLocation(Shader->ID, Name); 
+  auto GL = GetGL();
+
+  s32 Uniform = GL->GetUniformLocation(Shader->ID, Name); 
   if (Uniform != INVALID_SHADER_UNIFORM)
   {
-    GetGL()->Uniform1i(Uniform, Value);
+    GL->Uniform1i(Uniform, Value);
   }
   else
   {
@@ -484,10 +498,12 @@ BindUniformByName(shader *Shader, const char *Name, s32 Value)
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, b32 Value)
 {
-  s32 Uniform = GetGL()->GetUniformLocation(Shader->ID, Name); 
+  auto GL = GetGL();
+
+  s32 Uniform = GL->GetUniformLocation(Shader->ID, Name); 
   if (Uniform != INVALID_SHADER_UNIFORM)
   {
-    GetGL()->Uniform1i(Uniform, s32(Value));
+    GL->Uniform1i(Uniform, s32(Value));
   }
   else
   {
@@ -499,11 +515,13 @@ BindUniformByName(shader *Shader, const char *Name, b32 Value)
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
 {
-  GetGL()->ActiveTexture(GL_TEXTURE0 + TextureUnit);
-  s32 Uniform = GetGL()->GetUniformLocation(Shader->ID, Name);
+  auto GL = GetGL();
+
+  GL->ActiveTexture(GL_TEXTURE0 + TextureUnit);
+  s32 Uniform = GL->GetUniformLocation(Shader->ID, Name);
   if (Uniform != INVALID_SHADER_UNIFORM)
   {
-    GetGL()->Uniform1i(Uniform, s32(TextureUnit));
+    GL->Uniform1i(Uniform, s32(TextureUnit));
   }
   else
   {
@@ -512,11 +530,11 @@ BindUniformByName(shader *Shader, const char *Name, texture *Texture, u32 Textur
 
   if (Texture->Slices > 1)
   {
-    GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, Texture->ID);
+    GL->BindTexture(GL_TEXTURE_2D_ARRAY, Texture->ID);
   }
   else
   {
-    GetGL()->BindTexture(GL_TEXTURE_2D, Texture->ID);
+    GL->BindTexture(GL_TEXTURE_2D, Texture->ID);
   }
 
   AssertNoGlErrors;
@@ -525,10 +543,12 @@ BindUniformByName(shader *Shader, const char *Name, texture *Texture, u32 Textur
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, r32 Value)
 {
-  s32 Uniform = GetGL()->GetUniformLocation(Shader->ID, Name);
+  auto GL = GetGL();
+
+  s32 Uniform = GL->GetUniformLocation(Shader->ID, Name);
   if (Uniform != INVALID_SHADER_UNIFORM)
   {
-    GetGL()->Uniform1f(Uniform, Value);
+    GL->Uniform1f(Uniform, Value);
   }
   else
   {
@@ -539,11 +559,14 @@ BindUniformByName(shader *Shader, const char *Name, r32 Value)
 link_internal b32
 TryBindUniform(shader *Shader, const char *Name, v2 *V)
 {
+  auto GL = GetGL();
+
   b32 Result = False;
-  s32 Uniform = GetGL()->GetUniformLocation(Shader->ID, Name);
+
+  s32 Uniform = GL->GetUniformLocation(Shader->ID, Name);
   if (Uniform != INVALID_SHADER_UNIFORM)
   {
-    GetGL()->Uniform2fv(Uniform, 1, (r32*)V);
+    GL->Uniform2fv(Uniform, 1, (r32*)V);
     Result = True;
   }
   return Result;
@@ -552,11 +575,14 @@ TryBindUniform(shader *Shader, const char *Name, v2 *V)
 link_internal b32
 TryBindUniform(shader *Shader, const char *Name, v3 *V)
 {
+  auto GL = GetGL();
+
   b32 Result = False;
-  s32 Uniform = GetGL()->GetUniformLocation(Shader->ID, Name);
+
+  s32 Uniform = GL->GetUniformLocation(Shader->ID, Name);
   if (Uniform != INVALID_SHADER_UNIFORM)
   {
-    GetGL()->Uniform3fv(Uniform, 1, (r32*)V);
+    GL->Uniform3fv(Uniform, 1, (r32*)V);
     Result = True;
   }
   return Result;
@@ -583,11 +609,14 @@ BindUniformByName(shader *Shader, const char *Name, v3 *V)
 link_internal b32
 TryBindUniform(shader *Shader, const char *Name, m4 *Matrix)
 {
+  auto GL = GetGL();
+
   b32 Result = False;
-  s32 Uniform = GetGL()->GetUniformLocation(Shader->ID, Name);
+
+  s32 Uniform = GL->GetUniformLocation(Shader->ID, Name);
   if (Uniform != INVALID_SHADER_UNIFORM)
   {
-    GetGL()->UniformMatrix4fv(Uniform, 1, GL_FALSE, (r32*)Matrix);
+    GL->UniformMatrix4fv(Uniform, 1, GL_FALSE, (r32*)Matrix);
     Result = True;
   }
   return Result;
@@ -604,8 +633,10 @@ BindUniformByName(shader *Shader, const char *Name, m4 *Matrix)
 }
 
 link_internal void
-BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
+BindUniformById(shader_uniform *Uniform, s32 *TextureUnit, u16 Count)
 {
+  auto GL = GetGL();
+
   if (Uniform->ID >= 0)
   {
     switch(Uniform->Type)
@@ -623,9 +654,9 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
         }
         /* Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures? */
 
-        GetGL()->ActiveTexture(GL_TEXTURE0 + Cast(u32, *TextureUnit));
-        GetGL()->Uniform1i(Uniform->ID, *TextureUnit);
-        GetGL()->BindTexture(GL_TEXTURE_2D, Uniform->Texture->ID);
+        GL->ActiveTexture(GL_TEXTURE0 + Cast(u32, *TextureUnit));
+        GL->Uniform1i(Uniform->ID, *TextureUnit);
+        GL->BindTexture(GL_TEXTURE_2D, Uniform->Texture->ID);
 
         *TextureUnit = *TextureUnit + 1;
         END_BLOCK();
@@ -634,42 +665,44 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
       case ShaderUniform_U32:
       {
         TIMED_BLOCK("ShaderUniform_U32");
-        GetGL()->Uniform1ui(Uniform->ID, *Uniform->U32);
+        GL->Uniform1ui(Uniform->ID, *Uniform->U32);
         END_BLOCK();
       } break;
 
       case ShaderUniform_R32:
       {
         TIMED_BLOCK("ShaderUniform_R32");
-        GetGL()->Uniform1f(Uniform->ID, *Uniform->R32);
+        GL->Uniform1f(Uniform->ID, *Uniform->R32);
         END_BLOCK();
       } break;
 
       case ShaderUniform_S32:
       {
         TIMED_BLOCK("ShaderUniform_S32");
-        GetGL()->Uniform1i(Uniform->ID, *Uniform->S32);
+        GL->Uniform1i(Uniform->ID, *Uniform->S32);
         END_BLOCK();
       } break;
 
       case ShaderUniform_M4:
       {
         TIMED_BLOCK("ShaderUniform_M4");
-        GetGL()->UniformMatrix4fv(Uniform->ID, 1, GL_FALSE, (r32*)Uniform->M4);
+        GL->UniformMatrix4fv(Uniform->ID, 1, GL_FALSE, (r32*)Uniform->M4);
         END_BLOCK();
       } break;
 
       case ShaderUniform_V2:
       {
         TIMED_BLOCK("ShaderUniform_V2");
-        GetGL()->Uniform2fv(Uniform->ID, 1, (r32*)Uniform->V2);
+
+        Assert(Count);
+        GL->Uniform2fv(Uniform->ID, Uniform->Count, (r32*)Uniform->V2);
         END_BLOCK();
       } break;
 
       case ShaderUniform_V3:
       {
         TIMED_BLOCK("ShaderUniform_V3");
-        GetGL()->Uniform3fv(Uniform->ID, 1, (r32*)Uniform->V3);
+        GL->Uniform3fv(Uniform->ID, 1, (r32*)Uniform->V3);
         END_BLOCK();
       } break;
 
@@ -698,6 +731,8 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
     // NOTE(Jesse): Uniforms that get optimized out hit this path and it spams the console like crazy
     /* SoftError("Attempted to bind a uniform (%s) with an invalid id (%d)", Uniform->Name, Uniform->ID); */
   }
+
+  AssertNoGlErrors;
 }
 
 link_internal void
@@ -712,7 +747,7 @@ BindUniformByName(shader *Shader, shader_uniform *Uniform, s32 *TextureUnit)
     Uniform->ID = GetGL()->GetUniformLocation(Shader->ID, Uniform->Name);
     if (Uniform->ID != INVALID_SHADER_UNIFORM)
     {
-      BindUniformById(Uniform, TextureUnit);
+      BindUniformById(Uniform, TextureUnit, Uniform->Count);
     }
   }
 }
@@ -725,7 +760,7 @@ BindShaderUniforms(shader *Shader)
   s32 TextureUnit = 0;
   IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
   {
-    BindUniformById(Uniform, &TextureUnit);
+    BindUniformById(Uniform, &TextureUnit, Uniform->Count);
     AssertNoGlErrors;
   }
 
@@ -736,6 +771,7 @@ link_internal void
 CleanupTextureBindings(shader *Shader)
 {
   TIMED_FUNCTION();
+  auto GL = GetGL();
 
   u32 TextureUnit = 0;
   IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
@@ -744,8 +780,8 @@ CleanupTextureBindings(shader *Shader)
     {
       case ShaderUniform_Texture:
       {
-        GetGL()->ActiveTexture(GL_TEXTURE0 + TextureUnit);
-        GetGL()->BindTexture(GL_TEXTURE_2D, 0);
+        GL->ActiveTexture(GL_TEXTURE0 + TextureUnit);
+        GL->BindTexture(GL_TEXTURE_2D, 0);
         TextureUnit++;
       } break;
 

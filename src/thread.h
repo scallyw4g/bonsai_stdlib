@@ -73,14 +73,14 @@ AcquireFutex(bonsai_futex *Futex)
   {
     WaitOnFutex(Futex, False);
   }
-  /* printf("(%d) acquired %p\n", ThreadLocal_ThreadIndex, Futex); */
+  /* printf("(%d) acquired %p\n", ThreadLocal_ThreadIndex, (void*)Futex); */
 }
 
 link_internal void
 ReleaseFutex(bonsai_futex *Futex)
 {
   Ensure( UnsignalFutex(Futex) );
-  /* printf("(%d) released %p\n", ThreadLocal_ThreadIndex, Futex); */
+  /* printf("(%d) released %p\n", ThreadLocal_ThreadIndex, (void*)Futex); */
 }
 
 
