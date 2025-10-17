@@ -1,6 +1,8 @@
-#define UI_FUNCTION_PROTO_NAMES  ui_render_params *Params
-#define UI_FUNCTION_PROTO_DEFAULTS ui_render_params *Params = &DefaultUiRenderParams_Generic
-#define UI_FUNCTION_INSTANCE_NAMES Params
+// TODO(Jesse): Get rid of these; we used to pass individual parameters and
+// have since packed them into that struct
+#define UI_FUNCTION_PROTO_NAMES     ui_render_params *Params
+#define UI_FUNCTION_PROTO_DEFAULTS  ui_render_params *Params = &DefaultUiRenderParams_Generic
+#define UI_FUNCTION_INSTANCE_NAMES  Params
 
 #define UNPACK_UI_RENDER_PARAMS(Params)                                    \
      relative_position          Pos = Params->RelativePosition.Position;   \
@@ -171,6 +173,20 @@ link_internal ui_id
 UiId(const char *Label)
 {
   ui_id Result = {0, 0, 0, UiMaskAndCastPointer(Label)};
+  return Result;
+}
+
+link_internal ui_id
+UiId(window_layout *Window, const char *Interaction, u32 Index, u32 Hash)
+{
+  ui_id Result = {UiMaskAndCastPointer(Hash), UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), Index};
+  return Result;
+}
+
+link_internal ui_id
+UiId(window_layout *Window, const char *Interaction, void *Element, u32 Hash)
+{
+  ui_id Result = {UiMaskAndCastPointer(Hash), UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};
   return Result;
 }
 

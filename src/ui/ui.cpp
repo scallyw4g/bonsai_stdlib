@@ -1701,7 +1701,7 @@ TextBox(renderer_2d* Group, cs Label, cs Dest, u32 DestLen, ui_id ButtonId, ui_r
 /********************************            *********************************/
 
 link_internal window_layout *
-GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId)
+GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId, window_layout_flags Flags)
 {
   maybe_window_layout_ptr MaybeWindow = GetPtrByHashtableKey( &Ui->WindowTable, WindowId );
 
@@ -1714,6 +1714,7 @@ GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId)
   {
     window_layout Dummy = {};
     Dummy.HashtableKey = WindowId;
+    Dummy.Flags = Flags;
     Result = Upsert(Dummy, &Ui->WindowTable, &Ui->WindowTableArena);
   }
 
@@ -1722,10 +1723,10 @@ GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId)
 }
 
 link_internal window_layout *
-GetOrCreateWindow(renderer_2d *Ui, const char *WindowName)
+GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, window_layout_flags Flags = WindowLayoutFlag_Default)
 {
   ui_id ID = UiId(WindowName);
-  window_layout *Result = GetOrCreateWindow(Ui, ID);
+  window_layout *Result = GetOrCreateWindow(Ui, ID, Flags);
 
   if (Result)
   {
@@ -1734,7 +1735,6 @@ GetOrCreateWindow(renderer_2d *Ui, const char *WindowName)
 
   return Result;
 }
-
 
 /*********************************           *********************************/
 /*********************************   Modal   *********************************/
