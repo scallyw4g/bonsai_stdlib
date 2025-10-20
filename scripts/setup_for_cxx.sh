@@ -3,9 +3,9 @@ Delimeter="$RED-----------------------------------------------------------$WHITE
     Info="$BLUE   Info    $WHITE-"
 Success="$GREEN   Success $WHITE-"
 Building="$BLUE   Build   $WHITE-"
-  Warn="$YELLOW   Warning $WHITE-"
-   Failed="$RED   Failed  $WHITE-"
-    Error="$RED   Error   $WHITE-"
+  Warn="$YELLOW * Warning $WHITE-"
+   Failed="$RED ! Failed  $WHITE-"
+    Error="$RED ! Error   $WHITE-"
 
 if [ "$Platform" == "Linux" ] ; then
   PLATFORM_LINKER_OPTIONS="-lpthread -lX11 -ldl -lGL"

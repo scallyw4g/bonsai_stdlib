@@ -262,7 +262,7 @@ poof(generate_string_table(token_cursor_source));
 struct c_token
 {
   c_token_type Type;
-  u8 Flags;
+  u8 Flags; // c_token_flags
 
   union {
     counted_string Value;
@@ -384,7 +384,7 @@ struct c_token_cursor
 
   c_token_cursor_up Up;
 
-  counted_string Filename;
+  cs Filename;
 };
 
 poof(generate_cursor_functions(c_token))
