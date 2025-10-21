@@ -73,14 +73,14 @@ struct parser
 link_internal b32
 AreEqual(parser *P1, parser *P2)
 {
-  NotImplemented;
-  return False;
+  b32 Result = P1->Tokens == P2->Tokens;
+  return Result;
 }
 
 link_internal b32
 AreEqual(parser P1, parser P2)
 {
-  NotImplemented;
+  b32 Result = AreEqual(&P1, &P2);
   return False;
 }
 
