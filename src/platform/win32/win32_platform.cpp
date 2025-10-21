@@ -409,7 +409,7 @@ WindowMessageCallback(
       switch ((int)wParam)
       {
         poof(
-          func (input input_t)
+          func (input input_t) @code_fragment
           {
             input_t.map(member)
             {
@@ -437,7 +437,7 @@ WindowMessageCallback(
       switch ((int)wParam)
       {
         poof(
-          func (input input_t)
+          func (input input_t) @code_fragment
           {
             input_t.map(member)
             {

@@ -2472,7 +2472,7 @@ ResetAllLayouts(ui_render_command_buffer* CommandBuffer)
     {
 
       poof(
-        func (ui_render_command RenderCommandDef)
+        func (ui_render_command RenderCommandDef) @code_fragment
         {
           RenderCommandDef.map_members(Member)
           {
@@ -2519,7 +2519,7 @@ FindAbsoluteDrawBoundsBetween(ui_render_command_buffer* CommandBuffer, u32 First
     {
 
       poof(
-        func (ui_render_command RenderCommandDef)
+        func (ui_render_command RenderCommandDef) @code_fragment
         {
           RenderCommandDef.map_members(Member)
           {
@@ -3617,7 +3617,7 @@ DoTextEditInteraction(renderer_2d *Ui)
     }
 
     poof(
-      func (input input_t)
+      func (input input_t) @code_fragment
       {
         input_t.map(member)
         {

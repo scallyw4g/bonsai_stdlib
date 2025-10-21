@@ -159,7 +159,7 @@ link_internal void
 ClearClickedFlags(input *Input)
 {
 poof(
-  func (input InputDef)
+  func (input InputDef) @code_fragment
   {
     InputDef.map_members (Member)
     {
