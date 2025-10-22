@@ -102,7 +102,7 @@ poof(dunion_debug_print_prototype(declaration))
 #endif
 
 poof(
-  for_datatypes(all).exclude(project_primitives buggy_datatypes d_unions)
+  for_datatypes(struct enum).exclude(project_primitives buggy_datatypes d_unions)
 
     func (StructDef)
     {
@@ -118,7 +118,7 @@ poof(
 #include <debug_print/for_all_datatypes_debug_print_prototypes.h>
 
 poof(
-  for_datatypes(all)
+  for_datatypes(struct enum)
     .exclude(project_primitives buggy_datatypes d_unions)
 
   func (StructDef)
