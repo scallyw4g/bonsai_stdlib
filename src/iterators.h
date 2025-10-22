@@ -73,7 +73,10 @@
 /* #define ReinterpretCast(T, Ptr) (T)(void*)(Ptr) */
 #define ReinterpretCast(T, Object) (*(T*)(&(Object)))
 
+// TODO(Jesse): Rename
 #define TryCast(T, Ptr) ((Ptr)->Type == type_##T ? (&(Ptr)->T) : 0)
+#define DynamicCast(T, Ptr) TryCast(T, Ptr)
+
 #define SafeCast(T, Ptr) (T*)(&(Ptr)->T); Assert((Ptr)->Type == type_##T)
 
 #define SafeAccess(T, Ptr) SafeCast(T, (Ptr))

@@ -797,6 +797,7 @@ poof(
   func hashtable_impl(Type)
   {
     link_internal b32 AreEqual((Type.name)_linked_list_node *Node1, (Type.name)_linked_list_node *Node2 );
+    link_internal b32 AreEqual((Type.name) *Element1, (Type.name) *Element2 );
 
     link_internal (Type.name)_linked_list_node *
     Allocate_(Type.name)_linked_list_node(memory_arena *Memory)
@@ -859,7 +860,7 @@ poof(
       (Type.name)_linked_list_node **Bucket = Table->Elements + HashValue;
       while (*Bucket)
       {
-        /* Assert(!AreEqual(*Bucket, Node)); */
+        /* Assert(!AreEqual(&Bucket[0]->Element, &Node->Element)); */
         Bucket = &(*Bucket)->Next;
       }
       *Bucket = Node;
@@ -1834,6 +1835,24 @@ poof(
       EnumType.map_values(TEnumV)
       {
         if (StringsMatch(S, CSz("TEnumV.name"))) { return TEnumV.name; }
+      }
+
+      return Result;
+    }
+  }
+)
+
+poof(
+  func generate_value_table_prefixless(EnumType)
+  {
+    link_internal (EnumType.name)
+    (EnumType.name.to_capital_case)Prefixless(counted_string S)
+    {
+      EnumType.name Result = {};
+
+      EnumType.map_values(TEnumV)
+      {
+        if (StringsMatch(S, CSz("TEnumV.name.strip_single_prefix"))) { return TEnumV.name; }
       }
 
       return Result;
