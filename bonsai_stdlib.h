@@ -170,8 +170,15 @@ struct bonsai_stdlib
                   os  Os;
             platform  Plat;
      application_api  AppApi;
-  thread_local_state *ThreadStates;
               opengl  GL;
+
+  // NOTE(Jesse): If we've setup a thread pool we allocate ThreadStates (and
+  // set ThreadLocal_ThreadIndex for each thread), but if we just want a
+  // single-threaded program (or want to access a thread_local_state before
+  // we've initialized stdlib) we don't have to bother with that.. there's just
+  // a sentinal here.
+  thread_local_state *ThreadStates;
+  thread_local_state  DefaultThreadState;
 
   hot_reloadable_file ShaderHeaderFile;
           ansi_stream ShaderHeaderCode;

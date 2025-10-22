@@ -111,11 +111,18 @@ WorkerThread_BeforeJobStart(thread_local_state *Thread)
 link_internal thread_local_state *
 GetThreadLocalState(s32 ThreadIndex)
 {
-  Assert(ThreadIndex >= 0);
   Assert(ThreadIndex < (s32)GetTotalThreadCount());
 
   auto Stdlib = GetStdlib();
-  return Stdlib->ThreadStates + ThreadIndex;
+  if (ThreadIndex >= 0)
+  {
+    return Stdlib->ThreadStates + ThreadIndex;
+  }
+  else
+  {
+    return &Stdlib->DefaultThreadState;
+  }
+
 }
 
 link_internal memory_arena*
