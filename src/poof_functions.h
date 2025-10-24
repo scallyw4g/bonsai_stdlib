@@ -2531,23 +2531,36 @@ poof(
     }
 
     link_internal void
-    Shift( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Element )
+    Insert( block_array_t *Array, index_t Index, element_t.name element_t.is_pointer?{}{*}Element )
     {
+      Assert(Index.Index <= LastIndex(Array).Index);
       Assert(Array->Memory);
-      element_t.name element_t.is_pointer?{}{*}Prev = {};
 
       // Alocate a new thingy
-      Push(Array);
+      element_t.name element_t.is_pointer?{}{*}Prev = Push(Array);
 
-      auto End = AtElements(Array);
-      RangeIteratorReverse(Index, s32(End.Index))
+      auto Last = LastIndex(Array);
+
+      RangeIteratorReverseRange(I, s32(Last.Index), s32(Index.Index))
       {
-        auto E = GetPtr(Array, umm(Index));
-        if (Prev) { *Prev = *E; }
+        auto E = GetPtr(Array, umm(I));
+        *Prev = *E;
         Prev = E;
       }
 
       *Prev = *Element;
+    }
+
+    link_internal void
+    Insert( block_array_t *Array, u32 Index, element_t.name element_t.is_pointer?{}{*}Element )
+    {
+      Insert(Array, { .Index = Index }, Element);
+    }
+
+    link_internal void
+    Shift( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Element )
+    {
+      Insert(Array, { .Index = 0 }, Element);
     }
 
     element_t.has_tag(do_editor_ui)?
