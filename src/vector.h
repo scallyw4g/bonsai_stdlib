@@ -16,8 +16,6 @@ union v2
   struct { r32 x; r32 y; };
 };
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
 union v3i
 {
   s32 E[3];
@@ -184,7 +182,6 @@ V4( f32 x, f32 y, f32 z, f32 w)
 }
 
 
-#pragma GCC diagnostic pop
 
 
 typedef v3i voxel_position;

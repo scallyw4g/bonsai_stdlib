@@ -60,7 +60,7 @@ SetupStdout(u32 ArgCount, const char** ArgStrings)
         ArgIndex += 1;
         counted_string LevelString = CS(ArgStrings[ArgIndex]);
         log_level Level = LogLevel(LevelString);
-        if (Level > LogLevel_Undefined)
+        if (IsValid(Level))
         {
           Global_LogLevel = Level;
           Info("Setting Global_LogLevel to %S", LevelString);

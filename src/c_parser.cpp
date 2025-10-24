@@ -1136,7 +1136,7 @@ OutputContextMessage(parser* Parser, parse_error_code ErrorCode, counted_string 
     u64 LongestLine = Max(MinLineLen, GetLongestLineInCursor(ParseErrorCursor));
     LongestLine = Max(MinLineLen, (u64)NameLine.Count+4);
 
-    string_builder Builder = {};
+    string_builder Builder = StringBuilder();
 
     /* u64 HalfDashes = (LongestLine-NameLine.Count)/2; */
     /* for (u32 DashIndex = 0; DashIndex < HalfDashes; ++DashIndex) { Append(&Builder, CSz("-")); } */

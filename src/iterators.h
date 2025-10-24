@@ -77,13 +77,16 @@
 #define TryCast(T, Ptr) ((Ptr)->Type == type_##T ? (&(Ptr)->T) : 0)
 #define DynamicCast(T, Ptr) TryCast(T, Ptr)
 
-#define SafeCast(T, Ptr) (T*)(&(Ptr)->T); Assert((Ptr)->Type == type_##T)
+#define SafeCast(T, Ptr) (&(Ptr)->T); Assert((Ptr)->Type == type_##T)
 
 #define SafeAccess(T, Ptr) SafeCast(T, (Ptr))
 #define SafeAccessPtr(T, Ptr) ((Ptr)->T); Assert((Ptr)->Type == type_##T)
 
 #define tswitch(Ptr)  switch ((Ptr)->Type)
-#define tmatch(type_name, match_name, var_name) case type_##type_name: type_name *var_name = (type_name*)(&(match_name)->type_name); Assert((match_name)->Type == type_##type_name);
+#define tmatch(type_name, match_name, var_name) case type_##type_name: type_name *var_name = &((match_name)->type_name); Assert((match_name)->Type == type_##type_name);
+
+#define unbox(Ptr) Assert(IsValid(Ptr->Type)); switch(Ptr->Type)
+#define unboxed_value(type_name, match_name, var_name) tmatch(type_name, match_name, var_name)
 
 
 #define ITERATE_OVER_AS(prefix, value_ptr)         \

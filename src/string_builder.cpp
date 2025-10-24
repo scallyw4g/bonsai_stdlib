@@ -1,3 +1,10 @@
+link_internal string_builder
+StringBuilder()
+{
+  string_builder Result = {};
+  Result.Chunks.Memory = AllocateArena();
+  return Result;
+}
 
 link_internal void
 Discard(string_builder* Builder)
@@ -6,7 +13,7 @@ Discard(string_builder* Builder)
 }
 
 link_internal counted_string
-Finalize(string_builder* Builder, memory_arena* PermMemory, b32 IncludeNullTerminator = False)
+Finalize(string_builder *Builder, memory_arena* PermMemory, b32 IncludeNullTerminator = False)
 {
   TIMED_FUNCTION();
   u32 TotalMemRequired = 0;
@@ -16,9 +23,9 @@ Finalize(string_builder* Builder, memory_arena* PermMemory, b32 IncludeNullTermi
     TotalMemRequired += 1;
   }
 
-  ITERATE_OVER(&Builder->Chunks)
+  RangeIterator_t(u32, ElementIndex, Builder->Chunks.ElementCount)
   {
-    counted_string* At = GET_ELEMENT(Iter);
+    counted_string* At = GetPtr(&Builder->Chunks, ElementIndex);
     TotalMemRequired += At->Count;
   }
 
@@ -26,9 +33,10 @@ Finalize(string_builder* Builder, memory_arena* PermMemory, b32 IncludeNullTermi
 
   u32 AtIndex = 0;
 
-  ITERATE_OVER(&Builder->Chunks)
+  RangeIterator_t(u32, ElementIndex, Builder->Chunks.ElementCount)
   {
-    counted_string* At = GET_ELEMENT(Iter);
+    counted_string* At = GetPtr(&Builder->Chunks, ElementIndex);
+
     MemCopy((u8*)At->Start, (u8*)(Result.Start+AtIndex), At->Count);
     AtIndex += At->Count;
     Assert(AtIndex <= Result.Count);
@@ -48,3 +56,16 @@ Finalize(string_builder* Builder, memory_arena* PermMemory, b32 IncludeNullTermi
 
   return Result;
 }
+
+link_internal void
+Append(string_builder* Builder, counted_string String)
+{
+  Push(&Builder->Chunks, &String);
+}
+
+link_internal void
+Prepend(string_builder* Builder, counted_string String)
+{
+  Shift(&Builder->Chunks, &String);
+}
+

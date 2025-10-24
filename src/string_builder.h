@@ -1,21 +1,9 @@
 struct string_builder
 {
-  counted_string_stream Chunks = { AllocateArena(0, True, False), 0, 0, 0 };
+  counted_string_block_array Chunks;
 };
 
-link_internal string_builder
-StringBuilder(memory_arena *Memory)
-{
-  string_builder Result = {{0,0,0,0}};
-  Assert(Result.Chunks.Memory == 0);
-  Result.Chunks.Memory = Memory;
-  return Result;
-}
-
-link_internal void
-Append(string_builder* Builder, counted_string String)
-{
-  Push(&Builder->Chunks, String);
-}
-
+link_internal string_builder StringBuilder();
+link_internal void Append(string_builder* Builder, counted_string String);
+link_internal void Prepend(string_builder* Builder, counted_string String);
 

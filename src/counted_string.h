@@ -1134,3 +1134,6 @@ Frontcate(cs *S, umm Count)
 {
   if (S->Count >= Count) { S->Count -= Count; S->Start += Count; }
 }
+
+poof(block_array_h(counted_string, {32}, {}))
+#include <generated/block_array_h_counted_string_688853862_0_889429130_894106509_562163350.h>

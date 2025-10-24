@@ -98,7 +98,10 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
   /* fseek(File.Handle, s32(Header.OffsetToPixelData), SEEK_SET); */
 
   u8 *SrcPixels = Buf.At;
-  switch (bitmap_compression_type(Header.Image.CompressionType))
+  bitmap_compression_type Type = bitmap_compression_type(Header.Image.CompressionType);
+  Assert(IsValid(Type));
+
+  switch (Type)
   {
     case BitmapCompressionType_RGB:
     {

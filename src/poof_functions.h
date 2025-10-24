@@ -1115,19 +1115,19 @@ poof(
 
 
 poof(
-  func dunion_debug_print_prototype(DUnion)
+  func dunion_debug_print_prototype(tagged_union_t)
   {
-    link_internal void DebugPrint( (DUnion.type) *Struct, u32 Depth = 0);
-    link_internal void DebugPrint( (DUnion.type) Struct, u32 Depth = 0);
+    link_internal void DebugPrint( (tagged_union_t.type) *Struct, u32 Depth = 0);
+    link_internal void DebugPrint( (tagged_union_t.type) Struct, u32 Depth = 0);
   }
 )
 
 poof(
-  func dunion_debug_print(DUnion)
+  func dunion_debug_print(tagged_union_t)
   {
-    /* dunion_debug_print_prototype(DUnion) */
+    /* dunion_debug_print_prototype(tagged_union_t) */
 
-    DUnion.map_members (M)
+    tagged_union_t.map_members (M)
     {
       M.is_union?
       {
@@ -1139,29 +1139,29 @@ poof(
     }
 
     link_internal void
-    DebugPrint( (DUnion.name) *Struct, u32 Depth)
+    DebugPrint( (tagged_union_t.name) *Struct, u32 Depth)
     {
-      DebugPrint("DUnion.name {\n", Depth);
+      DebugPrint("tagged_union_t.name {\n", Depth);
 
       if (Struct)
       {
-        switch(Struct->Type)
+        unbox(Struct)
         {
-          DUnion.map_members (M)
+          tagged_union_t.map_members (M)
           {
             M.is_union?
             {
               M.map_members (UnionMember)
               {
-                case type_(UnionMember.type):
                 {
-                  DebugPrint(&Struct->(UnionMember.name), Depth+4);
+                  unboxed_value( (UnionMember.type), Struct, Unboxed  )
+                  DebugPrint(Unboxed, Depth+4);
                 } break;
               }
             }
           }
 
-          default : { DebugPrint("default while printing ((DUnion.type)) ((DUnion.name)) ", Depth+4); DebugLine("Type(%d)", Struct->Type); } break;
+          default : { DebugPrint("default while printing ((tagged_union_t.type)) ((tagged_union_t.name)) ", Depth+4); DebugLine("Type(%d)", Struct->Type); } break;
         }
       }
       else
@@ -1172,7 +1172,7 @@ poof(
     }
 
     link_internal void
-    DebugPrint( (DUnion.name) Struct, u32 Depth)
+    DebugPrint( (tagged_union_t.name) Struct, u32 Depth)
     {
       DebugPrint(&Struct, Depth);
     }
@@ -1564,11 +1564,12 @@ poof(
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
       Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name))*ElementCount, 1, 0);
-      (Type.name)_cursor Result = {
-        .Start = Start,
-        .End = Start+ElementCount,
-        .At = Start,
-      };
+      (Type.name)_cursor Result = {};
+
+      Result.Start = Start;
+      Result.End = Start+ElementCount;
+      Result.At = Start;
+
       return Result;
     }
 
@@ -1737,20 +1738,24 @@ poof(
 )
 
 poof(
-  func generate_string_table(EnumType)
+  func generate_string_table(enum_t)
   {
+    is_valid(enum_t)
+
     link_internal counted_string
-    ToStringPrefixless((EnumType.name) Type)
+    ToStringPrefixless((enum_t.name) Type)
     {
+      Assert(IsValid(Type));
       counted_string Result = {};
+
       switch (Type)
       {
-        EnumType.map_values (EnumValue)
+        enum_t.map_values (EnumValue)
         {
           case EnumValue.name: { Result = CSz("EnumValue.name.strip_all_prefix"); } break;
         }
 
-        EnumType.has_tag(bitfield)?
+        enum_t.has_tag(bitfield)?
         {
           // TODO(Jesse): This is pretty barf and we could do it in a single allocation,
           // but the metaprogram might have to be a bit fancier..
@@ -1770,12 +1775,12 @@ poof(
               default:
               {
                 u32 FirstValue = UnsetLeastSignificantSetBit(&CurrentFlags);
-                Result = ToStringPrefixless((EnumType.name)(FirstValue));
+                Result = ToStringPrefixless((enum_t.name)(FirstValue));
 
                 while (CurrentFlags)
                 {
                   u32 Value = UnsetLeastSignificantSetBit(&CurrentFlags);
-                  cs Next = ToStringPrefixless((EnumType.name)(Value));
+                  cs Next = ToStringPrefixless((enum_t.name)(Value));
                   Result = FSz("%S | %S", Result, Next);
                 }
               } break;
@@ -1783,22 +1788,24 @@ poof(
           } break;
         }
       }
-      /* if (Result.Start == 0) { Info("Could not convert value(%d) to (EnumType.name)", Type); } */
+      /* if (Result.Start == 0) { Info("Could not convert value(%d) to (enum_t.name)", Type); } */
       return Result;
     }
 
     link_internal counted_string
-    ToString((EnumType.name) Type)
+    ToString((enum_t.name) Type)
     {
+      Assert(IsValid(Type));
+
       counted_string Result = {};
       switch (Type)
       {
-        EnumType.map_values (EnumValue)
+        enum_t.map_values (EnumValue)
         {
           case EnumValue.name: { Result = CSz("EnumValue.name"); } break;
         }
 
-        EnumType.has_tag(bitfield)?
+        enum_t.has_tag(bitfield)?
         {
           // TODO(Jesse): This is pretty barf and we could do it in a single allocation,
           // but the metaprogram might have to be a bit fancier..
@@ -1807,18 +1814,18 @@ poof(
             u32 CurrentFlags = u32(Type);
 
             u32 FirstValue = UnsetLeastSignificantSetBit(&CurrentFlags);
-            Result = ToString((EnumType.name)(FirstValue));
+            Result = ToString((enum_t.name)(FirstValue));
 
             while (CurrentFlags)
             {
               u32 Value = UnsetLeastSignificantSetBit(&CurrentFlags);
-              cs Next = ToString((EnumType.name)(Value));
+              cs Next = ToString((enum_t.name)(Value));
               Result = FSz("%S | %S", Result, Next);
             }
           } break;
         }
       }
-      /* if (Result.Start == 0) { Info("Could not convert value(%d) to (EnumType.name)", Type); } */
+      /* if (Result.Start == 0) { Info("Could not convert value(%d) to (enum_t.name)", Type); } */
       return Result;
     }
   }
@@ -2371,11 +2378,11 @@ poof(
     @var block_t       (element_t.name)_block
     @var index_t       (element_t.name)_block_array_index
 
-    link_internal cs
-    CS( index_t Index )
-    {
-      return FSz("(%u)", Index.Index);
-    }
+    /* link_internal cs */
+    /* CS( index_t Index ) */
+    /* { */
+    /*   return FSz("(%u)", Index.Index); */
+    /* } */
 
     link_internal element_t.name element_t.is_pointer?{}{*}
     Set( block_array_t *Arr,
@@ -2596,92 +2603,29 @@ poof(
 )
 
 poof(
-  func draw_tagged_union(d_union_type)
+  func is_valid(enum_t)
   {
-    d_union_type.map_members (union_member)
+    enum_t.is_enum?
     {
-      union_member.is_union?
+      link_internal b32
+      IsValid((enum_t.name) Value)
       {
-        union_member.map_members(sub_type)
+        b32 Result = False;
+        switch (Value)
         {
-          (draw_datastructure(sub_type))
-        }
-      }
-    }
-
-    link_internal void
-    Draw(renderer_2d *Ui, d_union_type.name *DUnion, ui_style* Style = &DefaultStyle, v4 Padding = DefaultDatastructurePadding, column_render_params Params = ColumnRenderParam_LeftAlign)
-    {
-      switch (DUnion->Type)
-      {
-        d_union_type.map_members(anon_union) {
-          anon_union.is_union? {
-
-            InvalidCase(type_(d_union_type.name)_noop);
-
-            anon_union.map_members (union_member)
-            {
-              case type_(union_member.name):
-              {
-                PushColumn(Ui, CSz("union_member.name {"), Style, Padding, Params);
-                PushNewRow(Ui);
-
-                Draw(Ui, &DUnion->(union_member.name), Style, Padding + DatastructureIndent, Params);
-
-                PushColumn(Ui, CSz("}"), Style, Padding, Params);
-                PushNewRow(Ui);
-              } break;
-            }
-          }
-        }
-      }
-    }
-  }
-)
-
-poof(
-  func draw_datastructure(type)
-  {
-    link_internal void
-    Draw(renderer_2d *Ui, type.name *Element, ui_style* Style = &DefaultStyle, v4 Padding = DefaultDatastructurePadding, column_render_params Params = ColumnRenderParam_LeftAlign)
-    {
-      type.map_members (member)
-      {
-        member.is_enum?
-        {
-          PushColumn(Ui, CSz("member.name : "), Style, Padding, Params);
-          PushColumn(Ui, ToString(Element->(member.name)), Style, DefaultDatastructurePadding, Params);
-        }
-        {
-          member.is_primitive?
+          enum_t.map(m)
           {
-            PushColumn(Ui, CSz("member.name : "), Style, Padding, Params);
-            PushColumn(Ui, CS(Element->(member.name)), Style, DefaultDatastructurePadding, Params);
+            case m.name:
           }
           {
-            member.is_union?
-            {
-              PushColumn(Ui, CSz(" -- skipping union_member -- "));
-              /* cs ButtonNameOff = CSz(" + member.name"); */
-            }
-            {
-              {
-                cs ButtonNameOn = CSz(" - member.name : {");
-                cs ButtonNameOff = CSz(" + member.name");
-                if (ToggleButton(Ui, ButtonNameOn, ButtonNameOff, umm(ButtonNameOn.Start) ^ umm(Element), Style, Padding, Params ))
-                {
-                  PushNewRow(Ui);
-
-                  Draw(Ui, &Element->(member.name), Style, Padding + DatastructureIndent, Params);
-
-                  PushColumn(Ui, CSz("}"), Style, Padding, Params);
-                }
-              }
-            }
+            Result = True;
           }
         }
-        PushNewRow(Ui);
+        return Result;
       }
+    }
+    {
+      poof_error { aw shit dawg }
     }
   }
 )

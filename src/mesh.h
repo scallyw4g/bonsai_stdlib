@@ -148,7 +148,6 @@ ReserveBufferSpace(untextured_3d_geometry_buffer *Src, u32 ElementsToReserve)
       {
         if ( AtomicCompareExchange(&Src->At, (u32)ReservationRequest, (u32)ReservationAt) )
         {
-          // TODO(Jesse): Make this switch
           switch(Src->Type)
           {
             InvalidCase(DataType_Undefinded);
