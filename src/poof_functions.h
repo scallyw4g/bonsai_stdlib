@@ -2378,11 +2378,11 @@ poof(
     @var block_t       (element_t.name)_block
     @var index_t       (element_t.name)_block_array_index
 
-    /* link_internal cs */
-    /* CS( index_t Index ) */
-    /* { */
-    /*   return FSz("(%u)", Index.Index); */
-    /* } */
+    link_internal cs
+    CS( index_t Index )
+    {
+      return FSz("(%u)", Index.Index);
+    }
 
     link_internal element_t.name element_t.is_pointer?{}{*}
     Set( block_array_t *Arr,

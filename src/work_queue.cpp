@@ -49,7 +49,7 @@ DrainQueue(work_queue* Queue, thread_local_state* Thread, application_api *GameA
                                            DequeueIndex );
     if ( Exchanged )
     {
-      volatile work_queue_entry* Entry = Queue->Entries + DequeueIndex;
+      work_queue_entry* Entry = Cast(work_queue_entry *, Queue->Entries + DequeueIndex);
       /* GameWorkerThreadCallback(Entry, Thread); */
       HandleJob(Entry, Thread, GameApi);
     }
@@ -154,7 +154,7 @@ DefaultWorkerThread(void *Input)
                                               DequeueIndex );
       if ( Exchanged )
       {
-        volatile work_queue_entry *Entry = LowPriority->Entries+DequeueIndex;
+        work_queue_entry *Entry = Cast(work_queue_entry *, LowPriority->Entries+DequeueIndex);
 
         HandleJob(Entry, Thread, &GetStdlib()->AppApi);
 

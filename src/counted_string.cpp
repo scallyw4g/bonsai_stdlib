@@ -1,4 +1,14 @@
 
+// This is to silence the warnings when passing counted_strings
+#define FormatCountedString(Memory, Fmt, ...)             \
+  _Pragma("clang diagnostic push")                        \
+  _Pragma("clang diagnostic ignored \"-Wclass-varargs\"") \
+  FormatCountedString_(Memory, Fmt, __VA_ARGS__)          \
+  _Pragma("clang diagnostic pop")
+
+#define FCS(Fmt, ...) FormatCountedString(GetTranArena(), Fmt, __VA_ARGS__)
+#define FSz(Fmt, ...) FormatCountedString(GetTranArena(), CSz(Fmt), __VA_ARGS__)
+
 link_internal u8*
 HeapAllocate(heap_allocator *Allocator, umm RequestedSize);
 
@@ -15,9 +25,6 @@ GetTempFmtBuffer()
     return Thread->TempStdoutFormatStringBuffer;
   }
 }
-
-poof(block_array_c(counted_string, {32}))
-#include <generated/block_array_c_counted_string_688853862_counted_string_block_array_counted_string_block_counted_string_block_array_index.h>
 
 poof(buffer(counted_string))
 #include <generated/buffer_counted_string.h>
@@ -653,16 +660,6 @@ FormatCountedString_(char_cursor* DestCursor, counted_string FS, va_list Args)
   return Result;
 }
 
-// This is to silence the warnings when passing counted_strings
-#define FormatCountedString(Memory, Fmt, ...)             \
-  _Pragma("clang diagnostic push")                        \
-  _Pragma("clang diagnostic ignored \"-Wclass-varargs\"") \
-  FormatCountedString_(Memory, Fmt, __VA_ARGS__)          \
-  _Pragma("clang diagnostic pop")
-
-#define FCS(Fmt, ...) FormatCountedString(GetTranArena(), Fmt, __VA_ARGS__)
-#define FSz(Fmt, ...) FormatCountedString(GetTranArena(), CSz(Fmt), __VA_ARGS__)
-
 link_internal counted_string
 FormatCountedString_(memory_arena* Memory, counted_string FS, ...)
 {
@@ -908,3 +905,6 @@ Split(cs String, char SplitTarget, memory_arena *Memory)
   return Result;
 }
 
+
+poof(block_array_c(counted_string, {32}))
+#include <generated/block_array_c_counted_string_688853862_counted_string_block_array_counted_string_block_counted_string_block_array_index.h>
