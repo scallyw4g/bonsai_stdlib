@@ -637,6 +637,8 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
 {
   auto GL = GetGL();
 
+  s32 Count = Uniform->Count ? s32(*Uniform->Count) : 1;
+
   if (Uniform->ID >= 0)
   {
     switch(Uniform->Type)
@@ -647,7 +649,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
       {
         TIMED_BLOCK("ShaderUniform_Texture");
         Assert(*TextureUnit > -1);
-        Assert(Uniform->Count == 1);
+        Assert(Count == 1);
 
         if (*TextureUnit > 8)
         {
@@ -666,7 +668,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
       case ShaderUniform_U32:
       {
         TIMED_BLOCK("ShaderUniform_U32");
-        Assert(Uniform->Count == 1);
+        Assert(Count == 1);
         GL->Uniform1ui(Uniform->ID, *Uniform->U32);
         END_BLOCK();
       } break;
@@ -674,7 +676,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
       case ShaderUniform_R32:
       {
         TIMED_BLOCK("ShaderUniform_R32");
-        Assert(Uniform->Count == 1);
+        Assert(Count == 1);
         GL->Uniform1f(Uniform->ID, *Uniform->R32);
         END_BLOCK();
       } break;
@@ -682,7 +684,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
       case ShaderUniform_S32:
       {
         TIMED_BLOCK("ShaderUniform_S32");
-        Assert(Uniform->Count == 1);
+        Assert(Count == 1);
         GL->Uniform1i(Uniform->ID, *Uniform->S32);
         END_BLOCK();
       } break;
@@ -690,8 +692,8 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
       case ShaderUniform_M4:
       {
         TIMED_BLOCK("ShaderUniform_M4");
-        Assert(Uniform->Count);
-        GL->UniformMatrix4fv(Uniform->ID, Uniform->Count, GL_FALSE, (r32*)Uniform->M4);
+        Assert(Count);
+        GL->UniformMatrix4fv(Uniform->ID, Count, GL_FALSE, (r32*)Uniform->M4);
         END_BLOCK();
       } break;
 
@@ -699,8 +701,8 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
       {
         TIMED_BLOCK("ShaderUniform_V2");
 
-        Assert(Uniform->Count);
-        GL->Uniform2fv(Uniform->ID, Uniform->Count, (r32*)Uniform->V2);
+        Assert(Count);
+        GL->Uniform2fv(Uniform->ID, Count, (r32*)Uniform->V2);
         END_BLOCK();
       } break;
 
@@ -708,8 +710,8 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
       {
         TIMED_BLOCK("ShaderUniform_V3");
 
-        Assert(Uniform->Count);
-        GL->Uniform3fv(Uniform->ID, Uniform->Count, (r32*)Uniform->V3);
+        Assert(Count);
+        GL->Uniform3fv(Uniform->ID, Count, (r32*)Uniform->V3);
         END_BLOCK();
       } break;
 

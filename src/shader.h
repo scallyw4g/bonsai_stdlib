@@ -30,15 +30,31 @@ poof(
 
             shader_struct.map(member)
             {
-              member.has_tag(uniform)?
+              member.tags(tag)
               {
-                Element->member.name = member.name;
-                InitShaderUniform(
-                    &Element->Program,
-                     UniformIndex++,
-                     member.is_pointer?{}{&}Element->member.name,
-                     "member.name"
-                     member.has_tag(array_length)? {, Cast(u16, member.tag_value(array_length))});
+                tag.is_named(uniform)?
+                {
+                  Element->member.name = member.name;
+                  InitShaderUniform(
+                      &Element->Program,
+                       UniformIndex++,
+
+                        /// Insert the value of the uniform tag, otherwise use
+                        /// a default
+                        tag.value?
+                        {
+                          tag.value(1),
+                          tag.value(0),
+                          tag.value(2)
+                        }
+                        {
+                          member.is_pointer?{}{&}Element->member.name,
+                          "member.name"
+                           member.has_tag(array_length)? {, Cast(u16, member.tag_value(array_length))}
+                        }
+                      );
+
+                }
               }
             }
 
@@ -73,13 +89,16 @@ poof(
         s32 UniformIndex = 0;
         shader_struct.map(member)
         {
-          member.has_tag(uniform)?
+          member.tags(tag)
           {
+            tag.is_named(uniform)?
             {
-              shader_uniform *Uniform = Element->Uniforms+UniformIndex;
-              BindUniformById(Uniform, &TextureUnit);
-              ++UniformIndex;
-              AssertNoGlErrors;
+                {
+                  shader_uniform *Uniform = Element->Uniforms+UniformIndex;
+                  BindUniformById(Uniform, &TextureUnit);
+                  ++UniformIndex;
+                  AssertNoGlErrors;
+                }
             }
           }
         }
@@ -150,7 +169,7 @@ struct camera;
 struct shader_uniform
 {
   shader_uniform_type Type;
-  u16 Count;
+  u32 *Count; // Optional.  If set to null, Count is assumed to be 1
 
   union {
     texture *Texture;
@@ -189,7 +208,7 @@ struct shader
 typedef shader* shader_ptr;
 
 poof(block_array_h(shader_ptr, {64}, {}))
-#include <generated/block_array_h_shader_ptr_688853971_0.h>
+#include <generated/block_array_h_shader_ptr_688853972_0.h>
 
 enum shader_language_setting
 {

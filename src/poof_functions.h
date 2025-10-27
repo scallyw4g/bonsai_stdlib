@@ -15,7 +15,7 @@ poof(
   {
 
     b32
-    InitShaderUniform(shader *Shader, u32 Index, uniform_t.name *Value, const char *Name, u16 Count)
+    InitShaderUniform(shader *Shader, u32 Index, uniform_t.name *Value, const char *Name, u32 *Count)
     {
       /* Assert(Count); */
       Assert(Index < Shader->Uniforms.Count);
@@ -35,7 +35,9 @@ poof(
     b32
     InitShaderUniform(shader *Shader, u32 Index, uniform_t.name *Value, const char *Name)
     {
-      return InitShaderUniform(Shader, Index, Value, Name, 1);
+      // Setting this to null implies a count of 1
+      u32 *CountPtr = 0;
+      return InitShaderUniform(Shader, Index, Value, Name, CountPtr);
     }
   }
 );
@@ -1235,7 +1237,7 @@ poof(
     @var type_name (Type)_static_cursor_(StaticCount)
     struct type_name
     {
-      Type.name Start[StaticCount];
+      Type.name Start[StaticCount]; poof(@array_length(Element->At))
       u32 At;
     };
 

@@ -518,6 +518,43 @@ CosineInterpolate( float t, f32 y1, f32 y2 )
 }
 
 
+f32 RemapSample(f32 SampleX, v2 Points[16], u32 PointCount )
+{
+
+  f32 Result = -1.f;
+  v2 PrevP = Points[0];
+  for (u32 PointIndex = 1u; PointIndex < PointCount; ++PointIndex)
+  {
+    v2 NextP = Points[PointIndex];
+
+    if (SampleX >= PrevP.x && SampleX < NextP.x)
+    {
+
+
+      r32 Range = PrevP.x - NextP.x;
+      r32 t = Clamp01((SampleX-NextP.x) / Range);
+
+      Result = CosineInterpolate(t, NextP.y, PrevP.y);
+
+      /* Result = mix(NextP.y, PrevP.y, t); */
+
+      /* Result = QuinticInterpolate(Result); */
+      /* Result = QuinticInterpolate(Result); */
+
+      /* Result = CubicInterpolate(Result); */
+      /* Result = Smoothstep(Result); */
+      /* Result = Smoothstep(Result); */
+
+      break;
+    }
+
+    PrevP = NextP;
+  }
+
+  /* Result = abs(max(Result, 1.0)); */
+  return Result;
+}
+
 f32 RemapSample(f32 SampleX)
 {
 
