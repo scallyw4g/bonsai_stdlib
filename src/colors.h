@@ -295,7 +295,7 @@ UnpackHSVColorToRGB(u16 Packed)
 }
 
 link_internal u16
-PackHSVColor(v3 Color)
+PackV3_16b(v3 Color)
 {
   /* u8 FourBits   = 0b1111; */
   u8 FiveBits   = 0b11111;
@@ -322,7 +322,7 @@ link_internal u16
 RGBtoPackedHSV(v3 RGB)
 {
   v3 HSV = RGBtoHSV(RGB);
-  u16 Packed = PackHSVColor(HSV);
+  u16 Packed = PackV3_16b(HSV);
   return Packed;
 }
 
