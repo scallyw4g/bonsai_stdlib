@@ -3349,7 +3349,11 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
           if (TypedCommand->Texture)
           {
+            Assert(Group->TextGroup->Buf.Handles.Mapped == False);
             Assert(Group->TextGroup->Buf.Buffer.At == 0);
+
+            MapGpuBuffer(&Group->TextGroup->Buf);
+
             GL->BindTexture(GL_TEXTURE_2D, 0);
             GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
@@ -3360,20 +3364,23 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
             UseShader(TexturedQuadRP);
 
+            s32 SliceToUse = -1;
             if (TypedCommand->TextureSlice < 0)
             {
               Assert(TypedCommand->Texture->Slices == 1);
+              SliceToUse = s32(TypedCommand->Texture->Slices);
               BindUniformByName(&TexturedQuadRP->Program, "Texture", TypedCommand->Texture, 0);
             }
             else
             {
               Assert(TypedCommand->Texture->Slices > 1);
+              SliceToUse = TypedCommand->TextureSlice;
               BindUniformByName(&TexturedQuadRP->Program, "TextureArray", TypedCommand->Texture, 0);
             }
 
             // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
             // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
-            BufferUiQuad(*Group->ScreenDim, &Group->TextGroup->Buf, TypedCommand->TextureSlice, QuadShapingOp_None, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
+            BufferUiQuad(*Group->ScreenDim, &Group->TextGroup->Buf, SliceToUse, QuadShapingOp_None, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
 
 
             GL->Enable(GL_BLEND);
