@@ -1,14 +1,13 @@
+#define STRINGIZE2(x) #x
+#define STRINGIZE(x) STRINGIZE2(x)
+#define LINE_STRING STRINGIZE(__LINE__)
+
+
 #if BONSAI_INTERNAL
 
 #  define Ensure(condition) Assert((condition))
 
-
-
 void assert_fail(cs, cs, const char *);
-
-#define STRINGIZE2(x) #x
-#define STRINGIZE(x) STRINGIZE2(x)
-#define LINE_STRING STRINGIZE(__LINE__)
 
 #  define Assert(condition)                                                    \
     do { if (!(condition)) { assert_fail(CSz("Assert(%S) during %s()" __FILE__ ":" LINE_STRING), CSz(#condition), __FUNCTION__); } } while (false)
