@@ -260,6 +260,18 @@ RGBtoHSV(v3 RGB)
 }
 
 link_internal v3
+UnpackV3_15b(u16 Packed)
+{
+  s32 FiveBits = 31;
+
+  r32 x = ((Packed >> 10) & FiveBits) / r32(FiveBits);
+  r32 y = ((Packed >> 5) & FiveBits) / r32(FiveBits);
+  r32 z =  (Packed & FiveBits) / r32(FiveBits);
+  v3 Result = V3(x, y, z);
+  return Result;
+}
+
+link_internal v3
 UnpackHSVColor(u16 Packed)
 {
   /* u8 FourBits   = 0b1111; */
@@ -396,6 +408,12 @@ link_internal void
 FillArray(v2 Element, v2 *Dest, s32 Count)
 {
   for (s32 Index = 0; Index < Count; ++Index) { Dest[Index] = Element; }
+}
+
+link_internal void
+FillArray(v3 Element, v3_u8 *Dest, s32 Count)
+{
+  for (s32 Index = 0; Index < Count; ++Index) { Dest[Index] = V3U8(Element*128.f); }
 }
 
 link_internal void
