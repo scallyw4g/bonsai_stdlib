@@ -46,10 +46,17 @@ float rand(vec2 st) {
 #define v4 vec4
 #define v3 vec3
 #define v2 vec2
-
 #define V4 vec4
 #define V3 vec3
 #define V2 vec2
+
+#define v2i ivec2
+#define v3i ivec3
+#define v4i ivec4
+#define V2i ivec2
+#define V3i ivec3
+#define V4i ivec4
+
 
 #define r32 float
 #define f32 float
@@ -633,4 +640,48 @@ f32 RemapSample(f32 SampleX)
 }
 
 
+
+v3 ComputeNormal(sampler2D InputTex, v2 FragCoord, ivec2 InputTexDim, ivec2 OutputTexDim, f32 ChunkResolutionZ)
+{
+  v2i InputTexOffset = (InputTexDim - OutputTexDim)/2;
+  /* v2i InputTexOffset = v2i(1); */
+
+  /* s32 x = s32(floor(FragCoord.x)); */
+  s32 z = s32(floor(FragCoord.y / OutputTexDim.x));
+  s32 y = s32(floor(FragCoord.y - (z*OutputTexDim.y)));
+
+  ivec2 InputTexCoord = InputTexOffset + ivec2( FragCoord.x,
+                                                 y +
+                                                (z * InputTexDim.y) + (InputTexOffset.y*InputTexDim.y) );
+  /* ivec2 InputTexCoord = ivec2(FragCoord.x + 1, (y + 1) + (z * InputTexDim.y) + InputTexDim.y ); */
+  f32 CurrentNoiseValue = texelFetch(InputTex, InputTexCoord, 0).a;
+
+  v3 Normal = v3(0.f);
+
+  for ( s32 dz = -1; dz < 2; ++ dz)
+  for ( s32 dy = -1; dy < 2; ++ dy)
+  for ( s32 dx = -1; dx < 2; ++ dx)
+  {
+    if (dz == 0 && dy == 0 && dx == 0) continue; // Skip the middle-most voxel
+
+      s32 xCoord = InputTexCoord.x + dx;
+      s32 yCoord = InputTexCoord.y + dy;
+      s32 zCoord =                   dz * InputTexDim.y;
+
+      f32 Next = texelFetch(InputTex, ivec2(xCoord, yCoord+zCoord), 0).a;
+      f32 Diff = Next-(dz*ChunkResolutionZ) - Truncate(CurrentNoiseValue);
+      // NOTE(Jesse): Can't do this because we end up with complete nonsense on
+      // the edges for some unknown reason
+      /* if (Diff > 0) */
+
+      // TODO(Jesse): Recompute with a small random variance to the weight if this is 0?
+      // EDIT(Jesse): Why exactly would we do this?? Sounds like a bad idea.. ?
+      Normal += V3(dx,dy,dz)*Diff;
+  }
+
+  // Invert because we accumulate the value by pointing 'at' the cell we're checking
+  //
+  v3 Result = -1.f * Normalize(Normal);
+  return Result;
+}
 
