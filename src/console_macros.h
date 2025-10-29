@@ -159,6 +159,13 @@ link_internal char * GetTempFmtBuffer();
   }                                                                                                            \
 } while (false)
 
+#define RenderInfo(fmt, ...) do {                                                                                    \
+  if (Global_LogLevel <= LogLevel_Info) {                                                                      \
+    LogDirect(CSz("%S   Render  %S- " fmt Newline), TerminalColors.BrightPurple, TerminalColors.White, ##__VA_ARGS__); \
+  }                                                                                                            \
+} while (false)
+
+
 
 
 #define SoftError(fmt, ...) do {                                                                              \

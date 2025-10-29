@@ -65,6 +65,7 @@ DefaultWorkerThread(void *Input)
   WorkerThread_BeforeJobStart(Thread);
   Assert(ThreadLocal_ThreadIndex > 0);
 
+  auto Engine =  GetEngineResources();
   auto Stdlib =  GetStdlib();
   auto Plat   = &Stdlib->Plat;
   work_queue* LowPriority = &Plat->LowPriority;
@@ -76,6 +77,8 @@ DefaultWorkerThread(void *Input)
   auto HighPriorityWorkerCount   = &Plat->HighPriorityWorkerCount;
 
   if (Stdlib->AppApi.WorkerInit) { Stdlib->AppApi.WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
+
+  WaitOnFutex(&Engine->ReadyToStartMainLoop, True);
 
   while (FutexNotSignaled(WorkerThreadsExitFutex))
   {
