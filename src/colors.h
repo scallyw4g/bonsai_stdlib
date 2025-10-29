@@ -268,6 +268,7 @@ UnpackV3_15b(u16 Packed)
   r32 y = ((Packed >> 5) & FiveBits) / r32(FiveBits);
   r32 z =  (Packed & FiveBits) / r32(FiveBits);
   v3 Result = V3(x, y, z);
+  /* Assert(Length(Result) >= 1.f); */
   return Result;
 }
 
@@ -413,7 +414,7 @@ FillArray(v2 Element, v2 *Dest, s32 Count)
 link_internal void
 FillArray(v3 Element, v3_u8 *Dest, s32 Count)
 {
-  for (s32 Index = 0; Index < Count; ++Index) { Dest[Index] = V3U8(Element*128.f); }
+  for (s32 Index = 0; Index < Count; ++Index) { Dest[Index] = V3U8(Element*127.f); }
 }
 
 link_internal void

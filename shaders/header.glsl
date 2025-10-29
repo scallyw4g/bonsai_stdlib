@@ -169,12 +169,11 @@ v3 WorldPositionFromNonlinearDepth(float NonlinearDepth, v2 ScreenUV, mat4 Inver
 }
 
 link_internal v3
-UnpackHSVColor(s32 Packed)
+UnpackV3_15b(s32 Packed)
 {
   s32 FiveBits = 31;
-  s32 SixBits   = 63;
 
-  r32 H = ((Packed >> 10) & SixBits) / r32(SixBits);
+  r32 H = ((Packed >> 10) & FiveBits) / r32(FiveBits);
   r32 S = ((Packed >> 5) & FiveBits) / r32(FiveBits);
   r32 V =  (Packed & FiveBits) / r32(FiveBits);
   v3 Result = V3(H, S, V);
@@ -221,7 +220,7 @@ HSVtoRGB(v3 HSV)
 v3
 UnpackHSVColorToRGB(s32 Packed)
 {
-  v3 HSV = UnpackHSVColor(Packed);
+  v3 HSV = UnpackV3_15b(Packed);
   v3 Result = HSVtoRGB(HSV);
   return Result;
 }
@@ -230,9 +229,9 @@ uint PackRGB(v3 Color)
 {
   uint FiveBits    = (1u <<  5) - 1u;
   uint FifteenBits = (1u << 15) - 1u;
-  uint R = uint(Color.r * f32(FiveBits)) & FiveBits;
-  uint G = uint(Color.g * r32(FiveBits)) & FiveBits;
-  uint B = uint(Color.b * r32(FiveBits)) & FiveBits;
+  uint R = uint(round(Color.r * f32(FiveBits))) & FiveBits;
+  uint G = uint(round(Color.g * r32(FiveBits))) & FiveBits;
+  uint B = uint(round(Color.b * r32(FiveBits))) & FiveBits;
   uint Result = uint((R << 10) | (G << 5) | B) & FifteenBits;
   return Result;
 }
@@ -309,6 +308,39 @@ float hashf( float f )
 {
   return -1.0 + 2.0*fract(sin(f)*43758.5453123);
 }
+
+// https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L94
+link_internal f32
+CubicInterpolate(f32 N)
+{
+  f32 Result = N * N * (3.f - 2.f * N);
+  return Result;
+}
+
+link_internal f32
+Smoothstep(f32 N)
+{
+  return CubicInterpolate(N);
+}
+
+link_internal f32
+QuinticInterpolate(f32 N)
+{
+  f32 u = N*N*N*(N*(N*6.0-15.0)+10.0);
+  return u;
+}
+
+float
+CosineInterpolate( float t, f32 y1, f32 y2 )
+{
+  float t2 = (1.f-cos(t*PI32))/2.f;
+  float nt2 = (1.f-t2); 
+
+  f32 a = y1*nt2;
+  f32 b = y2*t2;
+  return(a+b);
+}
+
 
 float white_noise(v2 P)
 {
@@ -450,6 +482,8 @@ vec4 value_noise_derivs( in vec3 x )
 
 // return value noise (in x) and its derivatives (in yzw)
 //
+// return (-1, 1)
+//
 vec4 gradient_noise_derivs( in vec3 x )
 {
   // grid
@@ -492,36 +526,36 @@ vec4 gradient_noise_derivs( in vec3 x )
                du * (vec3(vb,vc,ve) - va + u.yzx*vec3(va-vb-vc+vd,va-vc-ve+vg,va-vb-ve+vf) + u.zxy*vec3(va-vb-ve+vf,va-vb-vc+vd,va-vc-ve+vg) + u.yzx*u.zxy*(-va+vb+vc-vd+ve-vf-vg+vh) ));
 }
 
-// https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L94
-link_internal f32
-CubicInterpolate(f32 N)
+// return (0, 1)
+//
+f32 billow_noise( in vec3 x, int octaves)
 {
-  f32 Result = N * N * (3.f - 2.f * N);
+  f32 Result = 0;
+  for (int i = 0; i < octaves; ++i)
+  {
+    f32 V = abs(gradient_noise_derivs(x).x);
+    Result = max(V, Result);
+    x /= 2.f;
+  }
   return Result;
 }
 
-link_internal f32
-Smoothstep(f32 N)
+// return (0, 1)
+//
+f32 billow_noise( in vec3 x )
 {
-  return CubicInterpolate(N);
+  f32 V = gradient_noise_derivs(x).x;
+  f32 Result = Abs(V);
+  return Result;
 }
 
-link_internal f32
-QuinticInterpolate(f32 N)
+// return (0, 1)
+//
+f32 ridge_noise( in vec3 x )
 {
-  f32 u = N*N*N*(N*(N*6.0-15.0)+10.0);
-  return u;
-}
-
-float
-CosineInterpolate( float t, f32 y1, f32 y2 )
-{
-  float t2 = (1.f-cos(t*PI32))/2.f;
-  float nt2 = (1.f-t2); 
-
-  f32 a = y1*nt2;
-  f32 b = y2*t2;
-  return(a+b);
+  f32 V = gradient_noise_derivs(x).x;
+  f32 Result = (Abs(V)*-1.f) + 1.f;
+  return Result;
 }
 
 
@@ -641,6 +675,8 @@ f32 RemapSample(f32 SampleX)
 
 
 
+// return unit vector in range (-1, 1)
+//
 v3 ComputeNormal(sampler2D InputTex, v2 FragCoord, ivec2 InputTexDim, ivec2 OutputTexDim, f32 ChunkResolutionZ)
 {
   v2i InputTexOffset = (InputTexDim - OutputTexDim)/2;
