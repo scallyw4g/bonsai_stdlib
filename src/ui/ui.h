@@ -76,6 +76,8 @@ enum window_layout_flags
   WindowLayoutFlag_DeferFree               = (1 << 5),
 };
 
+global_variable u32 NextWindowStackIndex = 0;
+
 struct window_layout
 {
   ui_id HashtableKey;
@@ -99,7 +101,7 @@ struct window_layout
   v2  CachedScroll;
 
 
-  u64 InteractionStackIndex;
+  u64 InteractionStackIndex = NextWindowStackIndex++;
 
   r32 zBackground;
   r32 zText;
@@ -305,8 +307,6 @@ struct renderer_2d
   gpu_mapped_ui_buffer CustomQuadGeometryBuffer;
 
   texture SpriteTextureArray;
-
-  u64 InteractionStackTop;
 
      v2 *MouseP;
      v2 *MouseDP;
@@ -1111,8 +1111,6 @@ AlignRightWindowBasis(v2 ScreenDim, v2 WindowDim = DefaultWindowSize)
 link_internal window_layout
 WindowLayout(const char* Title, v2 Basis, v2 MaxClip = DefaultWindowSize, window_layout_flags Flags = WindowLayoutFlag_Default)
 {
-  local_persist u32 NextWindowStackIndex = 0;
-
   window_layout Window = {};
   Window.Flags = Flags;
   Window.Basis = Basis;

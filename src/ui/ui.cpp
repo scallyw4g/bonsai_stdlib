@@ -2192,7 +2192,7 @@ GetHighestWindow(renderer_2d* Group, ui_render_command_buffer* CommandBuffer)
   b32 Clicked = (Group->Input->LMB.Clicked || Group->Input->RMB.Clicked);
   if (Clicked && HighestWindow)
   {
-    HighestWindow->InteractionStackIndex = ++Group->InteractionStackTop;
+    HighestWindow->InteractionStackIndex = ++NextWindowStackIndex;
   }
 
   return HighestWindow;
