@@ -228,7 +228,16 @@ PlatformWriteToFile(native_file *File, u8* Bytes, umm Count)
 link_internal b32
 PlatformCloseFile(native_file *File)
 {
-  b32 Result = (CloseHandle(File->Handle) != 0);
+  b32 Result = False;
+  if (File->Handle)
+  {
+    Result = (CloseHandle(File->Handle) != 0);
+  }
+  else
+  {
+    Error("Attempted to close %S, which was not open.", File->Path);
+  }
+  File->Handle = 0;
   return Result;
 }
 
