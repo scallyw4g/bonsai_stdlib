@@ -13,18 +13,9 @@ SetupStdout(u32 ArgCount, const char** ArgStrings);
 #define CSz(NullTerminatedCString) \
   CS(NullTerminatedCString, sizeof(NullTerminatedCString)-1)
 
-inline counted_string CS(cs *Cs) { return *Cs; }
-inline counted_string CS(cs Cs) { return Cs; }
-
-inline counted_string
-CS(const char *S, umm Count)
-{
-  counted_string Result = {
-    .Count = Count, .Start = S
-  };
-  return Result;
-}
-
+link_inline cs CS(cs *Cs) { return *Cs; }
+link_inline cs CS(cs Cs) { return Cs; }
+link_inline cs CS(const char *S, umm Count);
 
 enum log_level
 {

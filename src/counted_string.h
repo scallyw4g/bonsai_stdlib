@@ -145,45 +145,59 @@ global_variable char DecChars[] = "0123456789";
 global_variable char LowerHexChars[] = "0123456789abcdef";
 global_variable char UpperHexChars[] = "0123456789ABCDEF";
 
+
 umm
 Length(const char *Str)
 {
-  const char *Start = Str;
-  const char *End = Str;
+  umm Result = 0;
 
-  while (*End++);
+  if (Str)
+  {
+    const char *Start = Str;
+    const char *End = Str;
 
-  umm Result = (umm)(End - Start) - 1;
+    while (*End++);
+
+    Result = (umm)(End - Start) - 1;
+  }
+
   return Result;
 }
 
-counted_string
+link_inline counted_string
+CS(const char *S, umm Count)
+{
+  cs Result;
+  if (S) { Result = { .Count = Count, .Start = S }; }
+  else   { Result = { .Start = "(null)", .Count = sizeof("(null)")-1 }; }
+  return Result;
+}
+
+cs
 CountedString(const char *S)
 {
-  counted_string Result = {};
-  Result.Start = S;
-  Result.Count = Length(S);
+  cs Result = CS(S, Length(S));
   return Result;
 }
 
-counted_string
+cs
 CS(const u8 *S)
 {
-  counted_string Result = CountedString((char*)S);
+  cs Result = CountedString((char*)S);
   return Result;
 }
 
-counted_string
+cs
 CS(const char *S)
 {
-  counted_string Result = CountedString(S);
+  cs Result = CountedString(S);
   return Result;
 }
 
-counted_string
+cs
 CS(char_cursor* Cursor)
 {
-  counted_string Result = {
+  cs Result = {
     .Count = (umm)(Cursor->At - Cursor->Start),
     .Start = Cursor->Start,
   };
@@ -192,7 +206,7 @@ CS(char_cursor* Cursor)
 }
 
 char_cursor
-CharCursor(counted_string S)
+CharCursor(cs S)
 {
   char_cursor Result = {
     .Start = (char*)S.Start,
