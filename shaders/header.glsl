@@ -591,7 +591,11 @@ f32 RemapSample(in f32 SampleX, in v2 Points[16], in u32 PointCount)
     PrevP = NextP;
   }
 
-  Result = abs(max(Result, 1.0));
+  // TODO(Jesse): do we do this?  I think this should always be true ..
+  //
+  // I'm going to leave it out till I find a good reason.
+  //
+  /* Result = abs(min(Result, 1.0)); */
   return Result;
 }
 
