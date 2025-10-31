@@ -158,36 +158,36 @@ global_variable memory_arena Global_PermMemory = {};
 
 #if BONSAI_DEBUG_SYSTEM_API
 
-#define AllocateProtection(Type, Arena, Number, Protection)                                                                                              \
-( GetDebugState() ?                                                                                                                   \
+#define AllocateProtection(Type, Arena, Number, Protection)                                                                                            \
+( GetDebugState() ?                                                                                                                                    \
     (Type*)GetDebugState()->Debug_Allocate(Arena, sizeof(Type), umm(Number), #Type " " __FILE__ ":" LINE_STRING, __LINE__, __FILE__, 1, Protection ) : \
-    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, Protection)                                                                                   \
+    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, Protection, __FILE__ ":" LINE_STRING)                                                         \
 )
 
-#define AllocateAlignedProtection(Type, Arena, Number, Alignment, Protection)                                                                                   \
-( GetDebugState() ?                                                                                                                          \
+#define AllocateAlignedProtection(Type, Arena, Number, Alignment, Protection)                                                                                 \
+( GetDebugState() ?                                                                                                                                           \
   (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, Protection ) : \
-  (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, Protection)                                                                                    \
+  (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, Protection, __FILE__ ":" LINE_STRING)                                                          \
 )
 
-#define AllocateAligned(Type, Arena, Number, Alignment)                                                                                                  \
-( GetDebugState() ?                                                                                                                   \
+#define AllocateAligned(Type, Arena, Number, Alignment)                                                                                                \
+( GetDebugState() ?                                                                                                                                    \
   (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, True) : \
-  (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, True)                                                                                   \
+  (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, True, __FILE__ ":" LINE_STRING)                                                         \
 )
 
-#define Allocate(Type, Arena, Number)                                                                                                             \
-( GetDebugState() ?                                                                                                            \
+#define Allocate(Type, Arena, Number)                                                                                                           \
+( GetDebugState() ?                                                                                                                             \
   (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING , __LINE__, __FILE__, 1, True) : \
-  (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, True)                                                                                    \
+  (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, True, __FILE__ ":" LINE_STRING)                                                          \
 )
 
 void noop() {}
 
-#define DEBUG_REGISTER_ARENA(Arena, ThreadId)             do { GetDebugState() ? GetDebugState()->RegisterArena(#Arena, Arena, ThreadId) : noop(); } while (false)
-#define DEBUG_REGISTER_NAMED_ARENA(Arena, ThreadId, Name) do { GetDebugState() ? GetDebugState()->RegisterArena(Name, Arena, ThreadId)   : noop(); } while (false)
-#define DEBUG_UNREGISTER_ARENA(Arena)                     do { GetDebugState() ? GetDebugState()->UnregisterArena(Arena)                 : noop(); } while (false)
-#define DEBUG_REGISTER_THREAD(TParams)                    do { GetDebugState() ? GetDebugState()->RegisterThread(TParams)                : noop(); } while (false)
+#define DEBUG_REGISTER_ARENA(Arena, ThreadId)             do { DebugRegisterArenaName(#Arena, Arena); } while (false)
+#define DEBUG_REGISTER_NAMED_ARENA(Arena, ThreadId, Name) do { DebugRegisterArenaName(Name, Arena); } while (false)
+#define DEBUG_UNREGISTER_ARENA(Arena)                     do { UnregisterArena(Arena); } while (false)
+#define DEBUG_REGISTER_THREAD(TParams)                    do { RegisterThread(TParams) ; } while (false)
 
 
       //
@@ -195,22 +195,23 @@ void noop() {}
       //
 
 #define AllocateProtection(Type, Arena, Number, Protection) \
-      (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, Protection)
+      (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, Protection, __FILE__ ":" LINE_STRING)
 
 #define AllocateAlignedProtection(Type, Arena, Number, Alignment, Protection) \
-    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, Protection)
+    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, Protection, __FILE__ ":" LINE_STRING)
 
 #define AllocateAligned(Type, Arena, Number, Alignment) \
-    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, True)
+    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, True, __FILE__ ":" LINE_STRING)
 
 #define Allocate(Type, Arena, Number) \
-    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, True)
+    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, True, __FILE__ ":" LINE_STRING)
 
 
 #define DEBUG_REGISTER_ARENA(...)
 #define DEBUG_UNREGISTER_ARENA(...)
 #define DEBUG_REGISTER_NAMED_ARENA(...)
 #define DEBUG_REGISTER_THREAD(...)
+#define DebugRegisterArena(...)
 
 #endif
 
@@ -415,14 +416,16 @@ ProtectPage(u8* Mem)
 #define S2(x) S1(x)
 #define LOCATION ()
 
+#define POOF_SOURCE_LOCATION (__FILE__ ":" S2(__LINE__))
+
 #ifndef POOF_PREPROCESSOR
-#define AllocateArena( ... ) AllocateArena_( __FILE__ ":" S2(__LINE__), ##__VA_ARGS__ )
+#define   AllocateArena( ... )   AllocateArena_( POOF_SOURCE_LOCATION, True, ##__VA_ARGS__ )
 #else
-#define AllocateArena( ... )
+#define   AllocateArena( ... )
 #endif
 
 link_internal memory_arena*
-AllocateArena_(const char *, umm RequestedBytes = 1<<20, b32 MemProtect = True, b32 DebugRegister = True);
+AllocateArena_(const char *, b32 DebugRegister, umm RequestedBytes = 1<<20, b32 MemProtect = True);
 
 link_internal b32
 DeallocateArena(memory_arena *Arena)
@@ -452,19 +455,20 @@ DeallocateArena(memory_arena *Arena)
 }
 
 link_internal void
-ReallocateArena(memory_arena *Arena, umm MinSize, b32 MemProtect)
+ReallocateArena(const char *Id, memory_arena *Arena, umm MinSize, b32 MemProtect)
 {
   umm AllocationSize = Arena->NextBlockSize;
   if (MinSize > AllocationSize)
     AllocationSize = MinSize;
 
-  memory_arena *NewArena = AllocateArena(AllocationSize, MemProtect);
-  /* memory_arena *NewArena = AllocateArena_(__FILE__, AllocationSize, MemProtect); */
+  memory_arena *NewArena = AllocateArena_(Id, False, AllocationSize, MemProtect);
 
   memory_arena OldArena = *Arena;
 
   *Arena = *NewArena;
+
    Arena->DebugFutex = OldArena.DebugFutex;
+   OldArena.DebugFutex = {};
 
   *NewArena = OldArena;
 
@@ -554,13 +558,14 @@ PushSize(memory_arena *Arena, umm SizeIn, umm Alignment, b32 MemProtect)
 #else
 
 link_internal u8*
-PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect)
+PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect, const char *SourceLocation)
 {
   Assert(Arena->At <= Arena->End);              // Sanity checks
   Assert(Remaining(Arena) <= TotalSize(Arena));
 
   if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX)
   {
+    /* if (Arena == &Global_PermMemory) { PrintToStdout(CSz("Acquire\n")); } */
     AcquireFutex(&Arena->DebugFutex);
   }
 
@@ -590,7 +595,7 @@ PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect)
 
   if ( TotalAllocationSize > RemainingInArena)
   {
-    ReallocateArena(Arena, TotalAllocationSize, MemProtect);
+    ReallocateArena(SourceLocation, Arena, TotalAllocationSize, MemProtect);
     Assert((umm)Arena->At % (umm)Alignment == 0);
   }
   else
@@ -665,6 +670,7 @@ PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect)
 
   if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX)
   {
+    /* if (Arena == &Global_PermMemory) { PrintToStdout(CSz("Release\n")); } */
     ReleaseFutex(&Arena->DebugFutex);
   }
 
@@ -676,7 +682,7 @@ PushSize(memory_arena *Arena, umm Size, umm Alignment, b32 MemProtect)
 link_internal void*
 PushStruct(memory_arena *Memory, umm sizeofStruct, umm Alignment = 1, b32 MemProtect = True)
 {
-  void* Result = PushSize(Memory, sizeofStruct, Alignment, MemProtect);
+  void* Result = PushSize(Memory, sizeofStruct, Alignment, MemProtect, "PushStruct");
   return Result;
 }
 
@@ -754,12 +760,14 @@ EndTemporaryMemory(temp_memory_handle *Handle, b32 ReportLeaks)
   return;
 }
 
+#define BeginTemporaryMemory(...) BeginTemporaryMemory_(POOF_SOURCE_LOCATION, __VA_ARGS__)
+
 link_internal temp_memory_handle
-BeginTemporaryMemory(memory_arena *Arena, b32 ReportLeaks = True)
+BeginTemporaryMemory_(const char *SourceLocation, memory_arena *Arena, b32 ReportLeaks = True)
 {
   if (Arena->Start == 0)
   {
-    ReallocateArena(Arena, Megabytes(1), True);
+    ReallocateArena(SourceLocation, Arena, Megabytes(1), True);
   }
 
   temp_memory_handle Result = {};

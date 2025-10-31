@@ -113,7 +113,7 @@ RewindArena(memory_arena *Arena, umm RestartBlockSize = Megabytes(1) )
 // @temp-string-builder-memory
 // TODO(Jesse, id: 98, tags: robustness, api_improvement): Make allocating these on the stack work!
 link_internal memory_arena *
-AllocateArena_(const char *Id, umm RequestedBytes /* = Megabytes(1) */, b32 MemProtect /* = True */, b32 DebugRegister)
+AllocateArena_(const char *Id, b32 DebugRegister, umm RequestedBytes /* Megabytes(1) */, b32 MemProtect /* True */ )
 {
   RequestedBytes = Max(RequestedBytes, Megabytes(1));
 
@@ -163,7 +163,7 @@ AllocateArena_(const char *Id, umm RequestedBytes /* = Megabytes(1) */, b32 MemP
 
   if (DebugRegister)
   {
-    DEBUG_REGISTER_NAMED_ARENA(Result, ThreadLocal_ThreadIndex, Id );
+    DebugRegisterArena(Id, Result, ThreadLocal_ThreadIndex);
   }
 
   return Result;
