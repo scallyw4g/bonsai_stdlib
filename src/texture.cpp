@@ -401,9 +401,10 @@ LoadBitmap(const char* FilePath, memory_arena *Arena, texture* Dest, s32 Slice)
 link_internal bitmap
 LoadBitmap(file_traversal_node *Node, memory_arena *Arena)
 {
-  Assert(EndsWith(Node->Dir, CSz("/")) == False);
+  cs Path = EndsWith(Node->Dir, CSz("/")) ?
+             Concat(Node->Dir, Node->Name, GetTranArena(), 1) :
+             Concat(Node->Dir, CSz("/"), Node->Name, GetTranArena(), 1);
 
-  cs Path = Concat(Node->Dir, CSz("/"), Node->Name, GetTranArena(), 1);
   bitmap Result = ReadBitmapFromDisk((const char*)Path.Start, Arena);
   return Result;
 }
