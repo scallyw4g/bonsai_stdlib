@@ -141,6 +141,7 @@ Remove(cs FilePath)
 link_internal native_file
 OpenFile(const char *FilePath, file_permission Permissions)
 {
+  /* Info("Opening File (%s)", FilePath); */
   return PlatformOpenFile(FilePath, Permissions);
 }
 
@@ -174,6 +175,11 @@ OpenHotReloadableFile(cs FilePath, file_permission Permissions)
     }
   }
 
+  if (Result.File.Handle == 0)
+  {
+    SoftError("Failed to open (%S) for hot reloading", FilePath);
+  }
+
   FileIsNew(NullTerminatedFilePath, &Result.LastModified);
 
   return Result;
@@ -181,6 +187,7 @@ OpenHotReloadableFile(cs FilePath, file_permission Permissions)
 
 link_internal b32 CloseFile(native_file* File)
 {
+  /* Info("Closing File (%S)", File->Path); */
   return PlatformCloseFile(File);
 }
 

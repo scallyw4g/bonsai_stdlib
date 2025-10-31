@@ -126,13 +126,18 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
 link_internal void
 ReloadShaderHeaderCode(bonsai_stdlib *Stdlib, shader_language_setting ShaderLanguage)
 {
+  Shader("Reloading header.glsl");
+
   cs ShaderVersion = ValueFromSetting(ShaderLanguage);
 
   Stdlib->ShaderHeaderFile = OpenHotReloadableFile(CSz(STDLIB_SHADER_PATH "header.glsl"), FilePermission_Read); 
-  cs HeaderCode =  ReadEntireFileIntoString(&Stdlib->ShaderHeaderFile.File, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory);
-  Stdlib->ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
 
-  CloseFile(&Stdlib->ShaderHeaderFile.File);
+  cs HeaderCode =  ReadEntireFileIntoString(&Stdlib->ShaderHeaderFile.File, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory);
+
+  // ReadEntireFileIntoString closes the file
+  // CloseFile(&Stdlib->ShaderHeaderFile.File);
+
+  Stdlib->ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
 }
 
 link_internal void
@@ -158,7 +163,7 @@ link_internal b32
 poof(@async @render)
 CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 DumpErrors = True, b32 RegisterForHotReload = True)
 {
-  Shader("Creating : (%S | %S", VertShaderPath, FragShaderPath);
+  Shader("Creating : (%S | %S)", VertShaderPath, FragShaderPath);
 
   auto Stdlib = GetStdlib();
   auto GL = GetGL();
@@ -221,7 +226,7 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
       char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
       GL->GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
       SoftError("Linking shader pair %S | %S", VertShaderPath, FragShaderPath);
-      SoftError("\n%s", ProgramErrorMessage);
+      SoftError("\n%s\n", ProgramErrorMessage);
       AssertNoGlErrors;
     }
 

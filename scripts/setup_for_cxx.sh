@@ -59,14 +59,18 @@ fi
 
 # TODO(Jesse): Figure out how to standardize on a compiler across machines such that
 # we can remove -Wno-unknown-warning-optins
+
+# -mvaes
+
 CXX_OPTIONS="
   --std=c++17
   -ferror-limit=2000
+
   -mssse3
+
   -mavx
   -mavx2
   -mfma
-  -mvaes
 
   -Weverything
 

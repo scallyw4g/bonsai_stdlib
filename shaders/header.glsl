@@ -558,12 +558,11 @@ f32 ridge_noise( in vec3 x )
   return Result;
 }
 
-
-f32 RemapSample(f32 SampleX, v2 Points[16], u32 PointCount )
+f32 RemapSample(in f32 SampleX, in v2 Points[16], in u32 PointCount)
 {
-
   f32 Result = -1.f;
   v2 PrevP = Points[0];
+
   for (u32 PointIndex = 1u; PointIndex < PointCount; ++PointIndex)
   {
     v2 NextP = Points[PointIndex];
@@ -592,87 +591,9 @@ f32 RemapSample(f32 SampleX, v2 Points[16], u32 PointCount )
     PrevP = NextP;
   }
 
-  /* Result = abs(max(Result, 1.0)); */
+  Result = abs(max(Result, 1.0));
   return Result;
 }
-
-f32 RemapSample(f32 SampleX)
-{
-
-  /* const s32 PointCount = 2; */
-  /* v2 Points[PointCount]; */
-  /* Points[0] = v2(0.f, 0.0f); */
-  /* Points[1] = v2(1.0f, 1.0f); */
-
-  /* const s32 PointCount = 5; */
-  /* v2 Points[PointCount]; */
-  /* Points[0] = v2(0.0f, 0.0f); */
-  /* Points[1] = v2(0.25f, 0.25f); */
-  /* Points[2] = v2(0.5f, 0.5f); */
-  /* Points[3] = v2(0.75f, 0.75f); */
-  /* Points[4] = v2(1.0f, 1.0f); */
-
-  const s32 PointCount = 5;
-  v2 Points[PointCount];
-  Points[0] = v2(0.0f, 0.0f);
-  Points[1] = v2(0.2f, 0.5f);
-  Points[2] = v2(0.6f, 0.6f);
-  Points[3] = v2(0.8f, 0.95f);
-  Points[4] = v2(1.0f, 1.0f);
-
-
-  /* const s32 PointCount = 5; */
-  /* v2 Points[PointCount]; */
-  /* Points[0] = v2(0.0f, 0.0f); */
-  /* Points[1] = v2(0.2f, 0.5f); */
-  /* Points[2] = v2(0.22f,0.46f); */
-  /* Points[3] = v2(0.4f, 0.8f); */
-  /* Points[4] = v2(1.0f, 1.0f); */
-
-  /* const s32 PointCount = 7; */
-  /* v2 Points[PointCount]; */
-  /* Points[0] = v2(0.0f, 0.0f); */
-  /* Points[1] = v2(0.2f, 0.5f); */
-  /* Points[2] = v2(0.22f,0.46f); */
-  /* Points[3] = v2(0.4f, 0.8f); */
-  /* Points[4] = v2(0.8f, 1.0f); */
-  /* Points[5] = v2(0.9f, 0.0f); */
-  /* Points[6] = v2(1.0f, 1.0f); */
-
-  f32 Result = -1.f;
-  v2 PrevP = Points[0];
-  for (int PointIndex = 1; PointIndex < PointCount; ++PointIndex)
-  {
-    v2 NextP = Points[PointIndex];
-
-    if (SampleX >= PrevP.x && SampleX < NextP.x)
-    {
-
-
-      r32 Range = PrevP.x - NextP.x;
-      r32 t = Clamp01((SampleX-NextP.x) / Range);
-
-      Result = CosineInterpolate(t, NextP.y, PrevP.y);
-
-      /* Result = mix(NextP.y, PrevP.y, t); */
-
-      /* Result = QuinticInterpolate(Result); */
-      /* Result = QuinticInterpolate(Result); */
-
-      /* Result = CubicInterpolate(Result); */
-      /* Result = Smoothstep(Result); */
-      /* Result = Smoothstep(Result); */
-
-      break;
-    }
-
-    PrevP = NextP;
-  }
-
-  /* Result = abs(max(Result, 1.0)); */
-  return Result;
-}
-
 
 
 // return unit vector in range (-1, 1)
