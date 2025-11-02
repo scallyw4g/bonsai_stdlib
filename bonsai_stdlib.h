@@ -65,79 +65,11 @@ link_internal debug_state * GetDebugState();
 #include <bonsai_stdlib/src/input.h>
 #include <bonsai_stdlib/src/mutex.h>
 #include <bonsai_stdlib/src/work_queue.h>
+
 #include <bonsai_stdlib/src/mesh.h>
-
-enum gpu_element_buffer_flags
-{
-};
-
-
-enum mesh_element_buffer_handles
-{
-  mesh_VertexHandle,
-  mesh_NormalHandle,
-  mesh_MatHandle,
-};
-
-enum ui_element_buffer_handles
-{
-  ui_VertexHandle,
-  ui_UVHandle,
-  ui_ColorHandle,
-};
-
-struct gpu_element_buffer_handles
-{
-  u32 Handles[3];
-
-  u32 ElementCount;
-  data_type ElementType;
-
-  b8  Mapped;
-  b8  Pad;
-  u16 Flags; // (gpu_element_buffer_flags)
-};
-
-//{ This is a buffer we ask for and directly copy into
-  struct gpu_mapped_element_buffer
-  {
-    gpu_element_buffer_handles    Handles;
-    untextured_3d_geometry_buffer Buffer;
-  };
-  // TODO(Jesse): Remove this typedef by changing the name everywhere.
-  typedef gpu_mapped_element_buffer gpu_mapped_untextured_3d_geometry_buffer;
-// }
-
-struct gpu_mapped_ui_buffer
-{
-  gpu_element_buffer_handles Handles;
-  ui_geometry_buffer         Buffer;
-};
-
-
-/* struct gpu_mapped_jorld_chunk_geometry_buffer */
-/* { */
-/*   gpu_element_buffer_handles  Handles; */
-/*   world_chunk_geometry_buffer Buffer; */
-/* }; */
-
-struct framebuffer
-{
-  u32 ID;
-  u32 Attachments;
-};
-
-struct texture_ptr_block_array;
-
-struct render_entity_to_texture_group
-{
-  framebuffer                FBO;
-  shader                     Shader;
-  gpu_mapped_element_buffer  GeoBuffer;
-  m4 ViewProjection;
-};
-
-
+#include <bonsai_stdlib/src/gpu_mapped_buffer.h>
+#include <bonsai_stdlib/src/framebuffer.h>
+#include <bonsai_stdlib/src/render.h>
 
 #include <bonsai_stdlib/src/platform_struct.h>
 #include <bonsai_stdlib/src/heap_allocator.h>
@@ -152,8 +84,6 @@ struct render_entity_to_texture_group
 #include <bonsai_stdlib/src/binary_parser.h>
 #include <bonsai_stdlib/src/rect.h>
 #include <bonsai_stdlib/src/xml.h>
-struct light;
-struct camera;
 #include <bonsai_stdlib/src/ui/interactable.h>
 #include <bonsai_stdlib/src/ui/ui.h>
 

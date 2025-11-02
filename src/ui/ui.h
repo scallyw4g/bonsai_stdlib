@@ -50,7 +50,7 @@ struct render_buffers_2d
   s32 TextTextureUniform;
 
   shader UiShader;
-  gpu_mapped_ui_buffer Buf;
+  triple_buffered_gpu_mapped_ui_buffer Buf;
 };
 
 enum window_layout_flags
@@ -301,10 +301,10 @@ struct ui_render_command_buffer;
 struct renderer_2d
 {
   render_buffers_2d *TextGroup;
-  gpu_mapped_ui_buffer SolidQuadGeometryBuffer;
+  triple_buffered_gpu_mapped_ui_buffer SolidQuadGeometryBuffer;
 
   textured_quad_render_pass TexturedQuadRenderPass;
-  gpu_mapped_ui_buffer CustomQuadGeometryBuffer;
+  triple_buffered_gpu_mapped_ui_buffer CustomQuadGeometryBuffer;
 
   texture SpriteTextureArray;
 
@@ -1201,7 +1201,9 @@ GetDim(window_layout *Window)
 
 
 link_internal void DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer);
+link_internal void DrawUiBuffer(gpu_mapped_ui_buffer *Buffer, v2 *ScreenDim);
 
 link_internal clip_result BufferTexturedQuad( renderer_2d *Group, ui_geometry_buffer *Geo, v2  MinP, v2 Dim, v3 Color, r32 Z, rect2 Clip);
 link_internal clip_result BufferTexturedQuad( renderer_2d *Group, ui_geometry_buffer *Geo, rect2, v3 Color, r32 Z, rect2 Clip);
 link_internal clip_result BufferTexturedQuad( renderer_2d *Group, s32  TextureSlice, v2  MinP, v2  Dim, rect2  UV, v3  Color, r32  Z, rect2  Clip, rect2 *ClipOptional );
+

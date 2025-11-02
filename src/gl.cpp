@@ -489,8 +489,8 @@ InitializeOpenglFunctions()
   if (GetGL()->Initialized)
   {
     /* GetGL()->DebugMessageCallback(HandleGlDebugMessage, 0); */
+    /* GetGL()->Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS); */
 
-    GetGL()->Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     GetGL()->Enable(GL_DEPTH_TEST);
 
     GetGL()->DepthFunc(GL_LEQUAL);
@@ -511,14 +511,19 @@ InitializeOpenglFunctions()
 }
 
 void
-HandleGlDebugMessage(GLenum Source, GLenum Type, GLuint Id, GLenum Severity,
-                     GLsizei MessageLength, const GLchar* Message, const void* UserData)
+HandleGlDebugMessage(GLenum Source,
+                     GLenum Type,
+                     GLuint Id,
+                     GLenum Severity,
+                     GLsizei MessageLength,
+                     const GLchar* Message,
+                     const void* UserData)
 {
-  if (Severity != GL_DEBUG_SEVERITY_NOTIFICATION)
+  /* if (Severity != GL_DEBUG_SEVERITY_NOTIFICATION) */
   {
 
-    DebugLine("%s", Message);
-    RuntimeBreak();
+    /* GLInfo("%s", Message); */
+
     const char* MessageTypeName = 0;
     switch(Type) {
       case(GL_DEBUG_TYPE_ERROR):

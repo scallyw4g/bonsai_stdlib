@@ -32,6 +32,10 @@ Init_Global_QuadVertexBuffer()
 
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, Global_QuadVertexBuffer);
   GetGL()->BufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+
+  GetGL()->EnableVertexAttribArray(0);
+  GetGL()->VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, 0);
 
   return;
@@ -42,17 +46,13 @@ RenderQuad()
 {
   if (!Global_QuadVertexBuffer) { Init_Global_QuadVertexBuffer(); }
 
-  GetGL()->BindBuffer(GL_ARRAY_BUFFER, Global_QuadVertexBuffer);
   AssertNoGlErrors;
-  GetGL()->EnableVertexAttribArray(0);
+  GetGL()->BindVertexArray(Global_QuadVAO);
   AssertNoGlErrors;
-  GetGL()->VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-  AssertNoGlErrors;
-
   Draw(6);
-
-  GetGL()->BindBuffer(GL_ARRAY_BUFFER, 0);
-  GetGL()->DisableVertexAttribArray(0);
+  AssertNoGlErrors;
+  GetGL()->BindVertexArray(0);
+  AssertNoGlErrors;
 }
 
 #if 0

@@ -229,6 +229,10 @@
 #define GL_STREAM_READ                    0x88E1
 #define GL_STREAM_COPY                    0x88E2
 
+#define GL_DYNAMIC_DRAW                   0x88E8
+#define GL_DYNAMIC_READ                   0x88E9
+#define GL_DYNAMIC_COPY                   0x88EA
+
 typedef void GLvoid;
 typedef unsigned int GLenum;
 typedef float GLfloat;
@@ -608,3 +612,11 @@ CheckOpenglVersion(s32 Major, s32 Minor)
 }
 
 
+void
+HandleGlDebugMessage(GLenum Source,
+                     GLenum Type,
+                     GLuint Id,
+                     GLenum Severity,
+                     GLsizei MessageLength,
+                     const GLchar* Message,
+                     const void* UserData);
