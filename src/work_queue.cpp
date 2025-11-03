@@ -6,7 +6,7 @@ PopWorkQueueEntry(work_queue* Queue)
   work_queue_entry *Result = {};
   for (;;)
   {
-    WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
+    /* WORKER_THREAD_ADVANCE_DEBUG_SYSTEM(); */
 
     // NOTE(Jesse): Must read and comared DequeueIndex instead of calling QueueIsEmpty
     u32 DequeueIndex = Queue->DequeueIndex;
@@ -35,7 +35,7 @@ DrainQueue(work_queue* Queue, thread_local_state* Thread, application_api *GameA
 
   for (;;)
   {
-    WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
+    /* WORKER_THREAD_ADVANCE_DEBUG_SYSTEM(); */
 
     // NOTE(Jesse): Must read and comared DequeueIndex instead of calling QueueIsEmpty
     u32 DequeueIndex = Queue->DequeueIndex;
