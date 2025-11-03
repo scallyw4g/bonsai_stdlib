@@ -646,3 +646,5 @@ v3 ComputeNormal(sampler2D InputTex, v2 FragCoord, ivec2 InputTexDim, ivec2 Outp
   return Result;
 }
 
+
+#define DEFAULT_FLOOR_HEIGHT (10000.f)
