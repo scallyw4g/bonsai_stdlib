@@ -3543,6 +3543,8 @@ InitRenderer2D(renderer_2d *Renderer, platform *Plat, memory_arena *PermMemory)
 link_internal void
 UiFrameBegin(renderer_2d *Ui)
 {
+  TIMED_FUNCTION();
+
   Ui->RequestedForceCapture = False;
 
   // Ui eats all input events if there's a text edit active
