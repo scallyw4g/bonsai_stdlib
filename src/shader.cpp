@@ -808,6 +808,7 @@ CleanupTextureBindings(shader *Shader)
 void
 UseShader(shader *Shader)
 {
+  TIMED_FUNCTION();
   if (Shader->ID != INVALID_SHADER)
   {
     GetGL()->UseProgram(Shader->ID);

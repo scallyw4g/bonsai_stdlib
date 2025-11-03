@@ -81,31 +81,38 @@ poof(
     UseRenderPass_(shader_struct.name)
     ( shader_struct.name *Element )
     {
+      TIMED_FUNCTION();
       if (Element->Program.ID != INVALID_SHADER)
       {
-        GetGL()->UseProgram(Element->Program.ID);
-
-        s32 TextureUnit = 0;
-        s32 UniformIndex = 0;
-        shader_struct.map(member)
         {
-          member.tags(tag)
-          {
-            tag.is_named(uniform)?
-            {
-                {
-                  shader_uniform *Uniform = Element->Uniforms+UniformIndex;
-                  BindUniformById(Uniform, &TextureUnit);
-                  ++UniformIndex;
-                  AssertNoGlErrors;
-                }
-            }
-          }
+          TIMED_NAMED_BLOCK(UseProgram);
+          GetGL()->UseProgram(Element->Program.ID);
         }
 
-        if (UniformIndex != shader_struct.member(1, (Uniforms) { Uniforms.array }) )
         {
-          Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots!");
+          TIMED_NAMED_BLOCK(BindUniforms);
+          s32 TextureUnit = 0;
+          s32 UniformIndex = 0;
+          shader_struct.map(member)
+          {
+            member.tags(tag)
+            {
+              tag.is_named(uniform)?
+              {
+                  {
+                    shader_uniform *Uniform = Element->Uniforms+UniformIndex;
+                    BindUniformById(Uniform, &TextureUnit);
+                    ++UniformIndex;
+                    AssertNoGlErrors;
+                  }
+              }
+            }
+          }
+
+          if (UniformIndex != shader_struct.member(1, (Uniforms) { Uniforms.array }) )
+          {
+            Error("Shader ((shader_struct.name)) had an incorrect number of uniform slots!");
+          }
         }
       }
       else

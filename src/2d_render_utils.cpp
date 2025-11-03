@@ -44,6 +44,8 @@ Init_Global_QuadVertexBuffer()
 void
 RenderQuad()
 {
+  TIMED_FUNCTION();
+
   if (!Global_QuadVertexBuffer) { Init_Global_QuadVertexBuffer(); }
 
   AssertNoGlErrors;
