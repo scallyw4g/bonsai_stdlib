@@ -118,6 +118,7 @@ link_internal void
 AllocateGpuBuffer_untextured_3d_geometry_buffer(gpu_element_buffer_handles *Handles, data_type Type, u32 ElementCount)
 {
   Assert(ElementCount);
+  Assert(Handles->VAO == 0);
   Assert(Handles->Mapped == False);
   Assert(Handles->ElementType == DataType_Undefinded);
 
