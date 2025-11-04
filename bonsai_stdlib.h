@@ -1,6 +1,7 @@
-
 /* #define BONSAI_NO_AVX */
 
+#define MAIN_THREAD_ThreadLocal_ThreadIndex (0)
+#define RENDER_THREAD_ThreadLocal_ThreadIndex (1)
 
 #define poof(...)
 

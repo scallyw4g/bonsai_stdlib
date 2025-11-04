@@ -3266,7 +3266,6 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
 
 
 
-
   GetGL()->ActiveTexture(GL_TEXTURE0);
   GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray.ID);
   GetGL()->Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
@@ -3372,13 +3371,18 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
           if (TypedCommand->Texture)
           {
-            Assert(CurrentHandles(&Group->TextGroup->Buf)->Mapped == False);
-            Assert(Group->TextGroup->Buf.Buffer.At == 0);
+            /* Assert(CurrentHandles(&Group->TextGroup->Buf)->Mapped == False); */
+            /* Assert(Group->TextGroup->Buf.Buffer.At == 0); */
 
-            /* MapGpuBuffer(&Group->TextGroup->Buf); */
+            auto Buf = &Group->CustomQuadGeometryBuffer;
 
-            GL->BindTexture(GL_TEXTURE_2D, 0);
-            GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+            Assert(CurrentHandles(Buf)->Mapped == False);
+            MapGpuBuffer(Buf);
+
+
+            /* GL->ActiveTexture(GL_TEXTURE0); */
+            /* GL->BindTexture(GL_TEXTURE_2D, 0); */
+            /* GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0); */
 
             TexturedQuadRP->IsDepthTexture  = TypedCommand->IsDepthTexture;
             TexturedQuadRP->HasAlphaChannel = TypedCommand->HasAlphaChannel;
@@ -3403,17 +3407,16 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 
             // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
             // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
-            /* BufferUiQuad(*Group->ScreenDim, &Group->TextGroup->Buf, SliceToUse, QuadShapingOp_None, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0); */
-
+            BufferUiQuad(*Group->ScreenDim, &Buf->Buffer, SliceToUse, QuadShapingOp_None, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
+            UnmapGpuBuffer(CurrentHandles(Buf));
 
             GL->Enable(GL_BLEND);
             GL->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            /* DrawBuffer(&Group->TextGroup->Buf, Group->ScreenDim); */
+            DrawBuffer(Buf, Group->ScreenDim);
             GL->Disable(GL_BLEND);
 
-            /* GL->ActiveTexture(GL_TEXTURE0); */
-            GL->BindTexture(GL_TEXTURE_2D, 0);
-            GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+            /* GL->BindTexture(GL_TEXTURE_2D, 0); */
+            /* GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0); */
 
             AssertNoGlErrors;
           }
