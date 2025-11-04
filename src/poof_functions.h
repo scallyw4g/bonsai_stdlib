@@ -1236,6 +1236,7 @@ poof(
   {
     @var type_name (Type)_static_cursor_(StaticCount)
     struct type_name
+    poof(@do_editor_ui)
     {
       Type.name Start[StaticCount]; poof(@array_length(Element->At))
       u32 At;
@@ -2565,10 +2566,11 @@ poof(
       Insert(Array, { .Index = 0 }, Element);
     }
 
-    element_t.has_tag(do_editor_ui)?
-    {
-      do_editor_ui_for_container(block_array_t)
-    }
+    /* element_t.has_tag(do_editor_ui)? */
+    /* { */
+    /*   do_editor_ui_for_container( block_array_t ) */
+    /* } */
+
   }
 )
 
@@ -2649,10 +2651,12 @@ poof(
   func freelist_allocator(type)
   {
     struct (type.name)_freelist
+    poof(@do_editor_ui)
     {
        (type.name) *First;
       memory_arena *Memory;
       bonsai_futex  Lock;
+      u32 ElementsAllocated;
     };
 
     link_internal type.name *
@@ -2670,6 +2674,7 @@ poof(
       else
       {
         Result = Allocate( (type.name), Freelist->Memory, 1 );
+        Freelist->ElementsAllocated++;
       }
       ReleaseFutex(&Freelist->Lock);
 

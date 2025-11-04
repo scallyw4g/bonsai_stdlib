@@ -4,6 +4,7 @@
 // Note(Jesse): The userland code must define work_queue_entry
 struct work_queue_entry;
 struct work_queue
+poof(@do_editor_ui)
 {
   bonsai_futex EnqueueFutex;
 

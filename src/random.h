@@ -80,6 +80,7 @@ hashf(v3 p)       // replace this by something better
 
 
 struct random_series
+poof(@do_editor_ui)
 {
   u64 Seed;
 };

@@ -199,6 +199,7 @@ poof(buffer_h(shader_uniform, u32))
 #include <generated/buffer_h_struct_u32.h>
 
 struct shader
+poof(@do_editor_ui)
 {
   u32 ID = INVALID_SHADER;
   shader_uniform_buffer Uniforms;

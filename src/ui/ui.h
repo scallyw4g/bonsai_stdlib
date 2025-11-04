@@ -26,6 +26,7 @@
 
 
 struct ui_debug
+poof(@do_editor_ui)
 {
   b8 OutlineUiValues;
   b8 OutlineUiButtons;
@@ -45,6 +46,7 @@ link_weak ui_debug *GetUiDebug();
 /******************************               ********************************/
 
 struct render_buffers_2d
+poof(@do_editor_ui)
 {
   texture DebugTextureArray;
   s32 TextTextureUniform;
@@ -147,6 +149,7 @@ poof(hashtable_struct(window_layout))
 #define INTERACTION_ALWAYS_ON_TOP (u64_MAX)
 
 struct ui_toggle
+poof(@do_editor_ui)
 {
   ui_id Id;
   b32 ToggledOn;
@@ -299,6 +302,7 @@ struct ui_render_pass
 struct input;
 struct ui_render_command_buffer;
 struct renderer_2d
+poof(@do_editor_ui)
 {
   render_buffers_2d *TextGroup;
   triple_buffered_gpu_mapped_ui_buffer SolidQuadGeometryBuffer;

@@ -87,10 +87,15 @@ FlushBuffersToCard_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles)
 link_internal b32
 UnmapGpuBuffer(gpu_element_buffer_handles *Handles)
 {
-  auto GL = GetGL();
+  Assert(Handles->ElementCount);
+  Assert(Handles->VAO);
+  Assert(Handles->Handles[0]);
+  Assert(Handles->Handles[1]);
+  Assert(Handles->Handles[2]);
 
   b32 Result = True;
 
+  auto GL = GetGL();
   GL->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[0]);
       AssertNoGlErrors;
   Result &= GL->UnmapBuffer(GL_ARRAY_BUFFER);

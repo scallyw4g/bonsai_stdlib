@@ -1,5 +1,6 @@
 
 struct input_event
+poof(@do_editor_ui)
 {
   b32 Clicked;
   b32 Pressed;
@@ -9,6 +10,7 @@ struct input_event
 };
 
 struct input
+poof(@do_editor_ui)
 {
   input_event Enter;     poof(@win32_keycode(VK_RETURN))
   input_event Escape;    poof(@win32_keycode(VK_ESCAPE))
@@ -88,6 +90,7 @@ struct input
 };
 
 struct hotkeys
+poof(@do_editor_ui)
 {
   b32 Debug_ToggleMenu;
   b32 Debug_ToggleProfiling;

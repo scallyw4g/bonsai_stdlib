@@ -9,6 +9,7 @@ typedef THREAD_MAIN_RETURN (*thread_main_callback_type)(void*);
 #define FUTEX_UNSIGNALLED_VALUE (u32_MAX) // The signal value is the thread holding the futex so we have to use the max
 
 struct bonsai_futex
+poof(@do_editor_ui)
 {
   volatile u32 SignalValue = FUTEX_UNSIGNALLED_VALUE;
   volatile u32 ThreadsWaiting;

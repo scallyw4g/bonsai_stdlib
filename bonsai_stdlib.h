@@ -104,6 +104,7 @@ link_internal debug_state * GetDebugState();
 
 
 struct bonsai_stdlib
+poof(@do_editor_ui)
 {
                   os  Os;
             platform  Plat;

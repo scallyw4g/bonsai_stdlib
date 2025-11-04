@@ -1,4 +1,5 @@
 struct vertex_material
+poof(@do_editor_ui)
 {
   u16 ColorIndex;
 
@@ -75,6 +76,7 @@ struct geometry_buffer_stub_v3_u8
 };
 
 struct untextured_3d_geometry_buffer
+poof(@do_editor_ui)
 {
   data_type Type;
 

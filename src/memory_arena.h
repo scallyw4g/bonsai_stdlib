@@ -138,10 +138,11 @@ Terabytes(umm Number)
 #define INVALID_THREAD_HANDLE (u64_MAX)
 
 struct memory_arena
+poof(@do_editor_ui)
 {
-  u8* Start;
-  u8* At;
-  u8* End;
+  u8* Start; poof(@ui_skip)
+  u8* At;    poof(@ui_construct_as(  u64(Element->End-Element->At); ))
+  u8* End;   poof(@ui_construct_as(  u64(Element->End-Element->Start); ))
 
   umm NextBlockSize;
   memory_arena *Prev;

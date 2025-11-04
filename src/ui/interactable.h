@@ -2,6 +2,7 @@ struct layout;
 struct window_layout;
 
 struct ui_id
+poof(@do_editor_ui)
 {
   u32 _Reserved;
   u32 WindowBits;

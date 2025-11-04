@@ -2,6 +2,7 @@ struct graphics;
 struct server_state;
 
 struct platform
+poof(@do_editor_ui)
 {
   work_queue LowPriority;
   work_queue HighPriority;
