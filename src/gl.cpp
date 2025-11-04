@@ -381,6 +381,9 @@ InitializeOpenglFunctions()
       GetGL()->BindVertexArray           = (OpenglBindVertexArray)PlatformGetGlFunction("glBindVertexArray");
       GetGL()->Initialized               &= GetGL()->BindVertexArray != 0;
 
+      GetGL()->DeleteVertexArrays             = (OpenglDeleteBuffers)PlatformGetGlFunction("glDeleteVertexArrays");
+      GetGL()->Initialized               &= GetGL()->DeleteVertexArrays != 0;
+
       GetGL()->DeleteBuffers             = (OpenglDeleteBuffers)PlatformGetGlFunction("glDeleteBuffers");
       GetGL()->Initialized               &= GetGL()->DeleteBuffers != 0;
 
