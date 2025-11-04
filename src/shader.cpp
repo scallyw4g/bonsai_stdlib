@@ -644,106 +644,112 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
 
   s32 Count = Uniform->Count ? s32(*Uniform->Count) : 1;
 
-  if (Uniform->ID >= 0)
+  // NOTE(Jesse): It is actually valid to have a count of zero, for example if
+  // we're specifying an array with 0 elements.
+  //
+  if (Count)
   {
-    switch(Uniform->Type)
+    if (Uniform->ID >= 0)
     {
-      InvalidCase(ShaderUniform_Undefined);
-
-      case ShaderUniform_Texture:
+      switch(Uniform->Type)
       {
-        TIMED_BLOCK("ShaderUniform_Texture");
-        Assert(*TextureUnit > -1);
-        Assert(Count == 1);
+        InvalidCase(ShaderUniform_Undefined);
 
-        if (*TextureUnit > 8)
+        case ShaderUniform_Texture:
         {
-          Warn("TODO(Jesse): TextureUnit > 8, query available texture units"); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
-        }
-        /* Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures? */
+          TIMED_BLOCK("ShaderUniform_Texture");
+          Assert(*TextureUnit > -1);
+          Assert(Count == 1);
 
-        GL->ActiveTexture(GL_TEXTURE0 + Cast(u32, *TextureUnit));
-        GL->Uniform1i(Uniform->ID, *TextureUnit);
-        GL->BindTexture(GL_TEXTURE_2D, Uniform->Texture->ID);
+          if (*TextureUnit > 8)
+          {
+            Warn("TODO(Jesse): TextureUnit > 8, query available texture units"); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
+          }
+          /* Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures? */
 
-        *TextureUnit = *TextureUnit + 1;
-        END_BLOCK();
-      } break;
+          GL->ActiveTexture(GL_TEXTURE0 + Cast(u32, *TextureUnit));
+          GL->Uniform1i(Uniform->ID, *TextureUnit);
+          GL->BindTexture(GL_TEXTURE_2D, Uniform->Texture->ID);
 
-      case ShaderUniform_U32:
-      {
-        TIMED_BLOCK("ShaderUniform_U32");
-        Assert(Count == 1);
-        GL->Uniform1ui(Uniform->ID, *Uniform->U32);
-        END_BLOCK();
-      } break;
+          *TextureUnit = *TextureUnit + 1;
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_R32:
-      {
-        TIMED_BLOCK("ShaderUniform_R32");
-        Assert(Count == 1);
-        GL->Uniform1f(Uniform->ID, *Uniform->R32);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_U32:
+        {
+          TIMED_BLOCK("ShaderUniform_U32");
+          Assert(Count == 1);
+          GL->Uniform1ui(Uniform->ID, *Uniform->U32);
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_S32:
-      {
-        TIMED_BLOCK("ShaderUniform_S32");
-        Assert(Count == 1);
-        GL->Uniform1i(Uniform->ID, *Uniform->S32);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_R32:
+        {
+          TIMED_BLOCK("ShaderUniform_R32");
+          Assert(Count == 1);
+          GL->Uniform1f(Uniform->ID, *Uniform->R32);
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_M4:
-      {
-        TIMED_BLOCK("ShaderUniform_M4");
-        Assert(Count);
-        GL->UniformMatrix4fv(Uniform->ID, Count, GL_FALSE, (r32*)Uniform->M4);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_S32:
+        {
+          TIMED_BLOCK("ShaderUniform_S32");
+          Assert(Count == 1);
+          GL->Uniform1i(Uniform->ID, *Uniform->S32);
+          END_BLOCK();
+        } break;
 
-      case ShaderUniform_V2:
-      {
-        TIMED_BLOCK("ShaderUniform_V2");
+        case ShaderUniform_M4:
+        {
+          TIMED_BLOCK("ShaderUniform_M4");
+          Assert(Count);
+          GL->UniformMatrix4fv(Uniform->ID, Count, GL_FALSE, (r32*)Uniform->M4);
+          END_BLOCK();
+        } break;
 
-        Assert(Count);
-        GL->Uniform2fv(Uniform->ID, Count, (r32*)Uniform->V2);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_V2:
+        {
+          TIMED_BLOCK("ShaderUniform_V2");
 
-      case ShaderUniform_V3:
-      {
-        TIMED_BLOCK("ShaderUniform_V3");
+          Assert(Count);
+          GL->Uniform2fv(Uniform->ID, Count, (r32*)Uniform->V2);
+          END_BLOCK();
+        } break;
 
-        Assert(Count);
-        GL->Uniform3fv(Uniform->ID, Count, (r32*)Uniform->V3);
-        END_BLOCK();
-      } break;
+        case ShaderUniform_V3:
+        {
+          TIMED_BLOCK("ShaderUniform_V3");
 
-      default:
-      {
+          Assert(Count);
+          GL->Uniform3fv(Uniform->ID, Count, (r32*)Uniform->V3);
+          END_BLOCK();
+        } break;
+
+        default:
+        {
 #if BONSAI_ENGINE
-        // NOTE(Jesse): If this fails, we changed the name of BindEngineUniform
-        // without updating this callsite
-        Assert(BindEngineUniform);
+          // NOTE(Jesse): If this fails, we changed the name of BindEngineUniform
+          // without updating this callsite
+          Assert(BindEngineUniform);
 #endif
 
-        // @use_shader_bind_engine_uniform_callsite
-        if (BindEngineUniform)
-        {
-          BindEngineUniform(Uniform);
-        }
-        else
-        {
-          SoftError("Attempted to bind an engine uniform, but the engine bind function was not found!");
+          // @use_shader_bind_engine_uniform_callsite
+          if (BindEngineUniform)
+          {
+            BindEngineUniform(Uniform);
+          }
+          else
+          {
+            SoftError("Attempted to bind an engine uniform, but the engine bind function was not found!");
+          }
         }
       }
     }
-  }
-  else
-  {
-    // NOTE(Jesse): Uniforms that get optimized out hit this path and it spams the console like crazy
-    /* SoftError("Attempted to bind a uniform (%s) with an invalid id (%d)", Uniform->Name, Uniform->ID); */
+    else
+    {
+      // NOTE(Jesse): Uniforms that get optimized out hit this path and it spams the console like crazy
+      /* SoftError("Attempted to bind a uniform (%s) with an invalid id (%d)", Uniform->Name, Uniform->ID); */
+    }
   }
 
   AssertNoGlErrors;

@@ -561,34 +561,41 @@ f32 ridge_noise( in vec3 x )
 f32 RemapSample(in f32 SampleX, in v2 Points[16], in u32 PointCount)
 {
   f32 Result = -1.f;
-  v2 PrevP = Points[0];
-
-  for (u32 PointIndex = 1u; PointIndex < PointCount; ++PointIndex)
+  if (PointCount == 0u)
   {
-    v2 NextP = Points[PointIndex];
+    Result = SampleX;
+  }
+  else
+  {
+    v2 PrevP = Points[0];
 
-    if (SampleX >= PrevP.x && SampleX < NextP.x)
+    for (u32 PointIndex = 1u; PointIndex < PointCount; ++PointIndex)
     {
+      v2 NextP = Points[PointIndex];
+
+      if (SampleX >= PrevP.x && SampleX < NextP.x)
+      {
 
 
-      r32 Range = PrevP.x - NextP.x;
-      r32 t = Clamp01((SampleX-NextP.x) / Range);
+        r32 Range = PrevP.x - NextP.x;
+        r32 t = Clamp01((SampleX-NextP.x) / Range);
 
-      Result = CosineInterpolate(t, NextP.y, PrevP.y);
+        Result = CosineInterpolate(t, NextP.y, PrevP.y);
 
-      /* Result = mix(NextP.y, PrevP.y, t); */
+        /* Result = mix(NextP.y, PrevP.y, t); */
 
-      /* Result = QuinticInterpolate(Result); */
-      /* Result = QuinticInterpolate(Result); */
+        /* Result = QuinticInterpolate(Result); */
+        /* Result = QuinticInterpolate(Result); */
 
-      /* Result = CubicInterpolate(Result); */
-      /* Result = Smoothstep(Result); */
-      /* Result = Smoothstep(Result); */
+        /* Result = CubicInterpolate(Result); */
+        /* Result = Smoothstep(Result); */
+        /* Result = Smoothstep(Result); */
 
-      break;
+        break;
+      }
+
+      PrevP = NextP;
     }
-
-    PrevP = NextP;
   }
 
   // TODO(Jesse): do we do this?  I think this should always be true ..
