@@ -56,6 +56,7 @@ poof(@do_editor_ui)
 };
 
 enum window_layout_flags
+poof(@bitfield)
 {
   WindowLayoutFlag_None                    = 0,
 
@@ -77,6 +78,9 @@ enum window_layout_flags
   // Set this to free the window layout from the hashtable after drawing
   WindowLayoutFlag_DeferFree               = (1 << 5),
 };
+
+poof(is_valid(window_layout_flags))
+#include <generated/is_valid_bX0vSE1r.h>
 
 global_variable u32 NextWindowStackIndex = 0;
 

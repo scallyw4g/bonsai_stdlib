@@ -655,3 +655,4 @@ v3 ComputeNormal(sampler2D InputTex, v2 FragCoord, ivec2 InputTexDim, ivec2 Outp
 
 
 #define DEFAULT_FLOOR_HEIGHT (10000.f)
+/* #define DEFAULT_FLOOR_HEIGHT (5000000.f) */

@@ -1738,6 +1738,15 @@ GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, window_layout_flags F
   return Result;
 }
 
+link_internal window_layout *
+GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, s32 FlagsInt)
+{
+  window_layout_flags Flags = window_layout_flags(FlagsInt);
+  /* Assert(IsValid(Flags)); */
+  auto Result = GetOrCreateWindow(Ui, WindowName, Flags);
+  return Result;
+}
+
 /*********************************           *********************************/
 /*********************************   Modal   *********************************/
 /*********************************           *********************************/
