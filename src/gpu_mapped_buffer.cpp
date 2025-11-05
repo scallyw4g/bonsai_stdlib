@@ -289,7 +289,8 @@ DeallocateGpuBuffer(gpu_mapped_ui_buffer *Buf)
 link_internal gpu_mapped_untextured_3d_geometry_buffer
 MapGpuBuffer_gpu_mapped_element_buffer(gpu_element_buffer_handles *Handles)
 {
-  WARN_TIMED_FUNCTION(100000);
+  /* WARN_TIMED_FUNCTION(100000); */
+  TIMED_FUNCTION();
   AssertNoGlErrors;
 
   Assert(Handles->Mapped == False);
@@ -402,7 +403,8 @@ MapGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles)
 link_internal void
 MapGpuBuffer(gpu_mapped_element_buffer *GpuMap)
 {
-  WARN_TIMED_FUNCTION(100000);
+  /* WARN_TIMED_FUNCTION(100000); */
+  TIMED_FUNCTION();
 
   Assert(GpuMap->Buffer.Parent == False);
   if (GpuMap->Buffer.BufferNeedsToGrow)
@@ -419,7 +421,8 @@ MapGpuBuffer(gpu_mapped_element_buffer *GpuMap)
 link_internal void
 MapGpuBuffer(gpu_mapped_ui_buffer *GpuMap)
 {
-  WARN_TIMED_FUNCTION(100000);
+  /* WARN_TIMED_FUNCTION(100000); */
+  TIMED_FUNCTION();
   GpuMap->Buffer = MapGpuBuffer_gpu_mapped_ui_buffer(&GpuMap->Handles).Buffer;
 }
 
