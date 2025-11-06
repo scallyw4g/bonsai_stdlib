@@ -207,7 +207,10 @@
 
 #define GL_QUERY_RESULT                   0x8866
 #define GL_QUERY_RESULT_AVAILABLE         0x8867
+
 #define GL_TIME_ELAPSED                   0x88BF
+#define GL_SAMPLES_PASSED                 0x8914
+#define GL_ANY_SAMPLES_PASSED             0x8C2F
 
 #define GL_SYNC_GPU_COMMANDS_COMPLETE     0x9117
 #define GL_SYNC_FLUSH_COMMANDS_BIT        0x00000001
@@ -232,6 +235,7 @@
 #define GL_DYNAMIC_DRAW                   0x88E8
 #define GL_DYNAMIC_READ                   0x88E9
 #define GL_DYNAMIC_COPY                   0x88EA
+
 
 typedef void GLvoid;
 typedef unsigned int GLenum;
