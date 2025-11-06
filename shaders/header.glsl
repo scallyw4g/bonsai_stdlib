@@ -60,7 +60,7 @@ float rand(vec2 st) {
 
 #define r32 float
 #define f32 float
-#define u32 unsigned int
+#define u32 uint
 #define s32 int
 
 #define PI64 (3.1415926535897932384626433832795028841971693993)
