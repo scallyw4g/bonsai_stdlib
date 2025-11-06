@@ -2,26 +2,27 @@ poof(
   func triple_buffered(type, buffer_t)
   {
     @var new_t triple_buffered_(type.name)
+    @var buf_count 3
 
     struct new_t
     {
       u32 CurrentIndex;
-      gpu_element_buffer_handles  Handles[3];
+      gpu_element_buffer_handles  Handles[buf_count];
                  (buffer_t.name)  Buffer;
     };
 
     link_internal gpu_element_buffer_handles *
     CurrentHandles( new_t *Buf )
     {
-      Assert(Buf->CurrentIndex < 3);
+      Assert(Buf->CurrentIndex < buf_count);
       gpu_element_buffer_handles *Result = Buf->Handles + Buf->CurrentIndex;
       return Result;
     }
 
-    link_internal void               
+    link_internal void
     MapGpuBuffer( new_t *Buf )
     {
-      Buf->CurrentIndex = (Buf->CurrentIndex + 1) % 3;
+      Buf->CurrentIndex = (Buf->CurrentIndex + 1) % buf_count;
       Buf->Buffer = MapGpuBuffer_(type.name)(CurrentHandles(Buf)).Buffer;
     }
 
@@ -107,7 +108,7 @@ struct gpu_mapped_ui_buffer
 link_internal void AllocateGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles, data_type Type, u32 ElementCount);
 link_internal void AllocateGpuBuffer_gpu_mapped_element_buffer(gpu_element_buffer_handles *Handles, data_type Type, u32 ElementCount);
 
-link_internal gpu_mapped_ui_buffer MapGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles);
+/* link_internal gpu_mapped_ui_buffer MapGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles); */
 link_internal gpu_mapped_untextured_3d_geometry_buffer MapGpuBuffer_gpu_mapped_element_buffer(gpu_element_buffer_handles *Handles);
 
 link_internal gpu_mapped_ui_buffer UnmapGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles);
@@ -119,7 +120,7 @@ link_internal void DrawBuffer( gpu_mapped_element_buffer *, v2 *);
 link_internal b32 UnmapGpuBuffer(gpu_element_buffer_handles *Handles);
 
 
-poof(triple_buffered(gpu_mapped_ui_buffer, ui_geometry_buffer))
+/* poof(triple_buffered(gpu_mapped_ui_buffer, ui_geometry_buffer)) */
 #include <generated/triple_buffered_iGeuhioE.h>
 
 poof(triple_buffered(gpu_mapped_element_buffer, untextured_3d_geometry_buffer))

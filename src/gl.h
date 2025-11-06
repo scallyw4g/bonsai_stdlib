@@ -181,6 +181,11 @@
 #define GL_MAP_WRITE_BIT                  0x0002
 #define GL_STATIC_DRAW                    0x88E4
 
+#define GL_MAP_INVALIDATE_RANGE_BIT       0x0004
+#define GL_MAP_INVALIDATE_BUFFER_BIT      0x0008
+#define GL_MAP_FLUSH_EXPLICIT_BIT         0x0010
+#define GL_MAP_UNSYNCHRONIZED_BIT         0x0020
+
 #define GL_CULL_FACE                      0x0B44
 #define GL_BACK                           0x0405
 #define GL_CW                             0x0900

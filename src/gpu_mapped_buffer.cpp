@@ -1,3 +1,16 @@
+link_internal void
+AllocateGpuBuffer( triple_buffered_gpu_mapped_ui_buffer *Buf, data_type Type, u32 ElementCount, memory_arena *Memory)
+{
+  AllocateGpuBuffer_gpu_mapped_ui_buffer(Buf->Handles+0, Type, ElementCount);
+  AllocateGpuBuffer_gpu_mapped_ui_buffer(Buf->Handles+1, Type, ElementCount);
+  AllocateGpuBuffer_gpu_mapped_ui_buffer(Buf->Handles+2, Type, ElementCount);
+
+  Buf->Buffer.Verts  = Allocate(v3, Memory, ElementCount);
+  Buf->Buffer.UVs    = Allocate(v3, Memory, ElementCount);
+  Buf->Buffer.Colors = Allocate(v3, Memory, ElementCount);
+  Buf->Buffer.End = ElementCount;
+}
+
 
 // NOTE(Jesse): This hooks up the vertex attribs because in some cases
 // (immediate geo buffer) we flush and draw immediately afterwards.
@@ -5,82 +18,51 @@
 // Should probably move to using VAOs so we don't have to do this.
 //
 link_inline b32
-FlushBuffersToCard_gpu_mapped_element_buffer(gpu_element_buffer_handles *Handles)
+UnmapGpuBuffer(gpu_mapped_element_buffer *Buf)
 {
-#if 1
-  return UnmapGpuBuffer(Handles);
+  return UnmapGpuBuffer(&Buf->Handles);
+}
+
+link_inline b32
+UnmapGpuBuffer(gpu_mapped_ui_buffer *Buf)
+{
+#if 0
+  return UnmapGpuBuffer(&Buf->Handles);
 #else
-  TIMED_FUNCTION();
 
+  Buf->Handles.Mapped = False;
+  u32 v3Size   = sizeof(v3)*Buf->Handles.ElementCount;
+
+  AssertNoGlErrors;
   auto GL = GetGL();
-  GL->BindVertexArray(Handles->VAO);
 
-  Assert(Handles->VAO);
-  Assert(Handles->Mapped == True);
-  Handles->Mapped = False;
-
+  GL->BindBuffer(GL_ARRAY_BUFFER, Buf->Handles.Handles[0]);
+  GL->BufferData(GL_ARRAY_BUFFER, v3Size, Buf->Buffer.Verts, GL_STREAM_DRAW);
   AssertNoGlErrors;
 
+  GL->BindBuffer(GL_ARRAY_BUFFER, Buf->Handles.Handles[1]);
+  GL->BufferData(GL_ARRAY_BUFFER, v3Size, Buf->Buffer.UVs, GL_STREAM_DRAW);
   AssertNoGlErrors;
 
-  GL->EnableVertexAttribArray(0);
-  GL->EnableVertexAttribArray(1);
-  GL->EnableVertexAttribArray(2);
-  GL->EnableVertexAttribArray(3);
-
-  u32 BufferUnmapped = 0;
-  switch (Handles->ElementType)
-  {
-    InvalidCase(DataType_Undefinded);
-
-    case DataType_v3:
-    {
-      GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_VertexHandle]);
-      GetGL()->VertexAttribPointer(VERTEX_POSITION_LAYOUT_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-      BufferUnmapped = GetGL()->UnmapBuffer(GL_ARRAY_BUFFER);
-      AssertNoGlErrors;
-
-      GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_NormalHandle]);
-      GetGL()->VertexAttribPointer(VERTEX_NORMAL_LAYOUT_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-      BufferUnmapped &= GetGL()->UnmapBuffer(GL_ARRAY_BUFFER);
-      AssertNoGlErrors;
-    } break;
-
-    case DataType_v3_u8:
-    {
-      GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_VertexHandle]);
-      GetGL()->VertexAttribIPointer(VERTEX_POSITION_LAYOUT_LOCATION, 3, GL_BYTE, 0, (void*)0);
-      BufferUnmapped = GetGL()->UnmapBuffer(GL_ARRAY_BUFFER);
-      AssertNoGlErrors;
-
-      GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_NormalHandle]);
-      GetGL()->VertexAttribPointer(VERTEX_NORMAL_LAYOUT_LOCATION, 3, GL_BYTE, GL_TRUE, 0, (void*)0);
-      BufferUnmapped &= GetGL()->UnmapBuffer(GL_ARRAY_BUFFER);
-      AssertNoGlErrors;
-
-    } break;
-  }
-
-  // NOTE(Jesse): This is just here to break when the size of these changes,
-  // serving as a reminder to update this code.
-  const u32 MtlFloatElements = sizeof(matl)/sizeof(u8);
-  CAssert(MtlFloatElements == 4);
-
-  GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_MatHandle]);
-  GetGL()->VertexAttribIPointer(VERTEX_COLOR_LAYOUT_LOCATION,       1, GL_SHORT, sizeof(matl), Cast(void*, OffsetOf(  ColorIndex, matl)) );
-  GetGL()->VertexAttribIPointer(VERTEX_TRANS_EMISS_LAYOUT_LOCATION, 2, GL_BYTE,  sizeof(matl), Cast(void*, OffsetOf(Transparency, matl)) ); // @vertex_attrib_I_pointer_transparency_offsetof
-  BufferUnmapped &= GetGL()->UnmapBuffer(GL_ARRAY_BUFFER);
+  GL->BindBuffer(GL_ARRAY_BUFFER, Buf->Handles.Handles[2]);
+  GL->BufferData(GL_ARRAY_BUFFER, v3Size, Buf->Buffer.Colors, GL_STREAM_DRAW);
   AssertNoGlErrors;
 
-  if (BufferUnmapped == False) { Error("glUnmapBuffer Failed"); }
-  return BufferUnmapped;
+  return 1;
+
 #endif
 }
 
 link_inline b32
-FlushBuffersToCard_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles)
+FlushBuffersToCard(gpu_mapped_element_buffer *Buf)
 {
-  return UnmapGpuBuffer(Handles);
+  return UnmapGpuBuffer(Buf);
+}
+
+link_inline b32
+FlushBuffersToCard(gpu_mapped_ui_buffer *Buf)
+{
+  return UnmapGpuBuffer(Buf);
 }
 
 
@@ -203,9 +185,7 @@ AllocateGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles, data
   Assert(Handles->Handles[mesh_NormalHandle] == 0);
   Assert(Handles->Handles[mesh_MatHandle] == 0);
 
-  /* Handles->ElementType = Type; */
   Handles->ElementCount = ElementCount;
-
 
   auto GL = GetGL();
 
@@ -312,18 +292,18 @@ MapGpuBuffer_gpu_mapped_element_buffer(gpu_element_buffer_handles *Handles)
 
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_VertexHandle]);
       AssertNoGlErrors;
-      Buffer.Verts = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, BufferSize, GL_MAP_WRITE_BIT);
+      Buffer.Verts = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, BufferSize, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
       AssertNoGlErrors;
 
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_NormalHandle]);
       AssertNoGlErrors;
-      Buffer.Normals = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, BufferSize, GL_MAP_WRITE_BIT);
+      Buffer.Normals = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, BufferSize, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
       AssertNoGlErrors;
 
       // Color data
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_MatHandle]);
       AssertNoGlErrors;
-      Buffer.Mat = (matl*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, MaterialBufferSize, GL_MAP_WRITE_BIT);
+      Buffer.Mat = (matl*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, MaterialBufferSize, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
       AssertNoGlErrors;
 
     } break;
@@ -334,18 +314,18 @@ MapGpuBuffer_gpu_mapped_element_buffer(gpu_element_buffer_handles *Handles)
 
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_VertexHandle]);
       AssertNoGlErrors;
-      Buffer.Verts = (v3_u8*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, BufferSize, GL_MAP_WRITE_BIT);
+      Buffer.Verts = (v3_u8*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, BufferSize, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
       AssertNoGlErrors;
 
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_NormalHandle]);
       AssertNoGlErrors;
-      Buffer.Normals = (v3_u8*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, BufferSize, GL_MAP_WRITE_BIT);
+      Buffer.Normals = (v3_u8*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, BufferSize, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
       AssertNoGlErrors;
 
       // Color data
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_MatHandle]);
       AssertNoGlErrors;
-      Buffer.Mat = (matl*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, MaterialBufferSize, GL_MAP_WRITE_BIT);
+      Buffer.Mat = (matl*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, MaterialBufferSize, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
       AssertNoGlErrors;
 
     } break;
@@ -361,34 +341,69 @@ MapGpuBuffer_gpu_mapped_element_buffer(gpu_element_buffer_handles *Handles)
   return {*Handles, Buffer};
 }
 
-link_internal gpu_mapped_ui_buffer
-MapGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles)
+link_internal void
+MapGpuBuffer(gpu_mapped_ui_buffer *Buf)
 {
   TIMED_FUNCTION();
   AssertNoGlErrors;
 
+  auto Buffer = &Buf->Buffer;
+  gpu_element_buffer_handles *Handles = &Buf->Handles;
+
   Assert(Handles->Mapped == False);
   Handles->Mapped = True;
 
-  ui_geometry_buffer Buffer = {};
-  Buffer.End = Handles->ElementCount;
+  Buffer->End = Handles->ElementCount;
+  Buffer->At = 0;
 
   u32 v3Size = sizeof(v3)*Handles->ElementCount;
-  u32 v2Size = sizeof(v2)*Handles->ElementCount;
+  /* u32 v2Size = sizeof(v2)*Handles->ElementCount; */
 
-  GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[ui_VertexHandle]);
-  AssertNoGlErrors;
-  Buffer.Verts = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, v3Size, GL_MAP_WRITE_BIT);
-  AssertNoGlErrors;
+#if 1
+#if 0
+  if (Buffer->Verts == 0)
+  {
+    if (Handles->Arena == 0) { Handles->Arena = AllocateArena(); }
+    Buffer->Verts  = Allocate(v3, Handles->Arena, Handles->ElementCount);
+    Buffer->UVs    = Allocate(v3, Handles->Arena, Handles->ElementCount);
+    Buffer->Colors = Allocate(v3, Handles->Arena, Handles->ElementCount);
+  }
+#endif
+#else
+  auto GL = GetGL();
+
+  {
+    TIMED_NAMED_BLOCK(BindBuffer);
+    GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[ui_VertexHandle]);
+    AssertNoGlErrors;
+    /* Info("(%d)(%d)(%d)", Handles->Handles[0], Handles->Handles[1], Handles->Handles[2] ); */
+  }
+
+  {
+    TIMED_NAMED_BLOCK(BufferData);
+    GL->BufferData(GL_ARRAY_BUFFER, v3Size, 0, GL_STREAM_DRAW);
+    AssertNoGlErrors;
+  }
+
+  {
+    TIMED_NAMED_BLOCK(MapBufferRange);
+    Buffer.Verts = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, v3Size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT  | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
+    AssertNoGlErrors;
+  }
+
 
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[ui_UVHandle]);
   AssertNoGlErrors;
-  Buffer.UVs = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, v2Size, GL_MAP_WRITE_BIT);
+  GL->BufferData(GL_ARRAY_BUFFER, v3Size, 0, GL_STREAM_DRAW);
+  AssertNoGlErrors;
+  Buffer.UVs = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, v3Size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT );
   AssertNoGlErrors;
 
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[ui_ColorHandle]);
   AssertNoGlErrors;
-  Buffer.Colors = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, v3Size, GL_MAP_WRITE_BIT);
+  GL->BufferData(GL_ARRAY_BUFFER, v3Size, 0, GL_STREAM_DRAW);
+  AssertNoGlErrors;
+  Buffer.Colors = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, v3Size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
   AssertNoGlErrors;
 
   if (!Buffer.Verts)   { Error("Allocating gpu_mapped_element_buffer::Verts");   }
@@ -396,8 +411,7 @@ MapGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles)
   if (!Buffer.Colors)     { Error("Allocating gpu_mapped_element_buffer::Colors");     }
 
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, 0);
-
-  return {*Handles, Buffer};
+#endif
 }
 
 link_internal void
@@ -418,13 +432,13 @@ MapGpuBuffer(gpu_mapped_element_buffer *GpuMap)
   GpuMap->Buffer = MapGpuBuffer_gpu_mapped_element_buffer(&GpuMap->Handles).Buffer;
 }
 
-link_internal void
-MapGpuBuffer(gpu_mapped_ui_buffer *GpuMap)
-{
-  /* WARN_TIMED_FUNCTION(100000); */
-  TIMED_FUNCTION();
-  GpuMap->Buffer = MapGpuBuffer_gpu_mapped_ui_buffer(&GpuMap->Handles).Buffer;
-}
+/* link_internal void */
+/* MapGpuBuffer(gpu_mapped_ui_buffer *GpuMap) */
+/* { */
+/*   /1* WARN_TIMED_FUNCTION(100000); *1/ */
+/*   TIMED_FUNCTION(); */
+/*   GpuMap->Buffer = MapGpuBuffer_gpu_mapped_ui_buffer(&GpuMap->Handles).Buffer; */
+/* } */
 
 link_internal void
 SetupVertexAttribsFor_u3d_geo_element_buffer(gpu_element_buffer_handles *Handles)

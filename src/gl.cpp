@@ -491,8 +491,8 @@ InitializeOpenglFunctions()
 
   if (GetGL()->Initialized)
   {
-    /* GetGL()->DebugMessageCallback(HandleGlDebugMessage, 0); */
-    /* GetGL()->Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS); */
+    GetGL()->DebugMessageCallback(HandleGlDebugMessage, 0);
+    GetGL()->Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
     GetGL()->Enable(GL_DEPTH_TEST);
 

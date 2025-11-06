@@ -3254,6 +3254,7 @@ DrawBuffer(gpu_mapped_ui_buffer *Buffer, v2 *ScreenDim)
   {
     Draw(Buffer->Buffer.At);
   }
+  GetGL()->BindVertexArray(0);
 
   AssertNoGlErrors;
 }
@@ -3282,11 +3283,11 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
   GetGL()->Enable(GL_BLEND);
   GetGL()->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  UnmapGpuBuffer(CurrentHandles(&UiGroup->SolidQuadGeometryBuffer));
+  UnmapGpuBuffer(&UiGroup->SolidQuadGeometryBuffer);
   DrawBuffer(&UiGroup->SolidQuadGeometryBuffer, ScreenDim);
   AssertNoGlErrors;
 
-  UnmapGpuBuffer(CurrentHandles(&UiGroup->TextGroup->Buf));
+  UnmapGpuBuffer(&UiGroup->TextGroup->Buf);
   DrawBuffer(&UiGroup->TextGroup->Buf, ScreenDim);
   AssertNoGlErrors;
 
@@ -3497,9 +3498,9 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   // @streaming_ui_render_memory
   u32 ElementCount = (u32)Kilobytes(256);
 
-  AllocateGpuBuffer(&Renderer->SolidQuadGeometryBuffer,  DataType_Undefinded, ElementCount);
-  AllocateGpuBuffer(&Renderer->TextGroup->Buf,           DataType_Undefinded, ElementCount);
-  AllocateGpuBuffer(&Renderer->CustomQuadGeometryBuffer, DataType_Undefinded, u32_COUNT_PER_QUAD);
+  AllocateGpuBuffer(&Renderer->SolidQuadGeometryBuffer,  DataType_Undefinded, ElementCount, PermMemory);
+  AllocateGpuBuffer(&Renderer->TextGroup->Buf,           DataType_Undefinded, ElementCount, PermMemory);
+  AllocateGpuBuffer(&Renderer->CustomQuadGeometryBuffer, DataType_Undefinded, u32_COUNT_PER_QUAD, PermMemory);
 
   Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
   Renderer->WindowTable = Allocate_window_layout_hashtable(256, PermMemory); // 256 windows should be enough for anybody?

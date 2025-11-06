@@ -37,6 +37,7 @@ Init_Global_QuadVertexBuffer()
   GetGL()->VertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, 0);
+  GetGL()->BindVertexArray(0);
 
   return;
 }
