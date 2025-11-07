@@ -1748,48 +1748,53 @@ poof(
     link_internal counted_string
     ToStringPrefixless((enum_t.name) Type)
     {
-      Assert(IsValid(Type));
-      counted_string Result = {};
-
-      switch (Type)
+      cs Result = {};
+      if (IsValid(Type))
       {
-        enum_t.map_values (EnumValue)
+        switch (Type)
         {
-          case EnumValue.name: { Result = CSz("EnumValue.name.strip_all_prefix"); } break;
-        }
-
-        enum_t.has_tag(bitfield)?
-        {
-          // TODO(Jesse): This is pretty barf and we could do it in a single allocation,
-          // but the metaprogram might have to be a bit fancier..
-          default:
+          enum_t.map_values (EnumValue)
           {
-            u32 CurrentFlags = u32(Type);
+            case EnumValue.name: { Result = CSz("EnumValue.name.strip_all_prefix"); } break;
+          }
 
-            u32 BitsSet = CountBitsSet_Kernighan(CurrentFlags);
-            switch(BitsSet)
+          enum_t.has_tag(bitfield)?
+          {
+            // TODO(Jesse): This is pretty barf and we could do it in a single allocation,
+            // but the metaprogram might have to be a bit fancier..
+            default:
             {
-              case 0: // We likely passed 0 into this function, and the enum didn't have a 0 value
-              case 1: // The value we passed in was outside the range of the valid enum values
-              {
-                Result = FSz("(invalid value (%d))", CurrentFlags);
-              } break;
+              u32 CurrentFlags = u32(Type);
 
-              default:
+              u32 BitsSet = CountBitsSet_Kernighan(CurrentFlags);
+              switch(BitsSet)
               {
-                u32 FirstValue = UnsetLeastSignificantSetBit(&CurrentFlags);
-                Result = ToStringPrefixless((enum_t.name)(FirstValue));
-
-                while (CurrentFlags)
+                case 0: // We likely passed 0 into this function, and the enum didn't have a 0 value
+                case 1: // The value we passed in was outside the range of the valid enum values
                 {
-                  u32 Value = UnsetLeastSignificantSetBit(&CurrentFlags);
-                  cs Next = ToStringPrefixless((enum_t.name)(Value));
-                  Result = FSz("%S | %S", Result, Next);
-                }
-              } break;
-            }
-          } break;
+                  Result = FSz("(invalid value (%d))", CurrentFlags);
+                } break;
+
+                default:
+                {
+                  u32 FirstValue = UnsetLeastSignificantSetBit(&CurrentFlags);
+                  Result = ToStringPrefixless((enum_t.name)(FirstValue));
+
+                  while (CurrentFlags)
+                  {
+                    u32 Value = UnsetLeastSignificantSetBit(&CurrentFlags);
+                    cs Next = ToStringPrefixless((enum_t.name)(Value));
+                    Result = FSz("%S | %S", Result, Next);
+                  }
+                } break;
+              }
+            } break;
+          }
         }
+      }
+      else
+      {
+        Result = CSz("(CORRUPT ENUM VALUE)");
       }
       /* if (Result.Start == 0) { Info("Could not convert value(%d) to (enum_t.name)", Type); } */
       return Result;
