@@ -96,6 +96,9 @@ Truncate(r32 Input)
 link_internal f32
 Mod(f32 Dividend, f32 Divisor)
 {
+  // NOTE(Jesse): If this is true, in some cases we return a small but erronious value.
+  if (Dividend == Divisor) { return 0.f; }
+
   r32 Truncated = Truncate(Dividend / Divisor);
   f32 Result = Dividend - Truncated * Divisor;
   return Result;
