@@ -2221,6 +2221,7 @@ poof(
       element_t.name Elements[n_elements_per_block];
     };
 
+    /// TODO(Jesse): Initialize this to INVALID_BLOCK_ARRAY_INDEX?
     struct index_t
     {
       umm Index; /// TODO(Jesse): Should this be u32?
