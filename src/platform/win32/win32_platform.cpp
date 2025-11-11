@@ -767,3 +767,27 @@ Win32PrintLastError()
   }
 }
 
+link_internal void
+PlatformInitializeStdout(native_file *File, native_file *Log)
+{
+  // For some reason writing was infinite-blocking occasionally with buffered
+  // IO.  Turning it off solved the problem .. but I'm still not sure what the
+  // root cause actually was..
+  setvbuf(stdout, 0, _IONBF, 0);
+  setvbuf(stderr, 0, _IONBF, 0);
+
+  // NOTE(Jesse): There are at least two ways of getting a stdout handle on windows
+  // Both seem to work equally well, although they don't return the same handle..
+#if 1
+  File->Handle = CreateFileA("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
+#else
+  File->Handle = GetStdHandle(STD_OUTPUT_HANDLE);
+#endif
+
+  File->Path = CSz("stdout");
+
+  if (Log) { *Log = OpenFile("log.txt", FilePermission_Write); }
+
+  Assert(File->Handle != INVALID_HANDLE_VALUE);
+}
+

@@ -51,6 +51,7 @@
 #include <bonsai_stdlib/src/ui/gl.cpp>
 
 #include <bonsai_stdlib/src/gpu_mapped_buffer.cpp>
+#include <bonsai_stdlib/src/framebuffer.cpp>
 
 #include <bonsai_stdlib/src/to_string.cpp>
 

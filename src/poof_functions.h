@@ -1234,8 +1234,9 @@ poof(
 poof(
   func static_cursor(Type, type_poof_symbol StaticCount)
   {
-    @var type_name (Type)_static_cursor_(StaticCount)
-    struct type_name
+    @var cursor_t (Type)_static_cursor_(StaticCount)
+
+    struct cursor_t
     poof(@do_editor_ui)
     {
       Type.name Start[StaticCount]; poof(@array_length(Element->At))
@@ -1243,7 +1244,7 @@ poof(
     };
 
     link_inline (Type.name)*
-    GetPtr( type_name *Buf, umm Index)
+    GetPtr( cursor_t *Buf, umm Index)
     {
       Type.name *Result = {};
       if ( Index < umm((StaticCount)) )
@@ -1254,13 +1255,13 @@ poof(
     }
 
     link_inline (Type.name)*
-    TryGetPtr( type_name *Buf, umm Index)
+    TryGetPtr( cursor_t *Buf, umm Index)
     {
       return GetPtr(Buf, Index);
     }
 
     link_inline (Type.name)
-    Get( type_name *Buf, umm Index)
+    Get( cursor_t *Buf, umm Index)
     {
       Assert(Index < umm((StaticCount)));
       Assert(Index < umm((Buf->At)));
@@ -1269,26 +1270,26 @@ poof(
     }
 
     link_internal umm
-    AtElements( type_name  *Buf)
+    AtElements( cursor_t  *Buf)
     {
       return Buf->At;
     }
 
     link_internal umm
-    TotalElements( type_name *Buf)
+    TotalElements( cursor_t *Buf)
     {
       return StaticCount;
     }
 
     link_inline void
-    Push( type_name *Buf, Type *E )
+    Push( cursor_t *Buf, Type *E )
     {
       Assert(AtElements(Buf) < TotalElements(Buf));
       Buf->Start[Buf->At++] = *E;
     }
 
     link_inline void
-    Push( type_name *Buf, Type E )
+    Push( cursor_t *Buf, Type E )
     {
       Assert(AtElements(Buf) < TotalElements(Buf));
       Buf->Start[Buf->At++] = E;
@@ -1547,7 +1548,8 @@ poof(
 poof(
   func generate_cursor_struct(Type)
   {
-    struct (Type.name)_cursor
+    @var cursor_t (Type.name)_cursor
+    struct cursor_t
     {
       Type.name *Start;
       // TODO(Jesse)(immediate): For the love of fucksakes change these to indices
@@ -1558,16 +1560,16 @@ poof(
   }
 )
 
-
 poof(
   func generate_cursor_functions(Type)
   {
+    @var cursor_t (Type.name)_cursor
 
-    link_internal (Type.name)_cursor
+    link_internal cursor_t
     (Type.name.to_capital_case)Cursor(umm ElementCount, memory_arena* Memory)
     {
       Type.name *Start = ((Type.name)*)PushStruct(Memory, sizeof((Type.name))*ElementCount, 1, 0);
-      (Type.name)_cursor Result = {};
+      cursor_t Result = {};
 
       Result.Start = Start;
       Result.End = Start+ElementCount;
@@ -1577,7 +1579,7 @@ poof(
     }
 
     link_internal (Type.name)*
-    GetPtr((Type.name)_cursor *Cursor, umm ElementIndex)
+    GetPtr( cursor_t *Cursor, umm ElementIndex)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1587,13 +1589,13 @@ poof(
     }
 
     link_internal (Type.name)*
-    TryGetPtr((Type.name)_cursor *Cursor, umm ElementIndex)
+    TryGetPtr( cursor_t *Cursor, umm ElementIndex)
     {
       return GetPtr(Cursor, ElementIndex);
     }
 
     link_internal (Type.name)*
-    GetPtrUnsafe((Type.name)_cursor *Cursor, umm ElementIndex)
+    GetPtrUnsafe( cursor_t *Cursor, umm ElementIndex)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1603,7 +1605,7 @@ poof(
     }
 
     link_internal (Type.name)
-    Get((Type.name)_cursor *Cursor, umm ElementIndex)
+    Get( cursor_t *Cursor, umm ElementIndex)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1613,7 +1615,7 @@ poof(
     }
 
     link_internal void
-    Set((Type.name)_cursor *Cursor, umm ElementIndex, (Type.name) Element)
+    Set( cursor_t *Cursor, umm ElementIndex, (Type.name) Element)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1628,7 +1630,7 @@ poof(
     }
 
     link_internal (Type.name)*
-    Advance((Type.name)_cursor *Cursor)
+    Advance( cursor_t *Cursor)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1638,7 +1640,7 @@ poof(
     }
 
     link_internal Type.name *
-    Push((Type.name)_cursor *Cursor, (Type.name) Element)
+    Push( cursor_t *Cursor, (Type.name) Element)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1649,7 +1651,7 @@ poof(
     }
 
     link_internal Type.name
-    Pop((Type.name)_cursor *Cursor)
+    Pop( cursor_t *Cursor)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1660,7 +1662,7 @@ poof(
     }
 
     link_internal s32
-    LastIndex((Type.name)_cursor *Cursor)
+    LastIndex( cursor_t *Cursor)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1669,7 +1671,7 @@ poof(
     }
 
     link_internal Type.name*
-    LastElement((Type.name)_cursor *Cursor)
+    LastElement( cursor_t *Cursor)
     {
       Type.name *Result = {};
       s32 I = LastIndex(Cursor);
@@ -1678,7 +1680,7 @@ poof(
     }
 
     link_internal b32
-    Remove((Type.name)_cursor *Cursor, (Type.name) Query)
+    Remove( cursor_t *Cursor, (Type.name) Query)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1701,7 +1703,7 @@ poof(
 
 
     link_internal b32
-    ResizeCursor((Type.name)_cursor *Cursor, umm Count, memory_arena *Memory)
+    ResizeCursor( cursor_t *Cursor, umm Count, memory_arena *Memory)
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
 
@@ -1718,7 +1720,7 @@ poof(
     }
 
     link_internal void
-    Unshift( (Type.name)_cursor *Cursor )
+    Unshift( cursor_t *Cursor )
     {
       /* ENSURE_OWNED_BY_THREAD(Cursor); */
       umm Count = AtElements(Cursor);
@@ -1735,6 +1737,54 @@ poof(
         Cursor->At--;
         *Cursor->At = {};
       }
+    }
+
+  }
+)
+
+poof(
+  func circular_buffer_h(element_t)
+  {
+    generate_cursor_struct(element_t)
+    are_equal(element_t)
+
+    @var cursor_t (element_t.name)_cursor
+    typedef cursor_t (element_t.name)_circular_buffer;
+  }
+)
+
+
+poof(
+  func circular_buffer_c(element_t)
+  {
+    generate_cursor_functions(element_t)
+
+    @var cursor_t (element_t.name)_cursor
+
+    link_internal s32
+    Find( cursor_t *Array, element_t.name element_t.is_pointer?{}{*}Query)
+    {
+      s32 Result = -1;
+      IterateOver(Array, E, Index)
+      {
+        if (AreEqual( E, Query ))
+        {
+          Result = s32(Index);
+          break;
+        }
+      }
+      return Result;
+    }
+
+
+    link_internal s32
+    AdvanceIndex( cursor_t *Array, s32 Index, s32 AdvanceCount)
+    {
+      s32 Total = s32(TotalElements(Array));
+      Assert(Index >= 0);
+      Assert(Index < Total );
+      s32 Result = (Index + AdvanceCount) % Total;
+      return Result;
     }
 
   }

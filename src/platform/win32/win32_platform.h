@@ -57,27 +57,7 @@ link_internal void
 Win32PrintLastError();
 
 link_internal void
-PlatformInitializeStdout(native_file *Stdout, native_file *LogFileHandle)
-{
-  // For some reason writing was infinite-blocking occasionally with buffered
-  // IO.  Turning it off solved the problem .. but I'm still not sure what the
-  // root cause actually was..
-  setvbuf(stdout, 0, _IONBF, 0);
-  setvbuf(stderr, 0, _IONBF, 0);
-
-  // NOTE(Jesse): There are at least two ways of getting a stdout handle on windows
-  // Both seem to work equally well, although they don't return the same handle..
-#if 1
-  Stdout->Handle = CreateFileA("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
-#else
-  Stdout->Handle = GetStdHandle(STD_OUTPUT_HANDLE);
-#endif
-
-  Stdout->Path = CSz("stdout");
-
-  Assert(Stdout->Handle != INVALID_HANDLE_VALUE);
-}
-
+PlatformInitializeStdout(native_file *Stdout, native_file *Lot);
 
 link_internal u64
 GetCycleCount()
