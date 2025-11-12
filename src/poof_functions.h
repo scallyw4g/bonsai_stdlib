@@ -1743,23 +1743,23 @@ poof(
 )
 
 poof(
-  func circular_buffer_h(element_t)
+  func circular_buffer_h(element_t, type_poof_symbol container_name)
   {
-    generate_cursor_struct(element_t)
+    /* generate_cursor_struct(element_t) */
     are_equal(element_t)
 
-    @var cursor_t (element_t.name)_cursor
+    @var cursor_t (element_t.name)_(container_name)
     typedef cursor_t (element_t.name)_circular_buffer;
   }
 )
 
 
 poof(
-  func circular_buffer_c(element_t)
+  func circular_buffer_c(element_t, type_poof_symbol container_name)
   {
-    generate_cursor_functions(element_t)
+    /* generate_cursor_functions(element_t) */
 
-    @var cursor_t (element_t.name)_cursor
+    @var cursor_t (element_t.name)_(container_name)
 
     link_internal s32
     Find( cursor_t *Array, element_t.name element_t.is_pointer?{}{*}Query)
