@@ -337,21 +337,6 @@ MakeDepthTexture(v2i Dim, cs DebugName)
 
 
 
-
-link_internal void
-FramebufferDepthTexture(texture *Tex)
-{
-  GetGL()->FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, Tex->ID, 0);
-}
-
-link_internal void
-FramebufferTexture(framebuffer *FBO, texture *Tex)
-{
-  Assert(Tex->ID != INVALID_TEXTURE_HANDLE);
-  u32 Attachment = FBO->Attachments++;
-  GetGL()->FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, GL_TEXTURE_2D, Tex->ID, 0);
-}
-
 link_internal texture
 LoadBitmap(const char* FilePath, u32 SliceCount, memory_arena *Arena)
 {
