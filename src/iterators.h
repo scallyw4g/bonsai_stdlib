@@ -31,7 +31,8 @@
 #define RangeIteratorRange_t(t, ArgName, RangeMax, RangeMin ) \
   for (t ArgName = RangeMin; ArgName < RangeMax; ++ArgName)
 
-#define RangeIteratorRange( ArgName, RangeMax, RangeMin ) RangeIteratorRange_t(s32, ArgName, RangeMax, RangeMin )
+#define RangeIteratorRange( ArgName, RangeMax, RangeMin )  \
+  RangeIteratorRange_t(s32, ArgName, RangeMax, RangeMin )
 
 #define RangeIteratorReverseRange( ArgName, RangeMax, RangeMin ) \
   for (s32 ArgName = ((RangeMax)-1); ArgName >= RangeMin; --ArgName)

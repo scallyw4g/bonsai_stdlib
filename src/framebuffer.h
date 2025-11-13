@@ -18,10 +18,13 @@ poof(static_cursor(rtt_framebuffer, {3}))
 poof(circular_buffer_h(rtt_framebuffer, {static_cursor_3}))
 #include <generated/circular_buffer_h_Tg6yrcq1.h>
 
-framebuffer
+link_internal void
+BindFramebuffer(rtt_framebuffer *Framebuffer);
+
+link_internal framebuffer
 GenFramebuffer();
 
-void
+link_internal void
 SetDrawBuffers(framebuffer *FBO);
 
 link_internal b32
@@ -35,3 +38,5 @@ FramebufferDepthTexture(texture *Tex);
 
 link_internal void
 FramebufferTexture(framebuffer *FBO, texture *Tex);
+
+

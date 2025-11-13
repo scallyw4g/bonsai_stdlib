@@ -57,3 +57,9 @@ FramebufferTexture(framebuffer *FBO, texture *Tex)
   GetGL()->FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, GL_TEXTURE_2D, Tex->ID, 0);
 }
 
+link_internal void
+BindFramebuffer(rtt_framebuffer *Framebuffer)
+{
+  GetGL()->BindFramebuffer(GL_FRAMEBUFFER, Framebuffer->FBO.ID);
+}
+
