@@ -12,6 +12,14 @@ GenFramebuffer()
   return Framebuffer;
 }
 
+link_internal void
+ClearFramebuffer(rtt_framebuffer *Framebuffer)
+{
+  auto GL = GetGL();
+  GL->BindFramebuffer(GL_FRAMEBUFFER, Framebuffer->FBO.ID);
+  GL->Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+}
+
 link_internal b32
 InitializeRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer, v2i Dim, cs DebugTextureName)
 {
@@ -27,6 +35,13 @@ InitializeRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer, v2i Dim, cs D
 
   b32 Result = CheckAndClearFramebuffer();
   return Result;
+}
+
+link_internal void
+DeallocateRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer)
+{
+  TODO("Jesse : Actually deallocate the framebuffer!");
+  *Framebuffer = {};
 }
 
 void

@@ -21,6 +21,9 @@ poof(circular_buffer_h(rtt_framebuffer, {static_cursor_3}))
 link_internal void
 BindFramebuffer(rtt_framebuffer *Framebuffer);
 
+link_internal void
+ClearFramebuffer(rtt_framebuffer *Framebuffer);
+
 link_internal framebuffer
 GenFramebuffer();
 
@@ -38,5 +41,4 @@ FramebufferDepthTexture(texture *Tex);
 
 link_internal void
 FramebufferTexture(framebuffer *FBO, texture *Tex);
-
 
