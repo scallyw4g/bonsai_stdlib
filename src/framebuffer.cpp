@@ -40,7 +40,11 @@ InitializeRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer, v2i Dim, cs D
 link_internal void
 DeallocateRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer)
 {
-  TODO("Jesse : Actually deallocate the framebuffer!");
+  auto GL = GetGL();
+
+  GL->DeleteTextures(1, &Framebuffer->DestTexture.ID);
+  GL->DeleteFramebuffers(1, &Framebuffer->FBO.ID);
+
   *Framebuffer = {};
 }
 
