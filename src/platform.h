@@ -10,11 +10,19 @@
 
 // TODO(Jesse)(metaprogramming): This can maybe be metaprogrammed?
 #define BindKeydownToInput(Keysym, InputField) \
-    BindToInput(Keysym, InputField, True)
+  case Keysym: {                               \
+    Plat->Input.InputField.Clicked = True;  \
+    Plat->Input.InputField.Pressed = True;  \
+  } break;
 
 // TODO(Jesse)(metaprogramming): This can maybe be metaprogrammed?
 #define BindKeyupToInput(Keysym, InputField) \
-    BindToInput(Keysym, InputField, False)
+  case Keysym: {                             \
+    Plat->Input.InputField.Clicked = False;  \
+    Plat->Input.InputField.Pressed = False;  \
+    Plat->Input.InputField.Released = True;  \
+  } break;
+
 
 #if BONSAI_WIN32
 #include <bonsai_stdlib/src/platform/win32/win32_platform.h>

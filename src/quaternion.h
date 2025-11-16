@@ -71,6 +71,7 @@ GetTheta(v3 P1, v3 P2)
 
 // NOTE(Jesse): Euler angles in radians
 // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+//
 link_internal Quaternion
 FromEuler(v3 Euler)
 {

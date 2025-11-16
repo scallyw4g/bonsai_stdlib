@@ -320,6 +320,18 @@ poof(
           return Result;
         }
 
+        inline E.type
+        MinChannel( Type.name P1 )
+        {
+          E.type Result = P1.(E.name)[0];
+          E.map_array(Index)
+          {
+            Result = Cast((E.type), Min(Result, P1.(E.name)[Index]));
+          };
+          return Result;
+        }
+
+
         gen_vector_comparator(Type, E, {<})
 
         gen_vector_comparator(Type, E, {<=})

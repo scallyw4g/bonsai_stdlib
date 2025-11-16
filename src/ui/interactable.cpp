@@ -16,18 +16,25 @@ Hover(renderer_2d* Group, ui_id *Id, v2 *Offset_out = 0)
 }
 
 link_internal b32
-Hover(renderer_2d* Group, interactable_handle *Handle, v2 *Offset_out = 0)
+Hover(renderer_2d *Group, interactable_handle *Handle, v2 *Offset_out = 0)
 {
   b32 Result = Hover(Group, &Handle->Id);
   return Result;
 }
 
 link_internal b32
-Clicked(renderer_2d* Group, interactable_handle *Handle)
+Clicked(renderer_2d *Group, interactable_handle *Handle)
 {
   b32 Result = Group->Clicked.ID == Handle->Id;
   return Result;
 }
+
+/* link_internal b32 */
+/* Released(renderer_2d *Group, interactable_handle *Handle) */
+/* { */
+/*   b32 Result = Group->Released.ID == Handle->Id; */
+/*   return Result; */
+/* } */
 
 link_internal b32
 Pressed(renderer_2d* Group, interactable_handle *Handle, v2 *Offset_out = 0)

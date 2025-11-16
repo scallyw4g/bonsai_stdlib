@@ -4,9 +4,7 @@ poof(@do_editor_ui)
 {
   b32 Clicked;
   b32 Pressed;
-
-  // TODO(Jesse): Add this?
-  // b32 Released;
+  b32 Released;
 };
 
 struct input
@@ -40,7 +38,7 @@ poof(@do_editor_ui)
   input_event FSlash; poof(@glyph('/') @win32_keycode(VK_OEM_2))
 
   input_event Space;      poof(@glyph(' ') @win32_keycode(VK_SPACE))
-  input_event Underscore; poof(@glyph('_'))
+  /* input_event Underscore; poof(@glyph('_')) */
 
   input_event N0;  poof(@glyph('0') @win32_keycode(0x30))
   input_event N1;  poof(@glyph('1') @win32_keycode(0x31))
@@ -133,13 +131,14 @@ link_internal void
 BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
 {
 
-  if (Input->Shift.Pressed) {
-    if (Input->Minus.Clicked)
-    {
-      Input->Minus = {};
-      Input->Underscore = {True, True};
-    }
-  }
+  /* if (Input->Shift.Pressed) */
+  /* { */
+  /*   if (Input->Minus.Clicked) */
+  /*   { */
+  /*     Input->Minus = {}; */
+  /*     Input->Underscore = {True, True, False}; */
+  /*   } */
+  /* } */
 
 #if BONSAI_INTERNAL
   if (Input->F1.Clicked) { Hotkeys->Debug_ToggleMenu         = True; }
@@ -173,10 +172,12 @@ poof(
           Member.map_array(Index)
           {
             Input->(Member.name)[Index].Clicked = False;
+            Input->(Member.name)[Index].Released = False;
           }
         }
         {
           Input->(Member.name).Clicked = False;
+          Input->(Member.name).Released = False;
         }
       }
     }
