@@ -194,6 +194,15 @@ CS(const char *S)
   return Result;
 }
 
+
+link_internal b32
+AreEqual(const char *S1, cs S2)
+{
+  b32 Result = StringsMatch(CS(S1), S2);
+  return Result;
+}
+
+
 cs
 CS(char_cursor* Cursor)
 {
