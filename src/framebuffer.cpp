@@ -1,4 +1,6 @@
 
+poof(block_array(rtt_framebuffer, {8}))
+#include <generated/block_array_brTXSu6y.h>
 
 poof(circular_buffer_c(rtt_framebuffer, {static_cursor_3}))
 #include <generated/circular_buffer_c_vvQpAEsJ.h>
@@ -40,6 +42,10 @@ InitializeRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer, v2i Dim, cs D
 link_internal void
 DeallocateRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer)
 {
+  // NOTE(Jesse): This works, I just want it to crash because the case where I was
+  // using it is now invalid; we're using a freelist instead.
+  NotImplemented;
+
   auto GL = GetGL();
 
   GL->DeleteTextures(1, &Framebuffer->DestTexture.ID);

@@ -2639,6 +2639,19 @@ poof(
     /*   do_editor_ui_for_container( block_array_t ) */
     /* } */
 
+
+    link_internal element_t.name element_t.is_pointer?{}{*}
+    Pop( block_array_t *Array )
+    {
+      if (auto Result = TryGetPtr(Array, LastIndex(Array)))
+      {
+        Assert(Array->ElementCount > 0);
+        Array->ElementCount -= 1;
+        return Result;
+      }
+      return 0;
+    }
+
   }
 )
 
