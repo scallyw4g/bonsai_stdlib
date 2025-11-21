@@ -130,12 +130,19 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
         u8 B = SrcPixels[bOffset];
         DestPixels[PixelIndex] = u32(R | (G<<8) | (B<<16) | (A<<24));
       }
+
+      Buf.At += PixelBufferSize;
+      Assert(Buf.At <= Buf.End);
     } break;
 
     case BitmapCompressionType_BITFIELDS:
     {
+      u32 PixelBufferSize = PixelCount*4;
       DestPixels = Allocate(u32, Arena, PixelCount);
       CopyMemory(SrcPixels, Cast(u8*, DestPixels), PixelCount*4);
+
+      Buf.At += PixelCount*4;
+      Assert(Buf.At <= Buf.End);
     } break;
 
     case BitmapCompressionType_RLE8:
