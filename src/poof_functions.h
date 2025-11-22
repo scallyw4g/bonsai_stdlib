@@ -690,6 +690,7 @@ poof(
   }
 )
 
+
 poof(
   func tuple(type_poof_symbol Types)
   {
@@ -2295,6 +2296,10 @@ poof(
     };
 
     struct block_array_t
+      poof(
+        @collection
+        element_t.has_tag(serdes)? { @serdes }
+      )
     {
       block_t **BlockPtrs; poof(@array_length(Element->BlockCount))
           u32   BlockCount;
@@ -2443,6 +2448,27 @@ poof(
 #define INVALID_BLOCK_ARRAY_INDEX umm_MAX
 
 poof(
+  func block_array_index_of_value(element_t, block_array_t, index_t)
+  {
+    link_internal index_t
+    IndexOfValue( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Query)
+    {
+      index_t Result = {INVALID_BLOCK_ARRAY_INDEX};
+      IterateOver(Array, E, Index)
+      {
+        if (AreEqual(E, Query))
+        {
+          Result = Index;
+          break;
+        }
+      }
+      return Result;
+    }
+  }
+
+)
+
+poof(
   func block_array_c(element_t, type_poof_symbol n_elements_per_block)
   {
     @var block_array_t (element_t.name)_block_array
@@ -2552,20 +2578,7 @@ poof(
 
     element_t.has_tag(block_array_IndexOfValue)?
     {
-      link_internal index_t
-      IndexOfValue( block_array_t *Array, element_t.name element_t.is_pointer?{}{*}Query)
-      {
-        index_t Result = {INVALID_BLOCK_ARRAY_INDEX};
-        IterateOver(Array, E, Index)
-        {
-          if (AreEqual(E, Query))
-          {
-            Result = Index;
-            break;
-          }
-        }
-        return Result;
-      }
+      block_array_index_of_value(element_t, block_array_t, index_t)
     }
 
     link_internal b32
