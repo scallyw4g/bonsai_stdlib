@@ -790,19 +790,24 @@ poof(
 poof( func hashtable(Type) { (hashtable_struct(Type)) (hashtable_impl(Type)) })
 
 poof(
-  func hashtable_struct(Type)
+  func hashtable_struct(element_t)
   {
-    struct (Type.name)_linked_list_node
+    struct (element_t.name)_linked_list_node
     {
       b32 Tombstoned;
-      (Type.name) Element;
-      (Type.name)_linked_list_node *Next;
+      (element_t.name) Element;
+      (element_t.name)_linked_list_node *Next;
     };
 
-    struct (Type.name)_hashtable
+    struct (element_t.name)_hashtable
+      poof(
+        @collection
+        element_t.has_tag(serdes)? { @serdes }
+        element_t.has_tag(do_editor_ui)? { @do_editor_ui }
+      )
     {
       umm Size;
-      (Type.name)_linked_list_node **Elements;
+      (element_t.name)_linked_list_node **Elements;
       /* OWNED_BY_THREAD_MEMBER() */
     };
   }
@@ -927,6 +932,15 @@ poof(
       (Type.name)_hashtable *Table;
       (Type.name)_linked_list_node *Node;
     };
+
+    Type.has_tag(do_editor_ui)?
+    {
+      link_internal cs
+      CS( (Type.name)_hashtable_iterator I )
+      {
+        return CSz("Element");
+      }
+    }
 
     link_internal (Type.name)_hashtable_iterator
     operator++( (Type.name)_hashtable_iterator &Iterator )
@@ -2299,6 +2313,7 @@ poof(
       poof(
         @collection
         element_t.has_tag(serdes)? { @serdes }
+        element_t.has_tag(do_editor_ui)? { @do_editor_ui }
       )
     {
       block_t **BlockPtrs; poof(@array_length(Element->BlockCount))
