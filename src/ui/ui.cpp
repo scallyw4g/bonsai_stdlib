@@ -3411,7 +3411,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
             {
               Assert(TypedCommand->Texture->Slices > 1);
               SliceToUse = TypedCommand->TextureSlice;
-              BindUniformByName(&TexturedQuadRP->Program, "TextureArray", TypedCommand->Texture, 0);
+              BindUniformByName(&TexturedQuadRP->Program, "TextureArray", TypedCommand->Texture, 1);
             }
 
             // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
@@ -3507,6 +3507,10 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
   if (Headless == False)
   {
     auto TextGroup = Renderer->TextGroup;
+
+    bitmap_block_array Bitmaps = BitmapBlockArray(GetTranArena());
+    LoadBitmapsFromFolderOrdered(CSz("assets/icons/bmp/"), &Bitmaps, GetTranArena(), GetTranArena());
+    Renderer->IconTextureArray = CreateTextureArrayFromBitmapBlockArray(&Bitmaps, V2i(64,64), CSz("IconTextures"));
 
     TextGroup->DebugTextureArray = MakeTexture_RGBA(V2i(512), Cast(u32*, 0), CSz("ui textures"), UiTextureSlice_Count);
     Ensure(LoadBitmap("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White));

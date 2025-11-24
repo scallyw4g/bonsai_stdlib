@@ -429,10 +429,10 @@ LoadBitmapsFromFolderOrdered(cs FilePath, bitmap_block_array *Bitmaps, memory_ar
 }
 
 link_internal texture
-CreateTextureArrayFromBitmapBlockArray(bitmap_block_array *Bitmaps, v2i TextureArrayXY)
+CreateTextureArrayFromBitmapBlockArray(bitmap_block_array *Bitmaps, v2i TextureArrayXY, cs DebugName)
 {
   umm BitmapCount = TotalElements(Bitmaps);
-  texture Result = MakeTexture_RGBA(TextureArrayXY, Cast(u32*, 0), CSz("TODO: DebugName"), u32(BitmapCount));
+  texture Result = MakeTexture_RGBA(TextureArrayXY, Cast(u32*, 0), DebugName, u32(BitmapCount));
 
   s32 TextureDepth = 1;
 

@@ -315,6 +315,7 @@ poof(@do_editor_ui)
   triple_buffered_gpu_mapped_ui_buffer CustomQuadGeometryBuffer;
 
   texture SpriteTextureArray;
+  texture IconTextureArray;
 
      v2 *MouseP;
      v2 *MouseDP;
