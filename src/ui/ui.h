@@ -175,13 +175,13 @@ struct ui_toggle_button_handle
   union {
     struct {
       cs Text;
-      cs Tooltip;
     };
     struct {
       texture *IconTexture;
       u32 IconId;
     };
   };
+  cs Tooltip;
   ui_id Id;
   u32 Value; // NOTE(Jesse): This is typically the associated enum value
 };
@@ -263,7 +263,7 @@ UiId(window_layout *Window, const char *Interaction, void *Element)
 link_internal ui_toggle_button_handle
 UiToggle(cs Text, cs Tooltip, ui_id Id, u32 Value)
 {
-  ui_toggle_button_handle Result = { UiDisplayType_Text, {{Text, Tooltip}}, Id, Value };
+  ui_toggle_button_handle Result = { UiDisplayType_Text, {{Text}}, Tooltip, Id, Value };
   return Result;
 }
 
