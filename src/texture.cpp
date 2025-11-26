@@ -140,13 +140,10 @@ GenTexture(v2i Dim, cs DebugName, texture_storage_format StorageFormat, u32 Chan
   Stdlib->AllTextures.Memory = &Global_PermMemory;
   Push(&GetStdlib()->AllTextures, &Result);
 
-  // Note(Jesse): This is required to be set if mipmapping is off.  The default
-  // behavior is to lerp between the two closest mipmap levels, and when there
-  // is only one level that fails, at least on my GL implementation.
+  /* GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); */
   GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  //
-
   GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
   GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);

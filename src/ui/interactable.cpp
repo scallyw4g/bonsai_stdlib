@@ -29,6 +29,21 @@ Clicked(renderer_2d *Group, interactable_handle *Handle)
   return Result;
 }
 
+link_internal b32
+Clicked(renderer_2d *Group, ui_id Id)
+{
+  b32 Result = Group->Clicked.ID == Id;
+  return Result;
+}
+
+link_internal b32
+Clicked(renderer_2d *Group, ui_id *Id)
+{
+  b32 Result = Group->Clicked.ID == *Id;
+  return Result;
+}
+
+
 /* link_internal b32 */
 /* Released(renderer_2d *Group, interactable_handle *Handle) */
 /* { */

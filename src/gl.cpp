@@ -470,6 +470,10 @@ InitializeOpenglFunctions()
       GetGL()->Initialized               &= GetGL()->GetQueryBufferObjectui64v != 0;
 
 
+      GetGL()->GenerateTextureMipmap     = (OpenglGenerateTextureMipmap)PlatformGetGlFunction("glGenerateTextureMipmap");
+      GetGL()->Initialized               &= GetGL()->GenerateTextureMipmap != 0;
+
+
 
       GetGL()->GetIntegerv(GL_MAJOR_VERSION, &GLMajor);
       GetGL()->GetIntegerv(GL_MINOR_VERSION, &GLMinor);

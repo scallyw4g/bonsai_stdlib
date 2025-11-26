@@ -873,6 +873,28 @@ Text(        renderer_2d* Group,
 }
 
 link_internal u32
+PushLayoutStart( renderer_2d *Group, v2 Basis )
+{
+  ui_render_command Command = { };
+
+  Command.Type = type_ui_render_command_layout_start;
+  Command.ui_render_command_layout_start.Layout.Basis = Basis;
+
+  u32 Result = PushUiRenderCommand(Group, &Command);
+  return Result;
+}
+
+link_internal u32
+PushLayoutEnd( renderer_2d *Group )
+{
+  ui_render_command Command = { };
+  Command.Type = type_ui_render_command_layout_end;
+  u32 Result = PushUiRenderCommand(Group, &Command);
+  return Result;
+}
+
+
+link_internal u32
 StartColumn(          renderer_2d *Group,
                          ui_style *Style,
                                v4  Padding,
@@ -973,7 +995,7 @@ PushTooltip(renderer_2d *Group, counted_string Text)
 }
 
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, v3 Tint = V3(1), ui_element_layout_flags Params = UiElementLayoutFlag_Default )
+PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim, z_depth zDepth, v3 Tint = V3(0), ui_element_layout_flags Params = UiElementLayoutFlag_Default )
 {
   Assert(Texture->Slices > 1);
   ui_render_command Command = {
@@ -1002,7 +1024,7 @@ PushTexturedQuad(renderer_2d *Group, texture *Texture, s32 TextureSlice, v2 Dim,
 
 #if 1
 link_internal void
-PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, v3 Tint = V3(1), ui_element_layout_flags Params = UiElementLayoutFlag_Default )
+PushTexturedQuad(renderer_2d *Group, texture *Texture, v2 Dim, z_depth zDepth, v3 Tint = V3(0), ui_element_layout_flags Params = UiElementLayoutFlag_Default )
 {
   Assert(Texture->Slices == 1);
   ui_render_command Command = {
@@ -1038,7 +1060,7 @@ PushTexturedQuadColumn( renderer_2d *Group,
                                 s32  TextureSlice,
                                  v2  Dim,
                             z_depth  zDepth,
-                                 v3  Tint = V3(1),
+                                 v3  Tint = V3(0),
     ui_element_layout_flags  LayoutFlags = UiElementLayoutFlag_Default )
 {
   Assert(TextureSlice >= 0);
@@ -1612,6 +1634,34 @@ Button( renderer_2d *Group,
   return Result;
 }
 
+link_internal b32
+Button( renderer_2d *Ui,
+            texture *Texture,
+                s32  TextureIndex,
+              ui_id  ButtonId,
+                 v3  Tint )
+{
+  auto Handle = PushButtonStart(Ui, ButtonId);
+    u32 I = StartColumn(Ui, &DefaultUiRenderParams_Generic);
+      PushTexturedQuad(Ui, Texture, TextureIndex, V2(Global_Font.Size.y), zDepth_Text, Tint);
+    EndColumn(Ui, I);
+  PushButtonEnd(Ui);
+
+  b32 Result = Clicked(Ui, &Handle);
+  return Result;
+}
+
+link_internal b32
+Button( renderer_2d *Ui,
+            texture *Texture,
+                s32  TextureIndex,
+              ui_id  ButtonId )
+{
+  b32 Result = Button(Ui, Texture, TextureIndex, ButtonId, V3(1.f));
+  return Result;
+}
+
+
 
 
 /*********************************           *********************************/
@@ -2028,11 +2078,21 @@ DrawButtonGroup( ui_toggle_button_group *Group,
 
     if (Hover(Ui, &UiButton->Id))
     {
-      /* Info("%S", UiButton->Tooltip); */
       PushTooltip(Ui, UiButton->Tooltip);
     }
 
-    Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, BStyle, ElementParams->Padding, ElementParams->AlignFlags);
+    if (UiButton->Type == UiDisplayType_Text)
+    {
+      Button(Ui, UiButton->Text, UiButton->Id, ThisStyle, BStyle, ElementParams->Padding, ElementParams->AlignFlags);
+    }
+    else
+    {
+      auto Handle = PushButtonStart(Ui, UiButton->Id);
+        u32 I = StartColumn(Ui, &DefaultUiRenderParams_Generic);
+          PushTexturedQuad(Ui, UiButton->IconTexture, s32(UiButton->IconId), V2(Global_Font.Size.y), zDepth_Text, V3(1.f));
+        EndColumn(Ui, I);
+      PushButtonEnd(Ui);
+    }
 
     if (Group->Flags & ToggleButtonGroupFlags_DrawVertical)
     {
@@ -2912,6 +2972,17 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         RenderState->ClipRect = DISABLE_CLIPPING;
       } break;
 
+      case type_ui_render_command_layout_start:
+      {
+        ui_render_command_layout_start *TypedCommand = RenderCommandAs(layout_start, Command);
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
+      } break;
+
+      case type_ui_render_command_layout_end:
+      {
+        PopLayout(&RenderState->Layout);
+      } break;
+
       case type_ui_render_command_table_start:
       {
         ui_render_command_table_start* TypedCommand = RenderCommandAs(table_start, Command);
@@ -3324,6 +3395,8 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
     {
       InvalidCase(type_ui_render_command_noop);
 
+      case type_ui_render_command_layout_start:
+      case type_ui_render_command_layout_end:
       case type_ui_render_command_window_start:
       case type_ui_render_command_window_end:
       case type_ui_render_command_table_start:
@@ -3511,6 +3584,11 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     bitmap_block_array Bitmaps = BitmapBlockArray(GetTranArena());
     LoadBitmapsFromFolderOrdered(CSz("assets/icons/bmp/"), &Bitmaps, GetTranArena(), GetTranArena());
     Renderer->IconTextureArray = CreateTextureArrayFromBitmapBlockArray(&Bitmaps, V2i(64,64), CSz("IconTextures"));
+
+    GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, Renderer->IconTextureArray.ID);
+    GetGL()->GenerateTextureMipmap(Renderer->IconTextureArray.ID);
+    GetGL()->TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+    GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
     TextGroup->DebugTextureArray = MakeTexture_RGBA(V2i(512), Cast(u32*, 0), CSz("ui textures"), UiTextureSlice_Count);
     Ensure(LoadBitmap("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White));

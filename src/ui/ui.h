@@ -85,6 +85,7 @@ poof(is_valid(window_layout_flags))
 global_variable u32 NextWindowStackIndex = 0;
 
 struct window_layout
+poof(@do_editor_ui)
 {
   ui_id HashtableKey;
 
@@ -162,10 +163,25 @@ poof(@do_editor_ui)
 poof(are_equal(ui_toggle))
 #include <generated/are_equal_ui_toggle.h>
 
+enum ui_display_type
+{
+  UiDisplayType_Text,
+  UiDisplayType_Icon,
+};
+
 struct ui_toggle_button_handle
 {
-  cs Text;
-  cs Tooltip;
+  ui_display_type Type;
+  union {
+    struct {
+      cs Text;
+      cs Tooltip;
+    };
+    struct {
+      texture *IconTexture;
+      u32 IconId;
+    };
+  };
   ui_id Id;
   u32 Value; // NOTE(Jesse): This is typically the associated enum value
 };
@@ -247,7 +263,7 @@ UiId(window_layout *Window, const char *Interaction, void *Element)
 link_internal ui_toggle_button_handle
 UiToggle(cs Text, cs Tooltip, ui_id Id, u32 Value)
 {
-  ui_toggle_button_handle Result = { Text, Tooltip, Id, Value };
+  ui_toggle_button_handle Result = { UiDisplayType_Text, {{Text, Tooltip}}, Id, Value };
   return Result;
 }
 
@@ -485,7 +501,7 @@ MakeFont(v2 Size)
 /* debug_global f32 Global_DefaultFontScale = 0.75f; */
 /* debug_global f32 Global_DefaultFontScale = 0.6f; */
 /* debug_global f32 Global_DefaultFontScale = 0.5f; */
-debug_global f32 Global_DefaultFontScale = 0.45f;
+debug_global f32 Global_DefaultFontScale = 0.50f;
 
 debug_global v2 Global_DefaultFontSize = V2(26, 34);
 
@@ -896,6 +912,10 @@ struct ui_render_command_force_update_basis
 };
 
 
+struct ui_render_command_layout_start
+{
+  layout Layout;
+};
 
 poof(
   d_union ui_render_command
@@ -924,6 +944,9 @@ poof(
 
     ui_render_command_force_advance
     ui_render_command_force_update_basis
+
+    ui_render_command_layout_start
+    ui_render_command_layout_end        enum_only
 
     ui_render_command_new_row           enum_only
     ui_render_command_reset_draw_bounds enum_only

@@ -32,9 +32,11 @@ void main()
     else
     {
       C = texture(TextureArray, vec3(UV, float(TextureSlice)));
+      /* C = textureLod(TextureArray, vec3(UV, float(TextureSlice)), 2.f); */
+      /* C.r = 1.f; */
     }
 
-    color.rgb = C.rgb * Tint;
+    color.rgb = (Clamp01(C.rgb) + Tint);
     color.a = 1.f;
 
     // TODO(Jesse): Shouldn't this "just work" without the boolean?  I think
