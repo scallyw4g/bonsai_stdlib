@@ -103,7 +103,7 @@ Clicked(renderer_2d* Group, interactable *Interaction)
       if (GetUiDebug()->LogClickEvents)
       {
         auto Id = &Interaction->ID;
-        Info("Click (%d)(%d)(%d)(%d)", Id->_Reserved, Id->WindowBits, Id->InteractionBits, Id->ElementBits);
+        Info("Click (%d)(%d)(%d)(%d)",  Id->WindowBits, Id->InteractionBits, Id->ElementBits, Id->HashBits);
       }
     }
   }

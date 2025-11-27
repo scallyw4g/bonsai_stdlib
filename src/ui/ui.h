@@ -204,35 +204,35 @@ UiId(const char *Label)
 link_internal ui_id
 UiId(window_layout *Window, const char *Interaction, u32 Index, u32 Hash)
 {
-  ui_id Result = {UiMaskAndCastPointer(Hash), UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), Index};
+  ui_id Result = { UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), Index, Hash};
   return Result;
 }
 
 link_internal ui_id
 UiId(window_layout *Window, const char *Interaction, void *Element, u32 Hash)
 {
-  ui_id Result = {UiMaskAndCastPointer(Hash), UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};
+  ui_id Result = { UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), Hash};
   return Result;
 }
 
 link_internal ui_id
 UiId(void *Window, void *Interaction, void *Element, void *Index)
 {
-  ui_id Result = {UiMaskAndCastPointer(Index), UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};
+  ui_id Result = { UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), UiMaskAndCastPointer(Index)};
   return Result;
 }
 
 link_internal ui_id
 UiId(void *Window, void *Interaction, void *Element)
 {
-  ui_id Result = {0, UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};
+  ui_id Result = {UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), 0};
   return Result;
 }
 
 link_internal ui_id
 UiId(window_layout *Window, void *Interaction, void *Element)
 {
-  ui_id Result = {0, UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element)};
+  ui_id Result = {UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), 0};
   return Result;
 }
 
@@ -259,6 +259,13 @@ UiId(window_layout *Window, const char *Interaction, void *Element)
 {
   return UiId(Window, Cast(void*, Interaction), Element);
 }
+
+link_internal ui_id
+UiId(u32 E0, u32 E1, u32 E2, u32 E3 )
+{
+  return {E0, E1, E2, E3};
+}
+
 
 link_internal ui_toggle_button_handle
 UiToggle(cs Text, cs Tooltip, ui_id Id, u32 Value)
