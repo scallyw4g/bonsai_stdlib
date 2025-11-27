@@ -58,15 +58,11 @@ struct ui_toggle_button_group
 
   ui_toggle_button_handle_buffer Buttons;
 
-  /* ui_element_reference UiRef; */
   ui_toggle_button_group_flags Flags;
 
-  // This is a bitfield which indicates which enum values are toggled on.  Each
-  // bit corresponds to the enum value index.
-  /* u64 ToggleBits; */
   u32 *EnumStorage;
-
   b32 AnyElementClicked;
+  ui_id ClickedId;
 };
 
 link_internal void //ui_element_reference
@@ -1662,6 +1658,12 @@ Button( renderer_2d *Ui,
 }
 
 
+link_internal void
+PushBlankIconButton(renderer_2d *Ui)
+{
+  PushColumn(Ui, CSz(""), &DefaultUiRenderParams_Button);
+}
+
 
 
 /*********************************           *********************************/
@@ -2051,6 +2053,7 @@ DrawButtonGroup( ui_toggle_button_group *Group,
 
     if (ButtonClicked) {
       Group->AnyElementClicked = True;
+      Group->ClickedId = UiButton->Id;
     }
 
     switch (Group->Flags & ToggleButtonGroupFlags_ButtonTypes)
