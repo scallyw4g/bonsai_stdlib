@@ -3772,12 +3772,6 @@ UiFrameEnd(renderer_2d *Ui)
 
   DrawUi(Ui, Ui->CommandBuffer);
 
-  /* if (Input->LMB.Clicked) */
-  {
-    cs Clicked = Input->LMB.Clicked ? CSz("Click") : CSz("Not");
-    Info("(%S)(%d,%d,%d,%d)", Clicked, Ui->Clicked.ID.E[0], Ui->Clicked.ID.E[1],Ui->Clicked.ID.E[2],Ui->Clicked.ID.E[3]);
-  }
-
   if (Input->LMB.Pressed || Input->RMB.Pressed)
   {
     if ( UiHoveredMouseInput(Ui) )
