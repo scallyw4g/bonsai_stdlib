@@ -334,8 +334,7 @@ poof(hashtable_struct(ui_toggle))
 
 struct text_box_edit_state
 {
-  ui_id Id;
-  char *Text;
+  char *TextBuffer;
   umm   TextBufferLen;
 };
 
@@ -1297,3 +1296,6 @@ link_internal clip_result BufferTexturedQuad( renderer_2d *Group, s32  TextureSl
 
 link_internal void
 DrawButtonGroup(ui_toggle_button_group *Group, cs  Name, ui_render_params *ElementParams, ui_render_params *GroupParams );
+
+link_internal void
+DoTextEditInteraction(renderer_2d *Ui);

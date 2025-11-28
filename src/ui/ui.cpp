@@ -1689,25 +1689,33 @@ ToggleButton(renderer_2d* Group, cs ButtonNameOn, cs ButtonNameOff, ui_id Intera
 
 
 link_internal void
-BeginTextEdit(renderer_2d *Group, char *Dest, umm DestLen, ui_id InteractionId)
-{
-  ZeroMemory(Cast(void*, Dest), DestLen);
-
-  Group->TextEdit.Id = InteractionId;
-  Group->TextEdit.Text = Dest;
-  Group->TextEdit.TextBufferLen = DestLen;
-}
-
-link_internal void
-TextBox(renderer_2d* Group, cs Label, cs Dest, u32 DestLen, ui_id ButtonId, ui_render_params *Params = &DefaultUiRenderParams_Button)
+TextBox(renderer_2d *Ui, cs Label, cs Dest, u32 DestLen, ui_id ButtonId, ui_render_params *Params = &DefaultUiRenderParams_Button)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  if (Label.Count) { PushColumn(Group, Label); }
+  if (Label.Count) { PushColumn(Ui, Label); }
 
-  if (Button( Group, Dest, ButtonId, FStyle, BStyle, Padding, AlignFlags ))
+  if (Button( Ui, Dest, ButtonId, FStyle, BStyle, Padding, AlignFlags ))
   {
-    BeginTextEdit(Group, Cast(char*, Dest.Start), DestLen, ButtonId);
+    // Begin the edit
+    ZeroMemory(Cast(void*, Dest.Start), DestLen);
+
+    Ui->CurrentEditorInteraction = ButtonId;
+    Ui->TextEdit.TextBuffer    = Cast(char *, Dest.Start);
+    Ui->TextEdit.TextBufferLen = DestLen;
   }
+
+  b32 Editing = (Ui->CurrentEditorInteraction == ButtonId);
+  if (Editing)
+  {
+    if (  Ui->Input->Enter.Clicked ||
+         (Ui->Input->LMB.Clicked && (Ui->Clicked.ID != ButtonId)) )
+    {
+      Ui->CurrentEditorInteraction  = {};
+    }
+
+    DoTextEditInteraction(Ui);
+  }
+
 }
 
 
@@ -3190,11 +3198,11 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
               ButtonStart->BStyle.HoverColor, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
         }
 
-        if (ButtonStart->ID == Group->TextEdit.Id)
-        {
-          BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
-              UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
-        }
+        /* if (ButtonStart->ID == Group->TextEdit.Id) */
+        /* { */
+        /*   BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, AbsDrawBounds.Min, GetDim(AbsDrawBounds), */
+        /*       UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect); */
+        /* } */
 
       } break;
 
@@ -3608,8 +3616,8 @@ UiFrameBegin(renderer_2d *Ui)
 
   Ui->RequestedForceCapture = False;
 
-  // Ui eats all input events if there's a text edit active
-  if (IsValid(&Ui->TextEdit.Id))
+  // Ui eats all input events if there's an edit active
+  if (IsValid(&Ui->CurrentEditorInteraction))
   {
     Ui->RequestedForceCapture = True;
   }
@@ -3696,20 +3704,16 @@ link_internal void
 DoTextEditInteraction(renderer_2d *Ui)
 {
   input *Input = Ui->Input;
-  if (IsValid(&Ui->TextEdit.Id))
+
+  cs Text = CS(Ui->TextEdit.TextBuffer);
+  if (Input->Backspace.Clicked && Text.Count)
   {
-    if (Input->Enter.Clicked)
-    {
-      Ui->TextEdit.Id = {};
-    }
+    Text.Count--;
+    Cast(char*, Text.Start)[Text.Count] = 0;
+  }
 
-    cs Text = CS(Ui->TextEdit.Text);
-    if (Input->Backspace.Clicked)
-    {
-      Text.Count--;
-      Cast(char*, Text.Start)[Text.Count] = 0;
-    }
-
+  if (Text.Count < Ui->TextEdit.TextBufferLen)
+  {
     poof(
       func (input input_t) @code_fragment
       {
@@ -3736,6 +3740,7 @@ DoTextEditInteraction(renderer_2d *Ui)
 #include <generated/anonymous_input_Lwen2qoF.h>
   }
 
+  Assert(Text.Count <= Ui->TextEdit.TextBufferLen);
 }
 
 link_internal void
@@ -3767,8 +3772,6 @@ UiFrameEnd(renderer_2d *Ui)
       Ui->HighestWindow->Scroll.y += Input->MouseWheelDelta;
     }
   }
-
-  DoTextEditInteraction(Ui);
 
   DrawUi(Ui, Ui->CommandBuffer);
 
