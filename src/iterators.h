@@ -104,6 +104,7 @@
 
 // TODO(Jesse): Do we care about this being T/F, or just truthy/falsy
 #define BitfieldIsSet(Src, Value) ((Src)&(Value))
+#define BitfieldNotSet(Src, Value) (((Src)&(Value)) == 0)
 
 #define SetBitfield(type, Dest, Value) do { \
   Assert( ((Dest)&(Value)) == 0 );          \
@@ -112,7 +113,7 @@
 
 #define UnsetBitfield(type, Dest, Value) do { \
   Assert( (Dest) & (Value) );                 \
-  (Dest) = (type)((Dest) & ~(Value));         \
+  (Dest) = (type)((Dest) & type(~(Value)));         \
 } while (false)
 
 // TODO(Jesse): Should we make this branchless?

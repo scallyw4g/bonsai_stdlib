@@ -1,32 +1,55 @@
 struct layout;
 struct window_layout;
 
-struct ui_id
+union ui_id
 poof(@do_editor_ui)
 {
-  u32 WindowBits;
-  u32 InteractionBits;
-  u32 ElementBits;
-  u32 HashBits;
+  struct
+  {
+    u32 WindowBits;
+    u32 InteractionBits;
+    u32 ElementBits;
+    u32 HashBits;
+  };
+  u32 E[4];
 };
 
 link_internal b32
 IsValid(ui_id *Id)
 {
-  b32 Reuslt = (Id->WindowBits | Id->InteractionBits | Id->ElementBits) != 0;
+  b32 Reuslt = (Id->E[0] | Id->E[1] | Id->E[2] | Id->E[3]) != 0;
   return Reuslt;
 }
 
 link_internal u64
 Hash(ui_id *Id)
 {
-  // TODO(Jesse)(hash): Is this any good?
-  u64 Result = 654378024321 ^ (Id->WindowBits | (Id->InteractionBits << 31)) ^ (Id->ElementBits << 15);
+  u64 Result =
+    ChrisWellonsIntegerHash_lowbias32(Id->E[0]) +
+    ChrisWellonsIntegerHash_lowbias32(Id->E[1]) +
+    ChrisWellonsIntegerHash_lowbias32(Id->E[2]) +
+    ChrisWellonsIntegerHash_lowbias32(Id->E[3]) ;
   return Result;
 }
 
-poof(gen_default_equality_operator(ui_id))
-#include <generated/gen_default_equality_operator_ui_id.h>
+
+link_internal b32
+operator==( ui_id E1, ui_id E2 )
+{
+  b32 Result = 
+    E1.E[0] == E2.E[0] &&
+    E1.E[1] == E2.E[1] &&
+    E1.E[2] == E2.E[2] &&
+    E1.E[3] == E2.E[3];
+  return Result;
+}
+
+link_internal b32
+operator!=( ui_id E1, ui_id E2 )
+{
+  b32 Reuslt = !(E1 == E2);
+  return Reuslt;
+}
 
 /* poof(are_equal(ui_id)) */
 /* #include <generated/are_equal_ui_id.h> */
@@ -52,6 +75,7 @@ struct interactable_handle
 };
 
 struct interactable
+poof(@do_editor_ui)
 {
   ui_id ID;
   v2 MinP;

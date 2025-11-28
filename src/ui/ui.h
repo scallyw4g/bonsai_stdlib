@@ -188,6 +188,42 @@ struct ui_toggle_button_handle
 
 typedef void (*modal_callback)(void*);
 
+
+enum ui_toggle_button_group_flags
+{
+  ToggleButtonGroupFlags_None               = 0,
+
+  // NOTE(Jesse): One and only one of these must be set
+  ToggleButtonGroupFlags_TypeRadioButton       = (1 << 0),
+  ToggleButtonGroupFlags_TypeMultiSelectButton = (1 << 1),
+  ToggleButtonGroupFlags_TypeClickButton       = (1 << 2),
+
+  ToggleButtonGroupFlags_DrawVertical       = (1 << 3),
+  ToggleButtonGroupFlags_NoNewRow           = (1 << 4),
+
+  ToggleButtonGroupFlags_ButtonTypes = ToggleButtonGroupFlags_TypeRadioButton       |
+                                       ToggleButtonGroupFlags_TypeMultiSelectButton |
+                                       ToggleButtonGroupFlags_TypeClickButton       ,
+
+};
+poof(buffer_h(ui_toggle_button_handle, u32))
+#include <generated/buffer_h_rquc9IR2.h>
+
+struct renderer_2d;
+struct ui_toggle_button_group
+{
+  // TODO(Jesse): Remove
+  renderer_2d *Ui;
+
+  ui_toggle_button_handle_buffer Buttons;
+
+  ui_toggle_button_group_flags Flags;
+
+  u32 *EnumStorage;
+  b32 AnyElementClicked;
+  ui_id ClickedId;
+};
+
 /* // 0x3FFFFF == 22 set bits == 4,194,303 in decimal */
 /* CAssert(0x3FFFFF == 0b1111111111111111111111); */
 /* #define UiId(window, base, mod) u64( (u64(base)&0x3FFFFF) | ( (u64(mod)&0x3FFFFF) << 22 | (u64(window)&0x3FFFFF) << 44)) */
@@ -197,42 +233,42 @@ typedef void (*modal_callback)(void*);
 link_internal ui_id
 UiId(const char *Label)
 {
-  ui_id Result = {0, 0, 0, UiMaskAndCastPointer(Label)};
+  ui_id Result = {{0, 0, 0, UiMaskAndCastPointer(Label)}};
   return Result;
 }
 
 link_internal ui_id
 UiId(window_layout *Window, const char *Interaction, u32 Index, u32 Hash)
 {
-  ui_id Result = { UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), Index, Hash};
+  ui_id Result = {{ UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), Index, Hash}};
   return Result;
 }
 
 link_internal ui_id
 UiId(window_layout *Window, const char *Interaction, void *Element, u32 Hash)
 {
-  ui_id Result = { UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), Hash};
+  ui_id Result = {{ UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), Hash }};
   return Result;
 }
 
 link_internal ui_id
 UiId(void *Window, void *Interaction, void *Element, void *Index)
 {
-  ui_id Result = { UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), UiMaskAndCastPointer(Index)};
+  ui_id Result = {{ UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), UiMaskAndCastPointer(Index) }};
   return Result;
 }
 
 link_internal ui_id
 UiId(void *Window, void *Interaction, void *Element)
 {
-  ui_id Result = {UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), 0};
+  ui_id Result = {{UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), 0 }};
   return Result;
 }
 
 link_internal ui_id
 UiId(window_layout *Window, void *Interaction, void *Element)
 {
-  ui_id Result = {UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), 0};
+  ui_id Result = {{UiMaskAndCastPointer(Window), UiMaskAndCastPointer(Interaction), UiMaskAndCastPointer(Element), 0 }};
   return Result;
 }
 
@@ -263,7 +299,7 @@ UiId(window_layout *Window, const char *Interaction, void *Element)
 link_internal ui_id
 UiId(u32 E0, u32 E1, u32 E2, u32 E3 )
 {
-  return {E0, E1, E2, E3};
+  return {{E0, E1, E2, E3}};
 }
 
 
@@ -328,6 +364,7 @@ struct ui_render_pass
 /* #include <generated/buffer_window_layout.h> */
 struct input;
 struct ui_render_command_buffer;
+
 struct renderer_2d
 poof(@do_editor_ui)
 {
@@ -348,6 +385,8 @@ poof(@do_editor_ui)
       ui_toggle_hashtable ToggleTable;
   window_layout_hashtable WindowTable;
 
+
+  ui_id CurrentEditorInteraction;
 
 
 #define MAX_MINIMIZED_WINDOWS 64
@@ -646,11 +685,21 @@ global_variable ui_render_params DefaultUiRenderParams_Button =
   UiElementLayoutFlag_Default,
 };
 
-
 global_variable ui_render_params DefaultUiRenderParams_ButtonSelected =
 {
   {},
   &DefaultSelectedStyle,
+  &DefaultButtonBackgroundStyle,
+  {},
+  DefaultButtonPadding,
+  UiElementAlignmentFlag_LeftAlign,
+  UiElementLayoutFlag_Default,
+};
+
+global_variable ui_render_params DefaultUiRenderParams_ButtonDisabled =
+{
+  {},
+  &DefaultDisabledStyle,
   &DefaultButtonBackgroundStyle,
   {},
   DefaultButtonPadding,
@@ -1246,3 +1295,5 @@ link_internal clip_result BufferTexturedQuad( renderer_2d *Group, ui_geometry_bu
 link_internal clip_result BufferTexturedQuad( renderer_2d *Group, ui_geometry_buffer *Geo, rect2, v3 Color, r32 Z, rect2 Clip);
 link_internal clip_result BufferTexturedQuad( renderer_2d *Group, s32  TextureSlice, v2  MinP, v2  Dim, rect2  UV, v3  Color, r32  Z, rect2  Clip, rect2 *ClipOptional );
 
+link_internal void
+DrawButtonGroup(ui_toggle_button_group *Group, cs  Name, ui_render_params *ElementParams, ui_render_params *GroupParams );

@@ -13,7 +13,7 @@ poof(shader_magic(textured_quad_render_pass, {}))
 #define u32_COUNT_PER_QUAD (6)
 
 
-poof(buffer(ui_toggle_button_handle))
+poof(buffer_c(ui_toggle_button_handle, u32))
 #include <generated/buffer_ui_toggle_button_handle.h>
 
 poof(hashtable_impl(ui_toggle))
@@ -33,44 +33,6 @@ poof(hashtable_get(window_layout, {ui_id}, {HashtableKey}))
 #include <generated/hashtable_get_window_layout_705671517_599498827.h>
 poof(hashtable_get_ptr(window_layout, {ui_id}, {HashtableKey}))
 #include <generated/hashtable_get_ptr_window_layout_705671517_599498827.h>
-
-enum ui_toggle_button_group_flags
-{
-  ToggleButtonGroupFlags_None               = 0,
-
-  // NOTE(Jesse): One and only one of these must be set
-  ToggleButtonGroupFlags_TypeRadioButton       = (1 << 0),
-  ToggleButtonGroupFlags_TypeMultiSelectButton = (1 << 1),
-  ToggleButtonGroupFlags_TypeClickButton       = (1 << 2),
-
-  ToggleButtonGroupFlags_DrawVertical       = (1 << 3),
-  ToggleButtonGroupFlags_NoNewRow           = (1 << 4),
-
-  ToggleButtonGroupFlags_ButtonTypes = ToggleButtonGroupFlags_TypeRadioButton       |
-                                       ToggleButtonGroupFlags_TypeMultiSelectButton |
-                                       ToggleButtonGroupFlags_TypeClickButton       ,
-
-};
-
-struct ui_toggle_button_group
-{
-  renderer_2d *Ui;
-
-  ui_toggle_button_handle_buffer Buttons;
-
-  ui_toggle_button_group_flags Flags;
-
-  u32 *EnumStorage;
-  b32 AnyElementClicked;
-  ui_id ClickedId;
-};
-
-link_internal void //ui_element_reference
-DrawButtonGroup(ui_toggle_button_group *Group,
-                                    cs  Name,
-                      ui_render_params *ElementParams = &DefaultUiRenderParams_Button,
-                      ui_render_params *GroupParams = &DefaultUiRenderParams_Toolbar);
-
 link_internal ui_toggle_button_group
 DrawButtonGroupForEnum( renderer_2d *Ui,
      ui_toggle_button_handle_buffer *Buttons,
@@ -87,7 +49,7 @@ DrawButtonGroupForEnum( renderer_2d *Ui,
 
   Assert(Buttons->Count < bitsof(*EnumStorage));
 
-  /* Result.UiRef = */ DrawButtonGroup(&Result, Name, Params);
+  /* Result.UiRef = */ DrawButtonGroup(&Result, Name, Params, &DefaultUiRenderParams_Toolbar);
 
   return Result;
 }
@@ -2092,7 +2054,7 @@ DrawButtonGroup( ui_toggle_button_group *Group,
     {
       auto Handle = PushButtonStart(Ui, UiButton->Id);
         u32 I = StartColumn(Ui, &DefaultUiRenderParams_Generic);
-          PushTexturedQuad(Ui, UiButton->IconTexture, s32(UiButton->IconId), V2(Global_Font.Size.y), zDepth_Text, V3(1.f));
+          PushTexturedQuad(Ui, UiButton->IconTexture, s32(UiButton->IconId), V2(Global_Font.Size.y), zDepth_Text, ElementParams->FStyle->Color);
         EndColumn(Ui, I);
       PushButtonEnd(Ui);
     }
@@ -3586,7 +3548,9 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
 
     bitmap_block_array Bitmaps = BitmapBlockArray(GetTranArena());
     LoadBitmapsFromFolderOrdered(CSz("assets/icons/bmp/"), &Bitmaps, GetTranArena(), GetTranArena());
-    Renderer->IconTextureArray = CreateTextureArrayFromBitmapBlockArray(&Bitmaps, V2i(64,64), CSz("IconTextures"));
+
+    v2i Dim = GetPtr(&Bitmaps, 0)->Dim;
+    Renderer->IconTextureArray = CreateTextureArrayFromBitmapBlockArray(&Bitmaps, Dim, CSz("IconTextures"));
 
     GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, Renderer->IconTextureArray.ID);
     GetGL()->GenerateTextureMipmap(Renderer->IconTextureArray.ID);
@@ -3666,7 +3630,7 @@ global_variable interactable Global_GenericWindowInteraction = {
    // a string constant because with multiple DLLs there are multiple of them!
    // Could do a comptime string hash if poof supported that..
 
-  .ID = {0, 0, 0, 4208142317, }, // 420blazeit  Couldn't spell faggot.. rip.
+  .ID = {{0, 0, 0, 4208142317, }}, // 420blazeit  Couldn't spell faggot.. rip.
   .MinP = {},
   .MaxP = {},
   .Window = {},
@@ -3677,7 +3641,7 @@ global_variable interactable Global_ViewportInteraction = {
    // a string constant because with multiple DLLs there are multiple of them!
    // Could do a comptime string hash if poof supported that..
 
-  .ID = {0, 0, 4208142317, 0}, // 420blazeit  Couldn't spell faggot.. rip.
+  .ID = {{0, 0, 4208142317, 0}}, // 420blazeit  Couldn't spell faggot.. rip.
   .MinP = {},
   .MaxP = {},
   .Window = {},
@@ -3807,6 +3771,12 @@ UiFrameEnd(renderer_2d *Ui)
   DoTextEditInteraction(Ui);
 
   DrawUi(Ui, Ui->CommandBuffer);
+
+  /* if (Input->LMB.Clicked) */
+  {
+    cs Clicked = Input->LMB.Clicked ? CSz("Click") : CSz("Not");
+    Info("(%S)(%d,%d,%d,%d)", Clicked, Ui->Clicked.ID.E[0], Ui->Clicked.ID.E[1],Ui->Clicked.ID.E[2],Ui->Clicked.ID.E[3]);
+  }
 
   if (Input->LMB.Pressed || Input->RMB.Pressed)
   {
