@@ -3,7 +3,7 @@
 link_internal b32
 Hover(renderer_2d* Group, ui_id *Id, v2 *Offset_out = 0)
 {
-  b32 Result = Group->Hover.ID == *Id;
+  b32 Result = Group->Hover.Id == *Id;
 
   if (Result && Offset_out)
   {
@@ -25,21 +25,21 @@ Hover(renderer_2d *Group, interactable_handle *Handle, v2 *Offset_out = 0)
 link_internal b32
 Clicked(renderer_2d *Group, interactable_handle *Handle)
 {
-  b32 Result = Group->Clicked.ID == Handle->Id;
+  b32 Result = Group->Clicked.Id == Handle->Id;
   return Result;
 }
 
 link_internal b32
 Clicked(renderer_2d *Group, ui_id Id)
 {
-  b32 Result = Group->Clicked.ID == Id;
+  b32 Result = Group->Clicked.Id == Id;
   return Result;
 }
 
 link_internal b32
 Clicked(renderer_2d *Group, ui_id *Id)
 {
-  b32 Result = Group->Clicked.ID == *Id;
+  b32 Result = Group->Clicked.Id == *Id;
   return Result;
 }
 
@@ -47,14 +47,14 @@ Clicked(renderer_2d *Group, ui_id *Id)
 /* link_internal b32 */
 /* Released(renderer_2d *Group, interactable_handle *Handle) */
 /* { */
-/*   b32 Result = Group->Released.ID == Handle->Id; */
+/*   b32 Result = Group->Released.Id == Handle->Id; */
 /*   return Result; */
 /* } */
 
 link_internal b32
 Pressed(renderer_2d* Group, interactable_handle *Handle, v2 *Offset_out = 0)
 {
-  b32 Result = Group->Pressed.ID == Handle->Id;
+  b32 Result = Group->Pressed.Id == Handle->Id;
 
   if (Result && Offset_out)
   {
@@ -92,17 +92,17 @@ Clicked(renderer_2d* Group, interactable *Interaction)
   b32 MouseButtonClicked = Group->Input->LMB.Clicked || Group->Input->RMB.Clicked;
 
   b32 Result = False;
-  if ( !IsValid(&Group->Pressed.ID) &&
+  if ( !IsValid(&Group->Pressed.Id) &&
         MouseButtonClicked && Hover(Group, Interaction))
   {
-    Group->Pressed.ID = Interaction->ID;
+    Group->Pressed.Id = Interaction->Id;
     Result = True;
 
     if (GetUiDebug)
     {
       if (GetUiDebug()->LogClickEvents)
       {
-        auto Id = &Interaction->ID;
+        auto Id = &Interaction->Id;
         Info("Click (%d)(%d)(%d)(%d)",  Id->WindowBits, Id->InteractionBits, Id->ElementBits, Id->HashBits);
       }
     }
@@ -121,8 +121,8 @@ Clicked(renderer_2d* Group, interactable Interaction)
 link_internal b32
 Pressed(renderer_2d* Group, interactable *Interaction)
 {
-  ui_id CurrentInteraction = Group->Pressed.ID;
-  b32 CurrentInteractionMatches = CurrentInteraction == Interaction->ID;
+  ui_id CurrentInteraction = Group->Pressed.Id;
+  b32 CurrentInteractionMatches = CurrentInteraction == Interaction->Id;
   b32 MouseDepressed = Group->Input->LMB.Pressed || Group->Input->RMB.Pressed;
 
   b32 Result = False;
@@ -132,7 +132,7 @@ Pressed(renderer_2d* Group, interactable *Interaction)
   }
   else if (MouseDepressed && !IsValid(&CurrentInteraction) && Hover(Group, Interaction))
   {
-    Group->Pressed.ID = Interaction->ID;
+    Group->Pressed.Id = Interaction->Id;
     Result = True;
   }
 

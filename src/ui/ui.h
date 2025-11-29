@@ -385,13 +385,13 @@ poof(@do_editor_ui)
   window_layout_hashtable WindowTable;
 
 
-  ui_id CurrentEditorInteraction;
 
 
 #define MAX_MINIMIZED_WINDOWS 64
   window_layout *MinimizedWindowBuffer[MAX_MINIMIZED_WINDOWS];
   window_layout *HighestWindow; // NOTE(Jesse): Highest in terms of InteractionStackIndex
 
+  interactable Active;
   interactable Hover;
   interactable Clicked;
   interactable Pressed;

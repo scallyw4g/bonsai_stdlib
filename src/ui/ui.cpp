@@ -1485,6 +1485,12 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, ui_id InteractionId, window_
 {
   button_interaction_result Result = {};
 
+  if (Group->Active.Id == InteractionId)
+  {
+    Group->Active.MinP = Bounds.Min;
+    Group->Active.MaxP = Bounds.Max;
+  }
+
   interactable Interaction = Interactable(Bounds, InteractionId, Window);
   Result.Interaction = Interaction;
 
@@ -1699,21 +1705,23 @@ TextBox(renderer_2d *Ui, cs Label, cs Dest, u32 DestLen, ui_id ButtonId, ui_rend
     // Begin the edit
     ZeroMemory(Cast(void*, Dest.Start), DestLen);
 
-    Ui->CurrentEditorInteraction = ButtonId;
+    Ui->Active.Id = ButtonId;
     Ui->TextEdit.TextBuffer    = Cast(char *, Dest.Start);
     Ui->TextEdit.TextBufferLen = DestLen;
   }
 
-  b32 Editing = (Ui->CurrentEditorInteraction == ButtonId);
+  b32 Editing = (Ui->Active.Id == ButtonId);
   if (Editing)
   {
-    if (  Ui->Input->Enter.Clicked ||
-         (Ui->Input->LMB.Clicked && (Ui->Clicked.ID != ButtonId)) )
+    if (  Ui->Input->Enter.Clicked || (Ui->Input->LMB.Clicked && (Ui->Clicked.Id != ButtonId)) )
     {
-      Ui->CurrentEditorInteraction  = {};
+      Ui->Active.Id  = {};
     }
 
     DoTextEditInteraction(Ui);
+
+    auto S = UiStyleFromLightestColor(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED);
+    PushUntexturedQuadAt(Ui, Ui->Active.MinP, Ui->Active.MaxP-Ui->Active.MinP, zDepth_Background, &S);
   }
 
 }
@@ -2243,17 +2251,17 @@ GetHighestWindow(renderer_2d* Group, ui_render_command_buffer* CommandBuffer)
 link_internal void
 ProcessButtonStart(renderer_2d* Group, render_state* RenderState, ui_id ButtonId)
 {
-  if (ButtonId == Group->Hover.ID)
+  if (ButtonId == Group->Hover.Id)
   {
     Group->Hover = {};
     RenderState->Hover = True;
   }
-  if (ButtonId == Group->Clicked.ID)
+  if (ButtonId == Group->Clicked.Id)
   {
     Group->Clicked = {};
     RenderState->Clicked = True;
   }
-  if (ButtonId == Group->Pressed.ID)
+  if (ButtonId == Group->Pressed.Id)
   {
     // Intentionally reset to 0 outside of this bonsai_function, because it's
     // dependant on the mouse buttons being released.
@@ -3617,7 +3625,7 @@ UiFrameBegin(renderer_2d *Ui)
   Ui->RequestedForceCapture = False;
 
   // Ui eats all input events if there's an edit active
-  if (IsValid(&Ui->CurrentEditorInteraction))
+  if (IsValid(&Ui->Active.Id))
   {
     Ui->RequestedForceCapture = True;
   }
@@ -3638,7 +3646,7 @@ global_variable interactable Global_GenericWindowInteraction = {
    // a string constant because with multiple DLLs there are multiple of them!
    // Could do a comptime string hash if poof supported that..
 
-  .ID = {{0, 0, 0, 4208142317, }}, // 420blazeit  Couldn't spell faggot.. rip.
+  .Id = {{0, 0, 0, 4208142317, }}, // 420blazeit  Couldn't spell faggot.. rip.
   .MinP = {},
   .MaxP = {},
   .Window = {},
@@ -3649,7 +3657,7 @@ global_variable interactable Global_ViewportInteraction = {
    // a string constant because with multiple DLLs there are multiple of them!
    // Could do a comptime string hash if poof supported that..
 
-  .ID = {{0, 0, 4208142317, 0}}, // 420blazeit  Couldn't spell faggot.. rip.
+  .Id = {{0, 0, 4208142317, 0}}, // 420blazeit  Couldn't spell faggot.. rip.
   .MinP = {},
   .MaxP = {},
   .Window = {},
@@ -3666,8 +3674,8 @@ UiHoveredMouseInput(renderer_2d *Ui)
 link_internal b32
 UiCapturedMouseInput(renderer_2d *Ui)
 {
-  b32 PressedIdWasNotViewportId = ( IsValid(&Ui->Pressed.ID) &&
-                                             Ui->Pressed.ID != Global_ViewportInteraction.ID );
+  b32 PressedIdWasNotViewportId = ( IsValid(&Ui->Pressed.Id) &&
+                                             Ui->Pressed.Id != Global_ViewportInteraction.Id );
   b32 ForceCapture = Ui->RequestedForceCapture;
   b32 Result = ForceCapture || PressedIdWasNotViewportId;
   return Result;
@@ -3676,8 +3684,8 @@ UiCapturedMouseInput(renderer_2d *Ui)
 link_internal b32
 UiInteractionWasViewport(renderer_2d *Ui)
 {
-  b32 InteractionWasViewport = ( IsValid(&Ui->Pressed.ID) &&
-                                          Ui->Pressed.ID == Global_ViewportInteraction.ID );
+  b32 InteractionWasViewport = ( IsValid(&Ui->Pressed.Id) &&
+                                          Ui->Pressed.Id == Global_ViewportInteraction.Id );
   b32 Result = InteractionWasViewport;
   return Result;
 }
@@ -3779,7 +3787,7 @@ UiFrameEnd(renderer_2d *Ui)
   {
     if ( UiHoveredMouseInput(Ui) )
     {
-      if (IsValid(&Ui->Pressed.ID))
+      if (IsValid(&Ui->Pressed.Id))
       {
         // Do nothing, we recorded a specific interaction
       }
@@ -3799,7 +3807,7 @@ UiFrameEnd(renderer_2d *Ui)
       }
       else
       {
-        Assert(IsValid(&Ui->Pressed.ID));
+        Assert(IsValid(&Ui->Pressed.Id));
       }
     }
     else

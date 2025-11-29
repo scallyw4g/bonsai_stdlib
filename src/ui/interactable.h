@@ -77,7 +77,8 @@ struct interactable_handle
 struct interactable
 poof(@do_editor_ui)
 {
-  ui_id ID;
+  ui_id Id;
+
   v2 MinP;
   v2 MaxP;
 
@@ -99,7 +100,7 @@ Interactable(v2 MinP, v2 MaxP, ui_id ID, window_layout *Window)
   interactable Result = {};
   Result.MinP = MinP;
   Result.MaxP = MaxP;
-  Result.ID = ID;
+  Result.Id = ID;
   Result.Window = Window;
 
   return Result;
