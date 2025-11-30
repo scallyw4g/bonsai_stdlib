@@ -83,8 +83,31 @@ v3 SafeDivide0(v3 Dividend, v3 Divisor) { return V3( SafeDivide0(Dividend.x, Div
                                                      SafeDivide0(Dividend.y, Divisor.y),
                                                      SafeDivide0(Dividend.z, Divisor.z) ); }
 
+uint
+ChrisWellonsIntegerHash_lowbias32(uint x)
+{
+  uint Result = x;
 
-float hash(float x)  { return fract(x + 1.32154 * 1.2151); }
+  Result = Result ^ (Result >> 16);
+  Result = Result ^ uint(0x7feb352d);
+  Result = Result ^ (Result >> 15);
+  Result = Result * uint(0x846ca68b);
+  Result = Result ^ (Result >> 16);
+
+  return Result;
+}
+
+
+/* float hash(float x)  { return fract(x + 1.32154 * 1.2151); } */
+
+float hash(float x) 
+{
+  uint PrimeZ = 1720413743u;
+  uint zI = uint(floatBitsToInt(x)) * PrimeZ;
+  uint zH = ChrisWellonsIntegerHash_lowbias32(zI);
+  return fract(intBitsToFloat(int(zH)) + 1.32154 * 1.2151);
+}
+
 vec3 RandomV3FromFloat(float x) { return vec3(hash(((x   + 0.5283) * 59.3829) * 274.3487), hash(((x   + 0.8192) * 83.6621) * 345.3871), hash(((x   + 0.2157f) * 36.6521f) * 458.3971f)); }
 vec3 RandomV3FromV3(v3 V)       { return vec3(rand(V.xy), rand(V.yz), rand(V.xz)); }
 
@@ -259,20 +282,6 @@ vec3 vhash( vec3 p )      // this hash is not production ready, please
 }
 
 
-uint
-ChrisWellonsIntegerHash_lowbias32(uint x)
-{
-  uint Result = x;
-
-  Result = Result ^ (Result >> 16);
-  Result = Result ^ uint(0x7feb352d);
-  Result = Result ^ (Result >> 15);
-  Result = Result * uint(0x846ca68b);
-  Result = Result ^ (Result >> 16);
-
-  return Result;
-}
-
 // TODO(Jesse): I would expect this to produce a good result .. but it doesn't
 vec3 bad_hash(vec3 Input)
 {
@@ -309,6 +318,12 @@ float hashf( float f )
 {
   return -1.0 + 2.0*fract(sin(f)*43758.5453123);
 }
+
+float hash3f( v3 f )
+{
+  return fract(hashf(f.x) + hashf(f.y) + hashf(f.z));
+}
+
 
 // https://github.com/scratchapixel/code/blob/ce4fc22659db55a92c094373dc306ac3e261601b/perlin-noise-part-2/perlinnoise.cpp#L94
 link_internal f32
@@ -358,6 +373,7 @@ float white_noise(v3 P)
   return Res;
 }
 
+#if 0
 link_internal v3
 voronoi_noise(v3 Texel, f32 Squareness)
 {
@@ -440,8 +456,50 @@ voronoi_noise(v3 Texel, f32 Squareness)
     }
   }
 
-  return V3(minEdgeDistance, minDistToCellSq, closestCell);
+  return V3(minEdgeDistance-0.5f, minDistToCellSq, closestCell);
 }
+#else
+
+vec3 voronoi_noise( vec3 x, f32 squareness)
+{
+    ivec3 p = ivec3(floor( x ));
+    vec3  f = fract( x );
+
+    ivec3 mb;
+    vec3 mr;
+
+    float res = 8.0;
+    for( int k=-1; k<=1; k++ )
+    for( int j=-1; j<=1; j++ )
+    for( int i=-1; i<=1; i++ )
+    {
+        ivec3 b = ivec3(i, j, k);
+        vec3  r = vec3(b) + hash3f(p+b)-f;
+        float d = dot(r,r);
+
+        if( d < res )
+        {
+            res = d;
+            mr = r;
+            mb = b;
+        }
+    }
+
+    res = 8.0;
+    for( int k=-2; k<=2; k++ )
+    for( int j=-2; j<=2; j++ )
+    for( int i=-2; i<=2; i++ )
+    {
+        ivec3 b = mb + ivec3(i, j, k);
+        vec3  r = vec3(b) + hash3f(p+b) - f;
+        float d = dot(0.5*(mr+r), normalize(r-mr));
+
+        res = min( res, d );
+    }
+
+    return v3((res*2.f)-0.5f, res, res);
+}
+#endif
 
 link_internal v3
 voronoi_noise(v3 Texel)
