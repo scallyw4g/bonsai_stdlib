@@ -373,115 +373,30 @@ float white_noise(v3 P)
   return Res;
 }
 
+
 #if 0
-link_internal v3
-voronoi_noise(v3 Texel, f32 Squareness)
-{
-  v3 baseCell = Floor(Texel);
-
-  v3 CellOffsets[27];
-
-  // first pass to find the closest cell
-  //
-  f32 minDistToCellSq = 100;
-  v3 toClosestCell;
-  v3 closestCell;
-  s32 CellIndex = 0;
-  for( s32 x1 = -1;
-           x1 <= 1;
-         ++x1 )
-  {
-    for(s32 y1 = -1;
-            y1 <= 1;
-          ++y1 )
-    {
-      for( s32 z1 = -1;
-               z1 <= 1;
-             ++z1 )
-      {
-        v3 cell      =  baseCell + V3(x1, y1, z1);
-        v3 offset    = Clamp01(RandomV3FromV3(cell) - Squareness);
-        v3 cellPosition = cell + offset;
-
-        v3 toCell = cellPosition - Texel;
-        f32 distToCellSq = LengthSq(toCell);
-        if(distToCellSq < minDistToCellSq)
-        {
-          minDistToCellSq = distToCellSq;
-          closestCell = cell;
-          toClosestCell = toCell;
-        }
-
-        CellOffsets[CellIndex++] = offset;
-      }
-    }
-  }
-  //
-  // TODO(Jesse): This seems like you'd just want to do it in-line in the first
-  // loop ..?
-  //
-  // second pass to find the distance to the closest edge
-  //
-  f32 minEdgeDistance = 10;
-  CellIndex = 0;
-  for( s32 x2 = -1;
-           x2 <= 1;
-         ++x2 )
-  {
-    for(s32 y2 = -1;
-            y2 <= 1;
-          ++y2 )
-    {
-      for( s32 z2 = -1;
-               z2 <= 1;
-             ++z2 )
-      {
-        /* v3 cell = (baseCell + V3(x2, y2, z2)); */
-        v3 cell = baseCell + V3(x2, y2, z2);
-        v3 offset = CellOffsets[CellIndex++];
-
-        v3 cellPosition = cell + offset;
-        v3 toCell = cellPosition - Texel;
-
-        v3 diffToClosestCell = Abs(closestCell - cell);
-        b32 isClosestCell = diffToClosestCell.x + diffToClosestCell.y + diffToClosestCell.z < 0.1f;
-        if(isClosestCell == False)
-        {
-          v3 toCenter = (toClosestCell + toCell) * 0.5;
-          v3 cellDifference = Normalize(toCell - toClosestCell);
-          f32 edgeDistance = Dot(toCenter, cellDifference);
-          minEdgeDistance = Min(minEdgeDistance, edgeDistance);
-        }
-      }
-    }
-  }
-
-  return V3(minEdgeDistance-0.5f, minDistToCellSq, closestCell);
-}
-#else
-
 vec3 voronoi_noise( vec3 x, f32 squareness)
 {
     ivec3 p = ivec3(floor( x ));
     vec3  f = fract( x );
 
-    ivec3 mb;
-    vec3 mr;
+    ivec3 lowestOffset;
+    vec3 lowestOffP;
 
     float res = 8.0;
     for( int k=-1; k<=1; k++ )
     for( int j=-1; j<=1; j++ )
     for( int i=-1; i<=1; i++ )
     {
-        ivec3 b = ivec3(i, j, k);
-        vec3  r = vec3(b) + hash3f(p+b)-f;
-        float d = dot(r,r);
+        ivec3 o = ivec3(i, j, k);
+        vec3  oP = vec3(o) + hash3f(p+o)-f;
+        float d = dot(oP,oP);
 
         if( d < res )
         {
             res = d;
-            mr = r;
-            mb = b;
+            lowestOffP = oP;
+            lowestOffset = o;
         }
     }
 
@@ -490,9 +405,115 @@ vec3 voronoi_noise( vec3 x, f32 squareness)
     for( int j=-2; j<=2; j++ )
     for( int i=-2; i<=2; i++ )
     {
-        ivec3 b = mb + ivec3(i, j, k);
+        ivec3 b = lowestOffset + ivec3(i, j, k);
         vec3  r = vec3(b) + hash3f(p+b) - f;
-        float d = dot(0.5*(mr+r), normalize(r-mr));
+        float d = dot(0.5*(lowestOffP+r), normalize(r-lowestOffP));
+
+        res = min( res, d );
+    }
+
+    return v3((res*2.f)-0.5f, res, res);
+}
+#else
+
+#if 0
+vec3 voronoi_noise( in vec3 x, f32 squareness )
+{
+    ivec3 p = ivec3(floor( x ));
+    vec3  f = fract( x );
+
+    vec3 res = vec3( 8.0 );
+    for( int k=-1; k<=1; k++ )
+    for( int j=-1; j<=1; j++ )
+    for( int i=-1; i<=1; i++ )
+    {
+        ivec3 b = ivec3(i, j, k);
+        vec3 off = max(V3(0.f), (hash3f(p + b)-squareness));
+        vec3  r = vec3(b) - f + off;
+        float d = dot(r, r);
+
+        if( d < res.x )
+        {
+            res.z = res.y;
+            res.y = res.x;
+            res.x = d;
+        }
+        else if( d < res.y )
+        {
+            res.z = res.y;
+            res.y = d;
+        }
+        else if( d < res.z )
+        {
+            res.z = d;
+        }
+    }
+
+    f32 m = min(min(res.x, res.y), res.z);
+
+    return v3( sqrt(m), res.y, res.z);
+}
+#endif
+
+struct voronoi_point
+{
+  ivec3 o;
+  vec3 oP;
+  f32  d;
+};
+
+vec3 voronoi_noise( vec3 x, f32 squareness)
+{
+    ivec3 p = ivec3(floor( x ));
+    vec3  f = fract( x );
+
+    /* ivec3 lowestOffset; */
+    /* vec3 lowestOffP; */
+    /* v3 low = v3(8.0); */
+
+    voronoi_point low;
+    low.d = 8.f;
+
+    for( int k=-1; k<=1; k++ )
+    for( int j=-1; j<=1; j++ )
+    for( int i=-1; i<=1; i++ )
+    {
+        ivec3 o = ivec3(i, j, k);
+        vec3  oP = vec3(o) + hash3f(p+o)-f;
+        float d = dot(oP,oP);
+
+        if( d < low.d )
+        {
+            low.o = o;
+            low.oP = oP;
+            low.d = d;
+        }
+
+        /* if( d < low.x ) */
+        /* { */
+        /*     low.z = low.y; */
+        /*     low.y = low.x; */
+        /*     low.x = d; */
+        /* } */
+        /* else if( d < low.y ) */
+        /* { */
+        /*     low.z = low.y; */
+        /*     low.y = d; */
+        /* } */
+        /* else if( d < low.z ) */
+        /* { */
+        /*     low.z = d; */
+        /* } */
+    }
+
+    f32 res = 8.0;
+    for( int k=-2; k<=2; k++ )
+    for( int j=-2; j<=2; j++ )
+    for( int i=-2; i<=2; i++ )
+    {
+        ivec3 b = low.o + ivec3(i, j, k);
+        vec3  r = vec3(b) + hash3f(p+b) - f;
+        float d = dot(0.5*(low.oP+r), normalize(r-low.oP));
 
         res = min( res, d );
     }
