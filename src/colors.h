@@ -259,6 +259,19 @@ RGBtoHSV(v3 RGB)
   return Result;
 }
 
+link_internal u16
+PackV3_15b(v3 Color)
+{
+  u8 FiveBits   = 0b11111;
+
+  u16 H = u16(Color.h * r32(FiveBits));
+  u16 S = u16(Color.s * r32(FiveBits));
+  u16 V = u16(Color.v * r32(FiveBits));
+
+  u16 Result = u16((H << 10) | (S << 5) | V);
+  return Result;
+}
+
 link_internal v3
 UnpackV3_15b(u16 Packed)
 {
@@ -268,10 +281,39 @@ UnpackV3_15b(u16 Packed)
   r32 y = ((Packed >> 5) & FiveBits) / r32(FiveBits);
   r32 z =  (Packed & FiveBits) / r32(FiveBits);
   v3 Result = V3(x, y, z);
-  /* Assert(Length(Result) >= 1.f); */
   return Result;
 }
 
+
+link_internal u16
+PackV3_744b(v3 Color)
+{
+  s32 FourBits = 15;
+  s32 SevenBits = 127;
+
+  u16 H = u16(Color.h * r32(SevenBits));
+  u16 S = u16(Color.s * r32(FourBits));
+  u16 V = u16(Color.v * r32(FourBits));
+
+  u16 Result = u16((H << 8) | (S << 4) | V);
+  return Result;
+}
+
+link_internal v3
+UnpackV3_744b(u16 Packed)
+{
+  s32 FourBits = 15;
+  s32 SevenBits = 127;
+
+  r32 r = ((Packed >> 8) & SevenBits) / r32(SevenBits);
+  r32 g = ((Packed >> 4) & FourBits) / r32(FourBits);
+  r32 b =  (Packed & FourBits) / r32(FourBits);
+  v3 Result = V3(r, g, b);
+  return Result;
+}
+
+
+#if 0
 link_internal v3
 UnpackHSVColor(u16 Packed)
 {
@@ -318,19 +360,20 @@ PackV3_16b(v3 Color)
   /* Assert(Check == Color); */
   return Result;
 }
+#endif
 
 link_internal u16
 RGBtoPackedHSV(v3 RGB)
 {
   v3 HSV = RGBtoHSV(RGB);
-  u16 Packed = PackV3_16b(HSV);
+  u16 Packed = PackV3_744b(HSV);
   return Packed;
 }
 
 link_internal v3
 PackedHSVtoRGB(u16 PackedHSV)
 {
-  v3 HSV = UnpackHSVColor(PackedHSV);
+  v3 HSV = UnpackV3_744b(PackedHSV);
   v3 Result = HSVtoRGB(HSV);
   return Result;
 }

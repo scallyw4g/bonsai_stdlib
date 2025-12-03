@@ -36,6 +36,7 @@ float rand(vec2 st) {
 #define Normalize normalize
 #define Dot dot
 #define Min min
+#define Max max
 
 #define True true
 #define False false
@@ -192,10 +193,23 @@ v3 WorldPositionFromNonlinearDepth(float NonlinearDepth, v2 ScreenUV, mat4 Inver
   return WorldP.xyz;
 }
 
-link_internal v3
-UnpackV3_15b(s32 Packed)
+link_internal u32
+PackV3_15b(v3 Color)
 {
-  s32 FiveBits = 31;
+  u32 FiveBits = 31u;
+
+  u32 H = u32(Color.r * r32(FiveBits));
+  u32 S = u32(Color.g * r32(FiveBits));
+  u32 V = u32(Color.b * r32(FiveBits));
+
+  u32 Result = u32((H << 10) | (S << 5) | V);
+  return Result;
+}
+
+link_internal v3
+UnpackV3_15b(u32 Packed)
+{
+  u32 FiveBits = 31u;
 
   r32 H = ((Packed >> 10) & FiveBits) / r32(FiveBits);
   r32 S = ((Packed >> 5) & FiveBits) / r32(FiveBits);
@@ -203,6 +217,34 @@ UnpackV3_15b(s32 Packed)
   v3 Result = V3(H, S, V);
   return Result;
 }
+
+link_internal u32
+PackV3_744b(v3 Color)
+{
+  u32 FourBits = 15u;
+  u32 SevenBits = 127u;
+
+  u32 H = u32(Color.r * r32(SevenBits));
+  u32 S = u32(Color.g * r32(FourBits));
+  u32 V = u32(Color.b * r32(FourBits));
+
+  u32 Result = u32((H << 8) | (S << 4) | V);
+  return Result;
+}
+
+link_internal v3
+UnpackV3_744b(u32 Packed)
+{
+  u32 FourBits = 15u;
+  u32 SevenBits = 127u;
+
+  r32 r = ((Packed >> 8) & SevenBits) / r32(SevenBits);
+  r32 g = ((Packed >> 4) & FourBits) / r32(FourBits);
+  r32 b =  (Packed & FourBits) / r32(FourBits);
+  v3 Result = V3(r, g, b);
+  return Result;
+}
+
 
 //
 // https://github.com/Inseckto/HSV-to-RGB/blob/master/HSV2RGB.c
@@ -241,23 +283,50 @@ HSVtoRGB(v3 HSV)
   return HSVtoRGB(HSV.r, HSV.g, HSV.b);
 }
 
-v3
-UnpackHSVColorToRGB(s32 Packed)
+link_internal v3
+RGBtoHSV(f32 r, f32 g, f32 b)
 {
-  v3 HSV = UnpackV3_15b(Packed);
-  v3 Result = HSVtoRGB(HSV);
-  return Result;
+  f32 h, s, v; // h:0-360.0, s:0.0-1.0, v:0.0-1.0
+
+  f32 max = Max(r, Max(g, b));
+  f32 min = Min(r, Min(g, b));
+
+  v = max;
+
+  if (max == 0.0f) {
+      s = 0;
+      h = 0;
+  }
+  else if (max - min == 0.0f) {
+      s = 0;
+      h = 0;
+  }
+  else {
+      s = (max - min) / max;
+
+      if (max == r) {
+          h = 60 * ((g - b) / (max - min)) + 0;
+      }
+      else if (max == g) {
+          h = 60 * ((b - r) / (max - min)) + 120;
+      }
+      else {
+          h = 60 * ((r - g) / (max - min)) + 240;
+      }
+  }
+
+  if (h < 0) h += 360.0f;
+
+  h = (h / 360.f);
+
+  v3 result = V3(h,s,v);
+  return result;
 }
 
-uint PackRGB(v3 Color)
+v3
+RGBtoHSV(v3 RGB)
 {
-  uint FiveBits    = (1u <<  5) - 1u;
-  uint FifteenBits = (1u << 15) - 1u;
-  uint R = uint(round(Color.r * f32(FiveBits))) & FiveBits;
-  uint G = uint(round(Color.g * r32(FiveBits))) & FiveBits;
-  uint B = uint(round(Color.b * r32(FiveBits))) & FiveBits;
-  uint Result = uint((R << 10) | (G << 5) | B) & FifteenBits;
-  return Result;
+  return RGBtoHSV(RGB.r, RGB.g, RGB.b);
 }
 
 vec3 ivhash( ivec3 p )     // this hash is not production ready, please
