@@ -374,7 +374,6 @@ float white_noise(v3 P)
 }
 
 
-#if 0
 vec3 voronoi_noise( vec3 x, f32 squareness)
 {
     ivec3 p = ivec3(floor( x ));
@@ -414,113 +413,7 @@ vec3 voronoi_noise( vec3 x, f32 squareness)
 
     return v3((res*2.f)-0.5f, res, res);
 }
-#else
 
-#if 0
-vec3 voronoi_noise( in vec3 x, f32 squareness )
-{
-    ivec3 p = ivec3(floor( x ));
-    vec3  f = fract( x );
-
-    vec3 res = vec3( 8.0 );
-    for( int k=-1; k<=1; k++ )
-    for( int j=-1; j<=1; j++ )
-    for( int i=-1; i<=1; i++ )
-    {
-        ivec3 b = ivec3(i, j, k);
-        vec3 off = max(V3(0.f), (hash3f(p + b)-squareness));
-        vec3  r = vec3(b) - f + off;
-        float d = dot(r, r);
-
-        if( d < res.x )
-        {
-            res.z = res.y;
-            res.y = res.x;
-            res.x = d;
-        }
-        else if( d < res.y )
-        {
-            res.z = res.y;
-            res.y = d;
-        }
-        else if( d < res.z )
-        {
-            res.z = d;
-        }
-    }
-
-    f32 m = min(min(res.x, res.y), res.z);
-
-    return v3( sqrt(m), res.y, res.z);
-}
-#endif
-
-struct voronoi_point
-{
-  ivec3 o;
-  vec3 oP;
-  f32  d;
-};
-
-vec3 voronoi_noise( vec3 x, f32 squareness)
-{
-    ivec3 p = ivec3(floor( x ));
-    vec3  f = fract( x );
-
-    /* ivec3 lowestOffset; */
-    /* vec3 lowestOffP; */
-    /* v3 low = v3(8.0); */
-
-    voronoi_point low;
-    low.d = 8.f;
-
-    for( int k=-1; k<=1; k++ )
-    for( int j=-1; j<=1; j++ )
-    for( int i=-1; i<=1; i++ )
-    {
-        ivec3 o = ivec3(i, j, k);
-        vec3  oP = vec3(o) + hash3f(p+o)-f;
-        float d = dot(oP,oP);
-
-        if( d < low.d )
-        {
-            low.o = o;
-            low.oP = oP;
-            low.d = d;
-        }
-
-        /* if( d < low.x ) */
-        /* { */
-        /*     low.z = low.y; */
-        /*     low.y = low.x; */
-        /*     low.x = d; */
-        /* } */
-        /* else if( d < low.y ) */
-        /* { */
-        /*     low.z = low.y; */
-        /*     low.y = d; */
-        /* } */
-        /* else if( d < low.z ) */
-        /* { */
-        /*     low.z = d; */
-        /* } */
-    }
-
-    f32 res = 8.0;
-    for( int k=-2; k<=2; k++ )
-    for( int j=-2; j<=2; j++ )
-    for( int i=-2; i<=2; i++ )
-    {
-        ivec3 b = low.o + ivec3(i, j, k);
-        vec3  r = vec3(b) + hash3f(p+b) - f;
-        float d = dot(0.5*(low.oP+r), normalize(r-low.oP));
-
-        res = min( res, d );
-    }
-
-    return v3((res*2.f)-0.5f, res, res);
-}
-#endif
 
 link_internal v3
 voronoi_noise(v3 Texel)
@@ -569,16 +462,10 @@ vec4 gradient_noise_derivs( in vec3 x )
   // grid
   ivec3 i = ivec3(floor(x));
   vec3 f = fract(x);
-  
-  #if INTERPOLANT==1
+
   // quintic interpolant
   vec3 u = f*f*f*(f*(f*6.0-15.0)+10.0);
   vec3 du = 30.0*f*f*(f*(f-2.0)+1.0);
-  #else
-  // cubic interpolant
-  vec3 u = f*f*(3.0-2.0*f);
-  vec3 du = 6.0*f*(1.0-f);
-  #endif    
   
   // gradients
   vec3 ga = ivhash( i+ivec3(0,0,0) );
