@@ -142,19 +142,19 @@ Pressed(renderer_2d* Group, interactable *Interaction)
 {
   b32 CurrentInteractionMatches = Group->Pressed.Id == Interaction->Id;
   b32 MouseDepressed = Group->Input->LMB.Pressed || Group->Input->RMB.Pressed;
+  b32 MouseClicked = Group->Input->LMB.Clicked || Group->Input->RMB.Clicked;
 
   b32 Result = False;
   if (MouseDepressed && CurrentInteractionMatches)
   {
     Result = True;
   }
-  else if (MouseDepressed && Hover(Group, Interaction) && !IsValid(&Group->Pressed.Id))
+  // NOTE(Jesse): We only want to set the Pressed interaction if we clicked the mouse
+  // while hovering.  This used to check MouseDepressed instead of MouseClicked, which
+  // would cause Pressed to suddenly become set if we were dragging a pressed mouse button,
+  // which is typically not intentional.
+  else if (MouseClicked && Hover(Group, Interaction) && !IsValid(&Group->Pressed.Id))
   {
-    // NOTE(Jesse): This is an invariant that (logically)
-    // must be true if we didn't have a valid Pressed id
-    b32 MouseClicked = Group->Input->LMB.Clicked || Group->Input->RMB.Clicked;
-    Assert(MouseClicked);
-
     Group->Pressed.Id = Interaction->Id;
     Result = True;
   }
