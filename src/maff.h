@@ -5,6 +5,7 @@
 #define BONSAI_FAST_MATH__TAN     (1)
 #define BONSAI_FAST_MATH__FLOORF  (1)
 #define BONSAI_FAST_MATH__CEILF   (1)
+#define BONSAI_FAST_MATH__POWF    (0)
 
 // Include math.h if we're not using all the bonsai implementations
 #if !BONSAI_FAST_MATH__INVSQRT || \
@@ -13,6 +14,7 @@
     !BONSAI_FAST_MATH__COS     || \
     !BONSAI_FAST_MATH__TAN     || \
     !BONSAI_FAST_MATH__FLOORF  || \
+    !BONSAI_FAST_MATH__POWF    || \
     !BONSAI_FAST_MATH__CEILF
 #include <math.h>
 #endif
@@ -567,6 +569,18 @@ ArcCos(r32 x)
 #endif
 }
 
+r32
+Powf(r32 Base, r32 Power)
+{
+#if BONSAI_FAST_MATH__POWF
+  NotImplemented;
+  f32 Result = Exp(Power*Log2(Base));
+  return Result;
+#else
+  r32 Result = (r32)powf(Base, Power);
+  return Result;
+#endif
+}
 
 enum sign { Negative = -1, Zero = 0, Positive = 1 };
 

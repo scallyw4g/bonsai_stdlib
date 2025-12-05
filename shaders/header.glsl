@@ -247,6 +247,34 @@ UnpackV3_744b(u32 Packed)
   return Result;
 }
 
+link_internal u32
+PackV3_655b(v3 Color)
+{
+  u32 SixBits = 63u;
+  u32 FiveBits = 31u;
+
+  u32 H = u32(Color.r * r32(SixBits)) & SixBits;
+  u32 S = u32(Color.g * r32(FiveBits)) & FiveBits;
+  u32 V = u32(Color.b * r32(FiveBits)) & FiveBits;
+
+  u32 Result = u32((H << 10) | (S << 5) | V);
+  return Result;
+}
+
+link_internal v3
+UnpackV3_655b(u32 Packed)
+{
+  u32 SixBits = 63u;
+  u32 FiveBits = 31u;
+
+  r32 H = ((Packed >> 10) & SixBits) / r32(SixBits);
+  r32 S = ((Packed >> 5) & FiveBits) / r32(FiveBits);
+  r32 V =  (Packed & FiveBits) / r32(FiveBits);
+  v3 Result = V3(H, S, V);
+  return Result;
+}
+
+
 
 //
 // https://github.com/Inseckto/HSV-to-RGB/blob/master/HSV2RGB.c
