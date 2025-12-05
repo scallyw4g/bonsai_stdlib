@@ -4,10 +4,10 @@ link_internal b32
 Hover(renderer_2d* Group, ui_id *Id, v2 *Offset_out = 0)
 {
   b32 Result = Group->Hover.Id == *Id;
-
   if (Result && Offset_out)
   {
     v2 MouseP = *Group->MouseP;
+    // TODO(Jesse): wtf are we accessing Pressed here for .. shouldn't it be Hover?!
     v2 RelativeOffset = MouseP - Group->Pressed.MinP;
     *Offset_out = RelativeOffset;
   }
@@ -25,6 +25,7 @@ Hover(renderer_2d *Group, interactable_handle *Handle, v2 *Offset_out = 0)
 link_internal b32
 Clicked(renderer_2d *Group, interactable_handle *Handle)
 {
+  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
   b32 Result = Group->Clicked.Id == Handle->Id;
   return Result;
 }
@@ -32,6 +33,7 @@ Clicked(renderer_2d *Group, interactable_handle *Handle)
 link_internal b32
 Clicked(renderer_2d *Group, ui_id Id)
 {
+  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
   b32 Result = Group->Clicked.Id == Id;
   return Result;
 }
@@ -39,6 +41,7 @@ Clicked(renderer_2d *Group, ui_id Id)
 link_internal b32
 Clicked(renderer_2d *Group, ui_id *Id)
 {
+  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
   b32 Result = Group->Clicked.Id == *Id;
   return Result;
 }
@@ -121,8 +124,7 @@ Clicked(renderer_2d* Group, interactable Interaction)
 link_internal b32
 Pressed(renderer_2d* Group, interactable *Interaction)
 {
-  ui_id CurrentInteraction = Group->Pressed.Id;
-  b32 CurrentInteractionMatches = CurrentInteraction == Interaction->Id;
+  b32 CurrentInteractionMatches = Group->Pressed.Id == Interaction->Id;
   b32 MouseDepressed = Group->Input->LMB.Pressed || Group->Input->RMB.Pressed;
 
   b32 Result = False;
@@ -130,8 +132,13 @@ Pressed(renderer_2d* Group, interactable *Interaction)
   {
     Result = True;
   }
-  else if (MouseDepressed && !IsValid(&CurrentInteraction) && Hover(Group, Interaction))
+  else if (MouseDepressed && Hover(Group, Interaction) && !IsValid(&Group->Pressed.Id))
   {
+    // NOTE(Jesse): This is an invariant that (logically)
+    // must be true if we didn't have a valid Pressed id
+    b32 MouseClicked = Group->Input->LMB.Clicked || Group->Input->RMB.Clicked;
+    Assert(MouseClicked);
+
     Group->Pressed.Id = Interaction->Id;
     Result = True;
   }
