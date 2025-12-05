@@ -1700,7 +1700,9 @@ TextBox(renderer_2d *Ui, cs Label, cs Dest, u32 DestLen, ui_id ButtonId, ui_rend
   UNPACK_UI_RENDER_PARAMS(Params);
   if (Label.Count) { PushColumn(Ui, Label); }
 
-  if (Button( Ui, Dest, ButtonId, FStyle, BStyle, Padding, AlignFlags ))
+  Button( Ui, Dest, ButtonId, FStyle, BStyle, Padding, AlignFlags);
+
+  if (RClicked(Ui, &ButtonId))
   {
     // Begin the edit
     ZeroMemory(Cast(void*, Dest.Start), DestLen);
