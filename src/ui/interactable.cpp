@@ -46,6 +46,22 @@ Clicked(renderer_2d *Group, ui_id *Id)
   return Result;
 }
 
+link_internal b32
+RClicked(renderer_2d *Group, ui_id *Id)
+{
+  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
+  b32 Result = Group->Input->RMB.Clicked && (Group->Clicked.Id == *Id);
+  return Result;
+}
+
+link_internal b32
+LClicked(renderer_2d *Group, ui_id *Id)
+{
+  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
+  b32 Result = Group->Input->LMB.Clicked && (Group->Clicked.Id == *Id);
+  return Result;
+}
+
 
 /* link_internal b32 */
 /* Released(renderer_2d *Group, interactable_handle *Handle) */
