@@ -415,7 +415,23 @@ vec3 hash3( vec3 p )
 
 float hashf( float f )
 {
+#if 0
+  s32 n = s32(f);
+
+  // 1D hash by Hugo Elias
+  n = (n << 13) ^ n;
+  n = n * (n * n * 15731 + 789221) + 1376312589;
+  return -1.0 + (2.0 * ( float( n & 0x0fffffff)/float(0x0fffffff) ));
+#endif
+
+#if 0
+  uint n = ChrisWellonsIntegerHash_lowbias32(u32(f));
+  return -1.0 + (2.0 * ( float( n & 0x0fffffffu)/float(0x0fffffffu) ));
+#endif
+
+#if 1
   return -1.0 + 2.0*fract(sin(f)*43758.5453123);
+#endif
 }
 
 float hash3f( v3 f )
