@@ -14,10 +14,10 @@ MakeRenderToTextureShader(shader *Shader, memory_arena *Memory, m4 *ViewProjecti
 
   if (Result)
   {
-    Shader->Uniforms = ShaderUniformBuffer(2, Memory);
+    Shader->Uniforms = ShaderUniformBuffer(1, Memory);
 
     InitShaderUniform(Shader, 0, ViewProjection, "ViewProjection");
-    InitShaderUniform(Shader, 1, ColorPalette,   "ColorPalette");
+    /* InitShaderUniform(Shader, 1, ColorPalette,   "ColorPalette"); */
   }
 
   return Result;
