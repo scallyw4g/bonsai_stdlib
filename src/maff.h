@@ -486,6 +486,27 @@ Ceil(r32 F)
 }
 
 inline u32
+Cube( u32 f )
+{
+  u32 Result = f*f*f;
+  return Result;
+}
+
+inline s32
+Cube( s32 f )
+{
+  s32 Result = f*f*f;
+  return Result;
+}
+
+inline r32
+Cube( r32 f )
+{
+  r32 Result = f*f*f;
+  return Result;
+}
+
+inline u32
 Square( u32 f )
 {
   u32 Result = f*f;
