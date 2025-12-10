@@ -28,17 +28,21 @@ float rand(vec2 st) {
 }
 
 
+#define Pow pow
 #define Floor floor
 #define Abs abs
 #define Clamp01(x) clamp(x, 0.f, 1.f)
-#define ClampPositive(x) x = x < 0.f ? 0.f : x
-#define ClampNegative(x) x = x > 0.f ? 0.f : x
+#define ClampPositive(x)  x < 0.f ? 0.f : x
+#define ClampNegative(x)  x > 0.f ? 0.f : x
 #define LengthSq(V) dot(V,V)
 #define Normalize normalize
 #define Dot dot
 #define Min min
 #define Max max
 #define Lerp(a,b,t) mix(a, b, t);
+
+#define Square(a) a*a
+#define Cube(a) a*a*a
 
 #define True true
 #define False false
