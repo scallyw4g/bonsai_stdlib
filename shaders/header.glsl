@@ -407,6 +407,16 @@ vec3 bad_hash(vec3 Input)
   return fract(vec3(f32(X)/f32(0xFFFF), f32(Y)/f32(0xFFFF), f32(Z)/f32(0xFFFF)));
 }
 
+vec3 hash3( vec2 p )
+{
+  // procedural white noise	
+	return fract(sin(
+        vec3(
+          dot(p,vec2(127.1,531.9)),
+          dot(p,vec2(722.1,438.9)),
+          dot(p,vec2(269.5,22.5))))*43758.5453);
+}
+
 vec3 hash3( vec3 p )
 {
   // procedural white noise	
@@ -492,45 +502,46 @@ float white_noise(v3 P)
   return Res;
 }
 
-
 vec3 voronoi_noise( vec3 x, f32 squareness)
 {
-    ivec3 p = ivec3(floor( x ));
-    vec3  f = fract( x );
+  ivec3 p = ivec3(floor( x ));
+  vec3  f = fract( x );
 
-    ivec3 lowestOffset;
-    vec3 lowestOffP;
+  ivec3 lOff;
+  vec3 a;
 
-    float res = 8.0;
-    for( int k=-1; k<=1; k++ )
-    for( int j=-1; j<=1; j++ )
-    for( int i=-1; i<=1; i++ )
-    {
-        ivec3 o = ivec3(i, j, k);
-        vec3  oP = vec3(o) + hash3f(p+o)-f;
-        float d = dot(oP,oP);
+  float res = 8.0;
+  for( int k=-1; k<=1; k++ )
+  for( int j=-1; j<=1; j++ )
+  for( int i=-1; i<=1; i++ )
+  {
+      ivec3 o = ivec3(i, j, k);
+      f32 jitter = Clamp01(hash3f(p+o)-squareness);
+      vec3  oP = vec3(o) + jitter  - f;
+      float d = dot(oP,oP);
 
-        if( d < res )
-        {
-            res = d;
-            lowestOffP = oP;
-            lowestOffset = o;
-        }
-    }
+      if( d < res )
+      {
+          res = d;
+          a = oP;
+          lOff = o;
+      }
+  }
 
-    res = 8.0;
-    for( int k=-2; k<=2; k++ )
-    for( int j=-2; j<=2; j++ )
-    for( int i=-2; i<=2; i++ )
-    {
-        ivec3 b = lowestOffset + ivec3(i, j, k);
-        vec3  r = vec3(b) + hash3f(p+b) - f;
-        float d = dot(0.5*(lowestOffP+r), normalize(r-lowestOffP));
+  res = 8.0;
+  for( int k=-2; k<=2; k++ )
+  for( int j=-2; j<=2; j++ )
+  for( int i=-2; i<=2; i++ )
+  {
+      ivec3 o = lOff + ivec3(i, j, k);
+      f32 jitter = Clamp01(hash3f(p+o)-squareness);
+      vec3  b = vec3(o) + jitter -f;
+      float d = dot(0.5*(a+b), normalize(b-a));
 
-        res = min( res, d );
-    }
+      res = min( res, d );
+  }
 
-    return v3((res*2.f)-0.5f, res, res);
+  return v3((res*2.f)-0.5f, res, res);
 }
 
 
