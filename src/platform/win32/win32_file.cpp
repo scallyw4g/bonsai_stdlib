@@ -39,8 +39,7 @@ PlatformTraverseDirectoryTreeUnordered(cs Dirname, directory_traversal_callback 
         {
           Type = FileTraversalType_Dir;
           // TODO(Jesse): This should use a string builder
-          cs SubDir = Concat(Dirname, CSz("/"), GetTranArena());
-             SubDir = Concat( SubDir, Filename, GetTranArena());
+          cs SubDir = Concat(Dirname, CSz("/"), Filename, GetTranArena());
           maybe_file_traversal_node MaybeNode = PlatformTraverseDirectoryTreeUnordered(SubDir, Callback, UserData);
           if (MaybeNode.Tag)
           {
