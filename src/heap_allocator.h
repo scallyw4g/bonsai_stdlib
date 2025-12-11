@@ -1,3 +1,7 @@
+// TODO(Jesse): Support alignment
+#define HeapAlloc(type, heap, count, ...) \
+  (type*)HeapAllocate( (heap), sizeof(type)*count )
+
 enum heap_allocation_type
 {
   AllocationType_Free,
@@ -30,3 +34,6 @@ struct heap_allocator
   bonsai_futex Futex;
 };
 
+
+link_internal b32
+IsHeapAllocated(heap_allocator *Heap, void *Allocation);
