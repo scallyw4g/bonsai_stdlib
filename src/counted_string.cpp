@@ -155,15 +155,15 @@ CopyString(counted_string S, heap_allocator* Memory)
 }
 
 poof(
-  func string_concat(type_poof_index arg_count)
+  func string_concat(type_poof_index arg_count, type_poof_symbol allocator_type, type_poof_symbol allocator_func)
   {
     link_internal counted_string
-    Concat( (arg_count.map(N) {cs S(N), }) memory_arena* Memory, umm ExtraChars = 0)
+    Concat( (arg_count.map(N) {cs S(N), }) (allocator_type)* Memory, umm ExtraChars = 0)
     {
-      umm TotalLength = arg_count.map(n) { S(n).Count + } 0;
+      umm TotalLength =  arg_count.map(n) { S(n).Count + } ExtraChars ;
       counted_string Result = {
-        .Count = TotalLength + ExtraChars,
-        .Start = AllocateProtection(char, Memory, TotalLength, False),
+        .Count = TotalLength,
+        .Start = allocator_func(char, Memory, TotalLength, False),
       };
 
       u64 At = 0;
@@ -178,24 +178,45 @@ poof(
   }
 )
 
-poof(string_concat(2))
+poof(string_concat(2, {memory_arena}, {AllocateProtection}))
 #include <generated/string_concat_2.h>
-poof(string_concat(3))
+poof(string_concat(3, {memory_arena}, {AllocateProtection}))
 #include <generated/string_concat_3.h>
-poof(string_concat(4))
+poof(string_concat(4, {memory_arena}, {AllocateProtection}))
 #include <generated/string_concat_4.h>
-poof(string_concat(5))
+poof(string_concat(5, {memory_arena}, {AllocateProtection}))
 #include <generated/string_concat_5.h>
-poof(string_concat(6))
+poof(string_concat(6, {memory_arena}, {AllocateProtection}))
 #include <generated/string_concat_6.h>
-poof(string_concat(7))
+poof(string_concat(7, {memory_arena}, {AllocateProtection}))
 #include <generated/string_concat_7.h>
-poof(string_concat(8))
+poof(string_concat(8, {memory_arena}, {AllocateProtection}))
 #include <generated/string_concat_8.h>
-poof(string_concat(9))
+poof(string_concat(9, {memory_arena}, {AllocateProtection}))
 #include <generated/string_concat_9.h>
-poof(string_concat(10))
+poof(string_concat(10, {memory_arena}, {AllocateProtection}))
 #include <generated/string_concat_10.h>
+
+
+poof(string_concat(2, {heap_allocator} {HeapAlloc}))
+#include <generated/string_concat_e9LuOotf.h>
+poof(string_concat(3, {heap_allocator} {HeapAlloc}))
+#include <generated/string_concat_VITTv1fC.h>
+poof(string_concat(4, {heap_allocator} {HeapAlloc}))
+#include <generated/string_concat_BtCc0m88.h>
+poof(string_concat(5, {heap_allocator} {HeapAlloc}))
+#include <generated/string_concat_JS19evGm.h>
+poof(string_concat(6, {heap_allocator} {HeapAlloc}))
+#include <generated/string_concat_plWVg6MZ.h>
+poof(string_concat(7, {heap_allocator} {HeapAlloc}))
+#include <generated/string_concat_6fJo9rZ9.h>
+poof(string_concat(8, {heap_allocator} {HeapAlloc}))
+#include <generated/string_concat_vmDblFNI.h>
+poof(string_concat(9, {heap_allocator} {HeapAlloc}))
+#include <generated/string_concat_j2qXwRyR.h>
+poof(string_concat(10, {heap_allocator} {HeapAlloc}))
+#include <generated/string_concat_oql3ieBj.h>
+
 
 link_internal const char*
 ConcatZ(cs S1, cs S2, memory_arena* Memory)
