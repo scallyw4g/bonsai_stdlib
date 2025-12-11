@@ -20,7 +20,7 @@ fi
 
 echo $(pwd)
 for test_executable in $(find $exe_search_string); do
-  if $test_executable $COLORFLAG --log-level LogLevel_Shush == 0; then
+  if $test_executable $COLORFLAG == 0; then
     TESTS_PASSED=$((TESTS_PASSED+1))
     echo -n ""
   else
