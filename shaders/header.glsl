@@ -548,7 +548,7 @@ vec3 voronoi_noise( vec3 x, f32 squareness)
 link_internal v3
 voronoi_noise(v3 Texel)
 {
-  return voronoi_noise(Texel, 1.f);
+  return voronoi_noise(Texel, 0.f);
 }
 
 
@@ -748,6 +748,138 @@ v3 ComputeNormal(sampler2D InputTex, v2 FragCoord, ivec2 InputTexDim, ivec2 Outp
   //
   v3 Result = -1.f * Normalize(Normal);
   return Result;
+}
+
+
+v4 DoGrass(v3 Basis, f32 NoiseValue, v3 NormalValue, v3 ColorValue)
+{
+  v3 Up = V3(0, 0, 1);
+  v3 Down = V3(0, 0, -1);
+
+  f32 Cliffness = Clamp01(-dot(Up, NormalValue) + 0.6f);
+  f32 Grassness = Clamp01(.15f-Cliffness);
+
+  // Grassy Patches
+  {
+    v3 Period = V3(20.f);
+    float Amplitude = 25.f;
+
+    v3 xyz = Basis / Period;
+    v4 gn = gradient_noise_derivs(xyz);
+    f32 GrassMask = ClampPositive(gn.x);
+
+    f32 BladeColorWhite = (0.5f+white_noise(V3(xyz.xy, 0.f)))/2.f;
+    f32 BladeWhite = Clamp01(-0.7f+white_noise(V3(xyz.xy, 1.f)));
+
+    v3 BladeColor = V3(0.2f, 0.22f, 0.03f);
+    BladeColor.r = 0.03f+(BladeColor.r*BladeColorWhite);
+
+    v3 GroundColor = V3(0.01f, 0.2f, 0.03f);
+
+    if (Grassness > 0)
+    {
+      ColorValue = Lerp(ColorValue, GroundColor, GrassMask);
+      if (NoiseValue <= 0.f && GrassMask > 0.1f && BladeWhite > 0.1f)
+      {
+        ColorValue = Lerp(ColorValue, BladeColor, Clamp01(sign(BladeColorWhite)));
+      }
+      /* ColorValue = V3(1.f,0,0); */
+
+      NoiseValue += (BladeWhite * GrassMask * Amplitude);
+
+
+#if 0
+      // Lil rocks
+      {
+        v3 v = (voronoi_noise(Basis/(v3(20,20,20))));
+        v.x = ClampPositive(v.x);
+
+        if (v.x>0.f)
+        {
+          NoiseValue += (v.x*100.f)*Grassness;
+          ColorValue = V3(0.4f);
+        }
+      }
+#endif
+
+    }
+
+
+  }
+
+  return V4(ColorValue, NoiseValue);
+}
+
+
+v4 DoCliffs(v3 Basis, v3 Deriv, v3 InputColor, f32 Scale)
+{
+  v3 Up = V3(0, 0, 1);
+  v3 Down = V3(0, 0, -1);
+
+  f32 Cliffness = Clamp01(-dot(Up, Deriv) + 0.6f);
+  f32 Grassness = Clamp01(.15f-Cliffness);
+
+  v3 BaseCliffColor = V3(0.5f);
+  v3 CliffColor = BaseCliffColor;
+  f32 CliffValue = 0.f;
+
+  /* { */
+  /*   v3 v = voronoi_noise(Basis/(v3(800,800,500)*Scale)); */
+  /*   CliffValue += (v.x*2500)*Cliffness*Scale; */
+  /* } */
+
+  {
+    v3 v = voronoi_noise(Basis/(v3(400,800,1800)*Scale));
+    BaseCliffColor = Lerp(BaseCliffColor, BaseCliffColor*0.15f, abs(v.x*1.8f));
+    CliffValue += (v.x*1500.f)*Cliffness*Scale;
+  }
+
+  {
+    v3 v = -1.f*(0.25+voronoi_noise(Basis/(v3(300,700,1500)*Scale)));
+    /* BaseCliffColor = Lerp(BaseCliffColor, BaseCliffColor*0.15f, abs(v.x*1.8f)); */
+    CliffValue -= (v.x*1500.f)*Cliffness*Scale;
+  }
+
+
+  {
+    v3 v = voronoi_noise(Basis/(v3(200,200,1800)*Scale));
+    CliffValue += (v.x*300)*Cliffness*Scale;
+    BaseCliffColor = Lerp(BaseCliffColor, BaseCliffColor*0.5f, abs(v.x*1.8f));
+  }
+
+  {
+    v3 v = -1.f*(0.3f+voronoi_noise(Basis/(v3(200,200,400)*Scale)));
+    v.x = ClampPositive(v.x);
+    CliffValue -= (v.x*700)*Cliffness*Scale;
+    BaseCliffColor = Lerp(BaseCliffColor*0.8f, BaseCliffColor, abs(v.x*1.8f));
+  }
+
+
+  /* CliffColor = V3(abs(Cliffness)); */
+  CliffColor = Cliffness > 0.15f ? BaseCliffColor : InputColor;
+  f32 FullColorThresh = 0.25f;
+  if (Cliffness > 0.f)
+  {
+    if (Cliffness > FullColorThresh)
+    {
+      CliffColor = BaseCliffColor;
+    }
+    else
+    {
+      f32 white = FullColorThresh*white_noise(Basis);
+      if (white < Cliffness)
+      {
+        CliffColor = BaseCliffColor;
+      }
+      else
+      {
+        CliffColor = InputColor;
+      }
+    }
+  }
+
+
+  return V4(CliffColor, CliffValue);
 }
 
 
