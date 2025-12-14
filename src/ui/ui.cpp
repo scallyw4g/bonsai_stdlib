@@ -3414,6 +3414,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
           MapGpuBuffer(&Group->CustomQuadGeometryBuffer);
           TypedCommand->ShaderSetupCallback(TypedCommand->ShaderSetupArgs);
           BufferUiQuad(*Group->ScreenDim, &Group->CustomQuadGeometryBuffer.Buffer, RectMinDim(MinP, Dim), TypedCommand->Style.Color, Z, Clip);
+          UnmapGpuBuffer(CurrentHandles(&Group->CustomQuadGeometryBuffer));
           DrawBuffer(&Group->CustomQuadGeometryBuffer, Group->ScreenDim);
         }
         else
