@@ -950,6 +950,28 @@ SafeDivide0(v3 Dividend, v3 Divisor)
   return Result;
 }
 
+inline v3
+SafeDivideInf(v3 Dividend, v3 Divisor)
+{
+  v3 Result = {
+    .E[0] = SafeDivideInf(Dividend.E[0], Divisor.E[0]),
+    .E[1] = SafeDivideInf(Dividend.E[1], Divisor.E[1]),
+    .E[2] = SafeDivideInf(Dividend.E[2], Divisor.E[2]),
+  };
+  return Result;
+}
+
+inline v3
+SafeDivideValue(v3 Dividend, v3 Divisor, v3 Value)
+{
+  v3 Result = {
+    .E[0] = SafeDivideValue(Dividend.E[0], Divisor.E[0], Value.E[0]),
+    .E[1] = SafeDivideValue(Dividend.E[1], Divisor.E[1], Value.E[0]),
+    .E[2] = SafeDivideValue(Dividend.E[2], Divisor.E[2], Value.E[0]),
+  };
+  return Result;
+}
+
 b32
 PointsAreWithinDistance(v3 P1, v3 P2, f32 Thresh)
 {

@@ -83,6 +83,28 @@ SafeDivide0(r32 Dividend, r32 Divisor)
   return Result;
 }
 
+inline r32
+SafeDivideInf(r32 Dividend, r32 Divisor)
+{
+  r32 Result = INFINITY;
+
+  if (Divisor != 0.0f)
+    Result = Dividend/Divisor;
+
+  return Result;
+}
+
+inline r32
+SafeDivideValue(r32 Dividend, r32 Divisor, r32 Value)
+{
+  r32 Result = Value;
+
+  if (Divisor != 0.0f)
+    Result = Dividend/Divisor;
+
+  return Result;
+}
+
 // TODO(Jesse): Can we do this without converting to integer to avoid overflow?
 // And/or do we care?
 //
