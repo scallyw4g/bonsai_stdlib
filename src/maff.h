@@ -359,6 +359,23 @@ Pow2(int p)
   return Result;
 }
 
+inline s32
+ClampPositive( s32 N )
+{
+  N = N > 0 ? N : 0;
+  return N;
+}
+
+
+inline s32
+ClampNegative( s32 N )
+{
+  N = N < 0 ? N : 0;
+  return N;
+}
+
+
+
 inline float
 ClampMinus1toInfinity( float f )
 {
