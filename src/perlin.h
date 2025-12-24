@@ -319,6 +319,40 @@ Grad8x_pannoniae(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
 }
 
 link_internal f32_8x
+Grad8x(u32_8x *hash_, f32_8x x, f32_8x y, f32_8x z)
+{
+  u32_8x hash = *hash_;
+
+  u32_8x _15 = U32_8X(15);
+  u32_8x _14 = U32_8X(14);
+  u32_8x _12 = U32_8X(12);
+  u32_8x _8  = U32_8X(8);
+  u32_8x _4  = U32_8X(4);
+  u32_8x _2  = U32_8X(2);
+  u32_8x _1  = U32_8X(1);
+  f32_8x _n1 = F32_8X(-1);
+
+  auto h = hash & _15;
+
+  u32_8x uSel = h < _8;
+  u32_8x vSel = h < _4;
+  f32_8x u  = Select(uSel, x, y);
+
+#if 1
+  u32_8x xSel = (h == _12 | h == _14 );
+  f32_8x xz = Select(xSel, x, z);
+  f32_8x v  = Select(vSel, y, xz);
+#else
+  f32_8x v  = Select(vSel, y, z);
+#endif
+
+  auto h1 = hash << 31;
+  auto h2 = (hash & U32_8X(2)) << 30 ;
+  f32_8x Result = ( u ^ Cast_f32_8x(h1) ) + ( v ^ Cast_f32_8x(h2) );
+
+  return Result;
+}
+link_internal f32_8x
 Grad8x(u32_8x hash, f32_8x x, f32_8x y, f32_8x z)
 {
   u32_8x _15 = U32_8X(15);

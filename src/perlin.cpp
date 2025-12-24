@@ -15,11 +15,11 @@ u32_8x
 AESHash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
 {
   // 1.87 cyc/cell
-  /* u32_8x hash = U32_8X(_mm256_aesenc_epi128(x.Sse, y.Sse)) ^ z; */
+  u32_8x hash = U32_8X(_mm256_aesenc_epi128(x.Sse, y.Sse)) ^ z;
 
   // 2.01 cyc/cell
-  u32_8x hash = U32_8X(_mm256_aesenc_epi128(x.Sse, y.Sse));
-         hash = U32_8X(_mm256_aesenc_epi128(z.Sse, hash.Sse));
+  /* u32_8x hash = U32_8X(_mm256_aesenc_epi128(x.Sse, y.Sse)); */
+  /*        hash = U32_8X(_mm256_aesenc_epi128(z.Sse, hash.Sse)); */
 
   return hash;
 }
@@ -40,14 +40,27 @@ FNVHash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
 u32_8x
 jFashHash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
 {
-  // Bad visual artifacts
-  /* u32_8x hash = (Seed + x + y + z) >> 15; */
-
-  // Fast, reasonable visual entropy, but stil artifacts compared to ChrisWellonsIntegerHash_lowbias32
-  u32_8x hash = (x ^ y ^ z);
-         hash = (hash >> 15) ^ hash;
-
+  u32_8x hash = Seed + x + y + z;
+  /* u32_8x hash = Seed + (x*U32_8X(31)) + (y*U32_8X(37)) + (z*U32_8X( 0x27d4eb2d )); */
+  /* hash = (hash >> 15) ^ hash; */
   return hash;
+}
+
+link_inline u32_8x
+HashOpen(u32_8x x, u32_8x y)
+{
+  u32_8x hash = x;
+         hash = hash ^ y;
+  return hash;
+}
+
+link_inline u32_8x
+HashFinalize(u32_8x *hash, u32_8x x)
+{
+  u32_8x Result = (*hash) ^ x;
+  Result = Result * U32_8X( 0x27d4eb2d );
+  Result = (Result >> 15) ^ Result;
+  return Result;
 }
 
 u32_8x
@@ -405,19 +418,20 @@ PerlinNoise_8x_avx2_pannoniae(perlin_params *perlinX, perlin_params *perlinY, pe
 }
 
 link_internal void
-PerlinNoise_8x_avx2(perlin_params *perlinX, perlin_params *perlinY, perlin_params *perlinZ, f32 *Dest, f32 Amplitude)
+PerlinNoise_8x_avx2(u32_8x *Hashes, perlin_params *perlinX, perlin_params *perlinY, perlin_params *perlinZ, f32 *Dest, f32 Amplitude)
 {
   u32_8x Seed = U32_8X(1066037191);
 
-  f32_8x G0 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
-  f32_8x G1 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
-  f32_8x G2 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
-  f32_8x G3 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
 
-  f32_8x G4 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
-  f32_8x G5 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
-  f32_8x G6 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
-  f32_8x G7 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+  f32_8x G0 = Grad8x(HashFinalize(Hashes+0, perlinX->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+  f32_8x G1 = Grad8x(HashFinalize(Hashes+0, perlinX->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+  f32_8x G2 = Grad8x(HashFinalize(Hashes+1, perlinX->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+  f32_8x G3 = Grad8x(HashFinalize(Hashes+1, perlinX->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+  f32_8x G4 = Grad8x(HashFinalize(Hashes+2, perlinX->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+  f32_8x G5 = Grad8x(HashFinalize(Hashes+2, perlinX->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+  f32_8x G6 = Grad8x(HashFinalize(Hashes+3, perlinX->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+  f32_8x G7 = Grad8x(HashFinalize(Hashes+3, perlinX->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
 
   auto L0  = Lerp8x(perlinX->Fade, G0, G1);
   auto L1  = Lerp8x(perlinX->Fade, G2, G3);
@@ -567,17 +581,19 @@ struct perlin_inputs
   perlin_params *yParams;
   perlin_params *zParams;
   u32 *_xCoords;
+  f32_8x *Hashes;
 };
 
 link_internal perlin_inputs
 AllocatePerlinParams(v3i NoiseDim, memory_arena *Arena)
 {
-  perlin_params *xParams = AllocateAligned(perlin_params, Arena, NoiseDim.x*2, 32);
-  perlin_params *yParams = AllocateAligned(perlin_params, Arena, NoiseDim.y*2, 32);
-  perlin_params *zParams = AllocateAligned(perlin_params, Arena, NoiseDim.z*2, 32);
+  perlin_params *xParams = AllocateAligned(perlin_params, Arena,       NoiseDim.x*2, 32);
+  perlin_params *yParams = AllocateAligned(perlin_params, Arena,       NoiseDim.y*2, 32);
+  perlin_params *zParams = AllocateAligned(perlin_params, Arena,       NoiseDim.z*2, 32);
+         f32_8x *Hashes  = AllocateAligned(       f32_8x, Arena, Volume(NoiseDim+1), 32);
   u32 *_xCoords = AllocateAligned(u32, Arena, NoiseDim.x, 32);
 
-  perlin_inputs Result = {xParams, yParams, zParams, _xCoords};
+  perlin_inputs Result = {xParams, yParams, zParams, _xCoords, Hashes};
   return Result;
 }
 
@@ -591,10 +607,10 @@ PerlinNoise(   f32 *NoiseValues,
                perlin_inputs *Inputs)
 {
   // NOTE(Jesse): Must be true to use _mm256_store_ps
-  Assert(u64(NoiseValues) % 32 == 0);
+  /* Assert(u64(NoiseValues) % 32 == 0); */
 
   // NOTE(Jesse): We're doing 8-wide, so we need this to be true.
-  Assert(NoiseDim.x % 8 == 0);
+  /* Assert(NoiseDim.x % 8 == 0); */
 
   auto PrimeX = U32_8X(501125321);
   auto PrimeY = 1136930381u;
@@ -606,10 +622,11 @@ PerlinNoise(   f32 *NoiseValues,
        u32 yChunkResolution = u32(1);
        u32 zChunkResolution = u32(1);
 
-    perlin_params *xParams = Inputs->xParams;
-    perlin_params *yParams = Inputs->yParams;
-    perlin_params *zParams = Inputs->zParams;
-    auto _xCoords = Inputs->_xCoords;
+    perlin_params *xParams  = Inputs->xParams;
+    perlin_params *yParams  = Inputs->yParams;
+    perlin_params *zParams  = Inputs->zParams;
+             auto  _xCoords = Inputs->_xCoords;
+           /* f32_8x *Hashes   = Inputs->Hashes; */
 
     u32 zPeriods = u32(Period.z);
     u32 yPeriods = u32(Period.y);
@@ -642,18 +659,27 @@ PerlinNoise(   f32 *NoiseValues,
     }
 
     {
+      s32 NoiseIndex = 0;
       for ( s32 zNoise = 0; zNoise < NoiseDim.z; ++ zNoise)
       {
+        auto zParam = zParams+zNoise;
         for ( s32 yNoise = 0; yNoise < NoiseDim.y; ++ yNoise)
         {
+          auto yParam = yParams+yNoise;
+
+          u32_8x Hashes[4] = {
+            HashOpen(yParam->P0, zParam->P0),
+            HashOpen(yParam->P1, zParam->P0),
+            HashOpen(yParam->P0, zParam->P1),
+            HashOpen(yParam->P1, zParam->P1),
+          };
+
           for ( s32 xNoise = 0; xNoise < NoiseDim.x; xNoise += 8 )
           {
-            s32 NoiseIndex = GetIndex(xNoise, yNoise, zNoise, NoiseDim);
-
-            auto zParam = zParams+zNoise;
-            auto yParam = yParams+yNoise;
             auto xParam = xParams+xNoise;
-            PerlinNoise_8x_avx2(xParam, yParam, zParam, NoiseValues+NoiseIndex, Amplitude);
+            PerlinNoise_8x_avx2(Hashes, xParam, yParam, zParam, NoiseValues+NoiseIndex, Amplitude);
+
+            NoiseIndex += 8;
           }
         }
       }
