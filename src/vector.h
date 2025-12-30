@@ -893,6 +893,13 @@ Perp( v3 A )
   return Result;
 }
 
+inline v3
+Reflect( v3 Ray, v3 Normal )
+{
+  v3 Result = Ray - (2.f*Normal*Dot(Ray, Normal));
+  return Result;
+}
+
 
 // TODO(Jesse): Maybe rename these to RoundUpToMultiple?
 inline v3
