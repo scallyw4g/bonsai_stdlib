@@ -99,7 +99,8 @@ SafeDivideValue(r32 Dividend, r32 Divisor, r32 Value)
 {
   r32 Result = Value;
 
-  if (Divisor != 0.0f)
+  f32 Eps = 0.000001f;
+  if (Divisor > Eps || Divisor < -Eps )
     Result = Dividend/Divisor;
 
   return Result;
