@@ -591,7 +591,7 @@ poof(
         inline vec_t.name
         Normalize( vec_t.name Vec, r32 Length)
         {
-          if (Length == 0.f) return {};
+          if (Length < 0.00001f) return {};
           vec_t.name Result = Vec/Length;
           return Result;
         }
