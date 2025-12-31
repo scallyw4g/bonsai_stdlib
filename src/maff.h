@@ -477,15 +477,16 @@ r32
 Floorf(r32 f)
 {
 #if BONSAI_FAST_MATH__FLOORF
-  f32 Result;
-  if (f < 0.f)
-  {
-    Result = Truncate(f) -1.f;
-  }
-  else
+  f32 Result = f;
+  if (f > 0.f)
   {
     Result = Truncate(f);
   }
+  else
+  {
+    Result = f - Fract(f);
+  }
+
 
   return Result;
 #else
@@ -500,16 +501,20 @@ Ceilf(r32 f)
 {
 #if BONSAI_FAST_MATH__CEILF
 
-  f32 Result;
+  f32 Result = f;
   if (f < 0.f)
   {
     Result = Truncate(f);
   }
   else
   {
-    Result = Truncate(f) + 1.f;
-  }
+    r32 fr = Fract(f);
 
+    if (fr > 0.00001f)
+    {
+      Result = f + (1.f-fr);
+    }
+  }
 
   return Result;
 #else
