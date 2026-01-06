@@ -1,3 +1,7 @@
+#include "assert.h"
+#include "costable.h"
+#include "arccostable.h"
+
 #define BONSAI_FAST_MATH__INVSQRT (1)
 #define BONSAI_FAST_MATH__SQRT    (1)
 #define BONSAI_FAST_MATH__ARCCOS  (1)

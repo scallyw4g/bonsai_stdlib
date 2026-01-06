@@ -164,15 +164,6 @@ Length(const char *Str)
   return Result;
 }
 
-link_inline counted_string
-CS(const char *S, umm Count)
-{
-  cs Result;
-  if (S) { Result = { .Count = Count, .Start = S }; }
-  else   { Result = { .Start = "(null)", .Count = sizeof("(null)")-1 }; }
-  return Result;
-}
-
 cs
 CountedString(const char *S)
 {

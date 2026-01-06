@@ -1,3 +1,9 @@
+#pragma once
+
+#include "iterators.h"
+
+#define poof(...)
+
 #define CAssert(condition) static_assert((condition), #condition )
 #define OffsetOf(member_name, type_name) offsetof(type_name, member_name)
 
@@ -202,6 +208,22 @@ typedef counted_string cs;
 link_internal b32 AreEqual(cs *S1, cs *S2);
 link_internal b32 AreEqual(cs S1, cs S2);
 link_internal b32 AreEqual(const char *S1, const char *S2);
+
+link_internal cs CS(cs *Cs) { return *Cs; }
+link_internal cs CS(cs Cs) { return Cs; }
+
+link_inline counted_string
+CS(const char *S, umm Count)
+{
+  cs Result;
+  if (S) { Result = { .Count = Count, .Start = S }; }
+  else   { Result = { .Start = "(null)", .Count = sizeof("(null)")-1 }; }
+  return Result;
+}
+
+
+#define CSz(NullTerminatedCString) \
+  CS(NullTerminatedCString, sizeof(NullTerminatedCString)-1)
 
 template <typename T> inline void
 Clear(T *Struct)

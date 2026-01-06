@@ -1,3 +1,8 @@
+#pragma once
+
+#include "primitives.h"
+#include "maff.h"
+
 /* #if BONSAI_EMCC */
 /* #include <wasm_simd128.h> */
 /* typedef v128_t __m128; */

@@ -3,14 +3,11 @@
 #define MAIN_THREAD_ThreadLocal_ThreadIndex (0)
 #define RENDER_THREAD_ThreadLocal_ThreadIndex (1)
 
-#define poof(...)
-
 // NOTE(Jesse): This is strictly present to hack around some deficiencies in
 // poof.  It should be removed in the future.
 #include <bonsai_stdlib/src/poof_crutches.h>
 
 #include <bonsai_stdlib/src/poof_functions.h>
-#include <bonsai_stdlib/src/iterators.h>
 #include <bonsai_stdlib/src/primitives.h>
 #include <bonsai_stdlib/src/assert.h>
 
@@ -21,11 +18,7 @@ struct debug_state;
 link_internal debug_state * GetDebugState();
 
 
-#include <x86intrin.h>
-#include <immintrin.h>
-#include <smmintrin.h>
-/* #include <ymmintrin.h> */
-
+#include <bonsai_stdlib/src/simd.h>
 #include <bonsai_stdlib/src/simd_sse.h>
 
 #ifndef BONSAI_NO_AVX

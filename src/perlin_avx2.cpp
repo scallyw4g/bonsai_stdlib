@@ -1,0 +1,570 @@
+#include "perlin_avx2.h"
+#include "vector.h"
+
+#if 0
+u32_8x
+SM4Hash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
+{
+  __m256 hash = _mm256_sm4rnds4_epi32(x.Sse, y.Sse);
+         hash = _mm256_sm4rnds4_epi32(z.Sse, hash);
+
+  return {{ hash }};
+}
+#endif
+
+#if 0
+u32_8x
+AESHash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
+{
+  // 1.87 cyc/cell
+  u32_8x hash = U32_8X(_mm256_aesenc_epi128(x.Sse, y.Sse)) ^ z;
+
+  // 2.01 cyc/cell
+  /* u32_8x hash = U32_8X(_mm256_aesenc_epi128(x.Sse, y.Sse)); */
+  /*        hash = U32_8X(_mm256_aesenc_epi128(z.Sse, hash.Sse)); */
+
+  return hash;
+}
+#endif
+
+u32_8x
+FNVHash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
+{
+  u32_8x hash = U32_8X(0x811c9dc5);
+
+  hash = (hash ^ x) * U32_8X(0x01000193);
+  hash = (hash ^ y) * U32_8X(0x01000193);
+  hash = (hash ^ z) * U32_8X(0x01000193);
+
+  return hash;
+}
+
+u32_8x
+jFashHash(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
+{
+  u32_8x hash = Seed + x + y + z;
+  /* u32_8x hash = Seed + (x*U32_8X(31)) + (y*U32_8X(37)) + (z*U32_8X( 0x27d4eb2d )); */
+  /* hash = (hash >> 15) ^ hash; */
+  return hash;
+}
+
+link_inline u32_8x
+HashOpen(u32_8x x, u32_8x y)
+{
+  u32_8x hash = x;
+         hash = hash ^ y;
+  return hash;
+}
+
+link_inline u32_8x
+HashFinalize(u32_8x *hash, u32_8x x)
+{
+  u32_8x Result = (*hash) ^ x;
+  Result = Result * U32_8X( 0x27d4eb2d );
+  Result = (Result >> 15) ^ Result;
+  return Result;
+}
+
+u32_8x
+HashPrimes(u32_8x Seed, u32_8x x, u32_8x y, u32_8x z)
+{
+  u32_8x hash = Seed;
+  hash = hash ^ x;
+  hash = hash ^ y;
+  hash = hash ^ z;
+  hash = hash * U32_8X( 0x27d4eb2d );
+  hash = (hash >> 15) ^ hash;
+  return hash;
+}
+
+// https://nullprogram.com/blog/2018/07/31/
+//
+u32_8x
+ChrisWellonsIntegerHash_lowbias32(u32_8x x, u32_8x y, u32_8x z)
+{
+  u32_8x Result = x ^ y ^ z;
+
+  Result = Result ^ (Result >> 16);
+  Result = Result ^ U32_8X(0x7feb352d);
+  Result = Result ^ (Result >> 15);
+  Result = Result * U32_8X(0x846ca68b);
+  Result = Result ^ (Result >> 16);
+  return Result;
+}
+
+link_internal void
+PerlinNoise_16x_avx2_x(perlin_params *perlinX, perlin_params *perlinY, perlin_params *perlinZ, f32 *Dest, f32 Amplitude)
+{
+  auto PrimeX = U32_8X(501125321);
+
+#pragma unroll(2)
+  for (u32 Index = 0; Index < 16; Index += 8)
+  {
+
+#if 0
+    // 7.6 cyc/cell
+    f32_8x G0 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+
+#if 0
+    // 3.2 cyc/cell
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x_fast(FNVHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x_fast(FNVHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x_fast(FNVHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x_fast(FNVHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x_fast(FNVHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x_fast(FNVHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x_fast(FNVHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x_fast(FNVHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+#if 0
+    // Unfortunately this produces artifacts; for it to work properly we need
+    // the SIMD lanes to be packed with XYZ of a single point .. I think..
+    // which would pretty much negate the benefit of using AVX in the first place
+    //
+    // 1.87 cyc/cell
+    // or
+    // 2.01 cyc/cell
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x_fast(AESHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x_fast(AESHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x_fast(AESHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x_fast(AESHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x_fast(AESHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x_fast(AESHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x_fast(AESHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x_fast(AESHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+#if 0
+    // my chip doesn't support SM4 :(
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x_fast(SM4Hash(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x_fast(SM4Hash(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x_fast(SM4Hash(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x_fast(SM4Hash(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x_fast(SM4Hash(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x_fast(SM4Hash(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x_fast(SM4Hash(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x_fast(SM4Hash(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+#if 0
+    // 2.17 cyc/cell
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x_fast(jFashHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x_fast(jFashHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x_fast(jFashHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x_fast(jFashHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x_fast(jFashHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x_fast(jFashHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x_fast(jFashHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x_fast(jFashHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+#if 1
+    // 6.2 cyc/cell
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+
+#if 1
+    auto L0  = Lerp8x(perlinX->Fade, G0, G1);
+    auto L1  = Lerp8x(perlinX->Fade, G2, G3);
+    auto L2  = Lerp8x(perlinX->Fade, G4, G5);
+    auto L3  = Lerp8x(perlinX->Fade, G6, G7);
+
+    auto L4  = Lerp8x(perlinY->Fade, L0, L1);
+    auto L5  = Lerp8x(perlinY->Fade, L2, L3);
+
+    auto Res = Lerp8x(perlinZ->Fade, L4, L5) * F32_8X(Amplitude);
+
+#else
+    /* Vxyz =
+     * V000 (1 - x) (1 - y) (1 - z) + */
+    /* V100      x  (1 - y) (1 - z) + */
+    /* V010 (1 - x)      y  (1 - z) + */
+    /* V001 (1 - x) (1 - y)      z  + */
+    /* V101      x  (1 - y)      z  + */
+    /* V011 (1 - x)      y       z  + */
+    /* V110      x       y  (1 - z) + */
+    /* V111      x       y       z */
+
+    auto Res = G0*G2*G4 +
+               G1*G2*G4 +
+               G0*G3*G4 +
+               G0*G2*G5 +
+               G1*G2*G5 +
+               G0*G3*G5 +
+               G1*G3*G4 +
+               G1*G3*G5;
+
+#endif
+
+    /* Res = Res * F32_8X( 0.964921414852142333984375f ); */
+    /* Res = ((Res + F32_8X(1.f)) / F32_8X(2.f)) * F32_8X(Amplitude); */
+
+    f32_8x Current = {{ _mm256_load_ps(Dest+Index) }};
+    f32_8x Total = Res + Current;
+    _mm256_store_ps(Dest+Index, Total.Sse);
+
+    ++perlinX;
+  }
+}
+link_internal void
+PerlinNoise_16x_avx2_y(perlin_params *perlinX, perlin_params *perlinY, perlin_params *perlinZ, f32 *Dest, f32 Amplitude)
+{
+  auto PrimeX = U32_8X(501125321);
+
+#pragma unroll(2)
+  for (u32 Index = 0; Index < 16; Index += 8)
+  {
+
+#if 0
+    // 7.6 cyc/cell
+    f32_8x G0 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x(ChrisWellonsIntegerHash_lowbias32(perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+
+#if 0
+    // 3.2 cyc/cell
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x_fast(FNVHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x_fast(FNVHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x_fast(FNVHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x_fast(FNVHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x_fast(FNVHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x_fast(FNVHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x_fast(FNVHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x_fast(FNVHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+#if 0
+    // Unfortunately this produces artifacts; for it to work properly we need
+    // the SIMD lanes to be packed with XYZ of a single point .. I think..
+    // which would pretty much negate the benefit of using AVX in the first place
+    //
+    // 1.87 cyc/cell
+    // or
+    // 2.01 cyc/cell
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x_fast(AESHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x_fast(AESHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x_fast(AESHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x_fast(AESHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x_fast(AESHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x_fast(AESHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x_fast(AESHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x_fast(AESHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+#if 0
+    // my chip doesn't support SM4 :(
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x_fast(SM4Hash(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x_fast(SM4Hash(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x_fast(SM4Hash(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x_fast(SM4Hash(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x_fast(SM4Hash(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x_fast(SM4Hash(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x_fast(SM4Hash(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x_fast(SM4Hash(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+#if 0
+    // 2.17 cyc/cell
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x_fast(jFashHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x_fast(jFashHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x_fast(jFashHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x_fast(jFashHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x_fast(jFashHash(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x_fast(jFashHash(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x_fast(jFashHash(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x_fast(jFashHash(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+#if 1
+    // 6.2 cyc/cell
+    u32_8x Seed = U32_8X(1066037191);
+
+    f32_8x G0 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G1 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+    f32_8x G2 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+    f32_8x G3 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+    f32_8x G4 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G5 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+    f32_8x G6 = Grad8x(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+    f32_8x G7 = Grad8x(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+#endif
+
+
+#if 1
+    auto L0  = Lerp8x(perlinX->Fade, G0, G1);
+    auto L1  = Lerp8x(perlinX->Fade, G2, G3);
+    auto L2  = Lerp8x(perlinX->Fade, G4, G5);
+    auto L3  = Lerp8x(perlinX->Fade, G6, G7);
+
+    auto L4  = Lerp8x(perlinY->Fade, L0, L1);
+    auto L5  = Lerp8x(perlinY->Fade, L2, L3);
+
+    auto Res = Lerp8x(perlinZ->Fade, L4, L5) * F32_8X(Amplitude);
+
+#else
+    /* Vxyz =
+     * V000 (1 - x) (1 - y) (1 - z) + */
+    /* V100      x  (1 - y) (1 - z) + */
+    /* V010 (1 - x)      y  (1 - z) + */
+    /* V001 (1 - x) (1 - y)      z  + */
+    /* V101      x  (1 - y)      z  + */
+    /* V011 (1 - x)      y       z  + */
+    /* V110      x       y  (1 - z) + */
+    /* V111      x       y       z */
+
+    auto Res = G0*G2*G4 +
+               G1*G2*G4 +
+               G0*G3*G4 +
+               G0*G2*G5 +
+               G1*G2*G5 +
+               G0*G3*G5 +
+               G1*G3*G4 +
+               G1*G3*G5;
+
+#endif
+
+    /* Res = Res * F32_8X( 0.964921414852142333984375f ); */
+    /* Res = ((Res + F32_8X(1.f)) / F32_8X(2.f)) * F32_8X(Amplitude); */
+
+    f32_8x Current = {{ _mm256_load_ps(Dest+Index) }};
+    f32_8x Total = Res + Current;
+    _mm256_store_ps(Dest+Index, Total.Sse);
+
+    ++perlinY;
+  }
+}
+
+link_internal void
+PerlinNoise_8x_avx2_pannoniae(perlin_params *perlinX, perlin_params *perlinY, perlin_params *perlinZ, f32 *Dest, f32 Amplitude)
+{
+  u32_8x Seed = U32_8X(1066037191);
+
+  f32_8x G0 = Grad8x_pannoniae(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+  f32_8x G1 = Grad8x_pannoniae(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P0), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+  f32_8x G2 = Grad8x_pannoniae(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+  f32_8x G3 = Grad8x_pannoniae(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P0), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+  f32_8x G4 = Grad8x_pannoniae(HashPrimes(Seed, perlinX->P0, perlinY->P0, perlinZ->P1), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+  f32_8x G5 = Grad8x_pannoniae(HashPrimes(Seed, perlinX->P1, perlinY->P0, perlinZ->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+  f32_8x G6 = Grad8x_pannoniae(HashPrimes(Seed, perlinX->P0, perlinY->P1, perlinZ->P1), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+  f32_8x G7 = Grad8x_pannoniae(HashPrimes(Seed, perlinX->P1, perlinY->P1, perlinZ->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+
+  auto L0  = Lerp8x(perlinX->Fade, G0, G1);
+  auto L1  = Lerp8x(perlinX->Fade, G2, G3);
+  auto L2  = Lerp8x(perlinX->Fade, G4, G5);
+  auto L3  = Lerp8x(perlinX->Fade, G6, G7);
+
+  auto L4  = Lerp8x(perlinY->Fade, L0, L1);
+  auto L5  = Lerp8x(perlinY->Fade, L2, L3);
+
+  auto Res = Lerp8x(perlinZ->Fade, L4, L5) * F32_8X(Amplitude);
+
+  f32_8x Current = {{ _mm256_load_ps(Dest) }};
+  f32_8x Total = Res + Current;
+  _mm256_store_ps(Dest, Total.Sse);
+}
+
+link_internal void
+PerlinNoise_8x_avx2(u32_8x *Hashes, perlin_params *perlinX, perlin_params *perlinY, perlin_params *perlinZ, f32 *Dest, f32 Amplitude)
+{
+  u32_8x Seed = U32_8X(1066037191);
+
+
+  f32_8x G0 = Grad8x(HashFinalize(Hashes+0, perlinX->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract0);
+  f32_8x G1 = Grad8x(HashFinalize(Hashes+0, perlinX->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract0);
+  f32_8x G2 = Grad8x(HashFinalize(Hashes+1, perlinX->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract0);
+  f32_8x G3 = Grad8x(HashFinalize(Hashes+1, perlinX->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract0);
+
+  f32_8x G4 = Grad8x(HashFinalize(Hashes+2, perlinX->P0), perlinX->Fract0, perlinY->Fract0, perlinZ->Fract1);
+  f32_8x G5 = Grad8x(HashFinalize(Hashes+2, perlinX->P1), perlinX->Fract1, perlinY->Fract0, perlinZ->Fract1);
+  f32_8x G6 = Grad8x(HashFinalize(Hashes+3, perlinX->P0), perlinX->Fract0, perlinY->Fract1, perlinZ->Fract1);
+  f32_8x G7 = Grad8x(HashFinalize(Hashes+3, perlinX->P1), perlinX->Fract1, perlinY->Fract1, perlinZ->Fract1);
+
+  auto L0  = Lerp8x(perlinX->Fade, G0, G1);
+  auto L1  = Lerp8x(perlinX->Fade, G2, G3);
+  auto L2  = Lerp8x(perlinX->Fade, G4, G5);
+  auto L3  = Lerp8x(perlinX->Fade, G6, G7);
+
+  auto L4  = Lerp8x(perlinY->Fade, L0, L1);
+  auto L5  = Lerp8x(perlinY->Fade, L2, L3);
+
+  auto Res = Lerp8x(perlinZ->Fade, L4, L5) * F32_8X(Amplitude);
+
+#if 1
+  f32_8x Current = {{ _mm256_load_ps(Dest) }};
+  f32_8x Total = Res + Current;
+#else
+  f32_8x Total = Res ;
+#endif
+  _mm256_store_ps(Dest, Total.Sse);
+}
+
+struct perlin_inputs
+{
+  perlin_params *xParams;
+  perlin_params *yParams;
+  perlin_params *zParams;
+  u32 *_xCoords;
+  f32_8x *Hashes;
+};
+
+#if 0
+link_internal perlin_inputs
+AllocatePerlinParams(v3i NoiseDim, memory_arena *Arena)
+{
+  perlin_params *xParams = AllocateAligned(perlin_params, Arena,       NoiseDim.x*2, 32);
+  perlin_params *yParams = AllocateAligned(perlin_params, Arena,       NoiseDim.y*2, 32);
+  perlin_params *zParams = AllocateAligned(perlin_params, Arena,       NoiseDim.z*2, 32);
+         f32_8x *Hashes  = AllocateAligned(       f32_8x, Arena, Volume(NoiseDim+1), 32);
+  u32 *_xCoords = AllocateAligned(u32, Arena, NoiseDim.x, 32);
+
+  perlin_inputs Result = {xParams, yParams, zParams, _xCoords, Hashes};
+  return Result;
+}
+#endif
+
+link_internal void
+PerlinNoise(   f32 *NoiseValues,
+                v3  Period,
+               f32  Amplitude,
+               v3i  NoiseDim,
+               v3i  NoiseBasis,
+               s32  OctaveCount,
+               perlin_inputs *Inputs)
+{
+  // NOTE(Jesse): Must be true to use _mm256_store_ps
+  /* Assert(u64(NoiseValues) % 32 == 0); */
+
+  // NOTE(Jesse): We're doing 8-wide, so we need this to be true.
+  /* Assert(NoiseDim.x % 8 == 0); */
+
+  auto PrimeX = U32_8X(501125321);
+  auto PrimeY = 1136930381u;
+  auto PrimeZ = 1720413743u;
+
+  v3i WorldBasis = NoiseBasis;
+  {
+    u32_8x xChunkResolution = U32_8X(1);
+       u32 yChunkResolution = u32(1);
+       u32 zChunkResolution = u32(1);
+
+    perlin_params *xParams  = Inputs->xParams;
+    perlin_params *yParams  = Inputs->yParams;
+    perlin_params *zParams  = Inputs->zParams;
+             auto  _xCoords = Inputs->_xCoords;
+           /* f32_8x *Hashes   = Inputs->Hashes; */
+
+    u32 zPeriods = u32(Period.z);
+    u32 yPeriods = u32(Period.y);
+    avx_divisor xPeriods = AvxDivisor(u32(Period.x));
+
+    {
+      for ( s32 zNoise = 0; zNoise < NoiseDim.z; ++ zNoise)
+      {
+        s32 i = zNoise;
+        zParams[i] = ComputePerlinParameters_scalar(u32(WorldBasis.z), u32(zNoise), zChunkResolution, zPeriods, PrimeZ);
+      }
+
+      for ( s32 yNoise = 0; yNoise < NoiseDim.y; ++ yNoise)
+      {
+        s32 i = yNoise;
+        yParams[i] = ComputePerlinParameters_scalar(u32(WorldBasis.y), u32(yNoise), yChunkResolution, yPeriods, PrimeY);
+      }
+
+      for ( s32 xNoise = 0; xNoise < NoiseDim.x; ++ xNoise )
+      {
+        _xCoords[xNoise] = u32(xNoise-1);
+      }
+
+      for ( s32 xNoise = 0; xNoise < NoiseDim.x; xNoise += 8 )
+      {
+        auto _x = U32_8X(_xCoords+xNoise);
+        s32 i = xNoise;
+        xParams[i] = ComputePerlinParameters_vector(U32_8X(WorldBasis.x), _x, xChunkResolution, xPeriods, PrimeX);
+      }
+    }
+
+    {
+      s32 NoiseIndex = 0;
+      for ( s32 zNoise = 0; zNoise < NoiseDim.z; ++ zNoise)
+      {
+        auto zParam = zParams+zNoise;
+        for ( s32 yNoise = 0; yNoise < NoiseDim.y; ++ yNoise)
+        {
+          auto yParam = yParams+yNoise;
+
+          u32_8x Hashes[4] = {
+            HashOpen(yParam->P0, zParam->P0),
+            HashOpen(yParam->P1, zParam->P0),
+            HashOpen(yParam->P0, zParam->P1),
+            HashOpen(yParam->P1, zParam->P1),
+          };
+
+          for ( s32 xNoise = 0; xNoise < NoiseDim.x; xNoise += 8 )
+          {
+            auto xParam = xParams+xNoise;
+            PerlinNoise_8x_avx2(Hashes, xParam, yParam, zParam, NoiseValues+NoiseIndex, Amplitude);
+
+            NoiseIndex += 8;
+          }
+        }
+      }
+    }
+  }
+
+}
