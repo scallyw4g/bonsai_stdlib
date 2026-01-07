@@ -482,7 +482,7 @@ Truncate(v3 *Input)
   *Input = V3(V3i(*Input));
 }
 
-v3
+link_internal v3
 Truncate(v3 Input)
 {
   v3 Result = V3(V3i(Input));
@@ -596,14 +596,14 @@ V2(r32 F)
   return Result;
 }
 
-v2
+inline v2
 V2(f32 x,f32 y)
 {
   v2 Result = {{x,y}};
   return Result;
 }
 
-v2i
+inline v2i
 V2i(v2 V)
 {
   v2i Result;
@@ -612,21 +612,21 @@ V2i(v2 V)
   return Result;
 }
 
-v2i
+inline v2i
 V2i(s32 P)
 {
   v2i Result = {{P,P}};
   return Result;
 }
 
-v2i
+inline v2i
 V2i(s32 x, s32 y)
 {
   v2i Result = {{x,y}};
   return Result;
 }
 
-v2i
+inline v2i
 V2i(u32 x, u32 y)
 {
   v2i Result = V2i((s32)x, (s32)y);
@@ -709,13 +709,13 @@ operator*(v3 A, v3 B)
 }
 #endif
 
-v3 operator+(v3 A, v2 B)
+inline v3 operator+(v3 A, v2 B)
 {
   v3 Result = {{ A.x+B.x, A.y+B.y, A.z }};
   return Result;
 }
 
-v3 &
+inline v3 &
 operator+=(v3 &A, v2 B)
 {
   A = A + B;
@@ -723,7 +723,7 @@ operator+=(v3 &A, v2 B)
 }
 
 
-v4
+inline v4
 operator*(v4 A, s32 B)
 {
   v4 Result = {};
@@ -984,7 +984,7 @@ SafeDivideValue(v3 Dividend, v3 Divisor, v3 Value)
   return Result;
 }
 
-b32
+inline b32
 PointsAreWithinDistance(v3 P1, v3 P2, f32 Thresh)
 {
   v3 P1toP2 = P2-P1;

@@ -29,21 +29,21 @@ link_inline f32 Cos(f32 x);
 poof(vector_interpolation_functions(f32))
 #include <generated/gen_lerp_f32.h>
 
-inline u64
+link_inline u64
 Abs(s64 Int)
 {
   u64 Result = (u64)(Int < 0 ? -Int : Int);
   return Result;
 }
 
-inline u32
+link_inline u32
 Abs(s32 Int)
 {
   u32 Result = (u32)(Int < 0 ? -Int : Int);
   return Result;
 }
 
-inline r64
+link_inline r64
 Abs(r64 F)
 {
   r64 Result = F;
@@ -51,7 +51,7 @@ Abs(r64 F)
   return Result;
 }
 
-inline r32
+link_inline r32
 Abs(r32 F)
 {
   r32 Result = F;
@@ -59,7 +59,7 @@ Abs(r32 F)
   return Result;
 }
 
-inline r64
+link_inline r64
 SafeDivide0(u64 Dividend, u64 Divisor)
 {
   r64 Result = 0.0;
@@ -68,7 +68,7 @@ SafeDivide0(u64 Dividend, u64 Divisor)
   return Result;
 }
 
-inline r64
+link_inline r64
 SafeDivide0(r64 Dividend, r64 Divisor)
 {
   r64 Result = 0.0;
@@ -77,7 +77,7 @@ SafeDivide0(r64 Dividend, r64 Divisor)
   return Result;
 }
 
-inline r32
+link_inline r32
 SafeDivide0(r32 Dividend, r32 Divisor)
 {
   r32 Result = 0.0f;
@@ -88,7 +88,7 @@ SafeDivide0(r32 Dividend, r32 Divisor)
   return Result;
 }
 
-inline r32
+link_inline r32
 SafeDivideInf(r32 Dividend, r32 Divisor)
 {
   r32 Result = INFINITY;
@@ -99,7 +99,7 @@ SafeDivideInf(r32 Dividend, r32 Divisor)
   return Result;
 }
 
-inline r32
+link_inline r32
 SafeDivideValue(r32 Dividend, r32 Divisor, r32 Value)
 {
   r32 Result = Value;
@@ -145,28 +145,28 @@ SafeDecrement(umm *N)
   return Result;
 }
 
-inline u64
+link_inline u64
 SaturatingAdd(u64 N)
 {
   if (N < u64_MAX) { N = N+1; }
   return N;
 }
 
-inline u64
+link_inline u64
 Desaturate(u64 Target, u64 SubValue)
 {
   if (Target >= SubValue ) { Target = Target-SubValue; } else { Target = 0; }
   return Target;
 }
 
-inline u64
+link_inline u64
 SaturatingSub(u64 N)
 {
   if (N) { N = N-1; }
   return N;
 }
 
-inline umm
+link_inline umm
 RoundUp(umm N, umm Thresh)
 {
   umm Result = N;
@@ -177,13 +177,14 @@ RoundUp(umm N, umm Thresh)
   return Result;
 }
 
-f32 Fract(f32 v)
+link_internal f32
+Fract(f32 v)
 {
   f32 Result = v - Truncate(v);
   return Result;
 }
 
-inline r32
+link_inline r32
 Round(r32 N)
 {
   r32 Result;
@@ -200,7 +201,7 @@ Round(r32 N)
   return Result;
 }
 
-inline r32
+link_inline r32
 ModToThresh(r32 N, s32 Thresh)
 {
   s32 Ni = s32(N);
@@ -208,7 +209,7 @@ ModToThresh(r32 N, s32 Thresh)
   return Result;
 }
 
-inline r32
+link_inline r32
 Pow(r32 N, int Exp)
 {
   r32 Result = N;
@@ -261,7 +262,7 @@ Cos(f32 x)
 }
 
 // TODO(Jesse): Is this accurate enough?  Probably..
-inline r32
+link_inline r32
 Sin(r32 Theta)
 {
   r32 Result = Cos(Theta-(PI32/2.f));
@@ -281,91 +282,91 @@ Tan(f32 x)
 }
 
 
-inline r64
+link_inline r64
 Min(r64 A, r64 B)
 {
   r64 Result = A < B ? A : B;
   return Result;
 }
 
-inline r32
+link_inline r32
 Min(r32 A, r32 B)
 {
   r32 Result = A < B ? A : B;
   return Result;
 }
 
-inline u64
+link_inline u64
 Min(u64 A, u64 B)
 {
   u64 Result = A < B ? A : B;
   return Result;
 }
 
-inline u32
+link_inline u32
 Min(u32 A, u32 B)
 {
   u32 Result = A < B ? A : B;
   return Result;
 }
 
-inline s32
+link_inline s32
 Min(s32 A, s32 B)
 {
   s32 Result = A < B ? A : B;
   return Result;
 }
 
-inline r64
+link_inline r64
 Max(r64 A, r64 B)
 {
   r64 Result = A > B ? A : B;
   return Result;
 }
 
-inline r32
+link_inline r32
 Max(r32 A, r32 B)
 {
   r32 Result = A > B ? A : B;
   return Result;
 }
 
-inline u32
+link_inline u32
 Max(u32 A, u32 B)
 {
   u32 Result = A > B ? A : B;
   return Result;
 }
 
-inline u64
+link_inline u64
 Max(u64 A, u64 B)
 {
   u64 Result = A > B ? A : B;
   return Result;
 }
 
-inline s64
+link_inline s64
 Max(s64 A, s64 B)
 {
   s64 Result = A > B ? A : B;
   return Result;
 }
 
-inline s32
+link_inline s32
 Max(s32 A, s32 B)
 {
   s32 Result = A > B ? A : B;
   return Result;
 }
 
-int
+link_inline int
 Pow2(int p)
 {
   int Result = 1 << p;
   return Result;
 }
 
-inline s32
+link_inline s32
 ClampPositive( s32 N )
 {
   N = N > 0 ? N : 0;
@@ -373,7 +374,7 @@ ClampPositive( s32 N )
 }
 
 
-inline s32
+link_inline s32
 ClampNegative( s32 N )
 {
   N = N < 0 ? N : 0;
@@ -382,7 +383,7 @@ ClampNegative( s32 N )
 
 
 
-inline float
+link_inline float
 ClampMinus1toInfinity( float f )
 {
   float Result = f;
@@ -395,21 +396,21 @@ ClampMinus1toInfinity( float f )
   return Result;
 }
 
-inline r32
+link_inline r32
 ClampMin(r32 Value, r32 Min)
 {
   if (Value < Min) { Value = Min; }
   return Value;
 }
 
-inline r32
+link_inline r32
 ClampMax(r32 Value, r32 Max)
 {
   if (Value > Max) { Value = Max; }
   return Value;
 }
 
-inline r32
+link_inline r32
 ClampBetween(r32 Min, r32 Value, r32 Max)
 {
   if (Value > Max) { Value = Max; }
@@ -422,7 +423,7 @@ poof(
   {
     scalar_types.map(scalar)
     {
-      inline scalar.name
+      link_inline scalar.name
       Clamp( scalar.name Min, scalar.name Value, scalar.name Max )
       {
         if (Value > Max) { Value = Max; }
@@ -436,21 +437,21 @@ poof(
 poof(scalar_math_fuctions({r32 r64 u32 u64 s32 s64}))
 #include <generated/scalar_math_fuctions_451039071.h>
 
-inline r32
+link_inline r32
 ClampBilateral(r32 F)
 {
   r32 Result = ClampBetween(-1.0f, F, 1.0f);
   return Result;
 }
 
-inline r32
+link_inline r32
 Clamp01(r32 Value)
 {
   Value = ClampBetween(0.f, Value, 1.f);
   return Value;
 }
 
-s32
+link_inline s32
 clamp0(s32 i)
 {
   if (i < 0) i = 0;
@@ -465,7 +466,7 @@ clamp0(s32 i)
 /*   return Result; */
 /* } */
 
-u32
+link_internal u32
 Floorfu(r32 f)
 {
   if (f < 0) { f -= 1.f; }
@@ -478,7 +479,7 @@ Floorfu(r32 f)
 //
 // @braindead_truncate
 //
-r32
+link_internal r32
 Floorf(r32 f)
 {
 #if BONSAI_FAST_MATH__FLOORF
@@ -500,7 +501,7 @@ Floorf(r32 f)
 }
 
 // @braindead_truncate
-r32
+link_internal r32
 Ceilf(r32 f)
 {
 #if BONSAI_FAST_MATH__CEILF
@@ -523,49 +524,49 @@ Ceilf(r32 f)
 #endif
 }
 
-s32
+link_internal s32
 Ceil(r32 F)
 {
   s32 Result = (s32)Ceilf(F);
   return Result;
 }
 
-inline u32
+link_inline u32
 Cube( u32 f )
 {
   u32 Result = f*f*f;
   return Result;
 }
 
-inline s32
+link_inline s32
 Cube( s32 f )
 {
   s32 Result = f*f*f;
   return Result;
 }
 
-inline r32
+link_inline r32
 Cube( r32 f )
 {
   r32 Result = f*f*f;
   return Result;
 }
 
-inline u32
+link_inline u32
 Square( u32 f )
 {
   u32 Result = f*f;
   return Result;
 }
 
-inline s32
+link_inline s32
 Square( s32 f )
 {
   s32 Result = f*f;
   return Result;
 }
 
-inline r32
+link_inline r32
 Square( r32 f )
 {
   r32 Result = f*f;
@@ -599,7 +600,7 @@ SquareRoot(r32 F)
   return Result;
 }
 
-inline r32
+link_inline r32
 ArcCos(r32 x)
 {
   Assert(x >= -1.f && x <= 1.f);
@@ -635,7 +636,7 @@ ArcCos(r32 x)
 #endif
 }
 
-r32
+link_internal r32
 Powf(r32 Base, r32 Power)
 {
 #if BONSAI_FAST_MATH__POWF
@@ -650,7 +651,7 @@ Powf(r32 Base, r32 Power)
 
 enum sign { Negative = -1, Zero = 0, Positive = 1 };
 
-inline sign
+link_inline sign
 Bilateral( s32 f )
 {
   sign Result = Positive;
@@ -658,7 +659,7 @@ Bilateral( s32 f )
   return Result;
 }
 
-inline sign
+link_inline sign
 Bilateral( r32 f )
 {
   sign Result = Positive;
@@ -666,7 +667,7 @@ Bilateral( r32 f )
   return Result;
 }
 
-inline sign
+link_inline sign
 GetSign( s32 f )
 {
   sign Result = Zero;
@@ -683,7 +684,7 @@ GetSign( s32 f )
   return Result;
 }
 
-inline sign
+link_inline sign
 GetSign( r32 f )
 {
   sign Result = Zero;

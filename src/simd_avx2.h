@@ -49,7 +49,7 @@ F32_8X(u32_8x A)
   return Result;
 }
 
-f32_8x
+link_inline f32_8x
 Cast_f32_8x(u32_8x A)
 {
   f32_8x Result = {{ _mm256_castsi256_ps(A.Sse) }};
@@ -134,7 +134,7 @@ Select(u32_8x Mask, u32_8x A, u32_8x B)
 //
 
 #ifndef POOF_PREPROCESSOR
-f32
+link_inline f32
 f32_8x::operator[](s32 Index)
 {
   f32 Result = this->E[Index];
@@ -248,7 +248,7 @@ operator>(f32_8x A, f32 B)
 //
 
 #ifndef POOF_PREPROCESSOR
-u32
+link_inline u32
 u32_8x::operator[](s32 Index)
 {
   u32 Result = this->E[Index];
