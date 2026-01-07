@@ -1,7 +1,7 @@
 #pragma once
 
 #include "primitives.h"
-#include "simd.h"
+#include "vector.h"
 #include "simd_avx2.h"
 
 struct perlin_params
@@ -12,6 +12,16 @@ struct perlin_params
   f32_8x Fract1;
   f32_8x Fade;
 };
+
+struct perlin_inputs
+{
+  perlin_params *xParams;
+  perlin_params *yParams;
+  perlin_params *zParams;
+  u32 *_xCoords;
+  f32_8x *Hashes;
+};
+
 
 poof(gen_constructor(perlin_params))
 #include <generated/gen_constructor_perlin_params.h>
@@ -208,4 +218,15 @@ Lerp8x(f32_8x t, f32_8x a, f32_8x b)
 
   return res;
 }
+
+
+void PerlinNoise(   f32 *NoiseValues,
+                     v3  Period,
+                    f32  Amplitude,
+                    v3i  NoiseDim,
+                    v3i  NoiseBasis,
+                    s32  OctaveCount,
+          perlin_inputs *Inputs);
+
+
 

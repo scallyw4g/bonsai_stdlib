@@ -36,6 +36,11 @@ BONSAI_INTERNAL='-D BONSAI_INTERNAL=1'
 # BONSAI_INTERNAL=''
 
 EXECUTABLES_TO_BUILD="
+  $SRC/examples/perlin.cpp
+"
+
+OBJECTS_TO_LINK_WITH="
+  $BIN/objects/perlin_avx2.o
 "
 
 OBJECTS_TO_BUILD="
@@ -50,7 +55,7 @@ function BuildObjects
   echo ""
   ColorizeTitle "Objects"
   for executable in $OBJECTS_TO_BUILD; do
-    SetOutputBinaryPathBasename "$executable" "$BIN"
+    SetOutputBinaryPathBasename "$executable" "$BIN/objects"
     echo -e "$Building $executable"
     $COMPILER                                        \
       $SANITIZER                                     \
@@ -90,6 +95,7 @@ function BuildExecutables
       -I "$ROOT"                                     \
       -I "$SRC"                                      \
       -I "$INCLUDE"                                  \
+      $OBJECTS_TO_LINK_WITH                          \
       -o "$output_basename""$PLATFORM_EXE_EXTENSION" \
       $executable &
 
@@ -106,8 +112,18 @@ function BuildWithClang
   echo -e ""
   echo -e "$Delimeter"
 
-  [[ $BuildExecutables == 1     || $BUILD_EVERYTHING == 1 ]] && BuildExecutables
   [[ $BuildObjects     == 1     || $BUILD_EVERYTHING == 1 ]] && BuildObjects
+
+  WaitForTrackedPids
+  sync
+
+  echo -e ""
+  echo -e "$Delimeter"
+  echo -e ""
+  ColorizeTitle "Objects Complete"
+
+
+  [[ $BuildExecutables == 1     || $BUILD_EVERYTHING == 1 ]] && BuildExecutables
 
   echo -e ""
   echo -e "$Delimeter"
@@ -162,6 +178,11 @@ function BuildWithEMCC {
 if [ ! -d "$BIN" ]; then
   mkdir "$BIN"
 fi
+
+if [ ! -d "$BIN/objects" ]; then
+  mkdir "$BIN/objects"
+fi
+
 
 if [ ! -d "$BIN/wasm" ]; then
   mkdir "$BIN/wasm"

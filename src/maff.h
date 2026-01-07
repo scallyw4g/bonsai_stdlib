@@ -1,4 +1,5 @@
 #include "assert.h"
+#include "simd.h"
 #include "costable.h"
 #include "arccostable.h"
 

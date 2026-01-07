@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-./make.sh BuildObjects
+./make.sh BuildObjects BuildExecutables
 

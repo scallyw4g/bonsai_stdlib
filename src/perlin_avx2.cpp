@@ -1,5 +1,4 @@
 #include "perlin_avx2.h"
-#include "vector.h"
 
 #if 0
 u32_8x
@@ -454,15 +453,6 @@ PerlinNoise_8x_avx2(u32_8x *Hashes, perlin_params *perlinX, perlin_params *perli
   _mm256_store_ps(Dest, Total.Sse);
 }
 
-struct perlin_inputs
-{
-  perlin_params *xParams;
-  perlin_params *yParams;
-  perlin_params *zParams;
-  u32 *_xCoords;
-  f32_8x *Hashes;
-};
-
 #if 0
 link_internal perlin_inputs
 AllocatePerlinParams(v3i NoiseDim, memory_arena *Arena)
@@ -478,14 +468,13 @@ AllocatePerlinParams(v3i NoiseDim, memory_arena *Arena)
 }
 #endif
 
-link_internal void
-PerlinNoise(   f32 *NoiseValues,
-                v3  Period,
-               f32  Amplitude,
-               v3i  NoiseDim,
-               v3i  NoiseBasis,
-               s32  OctaveCount,
-               perlin_inputs *Inputs)
+void PerlinNoise(   f32 *NoiseValues,
+                     v3  Period,
+                    f32  Amplitude,
+                    v3i  NoiseDim,
+                    v3i  NoiseBasis,
+                    s32  OctaveCount,
+          perlin_inputs *Inputs)
 {
   // NOTE(Jesse): Must be true to use _mm256_store_ps
   /* Assert(u64(NoiseValues) % 32 == 0); */
