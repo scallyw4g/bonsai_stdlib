@@ -14,6 +14,19 @@ enum memory_protection_type
 
 
 inline umm
+SafeTruncateToUMM(s32 Size)
+{
+  return umm(Size);
+}
+
+inline umm
+SafeTruncateToUMM(u32 Size)
+{
+  return umm(Size);
+}
+
+
+inline umm
 SafeTruncateToUMM(s64 Size)
 {
   Assert(Size >= 0);
@@ -110,28 +123,28 @@ SafeTruncateS8(s32 Size)
 inline umm
 Kilobytes(umm Bytes)
 {
-  umm Result = SafeTruncateToUMM(Bytes*1024);
+  umm Result = SafeTruncateToUMM(Bytes*1024u);
   return Result;
 }
 
 inline umm
 Megabytes(umm Number)
 {
-  umm Result = SafeTruncateToUMM(Number*Kilobytes(1024));
+  umm Result = SafeTruncateToUMM(Number*Kilobytes(1024u));
   return Result;
 }
 
 inline umm
 Gigabytes(umm Number)
 {
-  umm Result = SafeTruncateToUMM(Number*Megabytes(1024));
+  umm Result = SafeTruncateToUMM(Number*Megabytes(1024u));
   return Result;
 }
 
 inline umm
 Terabytes(umm Number)
 {
-  umm Result = SafeTruncateToUMM(Number*Gigabytes(1024));
+  umm Result = SafeTruncateToUMM(Number*Gigabytes(1024u));
   return Result;
 }
 

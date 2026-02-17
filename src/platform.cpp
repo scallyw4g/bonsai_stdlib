@@ -9,6 +9,7 @@
 #include <bonsai_stdlib/src/platform/linux/linux_platform.cpp>
 #elif BONSAI_EMCC
 #include <bonsai_stdlib/src/platform/wasm_platform.cpp>
+#include <bonsai_stdlib/src/platform/linux/linux_file.cpp>
 #else
 #error "Unsupported Platform"
 #endif

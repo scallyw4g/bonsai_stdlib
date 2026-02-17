@@ -10,6 +10,9 @@
 // dlopen
 #include <dlfcn.h>
 
+// Need this for emcc for some reason..
+#include <errno.h>
+
 #include <semaphore.h>
 
 #include <sys/mman.h>   // mmap

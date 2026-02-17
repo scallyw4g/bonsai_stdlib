@@ -313,8 +313,7 @@ UiToggle(cs Text, cs Tooltip, ui_id Id, u32 Value)
 typedef ui_toggle* ui_toggle_ptr;
 
 // TODO(Jesse): Move this?
-link_internal umm
-Hash(umm *Value) { return *Value; }
+/* link_internal umm Hash(umm *Value) { return *Value; } */
 
 link_internal umm
 Hash(ui_toggle *Toggle)

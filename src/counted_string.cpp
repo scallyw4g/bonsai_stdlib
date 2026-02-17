@@ -778,7 +778,7 @@ MemorySize(r64 Number)
 }
 
 link_internal counted_string
-MemorySize(u64 Number)
+MemorySize(umm Number)
 {
   counted_string Result = MemorySize((r64)Number);
   return Result;

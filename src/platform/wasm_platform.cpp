@@ -1,3 +1,42 @@
+inline void*
+GetProcFromLib(shared_lib Lib, const char *Name)
+{
+  NotImplemented;
+  return 0;
+}
+
+inline u32
+GetCurrentThreadId()
+{
+  NotImplemented;
+  return 0;
+}
+
+link_internal void
+PlatformMakeRenderContextCurrent(os *Os)
+{
+  NotImplemented;
+}
+
+link_internal void
+PlatformReleaseRenderContext(os *Os)
+{
+  NotImplemented;
+}
+
+link_internal b32
+ProcessOsMessages(os *Os, platform *Plat)
+{
+  NotImplemented;
+  return False;
+}
+
+link_internal void
+PlatformInitializeStdout(native_file *StandardOutputFile, native_file *Log)
+{
+  NotImplemented;
+}
+
 inline void
 BonsaiSwapBuffers(os *Os)
 {
@@ -11,7 +50,7 @@ PlatformDebugStacktrace()
 }
 
 b32
-OpenAndInitializeWindow(os *Os, platform *Plat)
+OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 {
   Info("Creating Context");
 

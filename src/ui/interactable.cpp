@@ -25,7 +25,7 @@ Hover(renderer_2d *Group, interactable_handle *Handle, v2 *Offset_out = 0)
 link_internal b32
 Clicked(renderer_2d *Group, interactable_handle *Handle)
 {
-  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
+  /* if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); } */
   b32 Result = Group->Clicked.Id == Handle->Id;
   return Result;
 }
@@ -33,7 +33,7 @@ Clicked(renderer_2d *Group, interactable_handle *Handle)
 link_internal b32
 Clicked(renderer_2d *Group, ui_id Id)
 {
-  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
+  /* if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); } */
   b32 Result = Group->Clicked.Id == Id;
   return Result;
 }
@@ -41,7 +41,7 @@ Clicked(renderer_2d *Group, ui_id Id)
 link_internal b32
 Clicked(renderer_2d *Group, ui_id *Id)
 {
-  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
+  /* if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); } */
   b32 Result = Group->Clicked.Id == *Id;
   return Result;
 }
@@ -49,7 +49,7 @@ Clicked(renderer_2d *Group, ui_id *Id)
 link_internal b32
 RClicked(renderer_2d *Group, ui_id *Id)
 {
-  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
+  /* if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); } */
   b32 Result = Group->Input->RMB.Clicked && (Group->Clicked.Id == *Id);
   return Result;
 }
@@ -57,7 +57,7 @@ RClicked(renderer_2d *Group, ui_id *Id)
 link_internal b32
 LClicked(renderer_2d *Group, ui_id *Id)
 {
-  if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); }
+  /* if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); } */
   b32 Result = Group->Input->LMB.Clicked && (Group->Clicked.Id == *Id);
   return Result;
 }

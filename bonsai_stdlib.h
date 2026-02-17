@@ -21,17 +21,25 @@ struct debug_state;
 link_internal debug_state * GetDebugState();
 
 
+#if !BONSAI_EMCC
 #include <x86intrin.h>
 #include <immintrin.h>
 #include <smmintrin.h>
 /* #include <ymmintrin.h> */
-
 #include <bonsai_stdlib/src/simd_sse.h>
 
 #ifndef BONSAI_NO_AVX
 #include <bonsai_stdlib/src/simd_avx2.h>
 #include <bonsai_stdlib/src/avx2_v3.h>
 #endif
+
+#else
+#include <immintrin.h>
+#include <emmintrin.h>
+#include <xmmintrin.h>
+#include <wasm_simd128.h> 
+#endif
+
 
 #include <bonsai_stdlib/src/console_macros.h>
 #include <bonsai_stdlib/src/globals.h>
@@ -59,9 +67,11 @@ link_internal debug_state * GetDebugState();
 #include <bonsai_stdlib/src/shader.h>
 #include <bonsai_stdlib/src/random.h>
 #include <bonsai_stdlib/src/noise.h>
+
 #ifndef BONSAI_NO_AVX
 #include <bonsai_stdlib/src/perlin.h>
 #endif
+
 #include <bonsai_stdlib/src/simplex.h>
 #include <bonsai_stdlib/src/input.h>
 #include <bonsai_stdlib/src/mutex.h>

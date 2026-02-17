@@ -54,6 +54,15 @@ Abs(r32 F)
   return Result;
 }
 
+inline r32
+SafeDivide0(u32 Dividend, u32 Divisor)
+{
+  r32 Result = 0.0;
+  if (Divisor != 0)
+    Result = (r32)Dividend/(r32)Divisor;
+  return Result;
+}
+
 inline r64
 SafeDivide0(u64 Dividend, u64 Divisor)
 {
