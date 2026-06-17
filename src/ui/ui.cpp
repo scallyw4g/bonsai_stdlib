@@ -3545,6 +3545,8 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
 
   Init_Global_QuadVertexBuffer();
 
+  Renderer->Strings = InitHeap(Megabytes(4));
+
   Renderer->TextGroup     = Allocate(render_buffers_2d, PermMemory, 1);
   Renderer->CommandBuffer = Allocate(ui_render_command_buffer, PermMemory, 1);
 
@@ -3576,8 +3578,8 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
     TextGroup->DebugTextureArray = MakeTexture_RGBA(V2i(512), Cast(u32*, 0), CSz("ui textures"), UiTextureSlice_Count);
-    Ensure(LoadBitmap("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White));
-    Ensure(LoadBitmap("texture_atlas_0.bmp", GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font));
+    Ensure(LoadBitmapIntoTextureArray("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White));
+    Ensure(LoadBitmapIntoTextureArray("texture_atlas_0.bmp", GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font));
 
     CompileShaderPair(&TextGroup->UiShader, CSz(STDLIB_SHADER_PATH "ui.vertexshader"), CSz(STDLIB_SHADER_PATH "ui.fragmentshader") );
 

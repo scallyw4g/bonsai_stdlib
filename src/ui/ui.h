@@ -404,6 +404,8 @@ poof(@do_editor_ui)
   memory_arena UiToggleArena;
   memory_arena WindowTableArena;
 
+  heap_allocator Strings;
+
 #define RANDOM_COLOR_COUNT 128
   v3 DebugColors[RANDOM_COLOR_COUNT];
 

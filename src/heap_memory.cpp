@@ -208,5 +208,16 @@ HeapDeallocate(heap_allocator *Allocator, void* Allocation)
 link_internal b32
 IsHeapAllocated(heap_allocator *Heap, void *Allocation)
 {
-  return False;
+  u8 *Start = Cast(u8*, Heap->FirstBlock);
+  u8 *End   = Cast(u8*, Heap->FirstBlock)+Heap->Size;
+  b32 Result = Allocation > Start && Allocation < End;
+  return Result;
+}
+
+link_internal b32
+MaybeDeallocate(heap_allocator *Heap, void *Allocation)
+{
+  b32 Result = IsHeapAllocated(Heap, Allocation);
+  if (Result) HeapDeallocate(Heap, Allocation);
+  return Result;
 }

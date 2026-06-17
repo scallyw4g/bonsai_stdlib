@@ -181,7 +181,6 @@ MakeTexture_RGBA(    v2i  Dim,
   u32 ElementType = GL_UNSIGNED_BYTE;
   if (Slices == 1)
   {
-    Assert(Data == 0); // Unsupported ..??  Shouldn't this just work ..?
     GetGL()->TexImage2D(GL_TEXTURE_2D, 0, (s32)InternalFormat,
         Result.Dim.x, Result.Dim.y, 0, TextureFormat, ElementType, Data);
   }
@@ -350,8 +349,15 @@ LoadBitmap(const char* FilePath, memory_arena *Arena)
   return Result;
 }
 
-link_internal b32
+link_internal void
 LoadBitmap(const char* FilePath, memory_arena *Arena, texture* Dest, s32 Slice)
+{
+  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, Arena);
+  *Dest = MakeTexture_RGBA(TexBitmap.Dim, TexBitmap.Pixels.Start, CS(FilePath));
+}
+
+link_internal b32
+LoadBitmapIntoTextureArray(const char* FilePath, memory_arena *Arena, texture* Dest, s32 Slice)
 {
   bitmap TexBitmap = ReadBitmapFromDisk(FilePath, Arena);
   Assert(TexBitmap.Dim == Dest->Dim);
