@@ -108,7 +108,7 @@ BonsaiFrameBegin(bonsai_stdlib *Stdlib, renderer_2d *Ui)
   GL->BindFramebuffer(GL_FRAMEBUFFER, 0);
   GL->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  ResetInputForFrameStart(&Plat->Input, 0);
+  ResetInputForFrameStart(&Plat->Input);
 
   v2 LastMouseP = Plat->MouseP;
   ProcessOsMessages(&Stdlib->Os, &Stdlib->Plat);

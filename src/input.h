@@ -86,77 +86,6 @@ poof(@do_editor_ui)
 
   s32 MouseWheelDelta;
 };
-
-struct hotkeys
-poof(@do_editor_ui)
-{
-  b32 Debug_ToggleMenu;
-  b32 Debug_ToggleProfiling;
-
-  b32 Debug_TriangulateIncrement;
-  b32 Debug_TriangulateDecrement;
-
-  b32 Left;
-  b32 Right;
-  b32 Forward;
-  b32 Backward;
-};
-
-inline v3
-GetOrthographicInputs(hotkeys *Hotkeys)
-{
-  v3 Right = V3(1,0,0);
-  v3 Forward = V3(0,1,0);
-
-  v3 UpdateDir = V3(0,0,0);
-
-  if ( Hotkeys->Forward )
-    UpdateDir += Forward;
-
-  if ( Hotkeys->Backward )
-    UpdateDir -= Forward;
-
-  if ( Hotkeys->Right )
-    UpdateDir += Right;
-
-  if ( Hotkeys->Left )
-    UpdateDir -= Right;
-
-  UpdateDir = Normalize(UpdateDir);
-
-  return UpdateDir;
-}
-
-link_internal void
-BindHotkeysToInput(hotkeys *Hotkeys, input *Input)
-{
-
-  /* if (Input->Shift.Pressed) */
-  /* { */
-  /*   if (Input->Minus.Clicked) */
-  /*   { */
-  /*     Input->Minus = {}; */
-  /*     Input->Underscore = {True, True, False}; */
-  /*   } */
-  /* } */
-
-#if BONSAI_INTERNAL
-  if (Input->F1.Clicked) { Hotkeys->Debug_ToggleMenu         = True; }
-  if (Input->F2.Clicked) { Hotkeys->Debug_ToggleProfiling    = True; }
-
-  /* Hotkeys->Debug_TriangulateDecrement = Input->F5.Clicked; */
-  /* Hotkeys->Debug_TriangulateIncrement = Input->F6.Clicked; */
-#endif
-
-  Hotkeys->Left = Input->A.Pressed;
-  Hotkeys->Right = Input->D.Pressed;
-  Hotkeys->Forward = Input->W.Pressed;
-  Hotkeys->Backward = Input->S.Pressed;
-
-  /* Hotkeys->Player_Fire = Input->Space.Clicked; */
-  /* Hotkeys->Player_Proton = Input->Shift.Clicked; */
-}
-
 link_internal void
 ClearClickedFlags(input *Input)
 {
@@ -188,13 +117,6 @@ poof(
   return;
 }
 
-link_internal void
-ResetInputForFrameStart(input *Input, hotkeys *Hotkeys)
-{
-  if (Input) { Input->MouseWheelDelta = 0; ClearClickedFlags(Input); }
-  if (Hotkeys) { Clear(Hotkeys); }
-}
-
 // TODO(Jesse, globals_cleanup): Put this on stdlib ..?
 global_variable r64 Global_LastDebugTime = 0;
 r32 GetDt()
@@ -203,4 +125,10 @@ r32 GetDt()
   r64 Result = ThisTime - Global_LastDebugTime;
   Global_LastDebugTime = ThisTime;
   return r32(Result);
+}
+
+link_internal void
+ResetInputForFrameStart(input *Input)
+{
+  if (Input) { Input->MouseWheelDelta = 0; ClearClickedFlags(Input); }
 }
