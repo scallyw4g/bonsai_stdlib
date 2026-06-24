@@ -360,7 +360,7 @@ struct ui_render_pass
 
 /* poof(buffer(window_layout)) */
 /* #include <generated/buffer_window_layout.h> */
-struct input;
+struct hotkey_settings;
 struct ui_render_command_buffer;
 
 struct renderer_2d
@@ -375,9 +375,12 @@ poof(@do_editor_ui)
   texture SpriteTextureArray;
   texture IconTextureArray;
 
-     v2 *MouseP;
-     v2 *MouseDP;
-     v2 *ScreenDim;
+  v2 *MouseP;
+  v2 *MouseDP;
+  v2 *ScreenDim;
+
+  // UI uses input directly, instead of hotkeys.  Maybe I'll make a UI hotkeys
+  // struct in the future, but for now I'm leaving it as is.
   input *Input;
 
       ui_toggle_hashtable ToggleTable;

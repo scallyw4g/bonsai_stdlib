@@ -98,7 +98,7 @@ OpenAndInitializeWindow(u32 VSyncFrames = 0)
 #endif
 
 link_internal void
-BonsaiFrameBegin(bonsai_stdlib *Stdlib, renderer_2d *Ui)
+BonsaiFrameBegin(bonsai_stdlib *Stdlib, renderer_2d *Ui, b32 DebugToggleMenu, b32 DebugToggleProfile)
 {
   UNPACK_STDLIB(Stdlib);
 
@@ -116,7 +116,8 @@ BonsaiFrameBegin(bonsai_stdlib *Stdlib, renderer_2d *Ui)
 
   UiFrameBegin(Ui);
 
-  DEBUG_FRAME_BEGIN(Ui, Plat->dt, Plat->Input.F1.Clicked, Plat->Input.F2.Clicked);
+
+  DEBUG_FRAME_BEGIN(Ui, Plat->dt, DebugToggleMenu, DebugToggleProfile);
 }
 
 link_internal void
