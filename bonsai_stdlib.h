@@ -77,13 +77,15 @@ link_internal debug_state * GetDebugState();
 #include <bonsai_stdlib/src/mutex.h>
 #include <bonsai_stdlib/src/work_queue.h>
 
+#include <bonsai_stdlib/src/heap_allocator.h>
+
 #include <bonsai_stdlib/src/mesh.h>
 #include <bonsai_stdlib/src/gpu_mapped_buffer.h>
+#include <bonsai_stdlib/src/gpu_heap_allocator.h>
 #include <bonsai_stdlib/src/framebuffer.h>
 #include <bonsai_stdlib/src/render.h>
 
 #include <bonsai_stdlib/src/platform_struct.h>
-#include <bonsai_stdlib/src/heap_allocator.h>
 #include <bonsai_stdlib/src/stream.h>
 #include <bonsai_stdlib/src/counted_string.h>
 #include <bonsai_stdlib/src/sort.h>

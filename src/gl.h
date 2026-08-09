@@ -179,7 +179,13 @@
 
 #define GL_MAP_READ_BIT                   0x0001
 #define GL_MAP_WRITE_BIT                  0x0002
+#define GL_MAP_INVALIDATE_BUFFER_BIT      0x0008
+#define GL_MAP_FLUSH_EXPLICIT_BIT         0x0010
+#define GL_MAP_UNSYNCHRONIZED_BIT         0x0020
+#define GL_MAP_PERSISTENT_BIT             0x0040
+#define GL_MAP_COHERENT_BIT               0x0080
 #define GL_STATIC_DRAW                    0x88E4
+#define GL_DRAW_INDIRECT_BUFFER           0x8F3F
 
 #define GL_CULL_FACE                      0x0B44
 #define GL_BACK                           0x0405
@@ -350,6 +356,7 @@ typedef void            (*OpenglDepthFunc)                 (GLenum func);
 typedef void            (*OpenglBlendFunc)                 (GLenum sfactor, GLenum dfactor);
 typedef void            (*OpenglBlendFunci)                (GLuint buf, GLenum sfactor, GLenum dfactor);
 typedef void            (*OpenglDrawArrays)                (GLenum mode, GLint first, GLsizei count);
+typedef void            (*OpenglDrawArraysIndirect)        (GLenum mode, const void *indirect);
 typedef void            (*OpenglClear)                     (GLbitfield mask);
 typedef void            (*OpenglClearColor)                (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 typedef void            (*OpenglClearDepth)                (GLdouble depth);
@@ -441,6 +448,7 @@ typedef void            (*OpenglDeleteBuffers)             (GLsizei n, const GLu
 typedef void            (*OpenglGenBuffers)                (GLsizei n, GLuint *buffers);
 typedef void            (*OpenglGenVertexArrays)           (GLsizei n, GLuint *arrays);
 typedef void            (*OpenglBufferData)                (GLenum target, GLsizeiptr size, const void *data, GLenum usage);
+typedef void            (*OpenglBufferStorage)             (GLenum target, GLsizeiptr size, const void *data, GLbitfield flags);
 typedef void*           (*OpenglMapBuffer)                 (GLenum target, GLenum access);
 typedef void*           (*OpenglMapBufferRange)            (GLenum target, GLintptr offset, GLsizeiptr length,  GLenum access);
 typedef GLboolean       (*OpenglUnmapBuffer)               (GLenum target);
@@ -577,9 +585,11 @@ struct opengl
   OpenglGenBuffers GenBuffers;
   OpenglGenVertexArrays GenVertexArrays;
   OpenglBufferData BufferData;
+  OpenglBufferStorage BufferStorage;
   OpenglMapBuffer MapBuffer;
   OpenglMapBufferRange MapBufferRange;
   OpenglUnmapBuffer UnmapBuffer;
+  OpenglDrawArraysIndirect DrawArraysIndirect;
   OpenglDrawBuffers DrawBuffers;
   OpenglGetIntegerv GetIntegerv;
   OpenglFinish Finish;

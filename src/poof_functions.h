@@ -1111,6 +1111,13 @@ poof(
 );
 
 poof(
+  func hashtable_get_ptr_or_insert(Type, type_poof_symbol key_type, type_poof_symbol key_name)
+  {
+    maybe_(Type.name)_ptr
+  }
+)
+
+poof(
   func hashtable_to_buffer(type)
   {
     (type.name)_buffer

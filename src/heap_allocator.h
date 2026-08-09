@@ -21,8 +21,15 @@ struct heap_allocation_block
 {
   u64 Magic0;
   heap_allocation_type Type;
-  umm Size; // Note(Jesse): Includes sizeof(heap_allocation_block), except for the one on the end of the heap
+
+  // For embedded heap implementations this includes header size and is measured in bytes
+  // For external metadata heaps this is raw payload size, in elements.  GPU allocations are measured in elements
+  umm Size;
+
   umm PrevAllocationSize;
+  heap_allocation_block *Next;
+  heap_allocation_block *NextFree;
+  umm BaseOffset;
   u64 Magic1;
 };
 #pragma pack(pop)

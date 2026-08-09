@@ -123,6 +123,9 @@ InitializeOpenglFunctions()
       GetGL()->DrawArrays                = (OpenglDrawArrays)PlatformGetGlFunction("glDrawArrays");
       GetGL()->Initialized               &= GetGL()->DrawArrays != 0;
 
+      GetGL()->DrawArraysIndirect        = (OpenglDrawArraysIndirect)PlatformGetGlFunction("glDrawArraysIndirect");
+      GetGL()->Initialized               &= GetGL()->DrawArraysIndirect != 0;
+
       GetGL()->Clear                     = (OpenglClear)PlatformGetGlFunction("glClear");
       GetGL()->Initialized               &= GetGL()->Clear != 0;
 
@@ -395,6 +398,9 @@ InitializeOpenglFunctions()
 
       GetGL()->BufferData                = (OpenglBufferData)PlatformGetGlFunction("glBufferData");
       GetGL()->Initialized               &= GetGL()->BufferData != 0;
+
+      GetGL()->BufferStorage             = (OpenglBufferStorage)PlatformGetGlFunction("glBufferStorage");
+      GetGL()->Initialized               &= GetGL()->BufferStorage != 0;
 
       GetGL()->MapBuffer                 = (OpenglMapBuffer)PlatformGetGlFunction("glMapBuffer");
       GetGL()->Initialized               &= GetGL()->MapBuffer != 0;
