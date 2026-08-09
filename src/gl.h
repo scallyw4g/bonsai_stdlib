@@ -184,6 +184,7 @@
 #define GL_MAP_UNSYNCHRONIZED_BIT         0x0020
 #define GL_MAP_PERSISTENT_BIT             0x0040
 #define GL_MAP_COHERENT_BIT               0x0080
+#define GL_DYNAMIC_STORAGE_BIT            0x0100
 #define GL_STATIC_DRAW                    0x88E4
 #define GL_DRAW_INDIRECT_BUFFER           0x8F3F
 
@@ -448,6 +449,7 @@ typedef void            (*OpenglDeleteBuffers)             (GLsizei n, const GLu
 typedef void            (*OpenglGenBuffers)                (GLsizei n, GLuint *buffers);
 typedef void            (*OpenglGenVertexArrays)           (GLsizei n, GLuint *arrays);
 typedef void            (*OpenglBufferData)                (GLenum target, GLsizeiptr size, const void *data, GLenum usage);
+typedef void            (*OpenglBufferSubData)             (GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
 typedef void            (*OpenglBufferStorage)             (GLenum target, GLsizeiptr size, const void *data, GLbitfield flags);
 typedef void*           (*OpenglMapBuffer)                 (GLenum target, GLenum access);
 typedef void*           (*OpenglMapBufferRange)            (GLenum target, GLintptr offset, GLsizeiptr length,  GLenum access);
@@ -585,6 +587,7 @@ struct opengl
   OpenglGenBuffers GenBuffers;
   OpenglGenVertexArrays GenVertexArrays;
   OpenglBufferData BufferData;
+  OpenglBufferSubData BufferSubData;
   OpenglBufferStorage BufferStorage;
   OpenglMapBuffer MapBuffer;
   OpenglMapBufferRange MapBufferRange;

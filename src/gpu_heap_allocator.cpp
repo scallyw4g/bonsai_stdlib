@@ -101,31 +101,37 @@ InitGpuHeap(umm RequestedHeapSizeInBytes, memory_arena *BlockMemory, b32 Multith
 
   umm HeapSize = Cast(umm, ElementCount) * sizeof(v3_u8);
 
-  // Replace backing store with persistent buffer storage and map persistently
-  auto GL = GetGL();
-  // Vertex buffer
-  GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_VertexHandle]);
-  GL->BufferStorage(GL_ARRAY_BUFFER, Cast(GLsizeiptr, HeapSize), 0, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-  // Normal buffer
-  GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_NormalHandle]);
-  GL->BufferStorage(GL_ARRAY_BUFFER, Cast(GLsizeiptr, HeapSize), 0, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-  // Material buffer
-  u32 MaterialBufferSize = Cast(u32, ElementCount) * Cast(u32, sizeof(matl));
-  GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_MatHandle]);
-  GL->BufferStorage(GL_ARRAY_BUFFER, Cast(GLsizeiptr, MaterialBufferSize), 0, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+  /* s32 BufferStorageAccessBits = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT; */
+  /* s32 MapBufferAccessBits = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_UNSYNCHRONIZED_BIT; */
 
-  // Map entire buffers once
-  GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_VertexHandle]);
-  Result.Storage.Buffer.Verts = Cast(v3_u8*, GL->MapBufferRange(GL_ARRAY_BUFFER, 0, Cast(GLsizeiptr, HeapSize), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
-  GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_NormalHandle]);
-  Result.Storage.Buffer.Normals = Cast(v3_u8*, GL->MapBufferRange(GL_ARRAY_BUFFER, 0, Cast(GLsizeiptr, HeapSize), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
-  GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_MatHandle]);
-  Result.Storage.Buffer.Mat = Cast(matl*, GL->MapBufferRange(GL_ARRAY_BUFFER, 0, Cast(GLsizeiptr, MaterialBufferSize), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT));
-  GL->BindBuffer(GL_ARRAY_BUFFER, 0);
+  /* u32 BufferStorageAccessBits = GL_DYNAMIC_STORAGE_BIT; */
+  /* s32 MapBufferAccessBits = GL_MAP_WRITE_BIT; */
+
+  // Replace backing store with persistent buffer storage and map persistently
+  /* auto GL = GetGL(); */
+  // Vertex buffer
+  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_VertexHandle]); */
+  /* GL->BufferStorage(GL_ARRAY_BUFFER, Cast(GLsizeiptr, HeapSize), 0, BufferStorageAccessBits); */
+  /* // Normal buffer */
+  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_NormalHandle]); */
+  /* GL->BufferStorage(GL_ARRAY_BUFFER, Cast(GLsizeiptr, HeapSize), 0, BufferStorageAccessBits); */
+  /* // Material buffer */
+  /* u32 MaterialBufferSize = Cast(u32, ElementCount) * Cast(u32, sizeof(matl)); */
+  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_MatHandle]); */
+  /* GL->BufferStorage(GL_ARRAY_BUFFER, Cast(GLsizeiptr, MaterialBufferSize), 0, BufferStorageAccessBits); */
+
+  /* // Map entire buffers once */
+  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_VertexHandle]); */
+  /* Result.Storage.Buffer.Verts = Cast(v3_u8*, GL->MapBufferRange(GL_ARRAY_BUFFER, 0, Cast(GLsizeiptr, HeapSize), MapBufferAccessBits); */
+  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_NormalHandle]); */
+  /* Result.Storage.Buffer.Normals = Cast(v3_u8*, GL->MapBufferRange(GL_ARRAY_BUFFER, 0, Cast(GLsizeiptr, HeapSize), MapBufferAccessBits); */
+  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_MatHandle]); */
+  /* Result.Storage.Buffer.Mat = Cast(matl*, GL->MapBufferRange(GL_ARRAY_BUFFER, 0, Cast(GLsizeiptr, MaterialBufferSize), MapBufferAccessBits); */
+  /* GL->BindBuffer(GL_ARRAY_BUFFER, 0); */
 
   AssertNoGlErrors;
 
-  Result.Storage.Handles.Mapped = True;
+/*   Result.Storage.Handles.Mapped = True; */
 
   heap_allocation_block *InitialBlock = AllocateHeapAllocationBlock(&Result);
   InitialBlock->Type = AllocationType_Free;
@@ -180,7 +186,7 @@ GpuHeapUnmap(gpu_heap_allocator *Heap)
 link_internal gpu_heap_allocation
 GpuHeapAllocate(gpu_heap_allocator *Heap, umm ElementCount)
 {
-  Assert(Heap->Storage.Handles.Mapped);
+  /* Assert(Heap->Storage.Handles.Mapped); */
   gpu_heap_allocation Allocation = {};
 
   if (!Heap->Freelist)

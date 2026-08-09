@@ -399,6 +399,9 @@ InitializeOpenglFunctions()
       GetGL()->BufferData                = (OpenglBufferData)PlatformGetGlFunction("glBufferData");
       GetGL()->Initialized               &= GetGL()->BufferData != 0;
 
+      GetGL()->BufferSubData             = (OpenglBufferSubData)PlatformGetGlFunction("glBufferSubData");
+      GetGL()->Initialized               &= GetGL()->BufferSubData != 0;
+
       GetGL()->BufferStorage             = (OpenglBufferStorage)PlatformGetGlFunction("glBufferStorage");
       GetGL()->Initialized               &= GetGL()->BufferStorage != 0;
 
