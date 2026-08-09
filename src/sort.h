@@ -43,6 +43,7 @@ poof(
       link_internal void
       BubbleSort((sort_key_t.name) *Keys, u32 Count)
       {
+        TIMED_FUNCTION();
         for (u32 Ignored = 0;
             Ignored < Count;
             ++Ignored)
@@ -74,6 +75,7 @@ poof(
       link_internal void
       BubbleSort_descending((sort_key_t.name) *Keys, u32 Count)
       {
+        TIMED_FUNCTION();
         for (u32 Ignored = 0;
             Ignored < Count;
             ++Ignored)
@@ -105,12 +107,4 @@ poof(
   }
 )
 
-poof(bubble_sort({sort_key sort_key_f64 sort_key_f32 sort_key_string}))
-#include <generated/bubble_sort_686708022.h>
-
-link_internal void
-LexicograpicSort(sort_key_string *SortKeys, u32 SortKeyCount)
-{
-  BubbleSort(SortKeys, SortKeyCount);
-}
 
