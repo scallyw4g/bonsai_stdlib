@@ -220,7 +220,10 @@ poof(block_array_h(shader_ptr, {64}, {}))
 
 enum shader_language_setting
 {
-  ShaderLanguageSetting_330core, // default
+  ShaderLanguageSetting_460core, // default
+  ShaderLanguageSetting_330core, // legacy
   ShaderLanguageSetting_310es,   // web
+
+  ShaderLanguageSetting_default = ShaderLanguageSetting_460core poof(@string_table_skip),
 };
 

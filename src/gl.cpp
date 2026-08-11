@@ -126,6 +126,9 @@ InitializeOpenglFunctions()
       GetGL()->DrawArraysIndirect        = (OpenglDrawArraysIndirect)PlatformGetGlFunction("glDrawArraysIndirect");
       GetGL()->Initialized               &= GetGL()->DrawArraysIndirect != 0;
 
+      GetGL()->MultiDrawArraysIndirect   = (OpenglMultiDrawArraysIndirect)PlatformGetGlFunction("glMultiDrawArraysIndirect");
+      GetGL()->Initialized               &= GetGL()->MultiDrawArraysIndirect != 0;
+
       GetGL()->Clear                     = (OpenglClear)PlatformGetGlFunction("glClear");
       GetGL()->Initialized               &= GetGL()->Clear != 0;
 
@@ -380,6 +383,9 @@ InitializeOpenglFunctions()
 
       GetGL()->BindBuffer                = (OpenglBindBuffer)PlatformGetGlFunction("glBindBuffer");
       GetGL()->Initialized               &= GetGL()->BindBuffer != 0;
+
+      GetGL()->BindBufferBase            = (OpenglBindBufferBase)PlatformGetGlFunction("glBindBufferBase");
+      GetGL()->Initialized               &= GetGL()->BindBufferBase != 0;
 
       GetGL()->BindVertexArray           = (OpenglBindVertexArray)PlatformGetGlFunction("glBindVertexArray");
       GetGL()->Initialized               &= GetGL()->BindVertexArray != 0;

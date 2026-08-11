@@ -97,6 +97,11 @@ ValueFromSetting(shader_language_setting ShaderLanguage)
     {
       Result = CSz("#version 330 core\n\n");
     } break;
+
+    case ShaderLanguageSetting_460core:
+    {
+      Result = CSz("#version 460 core\n\n");
+    } break;
   }
 
   return Result;
@@ -168,7 +173,7 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
   auto Stdlib = GetStdlib();
   auto GL = GetGL();
 
-  if (Stdlib->ShaderHeaderCode.Start == 0) { ReloadShaderHeaderCode(Stdlib, ShaderLanguageSetting_330core); } // Default to 330 core if nobody did this already
+  if (Stdlib->ShaderHeaderCode.Start == 0) { ReloadShaderHeaderCode(Stdlib, ShaderLanguageSetting_default); }
 
   ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
   ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(FragShaderPath, GetTranArena());

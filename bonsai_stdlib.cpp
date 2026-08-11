@@ -50,6 +50,8 @@
 #include <bonsai_stdlib/src/2d_render_utils.cpp>
 #include <bonsai_stdlib/src/ui/gl.cpp>
 
+#include <bonsai_stdlib/src/heap_allocator.cpp>
+
 #include <bonsai_stdlib/src/gpu_mapped_buffer.cpp>
 #include <bonsai_stdlib/src/gpu_heap_allocator.cpp>
 #include <bonsai_stdlib/src/framebuffer.cpp>

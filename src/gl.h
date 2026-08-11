@@ -242,6 +242,7 @@
 #define GL_DYNAMIC_DRAW                   0x88E8
 #define GL_DYNAMIC_READ                   0x88E9
 #define GL_DYNAMIC_COPY                   0x88EA
+#define GL_SHADER_STORAGE_BUFFER          0x90D2
 
 
 typedef void GLvoid;
@@ -358,6 +359,7 @@ typedef void            (*OpenglBlendFunc)                 (GLenum sfactor, GLen
 typedef void            (*OpenglBlendFunci)                (GLuint buf, GLenum sfactor, GLenum dfactor);
 typedef void            (*OpenglDrawArrays)                (GLenum mode, GLint first, GLsizei count);
 typedef void            (*OpenglDrawArraysIndirect)        (GLenum mode, const void *indirect);
+typedef void            (*OpenglMultiDrawArraysIndirect)   (GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride);
 typedef void            (*OpenglClear)                     (GLbitfield mask);
 typedef void            (*OpenglClearColor)                (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 typedef void            (*OpenglClearDepth)                (GLdouble depth);
@@ -443,6 +445,7 @@ typedef void            (*OpenglGetShaderiv)               (GLuint shader, GLenu
 typedef void            (*OpenglGetProgramiv)              (GLuint program, GLenum pname, GLint *params);
 typedef void            (*OpenglAttachShader)              (GLuint program, GLuint shader);
 typedef void            (*OpenglBindBuffer)                (GLenum target, GLuint buffer);
+typedef void            (*OpenglBindBufferBase)           (GLenum target, GLuint index, GLuint buffer);
 typedef void            (*OpenglBindVertexArray)           (GLuint array);
 typedef void            (*OpenglDeleteVertexArrays)        (GLsizei n, const GLuint *Arrays);
 typedef void            (*OpenglDeleteBuffers)             (GLsizei n, const GLuint *buffers);
@@ -581,6 +584,7 @@ struct opengl
   OpenglGetProgramiv GetProgramiv;
   OpenglAttachShader AttachShader;
   OpenglBindBuffer BindBuffer;
+  OpenglBindBufferBase BindBufferBase;
   OpenglBindVertexArray BindVertexArray;
   OpenglDeleteVertexArrays DeleteVertexArrays;
   OpenglDeleteBuffers DeleteBuffers;
@@ -593,6 +597,7 @@ struct opengl
   OpenglMapBufferRange MapBufferRange;
   OpenglUnmapBuffer UnmapBuffer;
   OpenglDrawArraysIndirect DrawArraysIndirect;
+  OpenglMultiDrawArraysIndirect MultiDrawArraysIndirect;
   OpenglDrawBuffers DrawBuffers;
   OpenglGetIntegerv GetIntegerv;
   OpenglFinish Finish;

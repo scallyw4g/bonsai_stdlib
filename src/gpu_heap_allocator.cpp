@@ -1,65 +1,36 @@
 
-link_internal heap_allocation_block *
-AllocateHeapAllocationBlock(gpu_heap_allocator *Heap)
+link_internal gpu_heap_allocation *
+AllocateGpuHeapAllocation(gpu_heap_allocator *Heap)
 {
-  Assert(Heap->BlockMemory);
-  heap_allocation_block *Result = Cast(heap_allocation_block*, PushStruct(Heap->BlockMemory, sizeof(*Result), alignof(heap_allocation_block), False));
+  Assert(Heap->gpu_heap_allocation_Memory);
+
+  gpu_heap_allocation *Result = Heap->gpu_heap_allocation_Freelist;
+  if (Result)
+  {
+    Heap->gpu_heap_allocation_Freelist = Result->Next;
+  }
+  else
+  {
+    Result = Cast(gpu_heap_allocation*, PushStruct(Heap->gpu_heap_allocation_Memory, sizeof(*Result), alignof(gpu_heap_allocation), False));
+  }
+
   Assert(Result);
   *Result = {};
-  Result->Magic0 = HEAP_MAGIC_NUMBER;
-  Result->Magic1 = HEAP_MAGIC_NUMBER;
   return Result;
 }
 
 link_internal void
-LinkFreeBlock(gpu_heap_allocator *Heap, heap_allocation_block *Block)
+FreeGpuHeapAllocation(gpu_heap_allocator *Heap, gpu_heap_allocation *Block)
 {
-  Assert(Block->Type == AllocationType_Free);
-  Block->NextFree = Heap->Freelist;
-  Heap->Freelist = Block;
+  Block->Prev = 0;
+  Block->Next = Heap->gpu_heap_allocation_Freelist;
+  Heap->gpu_heap_allocation_Freelist = Block;
 }
 
-link_internal void
-UnlinkFreeBlock(gpu_heap_allocator *Heap, heap_allocation_block *Block)
-{
-  if (Heap->Freelist == Block)
-  {
-    Heap->Freelist = Block->NextFree;
-    Block->NextFree = 0;
-    return;
-  }
-
-  heap_allocation_block *At = Heap->Freelist;
-  while (At && At->NextFree != Block)
-  {
-    At = At->NextFree;
-  }
-
-  Assert(At);
-  At->NextFree = Block->NextFree;
-  Block->NextFree = 0;
-}
-
-link_internal heap_allocation_block *
-FindPreviousBlock(gpu_heap_allocator *Heap, heap_allocation_block *Current)
-{
-  heap_allocation_block *Result = 0;
-  heap_allocation_block *At = Heap->FirstBlock;
-  while (At && At->Next != Current)
-  {
-    At = At->Next;
-  }
-  if (At && At->Next == Current)
-  {
-    Result = At;
-  }
-  return Result;
-}
-
-link_internal heap_allocation_block *
+link_internal gpu_heap_allocation *
 FindBlockByOffset(gpu_heap_allocator *Heap, umm BaseOffset)
 {
-  heap_allocation_block *At = Heap->FirstBlock;
+  gpu_heap_allocation *At = Heap->FirstBlock;
   while (At)
   {
     if (At->BaseOffset == BaseOffset)
@@ -92,56 +63,24 @@ InitGpuHeap(umm RequestedHeapSizeInBytes, memory_arena *BlockMemory, b32 Multith
   gpu_heap_allocator Result = {};
   Assert(BlockMemory);
 
-  Result.BlockMemory = BlockMemory;
+  Result.gpu_heap_allocation_Memory = BlockMemory;
   Result.FirstBlock = 0;
-  Result.Freelist = 0;
+  Result.gpu_heap_allocation_Freelist = 0;
 
   u32 ElementCount = Cast(u32, RequestedHeapSizeInBytes / sizeof(v3_u8));
   AllocateGpuBuffer(&Result.Storage, DataType_v3_u8, ElementCount);
 
   umm HeapSize = Cast(umm, ElementCount) * sizeof(v3_u8);
 
-  /* s32 BufferStorageAccessBits = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT; */
-  /* s32 MapBufferAccessBits = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_UNSYNCHRONIZED_BIT; */
-
-  /* u32 BufferStorageAccessBits = GL_DYNAMIC_STORAGE_BIT; */
-  /* s32 MapBufferAccessBits = GL_MAP_WRITE_BIT; */
-
-  // Replace backing store with persistent buffer storage and map persistently
-  /* auto GL = GetGL(); */
-  // Vertex buffer
-  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_VertexHandle]); */
-  /* GL->BufferStorage(GL_ARRAY_BUFFER, Cast(GLsizeiptr, HeapSize), 0, BufferStorageAccessBits); */
-  /* // Normal buffer */
-  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_NormalHandle]); */
-  /* GL->BufferStorage(GL_ARRAY_BUFFER, Cast(GLsizeiptr, HeapSize), 0, BufferStorageAccessBits); */
-  /* // Material buffer */
-  /* u32 MaterialBufferSize = Cast(u32, ElementCount) * Cast(u32, sizeof(matl)); */
-  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_MatHandle]); */
-  /* GL->BufferStorage(GL_ARRAY_BUFFER, Cast(GLsizeiptr, MaterialBufferSize), 0, BufferStorageAccessBits); */
-
-  /* // Map entire buffers once */
-  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_VertexHandle]); */
-  /* Result.Storage.Buffer.Verts = Cast(v3_u8*, GL->MapBufferRange(GL_ARRAY_BUFFER, 0, Cast(GLsizeiptr, HeapSize), MapBufferAccessBits); */
-  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_NormalHandle]); */
-  /* Result.Storage.Buffer.Normals = Cast(v3_u8*, GL->MapBufferRange(GL_ARRAY_BUFFER, 0, Cast(GLsizeiptr, HeapSize), MapBufferAccessBits); */
-  /* GL->BindBuffer(GL_ARRAY_BUFFER, Result.Storage.Handles.Handles[mesh_MatHandle]); */
-  /* Result.Storage.Buffer.Mat = Cast(matl*, GL->MapBufferRange(GL_ARRAY_BUFFER, 0, Cast(GLsizeiptr, MaterialBufferSize), MapBufferAccessBits); */
-  /* GL->BindBuffer(GL_ARRAY_BUFFER, 0); */
-
-  AssertNoGlErrors;
-
-/*   Result.Storage.Handles.Mapped = True; */
-
-  heap_allocation_block *InitialBlock = AllocateHeapAllocationBlock(&Result);
+  gpu_heap_allocation *InitialBlock = AllocateGpuHeapAllocation(&Result);
   InitialBlock->Type = AllocationType_Free;
-  InitialBlock->Size = HeapSize;
+  InitialBlock->SizeInElements = HeapSize;
   InitialBlock->BaseOffset = 0;
+  InitialBlock->BaseOffsetInElements = 0;
+  InitialBlock->Prev = 0;
   InitialBlock->Next = 0;
-  InitialBlock->NextFree = 0;
 
   Result.FirstBlock = InitialBlock;
-  Result.Freelist = InitialBlock;
 
   return Result;
 }
@@ -158,8 +97,8 @@ DeinitGpuHeap(gpu_heap_allocator *Heap)
   DeallocateGpuBuffer(&Heap->Storage);
 
   Heap->FirstBlock = 0;
-  Heap->Freelist = 0;
-  Heap->BlockMemory = 0;
+  Heap->gpu_heap_allocation_Freelist = 0;
+  Heap->gpu_heap_allocation_Memory = 0;
 
   return Result;
 }
@@ -189,17 +128,11 @@ GpuHeapAllocate(gpu_heap_allocator *Heap, umm ElementCount)
   /* Assert(Heap->Storage.Handles.Mapped); */
   gpu_heap_allocation Allocation = {};
 
-  if (!Heap->Freelist)
-  {
-    SoftError("GpuHeap allocation failed: no free blocks.");
-    return Allocation;
-  }
-
   AcquireFutex(&Heap->Futex);
-  heap_allocation_block *At = Heap->Freelist;
-  while (At && At->Size < ElementCount)
+  gpu_heap_allocation *At = Heap->FirstBlock;
+  while (At && (At->Type != AllocationType_Free || At->SizeInElements < ElementCount))
   {
-    At = At->NextFree;
+    At = At->Next;
   }
 
   if (!At)
@@ -214,25 +147,32 @@ GpuHeapAllocate(gpu_heap_allocator *Heap, umm ElementCount)
   umm HeapElements = GpuHeapCapacityInElements(Heap);
   Assert(At->BaseOffset + ElementCount <= HeapElements);
 
-  if (At->Size > ElementCount)
+  if (At->SizeInElements > ElementCount)
   {
-    heap_allocation_block *Remainder = AllocateHeapAllocationBlock(Heap);
+    gpu_heap_allocation *Remainder = AllocateGpuHeapAllocation(Heap);
     Remainder->Type = AllocationType_Free;
-    Remainder->Size = At->Size - ElementCount;
+    Remainder->SizeInElements = At->SizeInElements - ElementCount;
     Remainder->BaseOffset = At->BaseOffset + ElementCount;
-    /* Remainder->Next = At->Next; */
-    Remainder->NextFree = 0;
+    Remainder->BaseOffsetInElements = Remainder->BaseOffset;
+    Remainder->Prev = At;
+    Remainder->Next = At->Next;
+    if (Remainder->Next)
+    {
+      Remainder->Next->Prev = Remainder;
+    }
 
-    At->Size = ElementCount;
+    At->SizeInElements = ElementCount;
     At->Next = Remainder;
-    LinkFreeBlock(Heap, Remainder);
   }
 
   At->Type = AllocationType_Reserved;
+  At->BaseOffsetInElements = At->BaseOffset;
 
   ReleaseFutex(&Heap->Futex);
 
-  Allocation.BaseOffsetInElements = At->BaseOffset;
+  Allocation = *At;
+  Allocation.Prev = 0;
+  Allocation.Next = 0;
   Allocation.Data.Type = DataType_v3_u8;
   Allocation.Data.Next = 0;
 
@@ -254,42 +194,42 @@ GpuHeapAllocate(gpu_heap_allocator *Heap, umm ElementCount)
 }
 
 link_internal void
-GpuHeapDeallocate(gpu_heap_allocator *Heap, void *Allocation)
+GpuHeapDeallocate(gpu_heap_allocator *Heap, gpu_heap_allocation *Allocation)
 {
-  Assert(Heap->Storage.Handles.Mapped);
-  AcquireFutex(&Heap->Futex);
   Assert(Allocation);
 
-  u8 *Base = Cast(u8*, Heap->Storage.Buffer.Verts);
-  Assert(Base);
-  Assert(Allocation >= Base);
+  AcquireFutex(&Heap->Futex);
 
-  umm BaseOffset = Cast(umm, Cast(u8*, Allocation) - Base);
-  heap_allocation_block *Block = FindBlockByOffset(Heap, BaseOffset);
+  gpu_heap_allocation *Block = FindBlockByOffset(Heap, Allocation->BaseOffsetInElements);
   Assert(Block);
   Assert(Block->Type == AllocationType_Reserved);
 
   Block->Type = AllocationType_Free;
-  Block->NextFree = 0;
 
-  heap_allocation_block *Next = Block->Next;
+  gpu_heap_allocation *Next = Block->Next;
   if (Next && Next->Type == AllocationType_Free)
   {
-    UnlinkFreeBlock(Heap, Next);
-    Block->Size += Next->Size;
+    Block->SizeInElements += Next->SizeInElements;
     Block->Next = Next->Next;
+    if (Block->Next)
+    {
+      Block->Next->Prev = Block;
+    }
+    FreeGpuHeapAllocation(Heap, Next);
   }
 
-  heap_allocation_block *Prev = FindPreviousBlock(Heap, Block);
+  gpu_heap_allocation *Prev = Block->Prev;
   if (Prev && Prev->Type == AllocationType_Free)
   {
-    UnlinkFreeBlock(Heap, Prev);
-    Prev->Size += Block->Size;
+    Prev->SizeInElements += Block->SizeInElements;
     Prev->Next = Block->Next;
-    Block = Prev;
+    if (Prev->Next)
+    {
+      Prev->Next->Prev = Prev;
+    }
+    FreeGpuHeapAllocation(Heap, Block);
   }
 
-  LinkFreeBlock(Heap, Block);
   ReleaseFutex(&Heap->Futex);
 }
 
@@ -309,6 +249,6 @@ IsGpuHeapAllocated(gpu_heap_allocator *Heap, void *Allocation)
   }
 
   umm BaseOffset = Cast(umm, Cast(u8*, Allocation) - Start);
-  heap_allocation_block *Block = FindBlockByOffset(Heap, BaseOffset);
+  gpu_heap_allocation *Block = FindBlockByOffset(Heap, BaseOffset);
   return Block && Block->Type == AllocationType_Reserved;
 }

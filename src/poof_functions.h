@@ -1839,7 +1839,12 @@ poof(
         {
           enum_t.map_values (EnumValue)
           {
-            case EnumValue.name: { Result = CSz("EnumValue.name.strip_all_prefix"); } break;
+            EnumValue.has_tag(string_table_skip)? 
+            {
+            }
+            {
+              case EnumValue.name: { Result = CSz("EnumValue.name.strip_all_prefix"); } break;
+            }
           }
 
           enum_t.has_tag(bitfield)?
@@ -1894,7 +1899,12 @@ poof(
       {
         enum_t.map_values (EnumValue)
         {
-          case EnumValue.name: { Result = CSz("EnumValue.name"); } break;
+          EnumValue.has_tag(string_table_skip)? 
+          {
+          }
+          {
+            case EnumValue.name: { Result = CSz("EnumValue.name"); } break;
+          }
         }
 
         enum_t.has_tag(bitfield)?
@@ -2763,7 +2773,12 @@ poof(
         {
           enum_t.map(m)
           {
-            case m.name:
+            m.has_tag(string_table_skip)? 
+            {
+            }
+            {
+              case m.name:
+            }
           }
           {
             Result = True;

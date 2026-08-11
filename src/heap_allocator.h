@@ -22,17 +22,21 @@ struct heap_allocation_block
   u64 Magic0;
   heap_allocation_type Type;
 
-  // For embedded heap implementations this includes header size and is measured in bytes
-  // For external metadata heaps this is raw payload size, in elements.  GPU allocations are measured in elements
+  // This includes header size and is measured in bytes
   umm Size;
 
   umm PrevAllocationSize;
   heap_allocation_block *Next;
-  heap_allocation_block *NextFree;
   umm BaseOffset;
   u64 Magic1;
 };
 #pragma pack(pop)
+
+poof(are_equal(heap_allocation_block))
+#include <generated/are_equal_xuSvDnE8.h>
+
+poof(block_array_h(heap_allocation_block, {256}, {}))
+#include <generated/block_array_h_HLVwiHSZ.h>
 
 struct heap_allocator
 {
