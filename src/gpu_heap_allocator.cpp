@@ -171,24 +171,6 @@ GpuHeapAllocate(gpu_heap_allocator *Heap, umm ElementCount)
   ReleaseFutex(&Heap->Futex);
 
   Allocation = *At;
-  Allocation.Prev = 0;
-  Allocation.Next = 0;
-  Allocation.Data.Type = DataType_v3_u8;
-  Allocation.Data.Next = 0;
-
-  u8 *BaseVerts   = Cast(u8*, Heap->Storage.Buffer.Verts);
-  u8 *BaseNormals = Cast(u8*, Heap->Storage.Buffer.Normals);
-  u8 *BaseMat     = Cast(u8*, Heap->Storage.Buffer.Mat);
-
-  Allocation.Data.Verts   = Cast(v3_u8*, BaseVerts + At->BaseOffset);
-  Allocation.Data.Normals = Cast(v3_u8*, BaseNormals + At->BaseOffset);
-  Allocation.Data.Mat     = Cast(matl*, BaseMat + At->BaseOffset);
-
-  Allocation.Data.End = Cast(u32, ElementCount);
-  Allocation.Data.At = 0;
-  Allocation.Data.Parent = 0;
-  Allocation.Data.BufferNeedsToGrow = 0;
-  Allocation.Data.Timestamp = 0;
 
   return Allocation;
 }
@@ -231,24 +213,17 @@ GpuHeapDeallocate(gpu_heap_allocator *Heap, gpu_heap_allocation *Allocation)
   }
 
   ReleaseFutex(&Heap->Futex);
+
+  *Allocation = {};
 }
 
 link_internal b32
-IsGpuHeapAllocated(gpu_heap_allocator *Heap, void *Allocation)
+IsGpuHeapAllocated(gpu_heap_allocator *Heap, gpu_heap_allocation *Allocation)
 {
-  if (!Heap->Storage.Handles.Mapped || !Heap->Storage.Buffer.Verts)
-  {
-    return False;
-  }
+  Assert(GpuHeapCapacityInElements(Heap) > 0);
+  Assert(Allocation->BaseOffsetInElements < Heap->Storage.Buffer.End);
+  Assert(Allocation->BaseOffsetInElements+Allocation->SizeInElements <= Heap->Storage.Buffer.End);
 
-  u8 *Start = Cast(u8*, Heap->Storage.Buffer.Verts);
-  u8 *End = Start + GpuHeapCapacityBytes(Heap);
-  if (Allocation < Start || Allocation >= End)
-  {
-    return False;
-  }
-
-  umm BaseOffset = Cast(umm, Cast(u8*, Allocation) - Start);
-  gpu_heap_allocation *Block = FindBlockByOffset(Heap, BaseOffset);
-  return Block && Block->Type == AllocationType_Reserved;
+  b32 Result = Allocation->SizeInElements > 0;
+  return Result;
 }

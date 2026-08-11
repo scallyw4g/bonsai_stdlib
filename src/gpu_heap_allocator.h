@@ -4,7 +4,7 @@ struct gpu_heap_allocation
 {
   heap_allocation_type Type;
 
-  untextured_3d_geometry_buffer Data;
+  /* untextured_3d_geometry_buffer Data; */
   umm BaseOffset;
   umm BaseOffsetInElements;
   umm SizeInElements;

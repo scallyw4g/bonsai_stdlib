@@ -172,7 +172,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
   return Result;
 }
 
-void
+link_internal void
 HeapDeallocate(heap_allocator *Allocator, void* Allocation)
 {
 #if 0
@@ -181,6 +181,7 @@ HeapDeallocate(heap_allocator *Allocator, void* Allocation)
   AcquireFutex(&Allocator->Futex);
 
   Assert(Allocation);
+  Assert(IsHeapAllocated(Allocator, Allocation));
 
   heap_allocation_block* AllocationBlock = (heap_allocation_block*)((u8*)Allocation - sizeof(heap_allocation_block));
 
