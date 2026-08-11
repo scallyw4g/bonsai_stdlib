@@ -184,20 +184,23 @@ HeapDeallocate(heap_allocator *Allocator, void* Allocation)
   Assert(IsHeapAllocated(Allocator, Allocation));
 
   heap_allocation_block* AllocationBlock = (heap_allocation_block*)((u8*)Allocation - sizeof(heap_allocation_block));
+  ZeroMemory(Allocation, AllocationBlock->Size-sizeof(heap_allocation_block));
 
   heap_allocation_block* Next = GetNextBlock(AllocationBlock);
+  heap_allocation_block* Prev = GetPrevBlock(AllocationBlock);
+
   if (Next && Next->Type == AllocationType_Free)
   {
     CondenseAllocations(AllocationBlock, Next);
   }
 
-  heap_allocation_block* Prev = GetPrevBlock(AllocationBlock);
   if (Prev && Prev->Type == AllocationType_Free)
   {
     CondenseAllocations(AllocationBlock, Prev);
   }
 
   AllocationBlock->Type = AllocationType_Free;
+
 
   ReleaseFutex(&Allocator->Futex);
 #endif
