@@ -113,16 +113,21 @@ CondenseAllocations(heap_allocator *Heap, heap_allocation_block* B1, heap_alloca
   heap_allocation_block* Second =  B1 < B2 ? B2 : B1;
 
   First->Size += Second->Size;
-  VerifyHeapAllocationBlock(Heap, First);
 
   heap_allocation_block* BlockAfterSecond = GetNextBlock(Heap, Second);
   if (BlockAfterSecond)
   {
     BlockAfterSecond->PrevAllocationSize = First->Size;
-    VerifyHeapAllocationBlock(Heap, BlockAfterSecond);
   }
 
   *Second = {};
+
+  // NOTE(Jesse): These verifications have to happen last, because the blocks
+  // are invalid states till all the operations are done.
+  //
+  // @invalid_heap_allocation_verification_note
+  VerifyHeapAllocationBlock(Heap, First);
+  if (BlockAfterSecond) VerifyHeapAllocationBlock(Heap, BlockAfterSecond);
 }
 
 link_internal u8*
@@ -184,8 +189,17 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
         NextAt->Magic0 = HEAP_MAGIC_NUMBER;
         NextAt->Magic1 = HEAP_MAGIC_NUMBER;
 
+        auto NextNext = GetNextBlock(Allocator, NextAt);
+        if (NextNext)
+        {
+          NextNext->PrevAllocationSize = NextAt->Size;
+        }
+
         Assert(GetNextBlock(Allocator, AtBlock) == NextAt);
+
+        // @invalid_heap_allocation_verification_note
         VerifyHeapAllocationBlock(Allocator, NextAt);
+        if (NextNext) VerifyHeapAllocationBlock(Allocator, NextNext);
       }
       else
       {
@@ -308,8 +322,17 @@ VerifyHeapAllocationBlock(heap_allocator *Heap, heap_allocation_block *Block)
   auto Prev = GetPrevBlock(Heap, Block);
 
   VerifyHeapAllocationBlock_(Heap, Block);
-  if (Next) VerifyHeapAllocationBlock_(Heap, Next);
-  if (Prev) VerifyHeapAllocationBlock_(Heap, Prev);
+  if (Next)
+  {
+    Assert(Next->PrevAllocationSize == Block->Size);
+    VerifyHeapAllocationBlock_(Heap, Next);
+  }
+
+  if (Prev)
+  {
+    Assert(Block->PrevAllocationSize == Prev->Size);
+    VerifyHeapAllocationBlock_(Heap, Prev);
+  }
 }
 
 
