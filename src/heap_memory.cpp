@@ -1,3 +1,12 @@
+link_internal void
+VerifyHeapIntegrity(heap_allocator *Heap);
+
+link_internal void
+VerifyHeapAllocationBlock(heap_allocator *Heap, heap_allocation_block *Block);
+
+link_internal void
+VerifyHeapAllocationBlock_(heap_allocator *Heap, heap_allocation_block *Block);
+
 heap_allocator
 InitHeap(umm AllocationSize, b32 Multithreaded = False)
 {
@@ -14,7 +23,7 @@ InitHeap(umm AllocationSize, b32 Multithreaded = False)
   Result.Size = AllocationSize;
 
   heap_allocation_block* EndBlock = (heap_allocation_block*)((u8*)Result.FirstBlock + (AllocationSize - sizeof(heap_allocation_block)));
-  EndBlock->Type = AllocationType_Reserved;
+  EndBlock->Type = AllocationType_End;
   EndBlock->Size = 0;
   EndBlock->PrevAllocationSize = AllocationSize - sizeof(heap_allocation_block);
   EndBlock->Magic0 = HEAP_MAGIC_NUMBER;
@@ -43,18 +52,19 @@ OffsetForHeapAllocation(heap_allocator *Allocator, u8 *Alloc)
 }
 
 heap_allocation_block*
-GetPrevBlock(heap_allocation_block* Current)
+GetPrevBlock(heap_allocator *Allocator, heap_allocation_block* Current)
 {
   heap_allocation_block* Result = 0;
 
   if (Current->PrevAllocationSize)
       Result = (heap_allocation_block*)((u8*)Current - Current->PrevAllocationSize);
 
+  if (Result) VerifyHeapAllocationBlock_(Allocator, Result);
   return Result;
 }
 
 heap_allocation_block*
-GetNextBlock(heap_allocation_block* Current)
+GetNextBlock(heap_allocator *Allocator, heap_allocation_block* Current)
 {
   Assert(Current->Magic0 == HEAP_MAGIC_NUMBER);
   Assert(Current->Magic1 == HEAP_MAGIC_NUMBER);
@@ -63,18 +73,36 @@ GetNextBlock(heap_allocation_block* Current)
 
   if (Current->Size)
   {
-    Result = (heap_allocation_block*)( umm(Current) + Current->Size );
-    Assert(Result->Type < AllocationType_Error);
+    u8 *EndOfHeap = Cast(u8*, Allocator->FirstBlock) + Allocator->Size;
+    u8 *Next      = Cast(u8*, Current) + Current->Size;
 
-    Assert(Result->Magic0 == HEAP_MAGIC_NUMBER);
-    Assert(Result->Magic1 == HEAP_MAGIC_NUMBER);
+    if (Next < EndOfHeap)
+    {
+      Result = Cast(heap_allocation_block*, Next);
+
+      if (Result->Type != AllocationType_End)
+      {
+        Assert(Result->Type < AllocationType_Error);
+        Assert(Result->Magic0 == HEAP_MAGIC_NUMBER);
+        Assert(Result->Magic1 == HEAP_MAGIC_NUMBER);
+      }
+      else
+      {
+        Result = 0;
+      }
+    }
+    else
+    {
+      Assert(Next == EndOfHeap);
+    }
   }
 
+  if (Result) VerifyHeapAllocationBlock_(Allocator, Result);
   return Result;
 }
 
 void
-CondenseAllocations(heap_allocation_block* B1, heap_allocation_block* B2)
+CondenseAllocations(heap_allocator *Heap, heap_allocation_block* B1, heap_allocation_block* B2)
 {
   Assert(B1->Type == AllocationType_Free || B2->Type == AllocationType_Free);
 
@@ -85,14 +113,16 @@ CondenseAllocations(heap_allocation_block* B1, heap_allocation_block* B2)
   heap_allocation_block* Second =  B1 < B2 ? B2 : B1;
 
   First->Size += Second->Size;
+  VerifyHeapAllocationBlock(Heap, First);
 
-  heap_allocation_block* BlockAfterSecond = GetNextBlock(Second);
+  heap_allocation_block* BlockAfterSecond = GetNextBlock(Heap, Second);
   if (BlockAfterSecond)
   {
     BlockAfterSecond->PrevAllocationSize = First->Size;
+    VerifyHeapAllocationBlock(Heap, BlockAfterSecond);
   }
 
-  return;
+  *Second = {};
 }
 
 link_internal u8*
@@ -119,6 +149,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
   u8* Result = (u8*)calloc(1, RequestedSize);
 #else
   AcquireFutex(&Allocator->Futex);
+  VerifyHeapIntegrity(Allocator);
 
   Assert(Allocator->FirstBlock && Allocator->Size);
 
@@ -131,34 +162,46 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
   heap_allocation_block *AtBlock = Allocator->FirstBlock;
   while ( umm(AtBlock) < EndOfHeap )
   {
-    // TODO(Jesse): Should this not be >= .. ?
-    if (AtBlock->Size > AllocationSize && AtBlock->Type == AllocationType_Free)
+    if (AtBlock->Size >= AllocationSize &&
+        AtBlock->Type == AllocationType_Free)
     {
       Result = (u8*)( umm(AtBlock) + sizeof(heap_allocation_block) );
 
-      umm InitialBlockSize = AtBlock->Size;
+      umm AtBlockSize = AtBlock->Size;
 
-      AtBlock->Size = AllocationSize;
       AtBlock->Type = AllocationType_Reserved;
       AtBlock->PrevAllocationSize = PrevAllocationSize;
 
-      heap_allocation_block *NextAt = (heap_allocation_block*)( umm(AtBlock) + AtBlock->Size );
-      NextAt->Size = InitialBlockSize - AllocationSize;
-      NextAt->Type = AllocationType_Free;
-      NextAt->PrevAllocationSize = AllocationSize;
-      NextAt->Magic0 = HEAP_MAGIC_NUMBER;
-      NextAt->Magic1 = HEAP_MAGIC_NUMBER;
+      // If AtBlock has enough room to split (at least 32 bytes + header), split
+      if (AtBlockSize > AllocationSize + sizeof(heap_allocation_block) + 32)
+      {
+        AtBlock->Size = AllocationSize;
 
-      Assert(GetNextBlock(AtBlock) == NextAt);
+        heap_allocation_block *NextAt = (heap_allocation_block*)( umm(AtBlock) + AtBlock->Size );
+        NextAt->Size = AtBlockSize - AllocationSize;
+        NextAt->Type = AllocationType_Free;
+        NextAt->PrevAllocationSize = AllocationSize;
+        NextAt->Magic0 = HEAP_MAGIC_NUMBER;
+        NextAt->Magic1 = HEAP_MAGIC_NUMBER;
+
+        Assert(GetNextBlock(Allocator, AtBlock) == NextAt);
+        VerifyHeapAllocationBlock(Allocator, NextAt);
+      }
+      else
+      {
+        // The AtBlock wasn't worth splitting, we just waste a bit of space at the end.
+      }
 
       break;
     }
     else
     {
       PrevAllocationSize = AtBlock->Size;
-      AtBlock = GetNextBlock(AtBlock);
+      AtBlock = GetNextBlock(Allocator, AtBlock);
 
-      if (AtBlock->Size == 0)
+      if ( AtBlock == 0 ||
+          (AtBlock && AtBlock->Size == 0)
+         )
       {
         SoftError("Heap allocation failed.");
         break;
@@ -166,6 +209,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
     }
   }
 
+  VerifyHeapIntegrity(Allocator);
   ReleaseFutex(&Allocator->Futex);
 
 #endif
@@ -179,29 +223,40 @@ HeapDeallocate(heap_allocator *Allocator, void* Allocation)
   free(Allocation);
 #else
   AcquireFutex(&Allocator->Futex);
+  VerifyHeapIntegrity(Allocator);
 
   Assert(Allocation);
   Assert(IsHeapAllocated(Allocator, Allocation));
 
   heap_allocation_block* AllocationBlock = (heap_allocation_block*)((u8*)Allocation - sizeof(heap_allocation_block));
-  ZeroMemory(Allocation, AllocationBlock->Size-sizeof(heap_allocation_block));
+  heap_allocation_block AllocationBlockData = *AllocationBlock;
 
-  heap_allocation_block* Next = GetNextBlock(AllocationBlock);
-  heap_allocation_block* Prev = GetPrevBlock(AllocationBlock);
+  VerifyHeapAllocationBlock(Allocator, AllocationBlock);
+
+  ZeroMemory(Allocation, AllocationBlock->Size-sizeof(heap_allocation_block));
+  AllocationBlock->Type = AllocationType_Free;
+
+  VerifyHeapIntegrity(Allocator);
+
+  heap_allocation_block* Next = GetNextBlock(Allocator, AllocationBlock);
+  heap_allocation_block* Prev = GetPrevBlock(Allocator, AllocationBlock);
+  heap_allocation_block NextBlockData = *Next;
+  heap_allocation_block PrevBlockData = *Prev;
 
   if (Next && Next->Type == AllocationType_Free)
   {
-    CondenseAllocations(AllocationBlock, Next);
+    CondenseAllocations(Allocator, AllocationBlock, Next);
+    VerifyHeapIntegrity(Allocator);
   }
 
   if (Prev && Prev->Type == AllocationType_Free)
   {
-    CondenseAllocations(AllocationBlock, Prev);
+    CondenseAllocations(Allocator, AllocationBlock, Prev);
+    VerifyHeapIntegrity(Allocator);
   }
 
-  AllocationBlock->Type = AllocationType_Free;
 
-
+  VerifyHeapIntegrity(Allocator);
   ReleaseFutex(&Allocator->Futex);
 #endif
 
@@ -224,4 +279,55 @@ MaybeDeallocate(heap_allocator *Heap, void *Allocation)
   b32 Result = IsHeapAllocated(Heap, Allocation);
   if (Result) HeapDeallocate(Heap, Allocation);
   return Result;
+}
+
+link_internal void
+VerifyHeapAllocationBlock_(heap_allocator *Heap, heap_allocation_block *Block)
+{
+  u8 *StartOfHeap = Cast(u8*, Heap->FirstBlock);
+  u8 *EndOfHeap = Cast(u8*, Heap->FirstBlock) + Heap->Size;
+
+  u8 *u8Block = Cast(u8*, Block);
+  Assert(u8Block >= StartOfHeap);
+  Assert(u8Block             < EndOfHeap);
+  Assert(u8Block+Block->Size < EndOfHeap);
+
+  Assert(Block->Magic0 == HEAP_MAGIC_NUMBER);
+  Assert(Block->Magic1 == HEAP_MAGIC_NUMBER);
+
+  Assert(Block->Type == AllocationType_Free || Block->Type == AllocationType_Reserved);
+
+  Assert(Block->Size);
+  Assert(Block->Size               < Heap->Size);
+  Assert(Block->PrevAllocationSize < Heap->Size);
+
+}
+
+link_internal void
+VerifyHeapAllocationBlock(heap_allocator *Heap, heap_allocation_block *Block)
+{
+  auto Next = GetNextBlock(Heap, Block);
+  auto Prev = GetPrevBlock(Heap, Block);
+
+  VerifyHeapAllocationBlock_(Heap, Block);
+  if (Next) VerifyHeapAllocationBlock_(Heap, Next);
+  if (Prev) VerifyHeapAllocationBlock_(Heap, Prev);
+}
+
+
+link_internal void
+VerifyHeapIntegrity(heap_allocator *Heap)
+{
+  u8 *StartOfHeap = Cast(u8*, Heap->FirstBlock);
+  u8 *EndOfHeap = Cast(u8*, Heap->FirstBlock) + Heap->Size;
+
+
+  u8 *At = Cast(u8*, Heap->FirstBlock);
+
+  while ( At && At < EndOfHeap )
+  {
+    VerifyHeapAllocationBlock(Heap, Cast(heap_allocation_block*, At));
+
+    At = Cast(u8*, GetNextBlock(Heap, Cast(heap_allocation_block*, At)));
+  }
 }
