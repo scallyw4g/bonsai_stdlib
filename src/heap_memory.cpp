@@ -160,7 +160,7 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
   umm PrevAllocationSize = 0;
 
   heap_allocation_block *AtBlock = Allocator->FirstBlock;
-  while ( umm(AtBlock) < EndOfHeap )
+  while ( AtBlock && umm(AtBlock) < EndOfHeap )
   {
     if (AtBlock->Size >= AllocationSize &&
         AtBlock->Type == AllocationType_Free)
@@ -198,14 +198,6 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
     {
       PrevAllocationSize = AtBlock->Size;
       AtBlock = GetNextBlock(Allocator, AtBlock);
-
-      if ( AtBlock == 0 ||
-          (AtBlock && AtBlock->Size == 0)
-         )
-      {
-        SoftError("Heap allocation failed.");
-        break;
-      }
     }
   }
 
@@ -213,6 +205,8 @@ HeapAllocate(heap_allocator *Allocator, umm RequestedSize)
   ReleaseFutex(&Allocator->Futex);
 
 #endif
+
+  if (Result == 0) { SoftError("Heap Allocation failed."); }
   return Result;
 }
 
@@ -240,8 +234,12 @@ HeapDeallocate(heap_allocator *Allocator, void* Allocation)
 
   heap_allocation_block* Next = GetNextBlock(Allocator, AllocationBlock);
   heap_allocation_block* Prev = GetPrevBlock(Allocator, AllocationBlock);
-  heap_allocation_block NextBlockData = *Next;
-  heap_allocation_block PrevBlockData = *Prev;
+
+  heap_allocation_block NextBlockData = {};
+  heap_allocation_block PrevBlockData = {};
+
+  if (Next) NextBlockData = *Next;
+  if (Prev) PrevBlockData = *Prev;
 
   if (Next && Next->Type == AllocationType_Free)
   {
