@@ -1,6 +1,7 @@
 #pragma once
 
 struct gpu_heap_allocation
+poof(@do_editor_ui)
 {
   heap_allocation_type Type;
 
