@@ -294,6 +294,8 @@ ReloadShaderUniform(shader *Shader, shader_uniform *Uniform)
 link_internal void
 HotReloadShaders(bonsai_stdlib *Stdlib)
 {
+  TIMED_FUNCTION();
+
   auto GL = GetGL();
 
   b32 HeaderIsNew = FileIsNew(STDLIB_SHADER_PATH "header.glsl", &Stdlib->ShaderHeaderFile.LastModified);

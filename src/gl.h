@@ -4,6 +4,7 @@
 /* #define AssertNoGlErrors */
 
 #define AssertNoGlErrors do { \
+    TIMED_NAMED_BLOCK(GL_GetError); \
     u32 glErrorNo = GetGL()->GetError();         \
     DumpGlErrorEnum(glErrorNo);            \
   } while (0)
@@ -647,3 +648,6 @@ HandleGlDebugMessage(GLenum Source,
                      GLsizei MessageLength,
                      const GLchar* Message,
                      const void* UserData);
+
+link_internal void
+SetVSync(os *Os, s32 VSyncFrames);
