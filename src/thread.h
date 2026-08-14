@@ -180,6 +180,7 @@ struct thread_local_state
   s32 Pad[5]; poof(@ui_skip)
 
   void *UserData;
+  u64  SystemThreadId;
 };
 // TODO(Jesse): Reenable this nopush
 /* CAssert( (sizeof(thread_local_state) % CACHE_LINE_SIZE) == 0 ); */

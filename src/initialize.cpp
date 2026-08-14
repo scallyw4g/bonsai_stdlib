@@ -48,6 +48,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
   // Must come after ThreadStates are valid
   SetThreadLocal_ThreadIndex(0);
+  PlatformPinCurrentThreadToCore(0);
 
   if (Flags & BonsaiInit_InitDebugSystem)
   {

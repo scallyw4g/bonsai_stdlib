@@ -109,23 +109,16 @@ PlatformLockMutex(mutex *Mutex)
   return;
 }
 
-link_internal u32
-PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 ThreadIndex )
+link_internal b32
+PlatformPinThreadToPhysicalCore(thread_handle ThreadHandle, u32 ThreadIndex, u32 CoreIndex)
 {
-  DWORD flags = 0;
-  unsigned long ThreadId;
-  thread_handle ThreadHandle = CreateThread(
-    0,
-    0,
-    (LPTHREAD_START_ROUTINE)ThreadMain,
-    Params,
-    flags,
-    &ThreadId
-  );
-  Assert(ThreadId);
+  /* Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX); */
+
+  b32 Result = False;
 
 #if 1
-  s32 PhysicalProcessorIndex = 0;
+  u32 PhysicalProcessorIndex = 0;
+  u32 EffClass = u32_MAX;
 
   SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *RelationshipBuffer = Allocate(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX, GetTranArena(), 64);
   unsigned long AllocatedSize = sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)*64;
@@ -137,9 +130,12 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
     {
       Info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)((u8*)RelationshipBuffer + Offset);
       Assert(Info->Processor.GroupCount == 1);
-      if (PhysicalProcessorIndex == ThreadIndex)
+      if (PhysicalProcessorIndex == CoreIndex)
       {
         SetThreadAffinityMask(ThreadHandle, Info->Processor.GroupMask->Mask);
+        EffClass = Info->Processor.EfficiencyClass;
+        Result = True;
+        break;
       }
 
       PhysicalProcessorIndex++;
@@ -157,6 +153,44 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
     SoftError("GetLogicalProcessorInformationEx Failed");
   }
 #endif
+
+  char Class = EffClass > 0 ? 'P' : 'E';
+  if (Result)
+  {
+    Info("Pinned Thread (%d) to %ccore (%d)", ThreadIndex, Class, CoreIndex);
+  }
+
+  return Result;
+}
+
+link_internal b32
+PlatformPinCurrentThreadToCore(u32 CoreIndex)
+{
+  Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX);
+  thread_handle SystemThread = GetCurrentThread();
+  b32 Result = PlatformPinThreadToPhysicalCore(SystemThread, u32(ThreadLocal_ThreadIndex), CoreIndex);
+  return Result;
+}
+
+link_internal u32
+PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 ThreadIndex )
+{
+  DWORD flags = 0;
+  unsigned long ThreadId;
+  thread_handle ThreadHandle = CreateThread(
+    0,
+    0,
+    (LPTHREAD_START_ROUTINE)ThreadMain,
+    Params,
+    flags,
+    &ThreadId
+  );
+  Assert(ThreadId);
+
+  if (PlatformPinThreadToPhysicalCore(ThreadHandle, u32(ThreadIndex), u32(ThreadIndex)) == False)
+  {
+    SoftError("Failed to pin Thread (%d) to a physical core", ThreadIndex);
+  }
 
   return ThreadId;
 }
@@ -631,6 +665,100 @@ BonsaiSwapBuffers(os *Os)
 {
   TIMED_FUNCTION();
   SwapBuffers(Os->Display);
+}
+
+struct next_vblank
+{
+  r64 NextVBlankInNanoseconds;
+  u64 NextVBlankInQPCUnits;
+};
+
+u32
+GetCurrentWindowRefreshRate(HWND hwnd) {
+    // 1. Get the monitor handle for the current window
+    HMONITOR hMon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+    if (!hMon) return 0;
+
+    // 2. Get the monitor info to find the device name
+    MONITORINFOEXA monInfo = {};
+    monInfo.cbSize = sizeof(MONITORINFOEXA);
+    if (!GetMonitorInfoA(hMon, &monInfo)) return 0;
+
+    // 3. Query the display settings for that specific monitor device
+    DEVMODEA devMode = {};
+    devMode.dmSize = sizeof(DEVMODEA);
+    if (EnumDisplaySettingsA(monInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode)) {
+        return devMode.dmDisplayFrequency; // Refresh rate in Hz
+    }
+
+    return 0;
+}
+
+link_internal next_vblank
+PlatformGetNextVBlank()
+{
+  next_vblank Result = {};
+
+#if 0
+  local_persist HMODULE DwmApi = LoadLibraryA("dwmapi.dll");
+  typedef HRESULT (WINAPI *dwm_get_composition_timing_info_proc)(HWND, DWM_TIMING_INFO*);
+
+  local_persist dwm_get_composition_timing_info_proc DwmGetCompositionTimingInfoProc = {};
+  if (DwmApi)
+  {
+    DwmGetCompositionTimingInfoProc = (dwm_get_composition_timing_info_proc)GetProcAddress(DwmApi, "DwmGetCompositionTimingInfo");
+  }
+
+  LARGE_INTEGER QpcFrequency = {};
+  LARGE_INTEGER QpcNow = {};
+  b32 HaveQpc = QueryPerformanceFrequency(&QpcFrequency) &&
+                QueryPerformanceCounter(&QpcNow) &&
+                (QpcFrequency.QuadPart > 0);
+
+  if (DwmGetCompositionTimingInfoProc && HaveQpc)
+  {
+    DWM_TIMING_INFO TimingInfo = {};
+    TimingInfo.cbSize = sizeof(TimingInfo);
+
+    if (SUCCEEDED(DwmGetCompositionTimingInfoProc(0, &TimingInfo)) &&
+        TimingInfo.qpcRefreshPeriod > 0)
+    {
+      u64 LastVBlankQpc = TimingInfo.qpcVBlank;
+      u64 RefreshPeriodQpc = TimingInfo.qpcRefreshPeriod;
+      u64 CurrentQpc = (u64)QpcNow.QuadPart;
+
+      u64 NextVBlankQpc = LastVBlankQpc + RefreshPeriodQpc;
+      if (NextVBlankQpc <= CurrentQpc)
+      {
+        u64 PeriodsSinceLast = ((CurrentQpc - LastVBlankQpc) / RefreshPeriodQpc) + 1;
+        NextVBlankQpc = LastVBlankQpc + (PeriodsSinceLast * RefreshPeriodQpc);
+      }
+
+      Result.NextVBlankInQPCUnits = NextVBlankQpc;
+      Result.NextVBlankInNanoseconds = ((r64)NextVBlankQpc * 1000000000.0) / (r64)QpcFrequency.QuadPart;
+
+      LARGE_INTEGER pc;
+      QueryPerformanceCounter(&pc);
+
+      Info("QPC Next VBlank (%llu)", TimingInfo.qpcVBlank-pc.QuadPart);
+
+      return {};
+    }
+  }
+
+  // Fallback when DWM timing is unavailable: estimate from a 60 Hz cadence.
+  r64 CurrentMs = GetHighPrecisionClock();
+  r64 RefreshPeriodMs = (1000.0 / 60.0);
+  u64 NextVBlankIndex = (u64)(CurrentMs / RefreshPeriodMs) + 1;
+  r64 NextVBlankMs = (r64)NextVBlankIndex * RefreshPeriodMs;
+
+  Result.NextVBlankInNanoseconds = NextVBlankMs * 1000000.0;
+  if (HaveQpc)
+  {
+    Result.NextVBlankInQPCUnits = (u64)((Result.NextVBlankInNanoseconds * (r64)QpcFrequency.QuadPart) / 1000000000.0);
+  }
+#endif
+  return Result;
 }
 
 link_internal u64
