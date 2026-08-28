@@ -29,6 +29,7 @@ poof(@do_editor_ui)
   v2 ScreenDim;
 
   input Input;
+  audio Audio;
 
   server_state *ServerState;
 };

@@ -41,6 +41,11 @@ typedef pthread_mutex_t native_mutex;
 
 typedef void* shared_lib;
 
+struct audio
+{
+  b32 Initialized;
+};
+
 link_internal void SleepMs(u32 Ms);
 
 inline void

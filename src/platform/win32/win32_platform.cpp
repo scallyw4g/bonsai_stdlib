@@ -3,6 +3,7 @@
 /* #include <bonsai_debug/src/platform/win32_pmc.cpp> */
 
 #include "win32_file.cpp"
+#include "win32_audio.cpp"
 
 #if 0
 // NOTE(Jesse): These includes are required for win32 stacktrace to work.

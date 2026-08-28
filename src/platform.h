@@ -24,6 +24,8 @@
   } break;
 
 
+struct platform;
+
 #if BONSAI_WIN32
 #include <bonsai_stdlib/src/platform/win32/win32_platform.h>
 

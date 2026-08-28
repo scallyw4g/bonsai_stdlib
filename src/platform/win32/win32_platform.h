@@ -4,6 +4,7 @@
 #include <WinBase.h>
 #include <wingdi.h>
 #include <dwmapi.h>
+#include <xaudio2.h>
 
 /* #include <Winuser.h> */
 
@@ -55,11 +56,42 @@ struct os
   b32 ContinueRunning = True;
 };
 
+#define PLATFORM_AUDIO_VOICE_POOL_COUNT 16
+struct audio
+{
+  shared_lib XAudioDll;
+  IXAudio2 *Engine;
+  IXAudio2MasteringVoice *MasteringVoice;
+  WAVEFORMATEX SourceVoiceFormat;
+  IXAudio2SourceVoice *VoicePool[PLATFORM_AUDIO_VOICE_POOL_COUNT];
+  u32 VoicePoolCount;
+  u32 NextVoiceIndex;
+  b32 ComInitialized;
+  b32 Initialized;
+};
+
 link_internal void
 Win32PrintLastError();
 
 link_internal void
 PlatformInitializeStdout(native_file *Stdout, native_file *Lot);
+
+b32
+PlatformInitializeAudio(platform *Plat);
+
+void
+PlatformShutdownAudio(platform *Plat);
+
+b32
+PlatformPlaySoundBuffer(platform *Plat,
+                        u8 *Data,
+                        u32 DataByteCount,
+                        u16 FormatTag,
+                        u16 ChannelCount,
+                        u32 SamplesPerSecond,
+                        u32 BytesPerSecond,
+                        u16 BlockAlign,
+                        u16 BitsPerSample);
 
 link_internal u64
 GetCycleCount()

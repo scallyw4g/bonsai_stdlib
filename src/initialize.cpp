@@ -12,6 +12,7 @@ enum bonsai_init_flags
   BonsaiInit_OpenWindow             = (1 << 1),
   BonsaiInit_InitDebugSystem        = (1 << 2),
   BonsaiInit_ProfileContextSwitches = (1 << 3),
+  BonsaiInit_Audio                  = (1 << 4),
 };
 
 
@@ -85,6 +86,11 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   if (Flags & BonsaiInit_ProfileContextSwitches)
   {
     Platform_EnableContextSwitchTracing();
+  }
+
+  if (Flags & BonsaiInit_Audio)
+  {
+    PlatformInitializeAudio(Plat);
   }
 
   return True;

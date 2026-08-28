@@ -404,6 +404,12 @@ MemCopy(u8 *Src, u8 *Dest, umm Size)
 #endif
 
 inline void
+CopyMemory(void *Src, void *Dest, umm Size)
+{
+  memcpy((void*)Dest, (void*)Src, Size);
+}
+
+inline void
 CopyMemory(u8 *Src, u8 *Dest, umm Size)
 {
   MemCopy(Src, Dest, Size);
