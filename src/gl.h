@@ -212,6 +212,7 @@
 #define GL_SRC_ALPHA_SATURATE             0x0308
 
 #define GL_MAX_VERTEX_ATTRIBS             0x8869
+#define GL_MAX_TEXTURE_IMAGE_UNITS_ARB    0x8872
 
 #define GL_QUERY_RESULT                   0x8866
 #define GL_QUERY_RESULT_AVAILABLE         0x8867

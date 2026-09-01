@@ -96,6 +96,9 @@ ReleaseFutex(bonsai_futex *Futex)
 #define BONSAI_API_MAIN_THREAD_INIT_CALLBACK_NAME     InitMainThreadCallback
 #define BONSAI_API_MAIN_THREAD_INIT_CALLBACK_PARAMS   engine_resources *Resources, thread_local_state *MainThread
 
+#define BONSAI_API_MAIN_THREAD_DEINIT_CALLBACK_NAME   DeInitMainThreadCallback
+#define BONSAI_API_MAIN_THREAD_DEINIT_CALLBACK_PARAMS engine_resources *Resources, thread_local_state *MainThread
+
 #define BONSAI_API_WORKER_THREAD_CALLBACK_NAME        WorkerThreadCallback
 #define BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS      work_queue_entry *Entry, thread_local_state *Thread
 
@@ -115,6 +118,9 @@ ReleaseFutex(bonsai_futex *Futex)
 
 #define BONSAI_API_MAIN_THREAD_INIT_CALLBACK() \
   link_export game_state* BONSAI_API_MAIN_THREAD_INIT_CALLBACK_NAME(BONSAI_API_MAIN_THREAD_INIT_CALLBACK_PARAMS)
+
+#define BONSAI_API_MAIN_THREAD_DEINIT_CALLBACK() \
+  link_export void BONSAI_API_MAIN_THREAD_DEINIT_CALLBACK_NAME(BONSAI_API_MAIN_THREAD_DEINIT_CALLBACK_PARAMS)
 
 #define BONSAI_API_WORKER_THREAD_CALLBACK() \
   link_export bool BONSAI_API_WORKER_THREAD_CALLBACK_NAME(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS)
@@ -153,6 +159,7 @@ struct application_api
 {
   bonsai_main_thread_init_callback GameInit;
   bonsai_main_thread_callback GameMain;
+  bonsai_main_thread_callback GameDeInit;
 
   bonsai_worker_thread_init_callback WorkerInit;
   bonsai_worker_thread_before_job_callback WorkerBeforeJob;

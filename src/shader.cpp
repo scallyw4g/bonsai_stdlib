@@ -117,7 +117,8 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
     Stdlib->AllShaders.Memory = AllocateArena();
   }
 
-  if (Find(&Stdlib->AllShaders, Shader).Index == INVALID_BLOCK_ARRAY_INDEX)
+  auto Index = Find(&Stdlib->AllShaders, Shader).Index;
+  if (Index == INVALID_BLOCK_ARRAY_INDEX)
   {
     Shader("Registered (%S|%S) successfully for hot-reload at Index (%d).", Shader->VertexSourceFilename, Shader->FragSourceFilename, AtElements(&Stdlib->AllShaders));
     Push(&Stdlib->AllShaders, Shader);
@@ -125,6 +126,23 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
   else
   {
     Warn("Shader pair (%S|%S) already registered for hot-reload, not registering duplicate.", Shader->VertexSourceFilename, Shader->FragSourceFilename);
+  }
+}
+
+link_internal void
+UnregisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
+{
+  Assert(Shader->ID != INVALID_SHADER);
+
+  auto I = Find(&Stdlib->AllShaders, Shader);
+  if (IsValid(&I))
+  {
+    Shader("Unregistered (%S|%S) successfully for hot-reload at Index (%d).", Shader->VertexSourceFilename, Shader->FragSourceFilename, AtElements(&Stdlib->AllShaders));
+    RemoveUnordered(&Stdlib->AllShaders, I);
+  }
+  else
+  {
+    Warn("Shader pair (%S|%S) not registered for hot-reload.", Shader->VertexSourceFilename, Shader->FragSourceFilename);
   }
 }
 
