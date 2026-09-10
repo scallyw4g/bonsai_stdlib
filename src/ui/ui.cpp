@@ -34,12 +34,14 @@ poof(hashtable_get(window_layout, {ui_id}, {HashtableKey}))
 poof(hashtable_get_ptr(window_layout, {ui_id}, {HashtableKey}))
 #include <generated/hashtable_get_ptr_window_layout_705671517_599498827.h>
 link_internal ui_toggle_button_group
-DrawButtonGroupForEnum( renderer_2d *Ui,
-     ui_toggle_button_handle_buffer *Buttons,
-                                 cs  Name,
-                                u32 *EnumStorage,
-                   ui_render_params *Params = &DefaultUiRenderParams_Generic,
-       ui_toggle_button_group_flags  Flags  = ToggleButtonGroupFlags_None )
+DrawButtonGroupForEnum(
+                               renderer_2d *Ui,
+            ui_toggle_button_handle_buffer *Buttons,
+                                        cs  Name,
+                                       u32 *EnumStorage,
+                          ui_render_params *Params        = &DefaultUiRenderParams_Generic,
+primitive_value_changed_record_block_array *ChangeRecords = 0,
+              ui_toggle_button_group_flags  Flags         = ToggleButtonGroupFlags_None )
 {
   ui_toggle_button_group Result = {};
   Result.Ui = Ui;
@@ -49,7 +51,7 @@ DrawButtonGroupForEnum( renderer_2d *Ui,
 
   Assert(Buttons->Count < bitsof(*EnumStorage));
 
-  /* Result.UiRef = */ DrawButtonGroup(&Result, Name, Params, &DefaultUiRenderParams_Toolbar);
+  DrawButtonGroup(&Result, Name, Params, &DefaultUiRenderParams_Toolbar, ChangeRecords);
 
   return Result;
 }
@@ -1989,10 +1991,11 @@ ToggleRadioButton(ui_toggle_button_group *Group, ui_toggle_button_handle *Toggle
 }
 
 link_internal void
-DrawButtonGroup( ui_toggle_button_group *Group,
-                                     cs  Name,
-                       ui_render_params *ElementParams,
-                       ui_render_params *GroupParams )
+DrawButtonGroup(    ui_toggle_button_group *Group,
+                                        cs  Name,
+                          ui_render_params *ElementParams,
+                          ui_render_params *GroupParams,
+primitive_value_changed_record_block_array *ChangeRecords /* = 0 */ )
 {
   UNPACK_UI_RENDER_PARAMS(ElementParams);
 
@@ -2033,6 +2036,7 @@ DrawButtonGroup( ui_toggle_button_group *Group,
     if (ButtonClicked) {
       Group->AnyElementClicked = True;
       Group->ClickedId = UiButton->Id;
+      MaybePushChangeRecord(ChangeRecords, Group->EnumStorage);
     }
 
     switch (Group->Flags & ToggleButtonGroupFlags_ButtonTypes)

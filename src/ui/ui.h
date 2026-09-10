@@ -1299,7 +1299,8 @@ link_internal clip_result BufferTexturedQuad( renderer_2d *Group, ui_geometry_bu
 link_internal clip_result BufferTexturedQuad( renderer_2d *Group, s32  TextureSlice, v2  MinP, v2  Dim, rect2  UV, v3  Color, r32  Z, rect2  Clip, rect2 *ClipOptional );
 
 link_internal void
-DrawButtonGroup(ui_toggle_button_group *Group, cs  Name, ui_render_params *ElementParams, ui_render_params *GroupParams );
+
+DrawButtonGroup(ui_toggle_button_group *Group, cs  Name, ui_render_params *ElementParams, ui_render_params *GroupParams, primitive_value_changed_record_block_array *ChangeRecords = 0 );
 
 link_internal void
 DoTextEditInteraction(renderer_2d *Ui);

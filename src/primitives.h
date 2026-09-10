@@ -260,3 +260,43 @@ link_internal void PlatformDebugStacktrace();
     PrevValueName = (Value);                           \
   } while (false)
 
+
+
+
+
+
+
+enum primitive_type
+{
+  PrimitiveType_Undefined,
+
+  PrimitiveType_ptr,
+
+  PrimitiveType_s64,
+  PrimitiveType_u64,
+  PrimitiveType_r64,
+
+  PrimitiveType_s32,
+  PrimitiveType_u32,
+  PrimitiveType_r32,
+
+  PrimitiveType_s16,
+  PrimitiveType_u16,
+
+  PrimitiveType_s8,
+  PrimitiveType_u8,
+  PrimitiveType_b8,
+
+  PrimitiveType_Count,
+};
+
+struct primitive_value_changed_record
+{
+  u8 Datatype; // enum primitive_type
+  u8 Pad[7];   // Might as well be able to use this alignment padding later.
+
+   u64  PrevValue;
+  void *NextValue;
+};
+CAssert(sizeof(primitive_value_changed_record) == 24); // Assert the padding worked without #pragma pack(1)
+

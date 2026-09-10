@@ -71,7 +71,7 @@
 
 
 #define Cast(T, Ptr) ((T)(Ptr))
-/* #define ReinterpretCast(T, Ptr) (T)(void*)(Ptr) */
+#define StaticCast(T, Ptr) Cast(T, Ptr)
 #define ReinterpretCast(T, Object) (*(T*)(&(Object)))
 
 // TODO(Jesse): Rename

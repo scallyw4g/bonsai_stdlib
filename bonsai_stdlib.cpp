@@ -19,6 +19,7 @@
 #include <bonsai_stdlib/src/sort.cpp>
 #include <bonsai_stdlib/src/rect.cpp>
 #include <bonsai_stdlib/src/primitive_containers.cpp>
+#include <bonsai_stdlib/src/primitives.cpp>
 #include <bonsai_stdlib/src/platform.cpp>
 #include <bonsai_stdlib/src/thread.cpp>
 #include <bonsai_stdlib/src/string_builder.cpp>
