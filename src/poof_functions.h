@@ -2614,7 +2614,7 @@ poof(
       index_t Result = {INVALID_BLOCK_ARRAY_INDEX};
       IterateOver(Array, E, Index)
       {
-        if ( E == Query )
+        if ( AreEqual(E, Query) )
         {
           Result = Index;
           break;

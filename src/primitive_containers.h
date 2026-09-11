@@ -38,7 +38,7 @@ poof(hashtable_struct(u32))
 
 
 
-poof(block_array_h(primitive_value_changed_record, {8}, {}))
+poof(block_array_h(primitive_value_changed_record, {8}, {u64 BasePtr;}))
 #include <generated/block_array_h_Bp0ULSvD.h>
 
 
@@ -50,7 +50,7 @@ poof(
       link_internal void
       MaybePushChangeRecord( primitive_value_changed_record_block_array *ChangeRecords, t.name StartingValue, t.name *ValuePtr )
       {
-        MaybePushChangeRecord(ChangeRecords, PrimitiveType_(t.name), Cast(u64, StartingValue), Cast(void*, ValuePtr));
+        MaybePushChangeRecord(ChangeRecords, PrimitiveType_(t.name), Cast(u64, StartingValue), Cast(u64, ValuePtr));
       }
 
       link_internal void
@@ -71,7 +71,7 @@ poof(
       MaybePushChangeRecord( primitive_value_changed_record_block_array *ChangeRecords, t.name StartingValue, t.name *ValuePtr )
       {
         r64 Tmp = Cast(r64, StartingValue);
-        MaybePushChangeRecord(ChangeRecords, PrimitiveType_(t.name), ReinterpretCast(u64, Tmp), Cast(void*, ValuePtr));
+        MaybePushChangeRecord(ChangeRecords, PrimitiveType_(t.name), ReinterpretCast(u64, Tmp), Cast(u64, ValuePtr));
       }
 
       link_internal void
@@ -84,7 +84,7 @@ poof(
 )
 
 link_internal void
-MaybePushChangeRecord( primitive_value_changed_record_block_array *ChangeRecords, primitive_type Datatype, u64 PrevValue, void *NextValue );
+MaybePushChangeRecord( primitive_value_changed_record_block_array *ChangeRecords, primitive_type Datatype, u64 PrevValue, u64 ValuePtr );
 
 poof(change_records_for_int_types({s64 u64 s32 u32 s16 u16 s8 u8 b8}))
 #include <generated/change_records_for_int_types_tIAdZ8A9.h>

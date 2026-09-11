@@ -202,6 +202,7 @@ typedef counted_string cs;
 link_internal b32 AreEqual(cs *S1, cs *S2);
 link_internal b32 AreEqual(cs S1, cs S2);
 link_internal b32 AreEqual(const char *S1, const char *S2);
+link_internal b32 MemoryIsEqual(u8 *First, u8 *Second, umm Size);
 
 template <typename T> inline void
 Clear(T *Struct)
@@ -233,6 +234,13 @@ poof(
 
 poof( gen_are_equal({s64 u64 r64 s32 u32 r32 s16 u16 s8 u8 }) )
 #include <generated/gen_are_equal_665365505.h>
+
+link_internal b32
+AreEqual( void *E1, void *E2 )
+{
+  b32 Result = E1 == E2;
+  return Result;
+}
 
 poof(
   func gen_primitive_deep_copy( type_poof_symbol Types )
@@ -268,35 +276,50 @@ link_internal void PlatformDebugStacktrace();
 
 enum primitive_type
 {
-  PrimitiveType_Undefined,
+  PrimitiveType_Undefined poof(@bit_width(0)),
 
-  PrimitiveType_ptr,
+  PrimitiveType_s64       poof(@bit_width(8)),
+  PrimitiveType_u64       poof(@bit_width(8)),
+  PrimitiveType_r64       poof(@bit_width(8)),
 
-  PrimitiveType_s64,
-  PrimitiveType_u64,
-  PrimitiveType_r64,
+  PrimitiveType_s32       poof(@bit_width(4)),
+  PrimitiveType_u32       poof(@bit_width(4)),
+  PrimitiveType_r32       poof(@bit_width(4)),
 
-  PrimitiveType_s32,
-  PrimitiveType_u32,
-  PrimitiveType_r32,
+  PrimitiveType_s16       poof(@bit_width(2)),
+  PrimitiveType_u16       poof(@bit_width(2)),
 
-  PrimitiveType_s16,
-  PrimitiveType_u16,
-
-  PrimitiveType_s8,
-  PrimitiveType_u8,
-  PrimitiveType_b8,
+  PrimitiveType_s8        poof(@bit_width(1)),
+  PrimitiveType_u8        poof(@bit_width(1)),
+  PrimitiveType_b8        poof(@bit_width(1)),
 
   PrimitiveType_Count,
 };
 
-struct primitive_value_changed_record
+
+global_variable u32 Global_TypeByteWidthTable[] =
 {
-  u8 Datatype; // enum primitive_type
-  u8 Pad[7];   // Might as well be able to use this alignment padding later.
-
-   u64  PrevValue;
-  void *NextValue;
+  poof(
+    func(primitive_type enum_t) @code_fragment
+    {
+      enum_t.map(enum_v) { enum_v.has_tag(bit_width)?  { enum_v.tag_value(bit_width), } }
+    }
+  )
+#include <generated/anonymous_WfbrEboW.h>
 };
-CAssert(sizeof(primitive_value_changed_record) == 24); // Assert the padding worked without #pragma pack(1)
 
+
+struct primitive_value_changed_record
+poof(@serdes @do_editor_ui)
+{
+  u32 Datatype;    // enum primitive_type
+  u32 LocalOffset; // Relative to the BasePtr in the collection these belong to
+
+  // Previous value when encoding an undo, Modified value when encoding an Instance param
+  // @semantics_of_primitive_value_changed_record::Value
+  u64 Value;
+};
+CAssert(sizeof(primitive_value_changed_record) == 16);
+
+link_internal b32
+AreEqual(primitive_value_changed_record *Thing1, primitive_value_changed_record *Thing2);
