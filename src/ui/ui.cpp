@@ -40,7 +40,7 @@ DrawButtonGroupForEnum(
                                         cs  Name,
                                        u32 *EnumStorage,
                           ui_render_params *Params        = &DefaultUiRenderParams_Generic,
-primitive_value_changed_record_block_array *ChangeRecords = 0,
+        base_ptr_relative_edit_block_array *ChangeRecords = 0,
               ui_toggle_button_group_flags  Flags         = ToggleButtonGroupFlags_None )
 {
   ui_toggle_button_group Result = {};
@@ -1995,7 +1995,7 @@ DrawButtonGroup(    ui_toggle_button_group *Group,
                                         cs  Name,
                           ui_render_params *ElementParams,
                           ui_render_params *GroupParams,
-primitive_value_changed_record_block_array *ChangeRecords /* = 0 */ )
+        base_ptr_relative_edit_block_array *ChangeRecords /* = 0 */ )
 {
   UNPACK_UI_RENDER_PARAMS(ElementParams);
 

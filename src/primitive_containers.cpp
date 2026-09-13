@@ -9,19 +9,19 @@ poof(hashtable_get(u32, {u32}, {Value}));
 #include <generated/hashtable_get_u32_hashtable_wrapper_688719149_688856424.h>
 
 
-poof(block_array_c(primitive_value_changed_record, {8}))
+poof(block_array_c(base_ptr_relative_edit, {8}))
 #include <generated/block_array_c_Xc85dWkT.h>
 
 link_internal void
 MaybePushChangeRecord(
-   primitive_value_changed_record_block_array *ChangeRecords,
+   base_ptr_relative_edit_block_array *ChangeRecords,
                                primitive_type  Datatype,
                                           u64  Value,
                                           u64  ValuePtr )
 {
   if (ChangeRecords)
   {
-    primitive_value_changed_record Record = {};
+    base_ptr_relative_edit Record = {};
     Record.Datatype  = Datatype;
     Record.Value     = Value;
 

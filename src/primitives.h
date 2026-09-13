@@ -309,7 +309,7 @@ global_variable u32 Global_TypeByteWidthTable[] =
 };
 
 
-struct primitive_value_changed_record
+struct base_ptr_relative_edit
 poof(@serdes @do_editor_ui)
 {
   u32 Datatype;    // enum primitive_type
@@ -319,7 +319,7 @@ poof(@serdes @do_editor_ui)
   // @semantics_of_primitive_value_changed_record::Value
   u64 Value;
 };
-CAssert(sizeof(primitive_value_changed_record) == 16);
+CAssert(sizeof(base_ptr_relative_edit) == 16);
 
 link_internal b32
-AreEqual(primitive_value_changed_record *Thing1, primitive_value_changed_record *Thing2);
+AreEqual(base_ptr_relative_edit *Thing1, base_ptr_relative_edit *Thing2);

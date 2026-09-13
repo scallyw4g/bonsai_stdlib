@@ -1300,7 +1300,7 @@ link_internal clip_result BufferTexturedQuad( renderer_2d *Group, s32  TextureSl
 
 link_internal void
 
-DrawButtonGroup(ui_toggle_button_group *Group, cs  Name, ui_render_params *ElementParams, ui_render_params *GroupParams, primitive_value_changed_record_block_array *ChangeRecords = 0 );
+DrawButtonGroup(ui_toggle_button_group *Group, cs  Name, ui_render_params *ElementParams, ui_render_params *GroupParams, base_ptr_relative_edit_block_array *ChangeRecords = 0 );
 
 link_internal void
 DoTextEditInteraction(renderer_2d *Ui);
