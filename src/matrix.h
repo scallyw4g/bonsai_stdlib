@@ -157,5 +157,5 @@ ScaleTransform( v3 v )
   return Result;
 }
 
-// NOTE(Jesse): Column-major
 
+link_internal m4 Abs(m4 M);

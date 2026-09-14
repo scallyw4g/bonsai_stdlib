@@ -805,6 +805,9 @@ poof(gen_common_vector(v2))
 poof(gen_common_vector(v3))
 #include <generated/gen_common_vector_v3.h>
 
+poof(gen_common_vector(v4))
+#include <generated/gen_common_vector_v4.h>
+
 poof(gen_common_vector(v3i))
 #include <generated/gen_common_vector_v3i.h>
 

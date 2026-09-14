@@ -65,3 +65,18 @@ Multiply(m_nxn A, m_nxn B, memory_arena* Memory)
 
   return Result;
 }
+
+link_internal m4
+Abs(m4 M)
+{
+  m4 Result =
+  {
+    Abs(M.E[0]),
+    Abs(M.E[1]),
+    Abs(M.E[2]),
+    Abs(M.E[3]),
+  };
+
+  return Result;
+};
+
