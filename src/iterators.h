@@ -74,6 +74,8 @@
 #define StaticCast(T, Ptr) Cast(T, Ptr)
 #define ReinterpretCast(T, Object) (*(T*)(&(Object)))
 
+#define StripVolatile(T, Ptr) const_cast<T>(Ptr)
+
 // TODO(Jesse): Rename
 #define TryCast(T, Ptr) ((Ptr)->Type == type_##T ? (&(Ptr)->T) : 0)
 #define DynamicCast(T, Ptr) TryCast(T, Ptr)

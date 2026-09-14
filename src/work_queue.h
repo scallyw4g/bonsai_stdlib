@@ -4,6 +4,8 @@
 // Note(Jesse): The userland code must define work_queue_entry and work_queue_entry_block_array
 struct work_queue_entry_block_array;
 struct work_queue_entry;
+struct work_queue_job;
+
 struct work_queue
 poof(@do_editor_ui)
 {
@@ -11,9 +13,11 @@ poof(@do_editor_ui)
 
   volatile u32 EnqueueIndex;
   volatile u32 DequeueIndex;
-  volatile work_queue_entry_block_array *Entries;
+  volatile work_queue_job *Jobs;
   /* semaphore *GlobalQueueSemaphore; */
 };
+
+typedef work_queue* work_queue_ptr;
 
 link_internal u32
 GetNextQueueIndex(umm CurrentIndex)

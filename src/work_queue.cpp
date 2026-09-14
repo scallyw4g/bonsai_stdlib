@@ -1,8 +1,8 @@
 link_internal work_queue_entry *
-GetEntryForJob(work_queue *Queue, u32 JobIndex, u32 EntryIndex /* = 0 */  )
+GetEntryForJob(work_queue *Queue, u32 JobIndex, u32 TaskIndex /* = 0 */  )
 {
-  work_queue_entry_block_array *Job = Cast(work_queue_entry_block_array *, Queue->Entries + JobIndex);
-  work_queue_entry* Result = GetPtr(Job, EntryIndex);
+  work_queue_job *Job = StripVolatile(work_queue_job*, Queue->Jobs+JobIndex);
+  work_queue_entry* Result = GetPtr(&Job->Tasks, TaskIndex);
   return Result;
 }
 
@@ -220,12 +220,14 @@ InitQueue(work_queue* Queue, memory_arena* Memory)
   Queue->EnqueueIndex = 0;
   Queue->DequeueIndex = 0;
 
-  Queue->Entries = Allocate(work_queue_entry_block_array, Memory, WORK_QUEUE_SIZE);
+  Queue->Jobs = Allocate(work_queue_job, Memory, WORK_QUEUE_SIZE);
 
   RangeIterator(Index, WORK_QUEUE_SIZE)
   {
-    Queue->Entries[Index].Memory = Memory;
-    Push(Cast(work_queue_entry_block_array*, Queue->Entries+Index));
+    auto Job = StripVolatile(work_queue_job*, Queue->Jobs+Index);
+
+    Job->Tasks.Memory = Memory;
+    Push(&Job->Tasks);
   }
 }
 

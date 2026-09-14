@@ -56,7 +56,18 @@ poof(
         M.map_members (UnionMemberT)
         {
           link_internal DUnionType.name
-          DUnionType.name.to_capital_case( (UnionMemberT.name) A DUnionType.map_members(m_inner) { m_inner.is_named(Type)?  { } { m_inner.is_union?  { } {, (m_inner.type) (m_inner.name)} } } )
+          DUnionType.name.to_capital_case(
+              (UnionMemberT.name) A DUnionType.map_members(m_inner)
+              {
+                m_inner.is_named(Type)?
+                {}
+                {
+                  m_inner.is_union?
+                  {}
+                  {, (m_inner.type) (m_inner.name)} 
+                }
+              }
+            )
           {
             DUnionType.name Result = {
               .Type = type_(UnionMemberT.name),
