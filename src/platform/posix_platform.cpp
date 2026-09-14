@@ -234,6 +234,16 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
   return Result;
 }
 
+// TODO(Jesse)(posix): Audio is currently only implemented on Windows
+// (win32_audio.cpp via XAudio2).  Report failure rather than pretending we
+// initialized it, so callers can branch on the result if they ever check it.
+b32
+PlatformInitializeAudio(platform *Plat)
+{
+  Warn("PlatformInitializeAudio is not implemented on this platform.");
+  return False;
+}
+
 
 // TODO(Jesse, globals_cleanup)
 global_variable const u32 Global_CwdBufferLength = 4096;

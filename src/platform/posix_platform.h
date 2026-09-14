@@ -48,6 +48,15 @@ struct audio
 
 link_internal void SleepMs(u32 Ms);
 
+// TODO(Jesse)(posix): There is no portable posix equivalent of pinning a thread
+// to a physical core.  sched_setaffinity(2) is Linux-only, and it commonly fails
+// inside containers anyway.  Report failure so callers know we did not pin.
+link_internal b32
+PlatformPinCurrentThreadToCore(u32 CoreIndex)
+{
+  return False;
+}
+
 inline void
 WakeThread( semaphore *Semaphore )
 {
