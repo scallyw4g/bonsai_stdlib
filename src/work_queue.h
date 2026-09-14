@@ -1,7 +1,8 @@
 
 #define WORK_QUEUE_SIZE (4096)
 
-// Note(Jesse): The userland code must define work_queue_entry
+// Note(Jesse): The userland code must define work_queue_entry and work_queue_entry_block_array
+struct work_queue_entry_block_array;
 struct work_queue_entry;
 struct work_queue
 poof(@do_editor_ui)
@@ -10,7 +11,7 @@ poof(@do_editor_ui)
 
   volatile u32 EnqueueIndex;
   volatile u32 DequeueIndex;
-  volatile work_queue_entry *Entries;
+  volatile work_queue_entry_block_array *Entries;
   /* semaphore *GlobalQueueSemaphore; */
 };
 
@@ -49,3 +50,5 @@ BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK()
 {
   WorkerThread_BeforeJobStart(Thread);
 }
+
+link_internal work_queue_entry * GetEntryForJob(work_queue *Queue, u32 JobIndex, u32 EntryIndex = 0 );
