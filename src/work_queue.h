@@ -13,8 +13,9 @@ poof(@do_editor_ui)
 
   volatile u32 EnqueueIndex;
   volatile u32 DequeueIndex;
-  volatile work_queue_job *Jobs;
-  /* semaphore *GlobalQueueSemaphore; */
+
+  // @work_queue_job_backing_store
+  volatile u32 *JobIndices;
 };
 
 typedef work_queue* work_queue_ptr;
@@ -40,10 +41,23 @@ QueueIsFull(work_queue *Queue)
   b32 Result = NextEnqueueIndex == Queue->DequeueIndex;
   return Result;
 }
+// TODO(Jesse): Should any of these actually be link_weak?  I think we should
+// probably have a default override that takes over if the user didn't
+// implement these, instead of crashing at runtime.  link_weak was always kind
+// of a dirty hack to get this working, and we should clean this up at some point
+//
 
-    link_weak             void  PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry);
-link_internal work_queue_entry*  PopWorkQueueEntry(work_queue* Queue);
-link_weak void LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbacks);
+
+
+link_internal work_queue_job* AllocateWorkQueueJob(platform *Plat);
+link_internal           void  PushTask (work_queue_job *Job, work_queue_entry *Task);
+link_internal           void  SubmitJob( work_queue *Queue, work_queue_job *Job);
+link_internal           void  SubmitJob( work_queue *Queue, work_queue_entry *Entry);
+
+/* link_internal             void   PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry); */
+link_internal work_queue_entry*  PopWorkQueueEntry(platform *Plat, work_queue* Queue);
+
+    link_weak             void   LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbacks);
 
 link_weak void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
 link_weak void WorkerThread_BeforeSleep();
@@ -55,4 +69,4 @@ BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK()
   WorkerThread_BeforeJobStart(Thread);
 }
 
-link_internal work_queue_entry * GetEntryForJob(work_queue *Queue, u32 JobIndex, u32 EntryIndex = 0 );
+link_internal work_queue_entry * GetEntryForJob(platform *Plat, u32 JobIndex, u32 EntryIndex = 0 );

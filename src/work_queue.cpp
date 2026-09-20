@@ -1,15 +1,17 @@
 link_internal work_queue_entry *
-GetEntryForJob(work_queue *Queue, u32 JobIndex, u32 TaskIndex /* = 0 */  )
+GetEntryForJob(platform *Plat, u32 JobIndex, u32 TaskIndex /* = 0 */  )
 {
-  work_queue_job *Job = StripVolatile(work_queue_job*, Queue->Jobs+JobIndex);
+  work_queue_job *Job = StripVolatile(work_queue_job*, Plat->Jobs+JobIndex);
   work_queue_entry* Result = GetPtr(&Job->Tasks, TaskIndex);
   return Result;
 }
 
 link_internal work_queue_entry *
-PopWorkQueueEntry(work_queue* Queue)
+PopWorkQueueEntry(platform *Plat, work_queue* Queue)
 {
   TIMED_FUNCTION();
+
+  NotImplemented;
 
   work_queue_entry *Result = {};
   for (;;)
@@ -28,7 +30,7 @@ PopWorkQueueEntry(work_queue* Queue)
                                            DequeueIndex );
     if ( Exchanged )
     {
-      Result = GetEntryForJob(Queue, DequeueIndex);
+      Result = GetEntryForJob(Plat, DequeueIndex);
       break;
     }
   }
@@ -37,7 +39,7 @@ PopWorkQueueEntry(work_queue* Queue)
 }
 
 link_internal void
-DrainQueue(work_queue* Queue, thread_local_state* Thread, application_api *GameApi)
+DrainQueue(platform *Plat, work_queue* Queue, thread_local_state* Thread, application_api *GameApi)
 {
   TIMED_FUNCTION();
 
@@ -57,7 +59,7 @@ DrainQueue(work_queue* Queue, thread_local_state* Thread, application_api *GameA
                                            DequeueIndex );
     if ( Exchanged )
     {
-      auto Entry = GetEntryForJob(Queue, DequeueIndex);
+      auto Entry = GetEntryForJob(Plat, DequeueIndex);
       HandleJob(Entry, Thread, GameApi);
     }
   }
@@ -124,7 +126,7 @@ DefaultWorkerThread(void *Input)
     GetStdlib()->AppApi.WorkerBeforeJob(Thread);
 
     AtomicIncrement(HighPriorityWorkerCount);
-    DrainQueue( HighPriority, Thread, &GetStdlib()->AppApi );
+    DrainQueue(Plat, HighPriority, Thread, &GetStdlib()->AppApi );
     AtomicDecrement(HighPriorityWorkerCount);
 
 #if 1
@@ -164,7 +166,7 @@ DefaultWorkerThread(void *Input)
                                               DequeueIndex );
       if ( Exchanged )
       {
-        work_queue_entry *Entry = GetEntryForJob(LowPriority, DequeueIndex);
+        work_queue_entry *Entry = GetEntryForJob(Plat, DequeueIndex);
 
         HandleJob(Entry, Thread, &GetStdlib()->AppApi);
 
@@ -220,28 +222,43 @@ InitQueue(work_queue* Queue, memory_arena* Memory)
   Queue->EnqueueIndex = 0;
   Queue->DequeueIndex = 0;
 
-  Queue->Jobs = Allocate(work_queue_job, Memory, WORK_QUEUE_SIZE);
+  Queue->JobIndices = Allocate(u32, Memory, WORK_QUEUE_SIZE);
 
-  RangeIterator(Index, WORK_QUEUE_SIZE)
-  {
-    auto Job = StripVolatile(work_queue_job*, Queue->Jobs+Index);
-
-    Job->Tasks.Memory = Memory;
-    Push(&Job->Tasks);
-  }
 }
 
-link_weak void
-PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry)
+link_internal work_queue_job *
+AllocateWorkQueueJob(platform *Plat)
+{
+  work_queue_job *Result = {};
+  NotImplemented;
+  return Result;
+}
+
+link_internal void
+PushTask(work_queue_job *Job, work_queue_task *Task)
+{
+  NotImplemented;
+}
+
+link_internal void
+SubmitJob( work_queue *Queue, work_queue_job *Job)
+{
+  NotImplemented;
+}
+
+link_internal void
+SubmitJob( work_queue *Queue, work_queue_entry *Entry)
 {
   TIMED_FUNCTION();
+
+  platform *Plat = GetPlatform();
+
+  Assert(Entry->Queue == Queue);
 
   AcquireFutex(&Queue->EnqueueFutex);
 
   while (QueueIsFull(Queue))
   {
-    platform *Plat = &GetEngineResources()->Stdlib.Plat;
-
     b32 HighPriorityMode = False;
     if (Plat->HighPriorityModeFutex.SignalValue != FUTEX_UNSIGNALLED_VALUE)
     {
@@ -255,7 +272,12 @@ PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry)
     if (HighPriorityMode) { SignalFutex(&Plat->HighPriorityModeFutex); }
   }
 
-  work_queue_entry *Dest = GetEntryForJob(Queue, Queue->EnqueueIndex);
+  NotImplemented;
+  /* u32 JobIndex = AllocateJobIndex(Plat, Queue); */
+  /* Queue->JobIndices[Queue->EnqueueIndex] = JobIndex; */
+  /* u32 JobIndex = Queue->JobIndices[Queue->EnqueueIndex]; */
+  /* work_queue_entry *Dest = GetEntryForJob(Plat, JobIndex); */
+  work_queue_entry *Dest = {};
   Clear(Dest);
   Assert(Dest->Type == type_work_queue_entry_noop);
 

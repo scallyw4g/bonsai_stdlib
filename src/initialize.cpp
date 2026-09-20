@@ -1,3 +1,6 @@
+link_internal void
+AllocateJobsArray(platform *Plat, s32 TotalJobs);
+
 #if BONSAI_DEBUG_SYSTEM_API
 void Platform_EnableContextSwitchTracing();
 #else
@@ -41,6 +44,9 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     Info("Detected (%u) Logical cores, creating (%u) worker threads of (%u) total threads", LogicalCoreCount, WorkerThreadCount, TotalThreadCount);
 
     Stdlib->ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, s32(TotalThreadCount), ThreadState_UserData, Memory);
+
+    s32 TotalJobs = WORK_QUEUE_SIZE*6;
+    AllocateJobsArray(Plat, TotalJobs);
   }
   else
   {
