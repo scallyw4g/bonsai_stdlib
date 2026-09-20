@@ -5,11 +5,34 @@ GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
   return Result;
 }
 
-link_internal work_queue_entry *
-GetTaskForJob(platform *Plat, global_job_index GlobalJobIndex, u32 TaskIndex /* = 0 */  )
+link_internal work_queue_job *
+GetWorkQueueJob(platform *Plat, global_job_index GlobalJobIndex)
 {
-  work_queue_job *Job = StripVolatile(work_queue_job*, Plat->Jobs+GlobalJobIndex.Index);
-  work_queue_entry* Result = GetPtr(&Job->Tasks, TaskIndex);
+  work_queue_job *Result = StripVolatile(work_queue_job*, Plat->Jobs+GlobalJobIndex.Index);
+  return Result;
+}
+
+link_internal work_queue_entry *
+PeekNextTask(work_queue_job *Job)
+{
+  work_queue_entry* Result = GetPtr(&Job->Tasks, Job->NextTaskIndex);
+  return Result;
+}
+
+link_internal work_queue_entry *
+PopNextTask(work_queue_job *Job)
+{
+  work_queue_entry* Result = GetPtr(&Job->Tasks, Job->NextTaskIndex++);
+  return Result;
+}
+
+link_internal work_queue_entry *
+PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex)
+{
+  global_job_index GlobalJobIndex = GetGlobalJobIndex(Queue, QueueIndex);
+  work_queue_job *Job = GetWorkQueueJob(Plat, GlobalJobIndex);
+
+  work_queue_entry *Result = PopNextTask(Job);
   return Result;
 }
 
@@ -35,8 +58,8 @@ PopWorkQueueEntry(platform *Plat, work_queue* Queue)
                                            DequeueIndex );
     if ( Exchanged )
     {
-      global_job_index JobIndex = Queue->JobIndices[DequeueIndex];
-      Result = GetTaskForJob(Plat, JobIndex);
+      Result = PopNextTaskForNextQueuedJob(Plat, Queue, {DequeueIndex});
+      Assert(Result->Type);
       break;
     }
   }
@@ -69,7 +92,7 @@ DrainQueue(platform *Plat, work_queue* Queue, thread_local_state* Thread, applic
                                            DequeueIndex );
     if ( Exchanged )
     {
-      auto Entry = GetTaskForJob(Plat, GetGlobalJobIndex(Queue, {DequeueIndex}));
+      auto Entry = PopNextTaskForNextQueuedJob(Plat, Queue, {DequeueIndex});
       HandleJob(Entry, Thread, GameApi);
     }
   }
@@ -176,9 +199,9 @@ DefaultWorkerThread(void *Input)
                                               DequeueIndex );
       if ( Exchanged )
       {
-        work_queue_entry *Entry = GetTaskForJob(Plat, GetGlobalJobIndex(LowPriority, {DequeueIndex}));
+        work_queue_job *Job = GetWorkQueueJob(Plat, GetGlobalJobIndex(LowPriority, {DequeueIndex}));
 
-        HandleJob(Entry, Thread, &GetStdlib()->AppApi);
+        HandleJob(Job, Thread, &GetStdlib()->AppApi);
 
         Ensure( RewindArena(Thread->TempMemory) );
       }
