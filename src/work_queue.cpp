@@ -35,6 +35,9 @@ PopWorkQueueEntry(platform *Plat, work_queue* Queue)
     }
   }
 
+
+  // TODO(Jesse): @assert_job_queue
+  //
   return Result;
 }
 
@@ -223,7 +226,6 @@ InitQueue(work_queue* Queue, memory_arena* Memory)
   Queue->DequeueIndex = 0;
 
   Queue->JobIndices = Allocate(u32, Memory, WORK_QUEUE_SIZE);
-
 }
 
 link_internal work_queue_job *
@@ -240,20 +242,18 @@ PushTask(work_queue_job *Job, work_queue_task *Task)
   NotImplemented;
 }
 
+// TODO(Jesse): We should actually just check which queue the current task
+// wants to be submitted to, but this is compatible with the current API, so
+// we'll explicitly take a queue and assert when we pop the job instead.
+//
+// @assert_job_queue
+//
 link_internal void
-SubmitJob( work_queue *Queue, work_queue_job *Job)
-{
-  NotImplemented;
-}
-
-link_internal void
-SubmitJob( work_queue *Queue, work_queue_entry *Entry)
+SubmitJob( work_queue *Queue, work_queue_job *Job )
 {
   TIMED_FUNCTION();
 
   platform *Plat = GetPlatform();
-
-  Assert(Entry->Queue == Queue);
 
   AcquireFutex(&Queue->EnqueueFutex);
 
@@ -272,33 +272,31 @@ SubmitJob( work_queue *Queue, work_queue_entry *Entry)
     if (HighPriorityMode) { SignalFutex(&Plat->HighPriorityModeFutex); }
   }
 
-  NotImplemented;
-  /* u32 JobIndex = AllocateJobIndex(Plat, Queue); */
-  /* Queue->JobIndices[Queue->EnqueueIndex] = JobIndex; */
-  /* u32 JobIndex = Queue->JobIndices[Queue->EnqueueIndex]; */
-  /* work_queue_entry *Dest = GetEntryForJob(Plat, JobIndex); */
-  work_queue_entry *Dest = {};
-  Clear(Dest);
-  Assert(Dest->Type == type_work_queue_entry_noop);
-
-
-  *Dest = *Entry;
-  /* MemCopy((u8*)Entry, (u8*)Dest, sizeof(work_queue_entry)); */
-  /* *Dest = *((volatile work_queue_entry*)Entry); */
-
-  Assert(Dest->Type != type_work_queue_entry_noop);
-
   FullBarrier;
 
-  u32 NewIndex = GetNextQueueIndex(Queue->EnqueueIndex);
-  Assert(NewIndex != Queue->DequeueIndex);
-  /* DebugLine("%S", CS(NewIndex)); */
 
+  Queue->JobIndices[Queue->EnqueueIndex] = Job->Index;
+
+  u32 NewIndex = GetNextQueueIndex(Queue->EnqueueIndex);
+  Assert(NewIndex != Queue->DequeueIndex); // QueueIsFull check
   AtomicExchange(&Queue->EnqueueIndex, NewIndex);
 
   FullBarrier;
 
   ReleaseFutex(&Queue->EnqueueFutex);
+}
 
-  /* WakeThread( Queue->GlobalQueueSemaphore ); */
+link_internal void
+SubmitJob( work_queue *Queue, work_queue_entry *Entry )
+{
+  TIMED_FUNCTION();
+
+  // @assert_job_queue
+  Assert(Entry->Queue == 0);
+  Entry->Queue = Queue;
+
+  // TODO(Jesse): Pass in Platform
+  work_queue_job *Job = AllocateWorkQueueJob(GetPlatform());
+  PushTask(Job, Entry);
+  SubmitJob(Queue, Job);
 }
