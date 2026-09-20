@@ -84,6 +84,12 @@ BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK()
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex);
 
+link_internal work_queue_job *
+GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex);
+
+link_internal work_queue_job *
+GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex);
+
 link_internal work_queue_entry *
 PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex);
 

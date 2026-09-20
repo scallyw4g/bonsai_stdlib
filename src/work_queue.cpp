@@ -6,9 +6,16 @@ GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 }
 
 link_internal work_queue_job *
-GetWorkQueueJob(platform *Plat, global_job_index GlobalJobIndex)
+GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex)
 {
   work_queue_job *Result = StripVolatile(work_queue_job*, Plat->Jobs+GlobalJobIndex.Index);
+  return Result;
+}
+
+link_internal work_queue_job *
+GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex)
+{
+  work_queue_job *Result = GetJobFromGlobal(Plat, GetGlobalJobIndex(Queue, QueueJobIndex));
   return Result;
 }
 
@@ -30,7 +37,7 @@ link_internal work_queue_entry *
 PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex)
 {
   global_job_index GlobalJobIndex = GetGlobalJobIndex(Queue, QueueIndex);
-  work_queue_job *Job = GetWorkQueueJob(Plat, GlobalJobIndex);
+  work_queue_job *Job = GetJobFromGlobal(Plat, GlobalJobIndex);
 
   work_queue_entry *Result = PopNextTask(Job);
   return Result;
@@ -92,8 +99,8 @@ DrainQueue(platform *Plat, work_queue* Queue, thread_local_state* Thread, applic
                                            DequeueIndex );
     if ( Exchanged )
     {
-      auto Entry = PopNextTaskForNextQueuedJob(Plat, Queue, {DequeueIndex});
-      HandleJob(Entry, Thread, GameApi);
+      work_queue_job *Job = GetJobFromQueue(Plat, Queue, {DequeueIndex});
+      HandleJob(Job, Thread, GameApi);
     }
   }
 }
@@ -199,10 +206,8 @@ DefaultWorkerThread(void *Input)
                                               DequeueIndex );
       if ( Exchanged )
       {
-        work_queue_job *Job = GetWorkQueueJob(Plat, GetGlobalJobIndex(LowPriority, {DequeueIndex}));
-
+        work_queue_job *Job = GetJobFromQueue(Plat, LowPriority, {DequeueIndex});
         HandleJob(Job, Thread, &GetStdlib()->AppApi);
-
         Ensure( RewindArena(Thread->TempMemory) );
       }
     }
