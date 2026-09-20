@@ -22,7 +22,7 @@ GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex
 link_internal work_queue_entry *
 PeekNextTask(work_queue_job *Job)
 {
-  work_queue_entry* Result = GetPtr(&Job->Tasks, Job->NextTaskIndex);
+  work_queue_entry* Result = TryGetPtr(&Job->Tasks, Job->NextTaskIndex);
   return Result;
 }
 
@@ -43,12 +43,12 @@ PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index Q
   return Result;
 }
 
-link_internal work_queue_entry *
-PopWorkQueueEntry(platform *Plat, work_queue* Queue)
+link_internal work_queue_job *
+PopNextJob(platform *Plat, work_queue* Queue)
 {
   TIMED_FUNCTION();
 
-  work_queue_entry *Result = {};
+  work_queue_job *Result = {};
   for (;;)
   {
     /* WORKER_THREAD_ADVANCE_DEBUG_SYSTEM(); */
@@ -65,15 +65,10 @@ PopWorkQueueEntry(platform *Plat, work_queue* Queue)
                                            DequeueIndex );
     if ( Exchanged )
     {
-      Result = PopNextTaskForNextQueuedJob(Plat, Queue, {DequeueIndex});
-      Assert(Result->Type);
+      Result = GetJobFromQueue(Plat, Queue, {DequeueIndex});
       break;
     }
   }
-
-
-  // @assert_job_queue
-  if (Result) { Assert(Result->Queue == Queue); }
 
   return Result;
 }
@@ -266,6 +261,8 @@ InitQueue(work_queue* Queue, memory_arena* Memory)
 link_internal void
 ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
 {
+  Plat->FreeJobs = Plat->FreeJobs +1;
+
   // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
   Link_TS(
     Cast(volatile freelist_entry **, &Plat->JobsFreelist),
@@ -276,13 +273,14 @@ ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
 link_internal work_queue_job *
 ReserveWorkQueueJob(platform *Plat)
 {
+  Plat->FreeJobs = Plat->FreeJobs -1;
+
   // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
   work_queue_job *Result = Cast(work_queue_job*,
                              Unlink_TS(
                                Cast(volatile freelist_entry **, &Plat->JobsFreelist)
                              )
                            );
-
   Assert(Result);
   return Result;
 }
@@ -302,6 +300,8 @@ PushTask(work_queue_job *Job, work_queue_task *Task)
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job )
 {
+  Assert(Queue);
+
   TIMED_FUNCTION();
 
   platform *Plat = GetPlatform();
@@ -342,9 +342,9 @@ SubmitJob( work_queue *Queue, work_queue_entry *Entry )
 {
   TIMED_FUNCTION();
 
+  Assert(Queue);
   // @assert_job_queue
   Assert(Entry->Queue == Queue);
-  /* Entry->Queue = Queue; */
 
   // TODO(Jesse): Pass in Platform
   work_queue_job *Job = ReserveWorkQueueJob(GetPlatform());

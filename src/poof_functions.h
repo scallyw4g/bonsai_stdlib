@@ -2450,6 +2450,7 @@ poof(
     GetPtr( block_array_t *Arr, index_t Index )
     {
       Assert(Arr->BlockPtrs);
+      Assert(Index.Index < AtElements(Arr).Index);
       Assert(Index.Index < Capacity(Arr).Index);
 
       block_t *Block = GetBlock(Arr, Index);

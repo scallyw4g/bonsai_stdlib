@@ -62,15 +62,17 @@ QueueIsFull(work_queue *Queue)
 
 link_internal work_queue_job* AllocateWorkQueueJob(platform *Plat);
 
+link_internal work_queue_job* ReserveWorkQueueJob(platform *Plat);
+link_internal           void  ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job);
+
 link_internal           void  PushTask ( work_queue_job *Job,   work_queue_entry *Task);
 
 link_internal           void  SubmitJob( work_queue     *Queue, work_queue_job   *Job);
 link_internal           void  SubmitJob( work_queue     *Queue, work_queue_entry *Entry);
 
-/* link_internal             void   PushWorkQueueEntry(work_queue *Queue, work_queue_entry *Entry); */
-link_internal work_queue_entry*  PopWorkQueueEntry(platform *Plat, work_queue* Queue);
+link_internal work_queue_job* PopNextJob(platform *Plat, work_queue* Queue);
 
-    link_weak             void   LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbacks);
+    link_weak           void   LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbacks);
 
 link_internal void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
     link_weak void WorkerThread_BeforeSleep();

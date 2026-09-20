@@ -22,8 +22,10 @@ poof(@do_editor_ui)
   // another task to the job, or complete it.
   //
   // @work_queue_job_backing_store
-  volatile work_queue_job *Jobs;
+  volatile work_queue_job *Jobs; //         poof(@array_count(Element->TotalJobs));
   volatile work_queue_job *JobsFreelist;
+  volatile u32 FreeJobs;
+  u32 TotalJobs;
 
   v2 MouseP;
   v2 MouseDP;
