@@ -100,7 +100,7 @@ ReleaseFutex(bonsai_futex *Futex)
 #define BONSAI_API_MAIN_THREAD_DEINIT_CALLBACK_PARAMS engine_resources *Resources, thread_local_state *MainThread
 
 #define BONSAI_API_WORKER_THREAD_CALLBACK_NAME        WorkerThreadCallback
-#define BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS      work_queue_entry *Entry, thread_local_state *Thread
+#define BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS      work_queue_job *Job, thread_local_state *Thread
 
 #define BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_NAME      WorkerThreadBeforeJobCallback
 #define BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK_PARAMS    thread_local_state* Thread
@@ -143,6 +143,7 @@ struct engine_resources;
 struct thread_local_state;
 
 struct work_queue;
+struct work_queue_job;
 struct work_queue_entry;
 
 typedef void (*bonsai_main_thread_callback)              (BONSAI_API_MAIN_THREAD_CALLBACK_PARAMS);
