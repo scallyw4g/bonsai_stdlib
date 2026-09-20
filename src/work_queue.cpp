@@ -338,7 +338,7 @@ SubmitJob( work_queue *Queue, work_queue_job *Job )
 }
 
 link_internal void
-SubmitJob( work_queue *Queue, work_queue_entry *Entry )
+SubmitSingleTask( work_queue *Queue, work_queue_entry *Entry )
 {
   TIMED_FUNCTION();
 

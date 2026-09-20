@@ -67,8 +67,8 @@ link_internal           void  ReleaseWorkQueueJob(platform *Plat, work_queue_job
 
 link_internal           void  PushTask ( work_queue_job *Job,   work_queue_entry *Task);
 
-link_internal           void  SubmitJob( work_queue     *Queue, work_queue_job   *Job);
-link_internal           void  SubmitJob( work_queue     *Queue, work_queue_entry *Entry);
+link_internal           void  SubmitJob       ( work_queue     *Queue, work_queue_job   *Job);
+link_internal           void  SubmitSingleTask( work_queue    *Queue, work_queue_entry *Task);
 
 link_internal work_queue_job* PopNextJob(platform *Plat, work_queue* Queue);
 
