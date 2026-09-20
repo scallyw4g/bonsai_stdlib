@@ -6,6 +6,17 @@ struct work_queue_entry_block_array;
 struct work_queue_entry;
 struct work_queue_job;
 
+struct global_job_index
+{
+  u32 Index;
+};
+
+struct queue_job_index
+{
+  u32 Index;
+};
+
+
 struct work_queue
 poof(@do_editor_ui)
 {
@@ -15,7 +26,7 @@ poof(@do_editor_ui)
   volatile u32 DequeueIndex;
 
   // @work_queue_job_backing_store
-  volatile u32 *JobIndices;
+  global_job_index *JobIndices;
 };
 
 typedef work_queue* work_queue_ptr;
@@ -69,4 +80,9 @@ BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK()
   WorkerThread_BeforeJobStart(Thread);
 }
 
-link_internal work_queue_entry * GetEntryForJob(platform *Plat, u32 JobIndex, u32 EntryIndex = 0 );
+link_internal global_job_index
+GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex);
+
+link_internal work_queue_entry *
+GetTaskForJob(platform *Plat, global_job_index GlobalJobIndex, u32 TaskIndex = 0 );
+

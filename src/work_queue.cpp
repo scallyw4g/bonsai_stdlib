@@ -1,7 +1,14 @@
-link_internal work_queue_entry *
-GetEntryForJob(platform *Plat, u32 JobIndex, u32 TaskIndex /* = 0 */  )
+link_internal global_job_index
+GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 {
-  work_queue_job *Job = StripVolatile(work_queue_job*, Plat->Jobs+JobIndex);
+  global_job_index Result = Queue->JobIndices[QueueIndex.Index];
+  return Result;
+}
+
+link_internal work_queue_entry *
+GetTaskForJob(platform *Plat, global_job_index GlobalJobIndex, u32 TaskIndex /* = 0 */  )
+{
+  work_queue_job *Job = StripVolatile(work_queue_job*, Plat->Jobs+GlobalJobIndex.Index);
   work_queue_entry* Result = GetPtr(&Job->Tasks, TaskIndex);
   return Result;
 }
@@ -10,8 +17,6 @@ link_internal work_queue_entry *
 PopWorkQueueEntry(platform *Plat, work_queue* Queue)
 {
   TIMED_FUNCTION();
-
-  NotImplemented;
 
   work_queue_entry *Result = {};
   for (;;)
@@ -30,14 +35,16 @@ PopWorkQueueEntry(platform *Plat, work_queue* Queue)
                                            DequeueIndex );
     if ( Exchanged )
     {
-      Result = GetEntryForJob(Plat, DequeueIndex);
+      global_job_index JobIndex = Queue->JobIndices[DequeueIndex];
+      Result = GetTaskForJob(Plat, JobIndex);
       break;
     }
   }
 
 
-  // TODO(Jesse): @assert_job_queue
-  //
+  // @assert_job_queue
+  if (Result) { Assert(Result->Queue == Queue); }
+
   return Result;
 }
 
@@ -62,7 +69,7 @@ DrainQueue(platform *Plat, work_queue* Queue, thread_local_state* Thread, applic
                                            DequeueIndex );
     if ( Exchanged )
     {
-      auto Entry = GetEntryForJob(Plat, DequeueIndex);
+      auto Entry = GetTaskForJob(Plat, GetGlobalJobIndex(Queue, {DequeueIndex}));
       HandleJob(Entry, Thread, GameApi);
     }
   }
@@ -169,7 +176,7 @@ DefaultWorkerThread(void *Input)
                                               DequeueIndex );
       if ( Exchanged )
       {
-        work_queue_entry *Entry = GetEntryForJob(Plat, DequeueIndex);
+        work_queue_entry *Entry = GetTaskForJob(Plat, GetGlobalJobIndex(LowPriority, {DequeueIndex}));
 
         HandleJob(Entry, Thread, &GetStdlib()->AppApi);
 
@@ -225,21 +232,37 @@ InitQueue(work_queue* Queue, memory_arena* Memory)
   Queue->EnqueueIndex = 0;
   Queue->DequeueIndex = 0;
 
-  Queue->JobIndices = Allocate(u32, Memory, WORK_QUEUE_SIZE);
+  Queue->JobIndices = Allocate(global_job_index, Memory, WORK_QUEUE_SIZE);
+}
+
+link_internal void
+ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
+{
+  // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
+  Link_TS(
+    Cast(volatile freelist_entry **, &Plat->JobsFreelist),
+    Cast(freelist_entry *, Job)
+  );
 }
 
 link_internal work_queue_job *
-AllocateWorkQueueJob(platform *Plat)
+ReserveWorkQueueJob(platform *Plat)
 {
-  work_queue_job *Result = {};
-  NotImplemented;
+  // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
+  work_queue_job *Result = Cast(work_queue_job*,
+                             Unlink_TS(
+                               Cast(volatile freelist_entry **, &Plat->JobsFreelist)
+                             )
+                           );
+
+  Assert(Result);
   return Result;
 }
 
 link_internal void
 PushTask(work_queue_job *Job, work_queue_task *Task)
 {
-  NotImplemented;
+  Push(&Job->Tasks, Task);
 }
 
 // TODO(Jesse): We should actually just check which queue the current task
@@ -292,11 +315,11 @@ SubmitJob( work_queue *Queue, work_queue_entry *Entry )
   TIMED_FUNCTION();
 
   // @assert_job_queue
-  Assert(Entry->Queue == 0);
-  Entry->Queue = Queue;
+  Assert(Entry->Queue == Queue);
+  /* Entry->Queue = Queue; */
 
   // TODO(Jesse): Pass in Platform
-  work_queue_job *Job = AllocateWorkQueueJob(GetPlatform());
+  work_queue_job *Job = ReserveWorkQueueJob(GetPlatform());
   PushTask(Job, Entry);
   SubmitJob(Queue, Job);
 }

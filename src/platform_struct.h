@@ -29,6 +29,7 @@ poof(@do_editor_ui)
   v2 MouseDP;
 
   memory_arena *Memory;
+  memory_arena *TaskMemory;
 
   r32 GameTime;
 
