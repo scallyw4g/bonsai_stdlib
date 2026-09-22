@@ -1,3 +1,10 @@
+
+poof(hashtable_impl(work_queue_job_stats))
+#include <generated/hashtable_impl_vPgms0EL.h>
+
+poof(hashtable_get(work_queue_job_stats, {u32}, {HashValue}))
+#include <generated/hashtable_get_h0Mwmj89.h>
+
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 {
@@ -270,6 +277,12 @@ ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
 {
   Plat->FreeJobs = Plat->FreeJobs +1;
 
+  if (work_queue_job_stats *Stats = GetByHashValue(&Plat->JobStatsTable, HashPointer(Job)))
+  {
+    Stats->RetireTime = GetCycleCount();
+    Stats->RetireFrameIndex = GetEngineResources()->FrameIndex;
+  }
+
   // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
   Link_TS(
     Cast(volatile freelist_entry **, &Plat->JobsFreelist),
@@ -278,7 +291,7 @@ ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
 }
 
 link_internal work_queue_job *
-ReserveWorkQueueJob(platform *Plat)
+ReserveWorkQueueJob( platform *Plat, b32 TrackStats /* = False */ )
 {
   Plat->FreeJobs = Plat->FreeJobs -1;
 
@@ -288,6 +301,13 @@ ReserveWorkQueueJob(platform *Plat)
                                Cast(volatile freelist_entry **, &Plat->JobsFreelist)
                              )
                            );
+
+  if (work_queue_job_stats *Stats = InsertBlank(Hash(Result), &Plat->JobStatsTable, Plat->TaskMemory))
+  {
+    Stats->RetireTime = GetCycleCount();
+    Stats->RetireFrameIndex = GetEngineResources()->FrameIndex;
+  }
+
   Assert(Result);
   return Result;
 }

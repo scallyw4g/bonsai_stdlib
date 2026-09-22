@@ -60,10 +60,7 @@ link_internal b32
 ToggledOn(renderer_2d* Ui, ui_id Id)
 {
   b32 Result = False;
-
-  maybe_ui_toggle Maybe = GetById(&Ui->ToggleTable, Id);
-  if (Maybe.Tag) { Result = Maybe.Value.ToggledOn; }
-
+  if (ui_toggle *Toggle = GetById(&Ui->ToggleTable, Id)) { Result = Toggle->ToggledOn; }
   return Result;
 }
 
@@ -1753,6 +1750,7 @@ GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId, window_layout_flags Flags)
     Result = Upsert(Dummy, &Ui->WindowTable, &Ui->WindowTableArena);
   }
 
+  if (u64(Result) == 0x8) { RuntimeBreak(); }
   Assert(Result);
   return Result;
 }

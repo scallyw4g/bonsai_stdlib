@@ -153,7 +153,7 @@ AllocateXmlTokenStream(umm TokenCount, memory_arena* Memory)
   Result.End = Result.Start + TokenCount;
 
   // TODO(Jesse, id: 147, tags: hashing): Profile this and see if it's reasonable
-  Result.Hashes = Allocate_xml_tag_hashtable(TokenCount/10, Memory);
+  Result.Hashes = Allocate_xml_tag_hashtable(SafeTruncateToU32((TokenCount/10)), Memory);
 
   return Result;
 }
@@ -223,7 +223,7 @@ GetCountMatchingTags(xml_token_stream* Tokens, xml_token_stream* Selectors, u32 
   xml_token_stream FirstSelectorStream = *Selectors;
   xml_tag FirstSelector = XmlTagFromReverseStream(&Selectors);
 
-  xml_tag_linked_list_node *RootTag = GetHashBucket(umm(Hash(&FirstSelector)), &Tokens->Hashes);
+  xml_tag_linked_list_node *RootTag = GetHashBucket(Hash(&FirstSelector), &Tokens->Hashes);
 
   u32 MaxTagCount = CountTagsInHashBucket(RootTag);
   xml_tag_stream Result = AllocateXmlTagStream(MaxTagCount, Memory);
@@ -359,13 +359,12 @@ TokenizeXmlStream(ansi_stream* Xml, memory_arena* Memory)
 
       xml_token* OpenToken = PushToken(&Result, XmlOpenToken(StreamValue));
 
-      xml_tag_linked_list_node *Node = Allocate(xml_tag_linked_list_node, Memory, 1);
-      xml_tag *OpenTag = &Node->Element;
+      xml_tag InsertTag = {};
 
-      OpenTag->Open = OpenToken;
-      OpenTag->Parent = TagsAt.CurrentlyOpenTag;
+      InsertTag.Open = OpenToken;
+      InsertTag.Parent = TagsAt.CurrentlyOpenTag;
 
-      Insert(Node, &Result.Hashes);
+      xml_tag *OpenTag = Insert(InsertTag, &Result.Hashes, Memory );
 
       TagsAt.CurrentlyOpenTag = OpenTag;
       if (TagsAt.LastClosedTag)

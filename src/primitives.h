@@ -323,3 +323,18 @@ CAssert(sizeof(base_ptr_relative_edit) == 16);
 
 link_internal b32
 AreEqual(base_ptr_relative_edit *Thing1, base_ptr_relative_edit *Thing2);
+
+link_internal u32
+HashPointer(void *Ptr) {
+    u64 x = Cast(u64, Ptr);
+
+    // Splitmix64 / MurmurHash3 finalizer constants for 64-bit mixing
+    x ^= x >> 30;
+    x *= 0xbf58476d1ce4e5b9ULL;
+    x ^= x >> 27;
+    x *= 0x94d049bb133111ebULL;
+    x ^= x >> 31;
+
+    // The top 32 bits contain highest entropy
+    return Cast(u32, x >> 32);
+}

@@ -817,7 +817,8 @@ poof(
         element_t.has_tag(do_editor_ui)? { @do_editor_ui }
       )
     {
-      umm Size;
+      u32 Size;
+      u32 Pad;
       (element_t.name)_linked_list_node **Elements;
       /* OWNED_BY_THREAD_MEMBER() */
     };
@@ -838,18 +839,18 @@ poof(
     }
 
     link_internal (Type.name)_hashtable
-    Allocate_(Type.name)_hashtable(umm ElementCount, memory_arena *Memory)
+    Allocate_(Type.name)_hashtable(u32 ElementCount, memory_arena *Memory)
     {
       (Type.name)_hashtable Result = {
         .Elements = Allocate( (Type.name)_linked_list_node*, Memory, ElementCount),
         .Size = ElementCount,
-        /* OWNED_BY_THREAD_MEMBER_INIT() */
+        .Pad = 0,
       };
       return Result;
     }
 
     link_internal (Type.name)_linked_list_node *
-    GetHashBucket(umm HashValue, (Type.name)_hashtable *Table)
+    GetHashBucket(u32 HashValue, (Type.name)_hashtable *Table)
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
 
@@ -859,7 +860,7 @@ poof(
     }
 
     link_internal Type.name *
-    GetFirstAtBucket(umm HashValue, (Type.name)_hashtable *Table)
+    GetFirstAtBucket(u32 HashValue, (Type.name)_hashtable *Table)
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
 
@@ -871,7 +872,7 @@ poof(
     link_internal (Type.name)_linked_list_node**
     GetMatchingBucket((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
-      umm HashValue = Hash(&Element) % Table->Size;
+      u32 HashValue = Hash(&Element) % Table->Size;
       (Type.name)_linked_list_node **Bucket = Table->Elements + HashValue;
       while (*Bucket)
       {
@@ -882,18 +883,12 @@ poof(
     }
 
     link_internal Type.name *
-    Insert((Type.name)_linked_list_node *Node, (Type.name)_hashtable *Table)
+    InsertBlank(u32 HashValue, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
-      /* ENSURE_OWNED_BY_THREAD(Table); */
-
       Assert(Table->Size);
-      umm HashValue = Hash(&Node->Element) % Table->Size;
-      (Type.name)_linked_list_node **Bucket = Table->Elements + HashValue;
-      while (*Bucket)
-      {
-        /* Assert(!AreEqual(&Bucket[0]->Element, &Node->Element)); */
-        Bucket = &(*Bucket)->Next;
-      }
+      (Type.name)_linked_list_node **Bucket = Table->Elements + (HashValue % Table->Size);
+      (Type.name)_linked_list_node  *Node   = Allocate_(Type.name)_linked_list_node(Memory);
+      Node->Next = *Bucket;
       *Bucket = Node;
       return &Bucket[0]->Element;
     }
@@ -901,18 +896,16 @@ poof(
     link_internal (Type.name)*
     Insert((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
-      /* ENSURE_OWNED_BY_THREAD(Table); */
-
-      (Type.name)_linked_list_node *Bucket = Allocate_(Type.name)_linked_list_node(Memory);
-      Bucket->Element = Element;
-      Insert(Bucket, Table);
-      return &Bucket->Element;
+      u32 HashValue = Hash(&Element) % Table->Size;
+      auto Result = InsertBlank(HashValue, Table, Memory);
+      *Result = Element;
+      return Result;
     }
 
     link_internal (Type.name)*
     Upsert((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
-      umm HashValue = Hash(&Element) % Table->Size;
+      u32 HashValue = Hash(&Element) % Table->Size;
       (Type.name)_linked_list_node **Bucket = Table->Elements + HashValue;
       while (*Bucket)
       {
@@ -920,16 +913,18 @@ poof(
         Bucket = &(*Bucket)->Next;
       }
 
+      Type.name *Result = {};
       if (*Bucket && Bucket[0]->Tombstoned == False)
       {
         Bucket[0]->Element = Element;
+        Result = &Bucket[0]->Element;
       }
       else
       {
-        Insert(Element, Table, Memory);
+        Result = Insert(Element, Table, Memory);
       }
 
-      return &Bucket[0]->Element;
+      return Result;
     }
 
 
@@ -939,7 +934,7 @@ poof(
 
     struct (Type.name)_hashtable_iterator
     {
-      umm HashIndex;
+      u32 HashIndex;
       (Type.name)_hashtable *Table;
       (Type.name)_linked_list_node *Node;
     };
@@ -1015,14 +1010,14 @@ poof(
 poof(
   func hashtable_get(Type, type_poof_symbol key_type, type_poof_symbol key_name)
   {
-    (Type.name)_linked_list_node*
+    link_internal (Type.name)_linked_list_node*
     GetBucketBy(key_name)( (Type.name)_hashtable *Table, key_type Query )
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
 
       (Type.name)_linked_list_node* Result = {};
 
-      auto *Bucket = GetHashBucket(umm(Hash(&Query)), Table);
+      auto *Bucket = GetHashBucket(Hash(&Query), Table);
       while (Bucket)
       {
         auto E = &Bucket->Element;
@@ -1047,18 +1042,17 @@ poof(
       return Result;
     }
 
-    maybe_(Type.name)
+    link_internal (Type.name) *
     GetBy(key_name)( (Type.name)_hashtable *Table, key_type Query )
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
 
-      maybe_(Type.name) Result = {};
+      (Type.name) *Result = {};
 
       (Type.name)_linked_list_node *Bucket = GetBucketBy(key_name)(Table, Query);
       if (Bucket)
       {
-        Result.Tag = Maybe_Yes;
-        Result.Value = Bucket->Element;
+        Result = &Bucket->Element;
       }
 
       return Result;
@@ -1097,7 +1091,7 @@ poof(
 
       maybe_(Type.name)_ptr Result = {};
 
-      auto *Bucket = GetHashBucket(umm(Hash(&Query)), Table);
+      auto *Bucket = GetHashBucket(Hash(&Query), Table);
       while (Bucket)
       {
         auto E = &Bucket->Element;

@@ -6,6 +6,45 @@ struct work_queue_entry_block_array;
 struct work_queue_entry;
 struct work_queue_job;
 
+struct work_queue_job_stats
+{
+  u32 HashValue;
+
+  u64 ReserveTime;
+  u64 RetireTime;
+
+  u32 ReserveFrameIndex;
+  u32 RetireFrameIndex;
+};
+
+poof(maybe(work_queue_job_stats))
+#include <generated/maybe_AJagpjpK.h>
+
+poof(hashtable_struct(work_queue_job_stats))
+#include <generated/hashtable_struct_u3lpxTm9.h>
+
+link_internal b32
+AreEqual(work_queue_job_stats *Element1, work_queue_job_stats *Element2 )
+{
+  b32 Result = Element1->HashValue == Element2->HashValue;
+  return Result;
+}
+
+link_internal u32
+Hash(work_queue_job *Element)
+{
+  u32 Result = HashPointer(Element);
+  return Result;
+}
+
+link_internal u32
+Hash(work_queue_job_stats *Element)
+{
+  u32 Result = Element->HashValue;
+  return Result;
+}
+
+
 struct global_job_index
 {
   u32 Index;
@@ -62,7 +101,7 @@ QueueIsFull(work_queue *Queue)
 
 link_internal work_queue_job* AllocateWorkQueueJob(platform *Plat);
 
-link_internal work_queue_job* ReserveWorkQueueJob(platform *Plat);
+link_internal work_queue_job* ReserveWorkQueueJob(platform *Plat, b32 TrackStats = 0);
 link_internal           void  ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job);
 
 link_internal           void  PushTask ( work_queue_job *Job,   work_queue_entry *Task);

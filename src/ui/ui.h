@@ -119,10 +119,10 @@ poof(@do_editor_ui)
 };
 
 
-link_internal u64
+link_internal u32
 Hash(window_layout *E)
 {
-  u64 Result = Hash(&E->HashtableKey);
+  u32 Result = Hash(&E->HashtableKey);
   return Result;
 }
 
@@ -315,7 +315,7 @@ typedef ui_toggle* ui_toggle_ptr;
 // TODO(Jesse): Move this?
 /* link_internal umm Hash(umm *Value) { return *Value; } */
 
-link_internal umm
+link_internal u32
 Hash(ui_toggle *Toggle)
 {
   return Hash(&Toggle->Id);

@@ -147,16 +147,16 @@ XmlIntToken(counted_string Name, counted_string Value)
   return Result;
 }
 
-inline u64
+inline u32
 Hash(xml_token* Token)
 {
-  u64 Result = Hash(&Token->Property.Name);
+  u32 Result = Hash(&Token->Property.Name);
   return Result;
 }
 
-inline u64
+inline u32
 Hash(xml_tag* Tag)
 {
-  u64 Result = Hash(Tag->Open);
+  u32 Result = Hash(Tag->Open);
   return Result;
 }

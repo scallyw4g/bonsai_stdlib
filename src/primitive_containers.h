@@ -20,10 +20,10 @@ struct u32_hashtable_wrapper
   u32 N;
 };
 
-link_inline umm Hash(u32 *E) { return umm(ChrisWellonsIntegerHash_lowbias32(*E)); }
-link_inline umm Hash(u64 *E) { NotImplemented; return 0; }
+link_inline u32 Hash(u32 *E) { return ChrisWellonsIntegerHash_lowbias32(*E); }
+link_inline u32 Hash(u64 *E) { NotImplemented; return 0; }
 
-link_inline umm
+link_inline u32
 Hash(u32_hashtable_wrapper *E) { return Hash(&E->N); }
 
 poof(maybe(u32))

@@ -96,10 +96,10 @@ poof(generate_cursor(parser))
 poof(generate_stream(parser))
 #include <generated/generate_stream_parser.h>
 
-link_internal u64
+link_internal u32
 Hash(parser *Parser)
 {
-  u64 Result = Hash(&Parser->Tokens->Filename);
+  u32 Result = Hash(&Parser->Tokens->Filename);
   return Result;
 }
 

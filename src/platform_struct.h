@@ -27,6 +27,8 @@ poof(@do_editor_ui)
   volatile u32 FreeJobs;
   u32 TotalJobs;
 
+  work_queue_job_stats_hashtable JobStatsTable;
+
   v2 MouseP;
   v2 MouseDP;
 

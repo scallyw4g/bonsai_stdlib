@@ -21,14 +21,17 @@ IsValid(ui_id *Id)
   return Reuslt;
 }
 
-link_internal u64
+link_internal u32
 Hash(ui_id *Id)
 {
-  u64 Result =
-    ChrisWellonsIntegerHash_lowbias32(Id->E[0]) +
-    ChrisWellonsIntegerHash_lowbias32(Id->E[1]) +
-    ChrisWellonsIntegerHash_lowbias32(Id->E[2]) +
+  u32 Result =
+    ChrisWellonsIntegerHash_lowbias32(Id->E[0]) ^
+    ChrisWellonsIntegerHash_lowbias32(Id->E[1]) ^
+    ChrisWellonsIntegerHash_lowbias32(Id->E[2]) ^
     ChrisWellonsIntegerHash_lowbias32(Id->E[3]) ;
+    // NOTE(Jesse): No idea why, but this broke some window interactions (drag, resize)
+    /* HashPointer(Cast(void*, Id->E + 0)) ^ */
+    /* HashPointer(Cast(void*, Id->E + 2)) ; */
   return Result;
 }
 

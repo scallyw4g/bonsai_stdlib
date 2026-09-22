@@ -1069,10 +1069,10 @@ f64ToChar(char_cursor* Dest, r64 Value, u32 Precision = DEFAULT_FORMAT_PRECISION
 /* TODO(Jesse, id: 81, tags: string_hash): Theres' a null terminated
  * string-hash bonsai_function that should be replaced by this one most likely
  */
-inline u64
+inline u32
 Hash(counted_string* String)
 {
-  u64 Result = 0;
+  u32 Result = 0;
 
 #if 1
   /* TODO(Jesse, id: 82, tags: robustness, rng, hashing): 257 seemed to produce
@@ -1129,7 +1129,7 @@ Hash(counted_string* String)
   return Result;
 }
 
-inline u64
+inline u32
 Hash(counted_string String)
 {
   return Hash(&String);
