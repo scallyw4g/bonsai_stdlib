@@ -1733,7 +1733,7 @@ TextBox(renderer_2d *Ui, cs Label, cs Dest, u32 DestLen, ui_id ButtonId, ui_rend
 /********************************            *********************************/
 
 link_internal window_layout *
-GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId, window_layout_flags Flags)
+GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId, window_layout_flags Flags, v2 InitialBasis, v2 InitialSize)
 {
   maybe_window_layout_ptr MaybeWindow = GetPtrByHashtableKey( &Ui->WindowTable, WindowId );
 
@@ -1748,6 +1748,7 @@ GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId, window_layout_flags Flags)
     Dummy.HashtableKey = WindowId;
     Dummy.Flags = Flags;
     Result = Upsert(Dummy, &Ui->WindowTable, &Ui->WindowTableArena);
+    Result->Basis = InitialBasis;
   }
 
   if (u64(Result) == 0x8) { RuntimeBreak(); }
@@ -1756,10 +1757,15 @@ GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId, window_layout_flags Flags)
 }
 
 link_internal window_layout *
-GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, window_layout_flags Flags = WindowLayoutFlag_Default)
+GetOrCreateWindow( renderer_2d *Ui,
+    const char *WindowName,
+    window_layout_flags Flags = WindowLayoutFlag_Default,
+    v2 InitialBasis = {},
+    v2 InitialSize = {}
+    )
 {
   ui_id ID = UiId(WindowName);
-  window_layout *Result = GetOrCreateWindow(Ui, ID, Flags);
+  window_layout *Result = GetOrCreateWindow(Ui, ID, Flags, InitialBasis, InitialSize);
 
   if (Result)
   {
@@ -1772,9 +1778,16 @@ GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, window_layout_flags F
 link_internal window_layout *
 GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, s32 FlagsInt)
 {
+  ui_id ID = UiId(WindowName);
   window_layout_flags Flags = window_layout_flags(FlagsInt);
-  /* Assert(IsValid(Flags)); */
   auto Result = GetOrCreateWindow(Ui, WindowName, Flags);
+  return Result;
+}
+
+link_internal window_layout *
+GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, v2 InitialBasis, v2 InitialSize = DefaultWindowSize)
+{
+  auto Result = GetOrCreateWindow(Ui, WindowName, WindowLayoutFlag_Default, InitialBasis, InitialSize);
   return Result;
 }
 
@@ -3703,7 +3716,7 @@ DoModalInteraction(renderer_2d *Ui, rect2 ModalBounds)
   input *Input = Ui->Input;
   if (Ui->ActiveModalCallback)
   {
-    local_persist window_layout ModalWindow = WindowLayout("Modal -- TODO(Jesse): Dynamic window name?", ModalBounds.Min, ModalBounds.Max, WindowLayoutFlag_None);
+    window_layout ModalWindow = GetOrCreateWindow(Ui, "Modal -- TODO(Jesse): Dynamic window name?", ModalBounds.Min, ModalBounds.Max, WindowLayoutFlag_None);
     ModalWindow.InteractionStackIndex = INTERACTION_ALWAYS_ON_TOP;
 
     PushBorderlessWindowStart( Ui, &ModalWindow );
