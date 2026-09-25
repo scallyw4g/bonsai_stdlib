@@ -164,7 +164,12 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
 link_internal b32
 PlatformRenameFile(cs CurrentFilePath, cs NewFilePath)
 {
-  b32 Result = (MoveFileEx(GetNullTerminated(CurrentFilePath), GetNullTerminated(NewFilePath), MOVEFILE_REPLACE_EXISTING) != 0);
+  b32 Result = (MoveFileEx(
+        GetNullTerminated(CurrentFilePath),
+        GetNullTerminated(NewFilePath),
+        MOVEFILE_REPLACE_EXISTING | // Overwrite if exists
+        MOVEFILE_WRITE_THROUGH)     // Block until write is complete and flush write
+      != 0);
 
   if (Result == False) { Win32PrintLastError(); }
   return Result;
