@@ -22,7 +22,7 @@
 link_inline f32 Cos(f32 x);
 
 poof(vector_interpolation_functions(f32))
-#include <generated/gen_lerp_f32.h>
+#include <generated/vector_interpolation_functions$f32$SWsoeOVj.h>
 
 inline u64
 Abs(s64 Int)
@@ -438,7 +438,7 @@ poof(
 )
 
 poof(scalar_math_fuctions({r32 r64 u32 u64 s32 s64}))
-#include <generated/scalar_math_fuctions_451039071.h>
+#include <generated/scalar_math_fuctions$451039071$qTOEKvD5.h>
 
 inline r32
 ClampBilateral(r32 F)

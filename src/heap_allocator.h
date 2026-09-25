@@ -34,10 +34,10 @@ struct heap_allocation_block
 #pragma pack(pop)
 
 poof(are_equal(heap_allocation_block))
-#include <generated/are_equal_xuSvDnE8.h>
+#include <generated/are_equal$heap_allocation_block$gOcg7kUP.h>
 
 poof(block_array_h(heap_allocation_block, {256}, {}))
-#include <generated/block_array_h_HLVwiHSZ.h>
+#include <generated/block_array_h$heap_allocation_block.688730424.0$VtcZjj5y.h>
 
 struct heap_allocator
 {

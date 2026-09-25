@@ -1,5 +1,5 @@
 poof(buffer(thread_main_callback_type))
-#include <generated/buffer_thread_main_callback_type.h>
+#include <generated/buffer$thread_main_callback_type$iXBLu3wV.h>
 
 #define DEBUG_THREAD_COUNT_BIAS (0)
 

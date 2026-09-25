@@ -8,31 +8,31 @@
 /* AllocateGpuElementBuffer(gpu_mapped_ui_buffer *GpuMap, data_type Type, u32 ElementCount); */
 
 poof(shader_magic(textured_quad_render_pass, {}))
-#include <generated/shader_magic_textured_quad_render_pass.h>
+#include <generated/shader_magic$textured_quad_render_pass.0$78jHhhYJ.h>
 
 #define u32_COUNT_PER_QUAD (6)
 
 
 poof(buffer_c(ui_toggle_button_handle, u32))
-#include <generated/buffer_ui_toggle_button_handle.h>
+#include <generated/buffer_c$ui_toggle_button_handle.u32$cvf2ngXH.h>
 
 poof(hashtable_impl(ui_toggle))
-#include <generated/hashtable_impl_ui_toggle.h>
+#include <generated/hashtable_impl$ui_toggle$9LVdsVvi.h>
 
 poof(hashtable_get(ui_toggle, {ui_id}, {Id}))
-#include <generated/hashtable_get_ui_toggle_31501_688856534.h>
+#include <generated/hashtable_get$ui_toggle.705671517.688856534$tY8wJ6Sc.h>
 
 poof(hashtable_get_ptr(ui_toggle, {ui_id}, {Id}))
-#include <generated/hashtable_get_ptr_ui_toggle_31501_688856534.h>
+#include <generated/hashtable_get_ptr$ui_toggle.705671517.688856534$lbLH8wku.h>
 
 
 poof(hashtable_impl(window_layout))
-#include <generated/hashtable_impl_window_layout.h>
+#include <generated/hashtable_impl$window_layout$YMDNiG5r.h>
 
 poof(hashtable_get(window_layout, {ui_id}, {HashtableKey}))
-#include <generated/hashtable_get_window_layout_705671517_599498827.h>
+#include <generated/hashtable_get$window_layout.705671517.599498827$LAbuyf0r.h>
 poof(hashtable_get_ptr(window_layout, {ui_id}, {HashtableKey}))
-#include <generated/hashtable_get_ptr_window_layout_705671517_599498827.h>
+#include <generated/hashtable_get_ptr$window_layout.705671517.599498827$6gIXZWie.h>
 link_internal ui_toggle_button_group
 DrawButtonGroupForEnum(
                                renderer_2d *Ui,
@@ -2561,7 +2561,7 @@ ResetAllLayouts(ui_render_command_buffer* CommandBuffer)
           }
         }
       )
-#include <generated/anonymous_ui_render_command_nKuoMe2B.h>
+#include <generated/poof_func.anonymous$ui_render_command$lpXhktoE.h>
 
       default: {} break;
     }
@@ -2608,7 +2608,7 @@ FindAbsoluteDrawBoundsBetween(ui_render_command_buffer* CommandBuffer, u32 First
           }
         }
       )
-#include <generated/anonymous_function_ui_render_command_RuTTrHiW.h>
+#include <generated/poof_func.anonymous$ui_render_command$Q2pvqZYK.h>
 
       default: {} break;
     }
@@ -3764,7 +3764,7 @@ DoTextEditInteraction(renderer_2d *Ui)
         }
       }
     )
-#include <generated/anonymous_input_Lwen2qoF.h>
+#include <generated/poof_func.anonymous$input$cLbOQUYT.h>
   }
 
   Assert(Text.Count <= Ui->TextEdit.TextBufferLen);

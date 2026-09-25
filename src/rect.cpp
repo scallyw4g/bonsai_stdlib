@@ -1,2 +1,2 @@
 poof(buffer(rect3i))
-#include <generated/buffer_rect3i.h>
+#include <generated/buffer$rect3i$5xCBHVhw.h>

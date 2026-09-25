@@ -1,8 +1,8 @@
 poof(bubble_sort({sort_key sort_key_f64 sort_key_f32 sort_key_string}))
-#include <generated/bubble_sort_686708022.h>
+#include <generated/bubble_sort$6040224$0tG1UP6m.h>
 
 poof(buffer(sort_key))
-#include <generated/buffer_sort_key.h>
+#include <generated/buffer$sort_key$O1dWtp1Y.h>
 
 
 link_internal void

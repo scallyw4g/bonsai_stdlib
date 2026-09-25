@@ -10,7 +10,7 @@ typedef r32 (*noise_callback)(r32, r32, r32);
 typedef r32 (*noise_callback_derivs)(r32, r32, r32, v3*);
 
 poof(gen_constructor(perlin_params))
-#include <generated/gen_constructor_perlin_params.h>
+#include <generated/gen_constructor$perlin_params$cKLOeaAl.h>
 
 link_inline perlin_params
 PerlinParams(u32 P0, u32 P1, f32 Fract0, f32 Fract1, f32 Fade)

@@ -46,7 +46,7 @@ poof(@do_editor_ui)
 
 typedef texture* texture_ptr;
 poof(block_array_h(texture, {8}, {}))
-#include <generated/block_array_h_texture_688856411_0.h>
+#include <generated/block_array_h$texture.688856411.0$UqYK6u1T.h>
 
 poof(block_array_h(texture_ptr, {8}, {}))
-#include <generated/block_array_h_texture_688856411.h>
+#include <generated/block_array_h$texture_ptr.688856411.0$HnVCs72m.h>

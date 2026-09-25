@@ -11,7 +11,7 @@
 // NOTE(Jesse): This is here such that we can see "StringsMatch()"
 //
 poof(string_and_value_tables(log_level));
-#include <generated/string_and_value_tables_log_level.h>
+#include <generated/string_and_value_tables$log_level$nCbGpHvJ.h>
 
 // TODO(Jesse, globals_cleanup): Put these on stdlib ..?
 global_variable native_file Stdout = {};

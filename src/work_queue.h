@@ -18,10 +18,10 @@ struct work_queue_job_stats
 };
 
 poof(maybe(work_queue_job_stats))
-#include <generated/maybe_AJagpjpK.h>
+#include <generated/maybe$work_queue_job_stats$CMxSjZIb.h>
 
 poof(hashtable_struct(work_queue_job_stats))
-#include <generated/hashtable_struct_u3lpxTm9.h>
+#include <generated/hashtable_struct$work_queue_job_stats$63sewgEk.h>
 
 link_internal b32
 AreEqual(work_queue_job_stats *Element1, work_queue_job_stats *Element2 )

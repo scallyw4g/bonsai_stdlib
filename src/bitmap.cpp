@@ -35,7 +35,7 @@ struct bitmap
 #pragma pack(pop)
 
 poof(buffer(bitmap))
-#include <generated/buffer_bitmap.h>
+#include <generated/buffer$bitmap$Gh3YBUPR.h>
 
 link_internal void
 SwizzleRedToBlueChannel(u32_cursor *PixelCursor)
@@ -74,7 +74,7 @@ enum bitmap_compression_type
   BitmapCompressionType_CMYKRLE4       = 13, // ?
 };
 poof(string_and_value_tables(bitmap_compression_type))
-#include <generated/string_and_value_tables_bitmap_compression_type.h>
+#include <generated/string_and_value_tables$bitmap_compression_type$Rn2yj2rq.h>
 
 link_internal bitmap
 ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
@@ -197,7 +197,7 @@ ReadBitmapFromDisk(const char *Filename, memory_arena *Arena)
 }
 
 poof(block_array(bitmap, {32}))
-#include <generated/block_array_bitmap_688853862.h>
+#include <generated/block_array$bitmap.688853862$UAVp7ajk.h>
 
 b32
 WriteBitmapToDisk(bitmap *Bitmap, const char *Filename)

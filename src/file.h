@@ -26,10 +26,10 @@ struct file_traversal_node
 };
 
 poof(are_equal(file_traversal_node))
-#include <generated/are_equal_file_traversal_node.h>
+#include <generated/are_equal$file_traversal_node$u5MDSa2Q.h>
 
 poof(maybe(file_traversal_node))
-#include <generated/maybe_file_traversal_node.h>
+#include <generated/maybe$file_traversal_node$amaBC7e6.h>
 
 typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal_node, u64 UserData);
 

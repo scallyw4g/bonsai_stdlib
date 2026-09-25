@@ -1,44 +1,44 @@
 // TODO(Jesse): Seems like this and ansi_stream.h have a lot of overlap..
 
 poof(buffer(u32))
-#include <generated/buffer_u32.h>
+#include <generated/buffer$u32$ywM22FBA.h>
 
 /* poof(deep_copy(u32_buffer)) */
 /* #include <generated/deep_copy_u32_buffer.h> */
 
 poof(stream_and_cursor(u32))
-#include <generated/stream_and_cursor_u32.h>
+#include <generated/stream_and_cursor$u32$oC7BbuUQ.h>
 
 /* poof(generate_cursor(u8)) */
 /* #include <generated/generate_cursor_u8.h> */
 
 poof(deep_copy(u32_cursor))
-#include <generated/deep_copy_u32_stream.h>
+#include <generated/deep_copy$u32_cursor$9P1i2DoM.h>
 
 poof(generate_stream_compact(u32))
-#include <generated/generate_stream_compact_u32.h>
+#include <generated/generate_stream_compact$u32$Tc63Kvj3.h>
 
 typedef u32_cursor* u32_cursor_ptr;
 
 poof(buffer(u64))
-#include <generated/buffer_u64.h>
+#include <generated/buffer$u64$00SA9mM9.h>
 
 poof(generate_cursor_functions(u64))
-#include <generated/generate_cursor_functions_u64.h>
+#include <generated/generate_cursor_functions$u64$LjntdrA1.h>
 
 poof(generate_stream(u64))
-#include <generated/generate_stream_u64.h>
+#include <generated/generate_stream$u64$RryEWaAU.h>
 
 poof(generate_stream_compact(u64))
-#include <generated/generate_stream_compact_u64.h>
+#include <generated/generate_stream_compact$u64$U7KyMCHs.h>
 
 
 poof(stream_and_cursor(s32))
-#include <generated/stream_and_cursor_s32.h>
+#include <generated/stream_and_cursor$s32$kX2Fowd8.h>
 
 
 poof(generate_cursor(v3))
-#include <generated/generate_cursor_v3.h>
+#include <generated/generate_cursor$v3$eZW0qmJr.h>
 
 
 
@@ -439,7 +439,7 @@ poof(
 )
 
 poof(gen_read_primitive_from_native_file({s8 u8 s16 u16 s32 u32 s64 u64}))
-#include <generated/gen_read_primitive_from_native_file_803324607.h>
+#include <generated/gen_read_primitive_from_native_file$803324607$QZZSwJbj.h>
 
 //
 // Little endian
@@ -511,7 +511,7 @@ ReadArray_u8(u8_stream *Source, u32 Count)
 }
 
 poof(gen_read_primitive_from_u8_cursor_little_endian({s8 s16 u16 s32 u32 s64 u64}))
-#include <generated/gen_read_primitive_from_u8_cursor_little_endian_851742148.h>
+#include <generated/gen_read_primitive_from_u8_cursor_little_endian$851742148$b8olvsbL.h>
 
 
 
@@ -570,10 +570,10 @@ poof(
 )
 
 poof(gen_read_primitive(u32))
-#include <generated/gen_read_primitive_u32.h>
+#include <generated/gen_read_primitive$u32$deCOy27U.h>
 
 poof(gen_read_primitive(u64))
-#include <generated/gen_read_primitive_u64.h>
+#include <generated/gen_read_primitive$u64$N1W7HWfE.h>
 
 
 
@@ -662,7 +662,7 @@ poof(
 )
 
 poof(gen_write_primitive_from_u8_stream_little_endian({s8 u8 s16 u16 s32 u32 s64 u64}))
-#include <generated/gen_write_primitive_from_u8_stream_803324607.h>
+#include <generated/gen_write_primitive_from_u8_stream_little_endian$803324607$FLQ2VR7M.h>
 
 
 link_internal b32

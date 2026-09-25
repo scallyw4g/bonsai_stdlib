@@ -1,5 +1,5 @@
 poof(hashtable(parser))
-#include <generated/hashtable_parser.h>
+#include <generated/hashtable$parser$x7YEfYcv.h>
 
 global_variable counted_string_stream Global_ErrorStream = { &Global_PermMemory, 0, 0, 0 };
 

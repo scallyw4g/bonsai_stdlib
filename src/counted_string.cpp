@@ -27,21 +27,21 @@ GetTempFmtBuffer()
 }
 
 poof(buffer(counted_string))
-#include <generated/buffer_counted_string.h>
+#include <generated/buffer$counted_string$mPnN70eW.h>
 
 typedef counted_string_buffer cs_buffer;
 
 poof(index_of(counted_string))
-#include <generated/index_of_counted_string.h>
+#include <generated/index_of$counted_string$2mxK73eW.h>
 
 poof(hashtable(counted_string))
-#include <generated/hashtable_counted_string.h>
+#include <generated/hashtable$counted_string$CIuvYm1c.h>
 
 poof(tuple({cs cs}))
-#include <generated/tuple_822959015.h>
+#include <generated/tuple$822959015$TJVypo37.h>
 
 poof(generate_stream(tuple_cs_cs))
-#include <generated/generate_stream_tuple_cs_cs.h>
+#include <generated/generate_stream$tuple_cs_cs$XngqNvMV.h>
 
 link_internal void
 ConcatStreams(counted_string_stream* S1, counted_string_stream* S2, memory_arena* Memory)
@@ -55,7 +55,7 @@ ConcatStreams(counted_string_stream* S1, counted_string_stream* S2, memory_arena
 }
 
 poof(buffer_builder(tuple_cs_cs))
-#include <generated/buffer_builder_tuple_cs_cs.h>
+#include <generated/buffer_builder$tuple_cs_cs$ZxLq2mW6.h>
 
 
 
@@ -179,43 +179,43 @@ poof(
 )
 
 poof(string_concat(2, {memory_arena}, {AllocateProtection}))
-#include <generated/string_concat_2.h>
+#include <generated/string_concat$2.191581398.691371982$fdVyP3L9.h>
 poof(string_concat(3, {memory_arena}, {AllocateProtection}))
-#include <generated/string_concat_3.h>
+#include <generated/string_concat$3.191581398.691371982$K120Trq1.h>
 poof(string_concat(4, {memory_arena}, {AllocateProtection}))
-#include <generated/string_concat_4.h>
+#include <generated/string_concat$4.191581398.691371982$EFmlQj0R.h>
 poof(string_concat(5, {memory_arena}, {AllocateProtection}))
-#include <generated/string_concat_5.h>
+#include <generated/string_concat$5.191581398.691371982$XOGF5nu4.h>
 poof(string_concat(6, {memory_arena}, {AllocateProtection}))
-#include <generated/string_concat_6.h>
+#include <generated/string_concat$6.191581398.691371982$ymnaYrs5.h>
 poof(string_concat(7, {memory_arena}, {AllocateProtection}))
-#include <generated/string_concat_7.h>
+#include <generated/string_concat$7.191581398.691371982$h9jqG01r.h>
 poof(string_concat(8, {memory_arena}, {AllocateProtection}))
-#include <generated/string_concat_8.h>
+#include <generated/string_concat$8.191581398.691371982$FUGn1UPL.h>
 poof(string_concat(9, {memory_arena}, {AllocateProtection}))
-#include <generated/string_concat_9.h>
+#include <generated/string_concat$9.191581398.691371982$Sl0tCNXD.h>
 poof(string_concat(10, {memory_arena}, {AllocateProtection}))
-#include <generated/string_concat_10.h>
+#include <generated/string_concat$10.191581398.691371982$3djNDRBT.h>
 
 
 poof(string_concat(2, {heap_allocator} {HeapAlloc}))
-#include <generated/string_concat_e9LuOotf.h>
+#include <generated/string_concat$2.551434401.190647831$stjMnRne.h>
 poof(string_concat(3, {heap_allocator} {HeapAlloc}))
-#include <generated/string_concat_VITTv1fC.h>
+#include <generated/string_concat$3.551434401.190647831$Yh7iDa4S.h>
 poof(string_concat(4, {heap_allocator} {HeapAlloc}))
-#include <generated/string_concat_BtCc0m88.h>
+#include <generated/string_concat$4.551434401.190647831$V7PlIlVF.h>
 poof(string_concat(5, {heap_allocator} {HeapAlloc}))
-#include <generated/string_concat_JS19evGm.h>
+#include <generated/string_concat$5.551434401.190647831$KQHSiRjl.h>
 poof(string_concat(6, {heap_allocator} {HeapAlloc}))
-#include <generated/string_concat_plWVg6MZ.h>
+#include <generated/string_concat$6.551434401.190647831$goyOw83u.h>
 poof(string_concat(7, {heap_allocator} {HeapAlloc}))
-#include <generated/string_concat_6fJo9rZ9.h>
+#include <generated/string_concat$7.551434401.190647831$1q7pl5wP.h>
 poof(string_concat(8, {heap_allocator} {HeapAlloc}))
-#include <generated/string_concat_vmDblFNI.h>
+#include <generated/string_concat$8.551434401.190647831$ynXT9ie8.h>
 poof(string_concat(9, {heap_allocator} {HeapAlloc}))
-#include <generated/string_concat_j2qXwRyR.h>
+#include <generated/string_concat$9.551434401.190647831$iEcX9gLS.h>
 poof(string_concat(10, {heap_allocator} {HeapAlloc}))
-#include <generated/string_concat_oql3ieBj.h>
+#include <generated/string_concat$10.551434401.190647831$93h3Bx2t.h>
 
 
 link_internal const char*
@@ -871,7 +871,7 @@ poof(
 )
 
 poof(to_hex_64({s64 u64 r64}))
-#include <generated/to_hex_64_272205387.h>
+#include <generated/to_hex_64$272205387$TbC1E32A.h>
 
 link_internal counted_string
 FormatThousands(u64 Number)
@@ -928,4 +928,4 @@ Split(cs String, char SplitTarget, memory_arena *Memory)
 
 
 poof(block_array_c(counted_string, {32}))
-#include <generated/block_array_c_counted_string_688853862_counted_string_block_array_counted_string_block_counted_string_block_array_index.h>
+#include <generated/block_array_c$counted_string.688853862$7Vtdqh8g.h>

@@ -1,9 +1,9 @@
 
 poof(block_array(rtt_framebuffer, {8}))
-#include <generated/block_array_brTXSu6y.h>
+#include <generated/block_array$rtt_framebuffer.688856411$Tr8hMXyn.h>
 
 poof(circular_buffer_c(rtt_framebuffer, {static_cursor_3}))
-#include <generated/circular_buffer_c_vvQpAEsJ.h>
+#include <generated/circular_buffer_c$rtt_framebuffer.214174779$4ZY6lMI1.h>
 
 
 framebuffer

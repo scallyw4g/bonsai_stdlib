@@ -3,13 +3,13 @@
 #include <sys/stat.h>
 
 poof(buffer(file_traversal_node))
-#include <generated/buffer_file_traversal_node.h>
+#include <generated/buffer$file_traversal_node$1ENhkgdt.h>
 
 poof(block_array(file_traversal_node, {32}))
-#include <generated/block_array_file_traversal_node_688853862.h>
+#include <generated/block_array$file_traversal_node.688853862$aSU5vJNT.h>
 
 poof(flatten_block_array(file_traversal_node))
-#include <generated/flatten_block_array_file_traversal_node.h>
+#include <generated/flatten_block_array$file_traversal_node$V5XAQAQm.h>
 
 // TODO(Jesse): The Create and Delete functions here are identical mirrors of
 // each other.. metaprogram them.

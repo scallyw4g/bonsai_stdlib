@@ -44,7 +44,7 @@ struct xml_tag
 };
 
 poof(hashtable_struct(xml_tag));
-#include <generated/hashtable_struct_xml_tag.h>
+#include <generated/hashtable_struct$xml_tag$n765L3wt.h>
 
 struct xml_token_stream
 {

@@ -34,7 +34,7 @@ VertexMaterial( u16 ColorIndex , f32 Transparency , f32 Emission  )
 typedef vertex_material matl;
 
 poof(gen_constructor(vertex_material))
-#include <generated/gen_constructor_vertex_material.h>
+#include <generated/gen_constructor$vertex_material$TN21FA6g.h>
 
 inline void
 FillArray(vertex_material Color, vertex_material *Dest, s32 Count)

@@ -54,13 +54,13 @@ ToString(cs *Element)
 }
 
 poof(to_string_primitive({s8 u8 s16 u16 s32 u32 s64 u64 f32 f64}))
-#include <generated/to_string_primitive_803324607.h>
+#include <generated/to_string_primitive$103038030$n4NiNpYh.h>
 
 poof(to_string_vector({v2 v2i}))
-#include <generated/to_string_vector_240271411.h>
+#include <generated/to_string_vector$240271411$rJYvB8Q9.h>
 
 poof(string_and_value_tables(texture_storage_format))
-#include <generated/string_and_value_tables_texture_storage_format.h>
+#include <generated/string_and_value_tables$texture_storage_format$TaJkLisr.h>
 
 poof(to_string(texture))
-#include <generated/to_string_texture.h>
+#include <generated/to_string$texture$QackrOQm.h>

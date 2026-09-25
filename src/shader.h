@@ -196,7 +196,7 @@ struct shader_uniform
 };
 
 poof(buffer_h(shader_uniform, u32))
-#include <generated/buffer_h_struct_u32.h>
+#include <generated/buffer_h$shader_uniform.u32$m48mt158.h>
 
 struct shader
 poof(@do_editor_ui)
@@ -216,7 +216,7 @@ poof(@do_editor_ui)
 typedef shader* shader_ptr;
 
 poof(block_array_h(shader_ptr, {64}, {}))
-#include <generated/block_array_h_shader_ptr_688853972_0.h>
+#include <generated/block_array_h$shader_ptr.688853971.0$ooRvWpUh.h>
 
 enum shader_language_setting
 {
