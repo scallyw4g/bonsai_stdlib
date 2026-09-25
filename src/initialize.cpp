@@ -42,8 +42,17 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
     Stdlib->ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, s32(TotalThreadCount), ThreadState_UserData, Memory);
 
-    s32 TotalJobs = WORK_QUEUE_SIZE*6;
-    AllocateJobsArray(Plat, TotalJobs);
+    {
+      memory_arena *WorkQueueMemory = AllocateArena();
+
+      s32 TotalJobs = WORK_QUEUE_SIZE*6;
+      AllocateJobsArray(Plat, TotalJobs);
+
+      InitQueue(&Plat->HighPriority, WorkQueueMemory);
+      InitQueue(&Plat->LowPriority,  WorkQueueMemory);
+      InitQueue(&Plat->HiRenderQ,    WorkQueueMemory);
+      InitQueue(&Plat->LoRenderQ,    WorkQueueMemory);
+    }
   }
   else
   {

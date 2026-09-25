@@ -160,7 +160,7 @@ DefaultWorkerThread(void *Input)
     // NOTE(Jesse): This is here to ensure the game lib (and, by extesion, the debug lib)
     // has ThreadLocal_ThreadIndex set.  This is super annoying and I want a better solution.
     WorkerThread_BeforeJobStart(Thread);
-    GetStdlib()->AppApi.WorkerBeforeJob(Thread);
+    if (Stdlib->AppApi.WorkerBeforeJob) { Stdlib->AppApi.WorkerBeforeJob(Thread); }
 
     AtomicIncrement(HighPriorityWorkerCount);
     DrainQueue(Plat, HighPriority, Thread, &GetStdlib()->AppApi );
@@ -263,6 +263,10 @@ InitQueue(work_queue* Queue, memory_arena* Memory)
 link_internal work_queue_job *
 ReserveWorkQueueJob( platform *Plat, b32 TrackStats /* = False */ )
 {
+  Assert(Plat->Jobs);
+  Assert(Plat->JobsFreelist);
+  Assert(Plat->FreeJobs > 0);
+
   Plat->FreeJobs = Plat->FreeJobs -1;
 
   // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?

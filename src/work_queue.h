@@ -132,3 +132,5 @@ PopNextTask(work_queue_job *Job);
 link_internal work_queue_task *
 PeekNextTask(work_queue_job *Job);
 
+link_internal void
+InitQueue(work_queue* Queue, memory_arena* Memory);

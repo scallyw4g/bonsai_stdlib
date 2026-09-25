@@ -2,13 +2,90 @@
 #include <bonsai_stdlib/src/work_queue.cpp>
 
 
+
+
+poof(
+  for_datatypes(func)
+  func (func_t)
+  {
+    func_t.has_tag(async)?
+    {
+      asyncify_function_h(func_t)
+    }
+  }
+)
+#include <generated/poof_builtin.for_datatypes$$xNu9PZU4.h>
+
+// Generate tagged_union for async functions
+//
+enum async_function_call_type
+{
+  poof(
+    for_datatypes(struct) @code_fragment
+    func (struct_t)
+    {
+      struct_t.has_tag(async_function_params)?
+      {
+        type_(struct_t.name),
+      }
+    }
+  )
+#include <generated/poof_builtin.for_datatypes$$7tfbKRrw.h>
+};
+
+#if 1
+struct work_queue_task_async_function_call
+{
+  async_function_call_type Type;
+  union
+  {
+    compile_shader_pair_async_params compile_shader_pair_async_params;
+    finalize_and_flush_async_params finalize_and_flush_async_params;
+  };
+};
+#else
+poof(
+  func gen_work_queue_task_async_function_call()
+  {
+    struct work_queue_task_async_function_call
+    {
+      async_function_call_type Type;
+      union
+      {
+        for_datatypes(struct) @code_fragment
+        func (struct_t)
+        {
+          struct_t.has_tag(async_function_params)?
+          {
+            struct_t.name struct_t.name;
+          }
+        }
+      };
+    };
+  }
+)
+
+poof(gen_work_queue_task_async_function_call())
+#include <generated/gen_work_queue_task_async_function_call$$rJefEXhD.h>
+
+poof(string_and_value_tables(async_function_call_type))
+#include <generated/string_and_value_tables$async_function_call_type$hJOrda0k.h>
+#endif
+
+
+
+link_internal void
+SubmitJob( work_queue *Queue, work_queue_job *Job );
+
+link_internal void
+DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask);
+
 // @bonsai_stdlib_use_custom_threadpool
 /* #if BONSAI_STDLIB_USE_CUSTOM_THREADPOOL */
 /* #error "not implemented" */
 /* #else */
 #include <bonsai_stdlib/src/work_queue_default_impl.cpp>
 /* #endif */
-
 poof(
   for_datatypes(struct)
   func (struct_t)
@@ -29,7 +106,7 @@ poof(
     }
   }
 )
-#include <generated/poof_builtin.for_datatypes$$Xs04c1ly.h>
+#include <generated/poof_builtin.for_datatypes$$dubPhvt8.h>
 
 poof(
   for_datatypes(func)
@@ -41,30 +118,29 @@ poof(
     }
   }
 )
-#include <generated/poof_builtin.for_datatypes$$Xst5mK32.h>
+#include <generated/poof_builtin.for_datatypes$$4yL1E9s4.h>
 
 
 
 link_internal void
 DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask)
 {
-  NotImplemented;
-  /* tswitch(WrappedTask) */
-  /* { */
-  /*   poof( */
-  /*     func (async_function_call_type tag_t) @code_fragment */
-  /*     { */
-  /*       tag_t.map(tag_v) */
-  /*       { */
-  /*         { */
-  /*           tmatch( tag_v.name.strip_single_prefix, WrappedTask, FuncParams ); */
-  /*           ExecFunction(FuncParams); */
-  /*         } break; */
-  /*       } */
-  /*     } */
-  /*   ) */
-/* #include <generated/poof_func.anonymous$async_function_call_type$xS6OHMBZ.h> */
-  /* } */
+  tswitch(WrappedTask)
+  {
+    poof(
+      func (async_function_call_type tag_t) @code_fragment
+      {
+        tag_t.map(tag_v)
+        {
+          {
+            tmatch( tag_v.name.strip_single_prefix, WrappedTask, FuncParams );
+            ExecFunction(FuncParams);
+          } break;
+        }
+      }
+    )
+#include <generated/poof_func.anonymous$async_function_call_type$mwYm5I56.h>
+  }
 }
 
 link_internal work_queue_job *
