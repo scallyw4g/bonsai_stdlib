@@ -141,3 +141,18 @@ PopNextTask(work_queue_job *Job);
 
 link_internal work_queue_entry *
 PeekNextTask(work_queue_job *Job);
+
+// NOTE(Jesse): If your application requires custom work queues, override
+// with BONSAI_STDLIB_USE_CUSTOM_THREADPOOL with the path to your work queue
+// implementation.
+//
+// TODO(Jesse): Make this work
+//
+#ifdef BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
+link_internal void
+AllocateJobsArray(platform *Plat, s32 TotalJobs);
+#else
+link_internal void
+AllocateJobsArray(platform *Plat, s32 TotalJobs) {}
+#endif
+

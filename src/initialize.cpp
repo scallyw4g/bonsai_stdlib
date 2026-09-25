@@ -1,6 +1,3 @@
-/* link_internal void */
-/* AllocateJobsArray(platform *Plat, s32 TotalJobs); */
-
 #if BONSAI_DEBUG_SYSTEM_API
 void Platform_EnableContextSwitchTracing();
 #else
@@ -37,6 +34,8 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
+#ifdef BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
+
     u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
     u32 WorkerThreadCount = GetWorkerThreadCount();
     u32 TotalThreadCount  = GetTotalThreadCount();
@@ -46,7 +45,10 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     Stdlib->ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, s32(TotalThreadCount), ThreadState_UserData, Memory);
 
     s32 TotalJobs = WORK_QUEUE_SIZE*6;
-    /* AllocateJobsArray(Plat, TotalJobs); */
+    AllocateJobsArray(Plat, TotalJobs);
+#else
+    Error("Requested BonsaiInit_LaunchThreadPool when BONSAI_STDLIB_USE_CUSTOM_THREADPOOL was undefined!");
+#endif
   }
   else
   {
