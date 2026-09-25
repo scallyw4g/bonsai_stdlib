@@ -15,6 +15,8 @@ poof(@do_editor_ui)
   bonsai_futex HighPriorityModeFutex;
   bonsai_futex WorkerThreadsSuspendFutex;
   bonsai_futex WorkerThreadsExitFutex;
+  bonsai_futex ReadyToStartMainLoop;
+
 
   // NOTE(Jesse): The work_queues store indices into this array such that the
   // queue doesn't act as the backing store for the jobs.  They just hold a ref

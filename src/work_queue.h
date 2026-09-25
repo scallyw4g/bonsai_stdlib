@@ -1,9 +1,6 @@
 
 #define WORK_QUEUE_SIZE (4096)
 
-// Note(Jesse): The userland code must define work_queue_entry and work_queue_entry_block_array
-struct work_queue_entry_block_array;
-struct work_queue_entry;
 struct work_queue_job;
 
 struct work_queue_job_stats
@@ -106,13 +103,6 @@ link_internal work_queue_job* AllocateWorkQueueJob(platform *Plat);
 link_internal work_queue_job* ReserveWorkQueueJob(platform *Plat, b32 TrackStats = 0);
 link_internal           void  ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job);
 
-link_internal           void  PushTask ( work_queue_job *Job,   work_queue_entry *Task);
-
-link_internal           void  SubmitJob       ( work_queue     *Queue, work_queue_job   *Job);
-link_internal           void  SubmitSingleTask( work_queue    *Queue, work_queue_entry *Task, b32 PerfTrackJob = False);
-
-link_internal work_queue_job* PopNextJob(platform *Plat, work_queue* Queue);
-
     link_weak           void   LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbacks);
 
 link_internal void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
@@ -133,26 +123,12 @@ GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex);
 link_internal work_queue_job *
 GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex);
 
-link_internal work_queue_entry *
+link_internal work_queue_task *
 PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex);
 
-link_internal work_queue_entry *
+link_internal work_queue_task *
 PopNextTask(work_queue_job *Job);
 
-link_internal work_queue_entry *
+link_internal work_queue_task *
 PeekNextTask(work_queue_job *Job);
-
-// NOTE(Jesse): If your application requires custom work queues, override
-// with BONSAI_STDLIB_USE_CUSTOM_THREADPOOL with the path to your work queue
-// implementation.
-//
-// TODO(Jesse): Make this work
-//
-#ifdef BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
-link_internal void
-AllocateJobsArray(platform *Plat, s32 TotalJobs);
-#else
-link_internal void
-AllocateJobsArray(platform *Plat, s32 TotalJobs) {}
-#endif
 

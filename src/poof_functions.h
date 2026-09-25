@@ -3585,3 +3585,6 @@ poof(
   }
 )
 
+#ifdef BONSAI_STDLIB_USE_CUSTOM_WORK_QUEUE
+#include "poof_work_queue.h"
+#endif

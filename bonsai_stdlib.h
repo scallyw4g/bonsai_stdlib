@@ -47,6 +47,7 @@ link_internal debug_state * GetDebugState();
 #include <bonsai_stdlib/src/bit_tricks.h>
 #include <bonsai_stdlib/src/atomic.h>
 #include <bonsai_stdlib/src/thread.h>
+#include <bonsai_stdlib/src/freelist.h>
 
 #include <bonsai_stdlib/src/costable.h>
 #include <bonsai_stdlib/src/arccostable.h>
@@ -75,7 +76,25 @@ link_internal debug_state * GetDebugState();
 #include <bonsai_stdlib/src/simplex.h>
 #include <bonsai_stdlib/src/input.h>
 #include <bonsai_stdlib/src/mutex.h>
+#include <bonsai_stdlib/src/work_queue_magic.h>
 #include <bonsai_stdlib/src/work_queue.h>
+
+// NOTE(Jesse): If your application requires custom work queues do:
+//
+// #define BONSAI_STDLIB_USE_CUSTOM_WORK_QUEUE 1
+//
+// prior to including bonsai_stlib.
+// Copy bonsai_stdlib/work_queue_default_impl.h into your source tree and
+// include it in your build.  You may modify it to your liking.
+//
+// TODO(Jesse): Write docs on how to override
+//
+// @bonsai_stdlib_use_custom_threadpool
+#if BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
+#error "not implemented"
+#else
+#include <bonsai_stdlib/src/work_queue_default_impl.h>
+#endif
 
 #include <bonsai_stdlib/src/heap_allocator.h>
 

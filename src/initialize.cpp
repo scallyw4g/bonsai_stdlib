@@ -34,7 +34,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
-#ifdef BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
+#ifdef BONSAI_STDLIB_USE_CUSTOM_WORK_QUEUE
 
     u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
     u32 WorkerThreadCount = GetWorkerThreadCount();
@@ -47,7 +47,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     s32 TotalJobs = WORK_QUEUE_SIZE*6;
     AllocateJobsArray(Plat, TotalJobs);
 #else
-    Error("Requested BonsaiInit_LaunchThreadPool when BONSAI_STDLIB_USE_CUSTOM_THREADPOOL was undefined!");
+    Error("Requested BonsaiInit_LaunchThreadPool when BONSAI_STDLIB_USE_CUSTOM_WORK_QUEUE was undefined!");
 #endif
   }
   else
@@ -63,6 +63,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   {
 #if BONSAI_DEBUG_SYSTEM_API
     Ensure( InitDebugState(&Stdlib->DebugState) );
+    Assert(GetDebugState());
     MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(0.0f);
 #else
     Error("Asked to init debug system when BONSAI_DEBUG_SYSTEM_API was not compiled in!");

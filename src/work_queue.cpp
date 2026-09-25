@@ -1,15 +1,24 @@
 
+struct work_queue_task;
+struct work_queue_job;
+
+
+link_internal work_queue_job *
+GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex);
+
+link_internal work_queue_task *
+PeekNextTask(work_queue_job *Job);
+
+link_internal work_queue_task *
+PopNextTask(work_queue_job *Job);
+
+link_internal void
+PushTask(work_queue_job *Job, work_queue_task *Task);
+
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 {
   global_job_index Result = Queue->JobIndices[QueueIndex.Index];
-  return Result;
-}
-
-link_internal work_queue_job *
-GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex)
-{
-  work_queue_job *Result = StripVolatile(work_queue_job*, Plat->Jobs+GlobalJobIndex.Index);
   return Result;
 }
 
@@ -20,27 +29,13 @@ GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex
   return Result;
 }
 
-link_internal work_queue_entry *
-PeekNextTask(work_queue_job *Job)
-{
-  work_queue_entry* Result = TryGetPtr(&Job->Tasks, Job->NextTaskIndex);
-  return Result;
-}
-
-link_internal work_queue_entry *
-PopNextTask(work_queue_job *Job)
-{
-  work_queue_entry* Result = GetPtr(&Job->Tasks, Job->NextTaskIndex++);
-  return Result;
-}
-
-link_internal work_queue_entry *
+link_internal work_queue_task *
 PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex)
 {
   global_job_index GlobalJobIndex = GetGlobalJobIndex(Queue, QueueIndex);
   work_queue_job *Job = GetJobFromGlobal(Plat, GlobalJobIndex);
 
-  work_queue_entry *Result = PopNextTask(Job);
+  work_queue_task *Result = PopNextTask(Job);
   return Result;
 }
 
@@ -117,11 +112,10 @@ DefaultWorkerThread(void *Input)
   WorkerThread_BeforeJobStart(Thread);
   Assert(ThreadLocal_ThreadIndex > 0);
 
-  auto Engine =  GetEngineResources();
-  auto Stdlib =  GetStdlib();
-  auto Plat   = &Stdlib->Plat;
-  work_queue* LowPriority = &Plat->LowPriority;
-  work_queue* HighPriority = &Plat->HighPriority;
+        auto Stdlib        =  GetStdlib();
+        auto Plat          = &Stdlib->Plat;
+  work_queue *LowPriority  = &Plat->LowPriority;
+  work_queue *HighPriority = &Plat->HighPriority;
 
   auto WorkerThreadsExitFutex    = &Plat->WorkerThreadsExitFutex;
   auto WorkerThreadsSuspendFutex = &Plat->WorkerThreadsSuspendFutex;
@@ -130,7 +124,7 @@ DefaultWorkerThread(void *Input)
 
   if (Stdlib->AppApi.WorkerInit) { Stdlib->AppApi.WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
 
-  WaitOnFutex(&Engine->ReadyToStartMainLoop, True);
+  WaitOnFutex(&Plat->ReadyToStartMainLoop, True);
 
   while (FutexNotSignaled(WorkerThreadsExitFutex))
   {
@@ -280,10 +274,11 @@ ReserveWorkQueueJob( platform *Plat, b32 TrackStats /* = False */ )
 
   if (TrackStats)
   {
+    NotImplemented;
     work_queue_job_stats Record = {
       .Job = Result,
       .ReserveTime = GetCycleCount(),
-      .ReserveFrameIndex = GetEngineResources()->FrameIndex,
+      .ReserveFrameIndex = 0, // GetEngineResources()->FrameIndex,
       .RetireTime = 0,
       .RetireFrameIndex = 0,
     };
@@ -324,12 +319,6 @@ ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
   );
 }
 
-link_internal void
-PushTask(work_queue_job *Job, work_queue_task *Task)
-{
-  Push(&Job->Tasks, Task);
-}
-
 // TODO(Jesse): We should actually just check which queue the current task
 // wants to be submitted to, but this is compatible with the current API, so
 // we'll explicitly take a queue and assert when we pop the job instead.
@@ -337,55 +326,7 @@ PushTask(work_queue_job *Job, work_queue_task *Task)
 // @assert_job_queue
 //
 link_internal void
-SubmitJob( work_queue *Queue, work_queue_job *Job )
-{
-  Assert(Queue);
-
-  TIMED_FUNCTION();
-
-  platform *Plat = GetPlatform();
-
-  AcquireFutex(&Queue->EnqueueFutex);
-
-  while (QueueIsFull(Queue))
-  {
-    b32 HighPriorityMode = False;
-    if (Plat->HighPriorityModeFutex.SignalValue != FUTEX_UNSIGNALLED_VALUE)
-    {
-      UnsignalFutex(&Plat->HighPriorityModeFutex);
-      HighPriorityMode = True;
-    }
-
-    Perf("Queue full!");
-    SleepMs(1);
-
-    if (HighPriorityMode) { SignalFutex(&Plat->HighPriorityModeFutex); }
-  }
-
-  FullBarrier;
-
-  Queue->JobIndices[Queue->EnqueueIndex] = Job->Index;
-
-  u32 NewIndex = GetNextQueueIndex(Queue->EnqueueIndex);
-  Assert(NewIndex != Queue->DequeueIndex); // QueueIsFull check
-  AtomicExchange(&Queue->EnqueueIndex, NewIndex);
-
-  FullBarrier;
-
-  ReleaseFutex(&Queue->EnqueueFutex);
-}
+SubmitJob( work_queue *Queue, work_queue_job *Job );
 
 link_internal void
-SubmitSingleTask( work_queue *Queue, work_queue_entry *Entry, b32 PerfTrackJob)
-{
-  TIMED_FUNCTION();
-
-  Assert(Queue);
-  // @assert_job_queue
-  Assert(Entry->Queue == Queue);
-
-  // TODO(Jesse): Pass in Platform
-  work_queue_job *Job = ReserveWorkQueueJob(GetPlatform(), PerfTrackJob);
-  PushTask(Job, Entry);
-  SubmitJob(Queue, Job);
-}
+SubmitSingleTask( work_queue *Queue, work_queue_task *Task, b32 PerfTrackJob = False);

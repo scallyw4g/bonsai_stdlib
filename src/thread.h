@@ -143,8 +143,8 @@ struct engine_resources;
 struct thread_local_state;
 
 struct work_queue;
+struct work_queue_task;
 struct work_queue_job;
-struct work_queue_entry;
 
 typedef void (*bonsai_main_thread_callback)              (BONSAI_API_MAIN_THREAD_CALLBACK_PARAMS);
 typedef void (*bonsai_worker_thread_init_callback)       (BONSAI_API_WORKER_THREAD_INIT_CALLBACK_PARAMS);

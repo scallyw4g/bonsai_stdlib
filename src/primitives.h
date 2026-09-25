@@ -203,6 +203,10 @@ link_internal b32 AreEqual(cs *S1, cs *S2);
 link_internal b32 AreEqual(cs S1, cs S2);
 link_internal b32 AreEqual(const char *S1, const char *S2);
 link_internal b32 MemoryIsEqual(u8 *First, u8 *Second, umm Size);
+inline b32 StringsMatch(cs* S1, cs* S2);
+inline b32 StringsMatch(cs S1, cs* S2);
+inline b32 StringsMatch(cs* S1, cs S2);
+inline b32 StringsMatch(cs S1, cs S2);
 
 template <typename T> inline void
 Clear(T *Struct)
@@ -337,4 +341,5 @@ HashPointer(void *Ptr) {
 
     // The top 32 bits contain highest entropy
     return Cast(u32, x >> 32);
+
 }
