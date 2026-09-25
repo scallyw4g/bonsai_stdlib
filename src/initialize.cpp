@@ -34,8 +34,6 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
-#ifdef BONSAI_STDLIB_USE_CUSTOM_WORK_QUEUE
-
     u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
     u32 WorkerThreadCount = GetWorkerThreadCount();
     u32 TotalThreadCount  = GetTotalThreadCount();
@@ -46,9 +44,6 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
     s32 TotalJobs = WORK_QUEUE_SIZE*6;
     AllocateJobsArray(Plat, TotalJobs);
-#else
-    Error("Requested BonsaiInit_LaunchThreadPool when BONSAI_STDLIB_USE_CUSTOM_WORK_QUEUE was undefined!");
-#endif
   }
   else
   {
