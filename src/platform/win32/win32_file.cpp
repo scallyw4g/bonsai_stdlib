@@ -164,14 +164,34 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
 link_internal b32
 PlatformRenameFile(cs CurrentFilePath, cs NewFilePath)
 {
-  b32 Result = (MoveFileEx(
-        GetNullTerminated(CurrentFilePath),
-        GetNullTerminated(NewFilePath),
-        MOVEFILE_REPLACE_EXISTING | // Overwrite if exists
-        MOVEFILE_WRITE_THROUGH)     // Block until write is complete and flush write
-      != 0);
+  u32 SleepIntervalMS = 15; // Default time-slice on windows.  Chose this at random.
+  u32 SleepElapsed = 0;
 
-  if (Result == False) { Win32PrintLastError(); }
+  b32 Result = False;
+  while (Result == False)
+  {
+    Result = (MoveFileEx(
+      GetNullTerminated(CurrentFilePath),
+      GetNullTerminated(NewFilePath),
+      MOVEFILE_REPLACE_EXISTING | // Overwrite if exists
+      MOVEFILE_WRITE_THROUGH)     // Block until write is complete and flush write
+    != 0);
+
+    if (Result == False)
+    {
+      SleepMs(SleepIntervalMS);
+      SleepElapsed += SleepIntervalMS;
+      SleepIntervalMS *= 2;
+
+      if (SleepElapsed > 1000) break;
+    }
+  }
+
+  if (Result == False)
+  {
+    Win32PrintLastError();
+  }
+
   return Result;
 }
 
