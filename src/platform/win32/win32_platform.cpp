@@ -912,11 +912,10 @@ PlatformInitializeStdout(native_file *File, native_file *Log)
 #else
   File->Handle = GetStdHandle(STD_OUTPUT_HANDLE);
 #endif
+  if (File->Handle == INVALID_HANDLE_VALUE) { PLATFORM_RUNTIME_BREAK(); }
 
   File->Path = CSz("stdout");
 
   if (Log) { *Log = OpenFile("log.txt", FilePermission_Write); }
-
-  Assert(File->Handle != INVALID_HANDLE_VALUE);
 }
 

@@ -324,24 +324,10 @@ ReadBytesIntoBuffer(native_file *Src, u8* Dest, umm BytesToRead)
   return Result;
 }
 
-// TODO(Jesse): There's sure to be a much more efficient way to do this.  I'm
-// completely sure that's true on Windows, not sure about other platforms.
 link_internal b32
 FileExists(const char* Path)
 {
-  b32 Result = False;
-
-  native_file File = PlatformOpenFile(Path, FilePermission_Read);
-  if (File.Handle)
-  {
-    Result = True;
-    if (!CloseFile(&File))
-    {
-      Error("Opened %s, but could not close it.", Path);
-      Result = False;
-    }
-  }
-
+  b32 Result = PlatformFileExists(Path);
   return Result;
 }
 

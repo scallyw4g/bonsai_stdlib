@@ -86,6 +86,15 @@ PlatformGetFileSize(native_file *File)
   return SafeTruncateToUMM(Result);
 }
 
+link_internal b32
+PlatformFileExists(const char *Filepath)
+{
+  DWORD FileAttributes = GetFileAttributes(Filepath);
+
+  return  (FileAttributes != INVALID_FILE_ATTRIBUTES && 
+         !(FileAttributes & FILE_ATTRIBUTE_DIRECTORY));
+}
+
 // Functional behavior
 // 1) FilePermission_Write
 //    - succeeds if file exists
@@ -102,6 +111,7 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
 {
   native_file Result = {};
   Result.Path = CS(Filepath);
+  Result.Handle = INVALID_HANDLE_VALUE;
 
   DWORD CreationBehavior = 0;
   if (Permissions & FilePermission_Read)
@@ -136,27 +146,43 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
     }
   }
 
-  DWORD ShareMode = 0;
-  HANDLE hFile = CreateFileA(Filepath, PlatPermissions, ShareMode, 0, CreationBehavior, FILE_ATTRIBUTE_NORMAL, 0);
-  if (hFile == INVALID_HANDLE_VALUE)
+  u32 SleepIntervalMS = 15; // Default time-slice on windows.  Chose this at random.
+  u32 SleepElapsed = 0;
+  while (Result.Handle == INVALID_HANDLE_VALUE)
   {
-    /* SoftError("Opening File (%s)", Filepath); */
-    /* Win32PrintLastError(); */
-  }
-  else
-  {
-    Result.Handle = hFile;
+    DWORD ShareMode = 0;
+    Result.Handle = CreateFileA(Filepath, PlatPermissions, ShareMode, 0, CreationBehavior, FILE_ATTRIBUTE_NORMAL, 0);
 
-    if (Permissions & FilePermission_Write)
+    if (Result.Handle == INVALID_HANDLE_VALUE)
     {
-      if (SetEndOfFile(hFile) == 0)
+      Win32PrintLastError();
+    }
+    else
+    {
+      if (Permissions & FilePermission_Write)
       {
-        SoftError("Unable to truncate file (%s) after opening", Filepath);
+        if (SetEndOfFile(Result.Handle) == 0)
+        {
+          SoftError("Unable to truncate file (%s) after opening", Filepath);
+        }
       }
+    }
+
+    if (Result.Handle == INVALID_HANDLE_VALUE)
+    {
+      SleepMs(SleepIntervalMS);
+      SleepElapsed += SleepIntervalMS;
+      SleepIntervalMS *= 2;
+
+      if (SleepElapsed > 1000) break;
     }
   }
 
-
+  if (Result.Handle == INVALID_HANDLE_VALUE)
+  {
+    SoftError("During PlatformOpenFile(%s)", Filepath);
+    Result.Handle = 0;
+  }
 
   return Result;
 }
@@ -223,7 +249,7 @@ Win32GetSectorSize()
 link_internal b32
 PlatformWriteToFile(native_file *File, u8* Bytes, umm Count)
 {
-  /* DWORD BytesPerSector = Win32GetSectorSize(); */
+  Assert(File->Handle != INVALID_HANDLE_VALUE);
 
   umm TotalBytesWritten = 0;
   b32 Result = False;
