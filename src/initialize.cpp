@@ -85,8 +85,15 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   // Intentionally last such that the render thread has a window to make the render context current on.
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
-    if (AppApi->WorkerInit) { AppApi->WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
-    LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
+    if (AppApi)
+    {
+      if (AppApi->WorkerInit) { AppApi->WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
+      LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
+    }
+    else
+    {
+      Error("Asked to launch worker threads when AppApi wasn't initialized!");
+    }
   }
 
   if (Flags & BonsaiInit_ProfileContextSwitches)

@@ -22,6 +22,7 @@ TestSuiteBegin(const char *TestSuite, s32 ArgCount, const char** Args)
   memory_arena *Memory = AllocateArena();
 
 
+  auto Flags = BonsaiInit_Default;
   /* auto Flags = bonsai_init_flags( BonsaiInit_OpenWindow            | */
   /*                                 BonsaiInit_LaunchThreadPool      | */
   /*                                 BonsaiInit_InitDebugSystem       ); */
