@@ -249,6 +249,7 @@ Win32GetSectorSize()
 link_internal b32
 PlatformWriteToFile(native_file *File, u8* Bytes, umm Count)
 {
+  TIMED_FUNCTION();
   Assert(File->Handle != INVALID_HANDLE_VALUE);
 
   umm TotalBytesWritten = 0;
