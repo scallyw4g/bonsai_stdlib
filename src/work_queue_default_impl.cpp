@@ -1,6 +1,6 @@
-#ifdef BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
-#error "Included work_queue_default_impl.h when BONSAI_STDLIB_USE_CUSTOM_THREADPOOL was defined"
-#endif
+/* #ifdef BONSAI_STDLIB_USE_CUSTOM_THREADPOOL */
+/* #error "Included work_queue_default_impl.h when BONSAI_STDLIB_USE_CUSTOM_THREADPOOL was defined" */
+/* #endif */
 
 enum work_queue_task_type
 {

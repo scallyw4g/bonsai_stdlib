@@ -90,11 +90,7 @@ link_internal debug_state * GetDebugState();
 // TODO(Jesse): Write docs on how to override
 //
 // @bonsai_stdlib_use_custom_threadpool
-#if BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
-#error "not implemented"
-#else
 #include <bonsai_stdlib/src/work_queue_default_impl.h>
-#endif
 
 #include <bonsai_stdlib/src/heap_allocator.h>
 
