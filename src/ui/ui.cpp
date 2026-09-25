@@ -3554,7 +3554,14 @@ AllocateAndInitGeoBuffer(untextured_2d_geometry_buffer *Geo, u32 ElementCount, m
 link_internal texture LoadBitmap(const char* FilePath, u32 SliceCount, memory_arena *Arena);
 
 link_internal b32
-InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMemory, v2 *MouseP, v2 *MouseDP, v2 *ScreenDim, input *Input, b32 Headless = False)
+InitRenderer2D( renderer_2d *Renderer,
+             heap_allocator *Heap,
+               memory_arena *PermMemory,
+                         v2 *MouseP,
+                         v2 *MouseDP,
+                         v2 *ScreenDim,
+                      input *Input,
+                        b32  Headless = False )
 {
   b32 Result = True;
 
@@ -3584,26 +3591,37 @@ InitRenderer2D(renderer_2d *Renderer, heap_allocator *Heap, memory_arena *PermMe
     bitmap_block_array Bitmaps = BitmapBlockArray(GetTranArena());
     LoadBitmapsFromFolderOrdered(CSz("assets/icons/bmp/"), &Bitmaps, GetTranArena(), GetTranArena());
 
-    v2i Dim = GetPtr(&Bitmaps, 0)->Dim;
-    Renderer->IconTextureArray = CreateTextureArrayFromBitmapBlockArray(&Bitmaps, Dim, CSz("IconTextures"));
+    if (AtElements(&Bitmaps).Index > 0)
+    {
+      v2i Dim = GetPtr(&Bitmaps, 0)->Dim;
+      Renderer->IconTextureArray = CreateTextureArrayFromBitmapBlockArray(&Bitmaps, Dim, CSz("IconTextures"));
 
-    GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, Renderer->IconTextureArray.ID);
-    GetGL()->GenerateTextureMipmap(Renderer->IconTextureArray.ID);
-    GetGL()->TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-    GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+      GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, Renderer->IconTextureArray.ID);
+      GetGL()->GenerateTextureMipmap(Renderer->IconTextureArray.ID);
+      GetGL()->TexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+      GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    }
+    else
+    {
+      SoftError("Loading Icon Bitmaps");
+    }
+
 
     TextGroup->DebugTextureArray = MakeTexture_RGBA(V2i(512), Cast(u32*, 0), CSz("ui textures"), UiTextureSlice_Count);
-    Ensure(LoadBitmapIntoTextureArray("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White));
-    Ensure(LoadBitmapIntoTextureArray("texture_atlas_0.bmp", GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font));
+    if (!LoadBitmapIntoTextureArray("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White))
+    {
+      SoftError(":'(");
+    }
+
+    if (!LoadBitmapIntoTextureArray("texture_atlas_0.bmp", GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font))
+    {
+      SoftError(":'(");
+    }
 
     CompileShaderPair(&TextGroup->UiShader, CSz(STDLIB_SHADER_PATH "ui.vertexshader"), CSz(STDLIB_SHADER_PATH "ui.fragmentshader") );
 
     TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->UiShader.ID, "TextTextureSampler");
 
-    /* Renderer->TextGroup->SolidUIShader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "SimpleColor.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleColor.fragmentshader") ); */
-
-    // Generic shader that gets reused to draw simple textured quads
-    /* Renderer->TexturedQuadShader = MakeFullTextureShader(0, PermMemory); */
     InitializeTexturedQuadRenderPass( &Renderer->TexturedQuadRenderPass,  0, 0, 0, {});
 
     AssertNoGlErrors;

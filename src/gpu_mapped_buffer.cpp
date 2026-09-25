@@ -89,6 +89,7 @@ UnmapGpuBuffer(gpu_element_buffer_handles *Handles)
 {
   Assert(Handles->ElementCount);
   Assert(Handles->VAO);
+  Assert(Handles->Mapped);
   Assert(Handles->Handles[0]);
   Assert(Handles->Handles[1]);
   Assert(Handles->Handles[2]);

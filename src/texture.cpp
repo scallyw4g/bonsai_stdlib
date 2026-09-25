@@ -357,30 +357,37 @@ LoadBitmap(const char* FilePath, memory_arena *Arena, texture* Dest, s32 Slice)
 }
 
 link_internal b32
-LoadBitmapIntoTextureArray(const char* FilePath, memory_arena *Arena, texture* Dest, s32 Slice)
+LoadBitmapIntoTextureArray(const char* FilePath, memory_arena *Arena, texture *Dest, s32 Slice)
 {
-  bitmap TexBitmap = ReadBitmapFromDisk(FilePath, Arena);
-  Assert(TexBitmap.Dim == Dest->Dim);
-
   b32 Result = False;
-  if (TexBitmap.Pixels.Start)
+  if (FileExists(FilePath))
   {
-    Result = True;
-    u32 TextureFormat = GL_RGBA;
-    u32 ElementType = GL_UNSIGNED_BYTE;
-    s32 TextureDepth = 1;
+    bitmap TexBitmap = ReadBitmapFromDisk(FilePath, Arena);
+    Assert(TexBitmap.Dim == Dest->Dim);
 
-    GetGL()->TexSubImage3D(
-        GL_TEXTURE_2D_ARRAY,
-        0, // mip level
+    if (TexBitmap.Pixels.Start)
+    {
+      Result = True;
+      u32 TextureFormat = GL_RGBA;
+      u32 ElementType = GL_UNSIGNED_BYTE;
+      s32 TextureDepth = 1;
 
-        0,     // x offset
-        0,     // y offset
-        Slice, // z offset
+      GetGL()->TexSubImage3D(
+          GL_TEXTURE_2D_ARRAY,
+          0, // mip level
 
-        Dest->Dim.x, Dest->Dim.y, TextureDepth,
+          0,     // x offset
+          0,     // y offset
+          Slice, // z offset
 
-        TextureFormat, ElementType, TexBitmap.Pixels.Start);
+          Dest->Dim.x, Dest->Dim.y, TextureDepth,
+
+          TextureFormat, ElementType, TexBitmap.Pixels.Start);
+    }
+  }
+  else
+  {
+    SoftError("Bitmap not found (%s)", FilePath);
   }
 
   return Result;
@@ -393,7 +400,7 @@ LoadBitmap(file_traversal_node *Node, memory_arena *Arena)
              Concat(Node->Dir, Node->Name, GetTranArena(), 1) :
              Concat(Node->Dir, CSz("/"), Node->Name, GetTranArena(), 1);
 
-  bitmap Result = ReadBitmapFromDisk((const char*)Path.Start, Arena);
+  bitmap Result = ReadBitmapFromDisk(Cast(const char*, Path.Start), Arena);
   return Result;
 }
 
