@@ -2,7 +2,7 @@ link_internal string_builder
 StringBuilder()
 {
   string_builder Result = {};
-  Result.Chunks.Memory = AllocateArena();
+  Result.Chunks.Memory = AllocateArenaUntracked();
   return Result;
 }
 

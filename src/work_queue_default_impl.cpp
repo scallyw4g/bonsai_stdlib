@@ -4,7 +4,7 @@
 
 enum work_queue_task_type
 {
-  type_work_queue_task_async_function_call
+  type_work_queue_task_async_function_call,
 };
 
 struct work_queue_task

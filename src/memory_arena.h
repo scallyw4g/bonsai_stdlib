@@ -440,6 +440,7 @@ ProtectPage(u8* Mem)
 
 #ifndef POOF_PREPROCESSOR
 #define   AllocateArena( ... )   AllocateArena_( POOF_SOURCE_LOCATION, True, ##__VA_ARGS__ )
+#define   AllocateArenaUntracked( ... )   AllocateArena_( POOF_SOURCE_LOCATION, False, ##__VA_ARGS__ )
 #else
 #define   AllocateArena( ... )
 #endif
