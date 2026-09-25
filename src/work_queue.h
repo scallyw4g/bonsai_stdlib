@@ -8,7 +8,7 @@ struct work_queue_job;
 
 struct work_queue_job_stats
 {
-  u32 HashValue;
+  work_queue_job *Job;
 
   u64 ReserveTime;
   u64 RetireTime;
@@ -26,7 +26,9 @@ poof(hashtable_struct(work_queue_job_stats))
 link_internal b32
 AreEqual(work_queue_job_stats *Element1, work_queue_job_stats *Element2 )
 {
-  b32 Result = Element1->HashValue == Element2->HashValue;
+  b32 Result = Element1->Job == Element2->Job &&
+               Element1->ReserveTime == Element2->ReserveTime &&
+               Element1->ReserveFrameIndex == Element2->ReserveFrameIndex;
   return Result;
 }
 
@@ -40,7 +42,7 @@ Hash(work_queue_job *Element)
 link_internal u32
 Hash(work_queue_job_stats *Element)
 {
-  u32 Result = Element->HashValue;
+  u32 Result = HashPointer(Element->Job) ^ Hash(&Element->ReserveTime) ^ Hash(&Element->ReserveFrameIndex);
   return Result;
 }
 
@@ -107,7 +109,7 @@ link_internal           void  ReleaseWorkQueueJob(platform *Plat, work_queue_job
 link_internal           void  PushTask ( work_queue_job *Job,   work_queue_entry *Task);
 
 link_internal           void  SubmitJob       ( work_queue     *Queue, work_queue_job   *Job);
-link_internal           void  SubmitSingleTask( work_queue    *Queue, work_queue_entry *Task);
+link_internal           void  SubmitSingleTask( work_queue    *Queue, work_queue_entry *Task, b32 PerfTrackJob = False);
 
 link_internal work_queue_job* PopNextJob(platform *Plat, work_queue* Queue);
 

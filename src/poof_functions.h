@@ -927,6 +927,34 @@ poof(
       return Result;
     }
 
+    //
+    // Get
+    //
+
+    /* Type.member(@hashtable_key, (key_member) { @var key key_member }); */
+
+    /* link_internal (Type.name) * */
+    /* GetByKey( (Type.name)_hashtable *Table, key.type KeyQuery ) */
+    /* { */
+    /*   (Type.name) *Result = {}; */
+    /*   (Type.name)_linked_list_node *Bucket = GetBucketBy(key.name)(Table, KeyQuery); */
+    /*   while (Bucket) */
+    /*   { */
+    /*     Type.is_primitive? */
+    /*     { if (Bucket->Tombstoned == False && AreEqual(*E, KeyQuery)) } */
+    /*     { if (Bucket->Tombstoned == False && AreEqual(E->key.name, KeyQuery)) } */
+    /*     { */
+    /*       Result = &Bucket->Element; */
+    /*       break; */
+    /*     } */
+    /*     else */
+    /*     { */
+    /*       Bucket = Bucket->Next; */
+    /*     } */
+    /*   } */
+
+    /*   return Result; */
+    /* } */
 
     //
     // Iterator impl.
@@ -1008,9 +1036,10 @@ poof(
 )
 
 poof(
+  /// TODO(Jesse): Rename to hashtable_get_value ..?
   func hashtable_get(Type, type_poof_symbol key_type, type_poof_symbol key_name)
   {
-    link_internal (Type.name)_linked_list_node*
+    link_internal (Type.name)_linked_list_node *
     GetBucketBy(key_name)( (Type.name)_hashtable *Table, key_type Query )
     {
       /* ENSURE_OWNED_BY_THREAD(Table); */
@@ -1058,9 +1087,8 @@ poof(
       return Result;
     }
 
-    /// TODO(Jesse): Remove memory from here.
     link_internal b32
-    Tombstone((key_type) Key, (Type.name)_hashtable *Table, memory_arena *Memory)
+    Tombstone((key_type) Key, (Type.name)_hashtable *Table)
     {
       b32 Result = False;
       (Type.name)_linked_list_node *Bucket = GetBucketBy(key_name)(Table, Key);
@@ -1076,7 +1104,7 @@ poof(
     link_internal b32
     Drop( (Type.name)_hashtable *Table, (key_type) Key )
     {
-      return Tombstone(Key, Table, 0);
+      return Tombstone(Key, Table);
     }
   }
 );

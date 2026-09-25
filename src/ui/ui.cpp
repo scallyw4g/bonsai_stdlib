@@ -1822,7 +1822,7 @@ ActivateModal(renderer_2d *Ui, const char* Title, ui_id ModalId)
 link_internal void
 CompleteModal(renderer_2d *Ui, ui_id ModalId)
 {
-  Ensure( Tombstone(ModalId, &Ui->WindowTable, &Ui->WindowTableArena) );
+  Ensure( Tombstone(ModalId, &Ui->WindowTable) );
 }
 
 link_internal void

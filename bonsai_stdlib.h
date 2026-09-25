@@ -164,6 +164,13 @@ GetStdlib()
   return Global_Stdlib;
 }
 
+link_internal platform *
+GetPlatform()
+{
+  auto Result = &GetStdlib()->Plat;
+  return Result;
+}
+
 link_internal debug_state *
 GetDebugState()
 {

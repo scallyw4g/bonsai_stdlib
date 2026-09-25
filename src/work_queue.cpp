@@ -1,10 +1,4 @@
 
-poof(hashtable_impl(work_queue_job_stats))
-#include <generated/hashtable_impl_vPgms0EL.h>
-
-poof(hashtable_get(work_queue_job_stats, {u32}, {HashValue}))
-#include <generated/hashtable_get_h0Mwmj89.h>
-
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 {
@@ -272,24 +266,6 @@ InitQueue(work_queue* Queue, memory_arena* Memory)
   Queue->JobIndices = Allocate(global_job_index, Memory, WORK_QUEUE_SIZE);
 }
 
-link_internal void
-ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
-{
-  Plat->FreeJobs = Plat->FreeJobs +1;
-
-  if (work_queue_job_stats *Stats = GetByHashValue(&Plat->JobStatsTable, HashPointer(Job)))
-  {
-    Stats->RetireTime = GetCycleCount();
-    Stats->RetireFrameIndex = GetEngineResources()->FrameIndex;
-  }
-
-  // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
-  Link_TS(
-    Cast(volatile freelist_entry **, &Plat->JobsFreelist),
-    Cast(freelist_entry *, Job)
-  );
-}
-
 link_internal work_queue_job *
 ReserveWorkQueueJob( platform *Plat, b32 TrackStats /* = False */ )
 {
@@ -302,14 +278,50 @@ ReserveWorkQueueJob( platform *Plat, b32 TrackStats /* = False */ )
                              )
                            );
 
-  if (work_queue_job_stats *Stats = InsertBlank(Hash(Result), &Plat->JobStatsTable, Plat->TaskMemory))
+  if (TrackStats)
   {
-    Stats->RetireTime = GetCycleCount();
-    Stats->RetireFrameIndex = GetEngineResources()->FrameIndex;
+    work_queue_job_stats Record = {
+      .Job = Result,
+      .ReserveTime = GetCycleCount(),
+      .ReserveFrameIndex = GetEngineResources()->FrameIndex,
+      .RetireTime = 0,
+      .RetireFrameIndex = 0,
+    };
+
+#if 0
+    if (work_queue_job_stats *Stats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory))
+    {
+    }
+#endif
+  }
+  else
+  {
+    /* if (work_queue_job_stats *Stats = GetByHashValue(&Plat->JobStatsTable, HashPointer(Result))) */
+    /* { */
+    /*   Tombstone( HashPointer(Result), &Plat->JobStatsTable ); */
+    /* } */
   }
 
   Assert(Result);
   return Result;
+}
+
+link_internal void
+ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
+{
+  Plat->FreeJobs = Plat->FreeJobs +1;
+
+  /* if (work_queue_job_stats *Stats = GetByHashValue(&Plat->JobStatsTable, HashPointer(Job))) */
+  /* { */
+  /*   Stats->RetireTime = GetCycleCount(); */
+  /*   Stats->RetireFrameIndex = GetEngineResources()->FrameIndex; */
+  /* } */
+
+  // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
+  Link_TS(
+    Cast(volatile freelist_entry **, &Plat->JobsFreelist),
+    Cast(freelist_entry *, Job)
+  );
 }
 
 link_internal void
@@ -352,7 +364,6 @@ SubmitJob( work_queue *Queue, work_queue_job *Job )
 
   FullBarrier;
 
-
   Queue->JobIndices[Queue->EnqueueIndex] = Job->Index;
 
   u32 NewIndex = GetNextQueueIndex(Queue->EnqueueIndex);
@@ -365,7 +376,7 @@ SubmitJob( work_queue *Queue, work_queue_job *Job )
 }
 
 link_internal void
-SubmitSingleTask( work_queue *Queue, work_queue_entry *Entry )
+SubmitSingleTask( work_queue *Queue, work_queue_entry *Entry, b32 PerfTrackJob)
 {
   TIMED_FUNCTION();
 
@@ -374,7 +385,7 @@ SubmitSingleTask( work_queue *Queue, work_queue_entry *Entry )
   Assert(Entry->Queue == Queue);
 
   // TODO(Jesse): Pass in Platform
-  work_queue_job *Job = ReserveWorkQueueJob(GetPlatform());
+  work_queue_job *Job = ReserveWorkQueueJob(GetPlatform(), PerfTrackJob);
   PushTask(Job, Entry);
   SubmitJob(Queue, Job);
 }
