@@ -14,7 +14,7 @@ poof(
     }
   }
 )
-#include <generated/poof_builtin.for_datatypes$$xNu9PZU4.h>
+#include <generated/poof_builtin.for_datatypes$$W4ZZm5lY.h>
 
 // Generate tagged_union for async functions
 //
@@ -30,7 +30,7 @@ enum async_function_call_type
       }
     }
   )
-#include <generated/poof_builtin.for_datatypes$$7tfbKRrw.h>
+#include <generated/poof_builtin.for_datatypes$$hj2VWJGQ.h>
 };
 
 #if 1
@@ -40,7 +40,7 @@ struct work_queue_task_async_function_call
   union
   {
     compile_shader_pair_async_params compile_shader_pair_async_params;
-    finalize_and_flush_async_params finalize_and_flush_async_params;
+    output_async_params output_async_params;
   };
 };
 #else
@@ -106,7 +106,7 @@ poof(
     }
   }
 )
-#include <generated/poof_builtin.for_datatypes$$dubPhvt8.h>
+#include <generated/poof_builtin.for_datatypes$$rcup4r0h.h>
 
 poof(
   for_datatypes(func)
@@ -118,7 +118,7 @@ poof(
     }
   }
 )
-#include <generated/poof_builtin.for_datatypes$$4yL1E9s4.h>
+#include <generated/poof_builtin.for_datatypes$$dwoEEYjr.h>
 
 
 
@@ -139,7 +139,7 @@ DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask)
         }
       }
     )
-#include <generated/poof_func.anonymous$async_function_call_type$mwYm5I56.h>
+#include <generated/poof_func.anonymous$async_function_call_type$DwG4hpHD.h>
   }
 }
 
