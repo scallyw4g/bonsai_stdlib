@@ -94,6 +94,9 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 inline void
 Terminate(os *Os, platform *Plat)
 {
+  SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
+  UnsignalFutex(&Plat->WorkerThreadsExitFutex);
+
   if (Os->Display && Os->Window)
   {
     XDestroyWindow(Os->Display, Os->Window);

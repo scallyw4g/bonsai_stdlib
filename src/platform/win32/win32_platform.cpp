@@ -201,6 +201,9 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
 void
 Terminate(os *Os, platform *Plat)
 {
+  SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
+  UnsignalFutex(&Plat->WorkerThreadsExitFutex);
+
   timeEndPeriod(1);
 
   if (Os->GlContext) // Cleanup Opengl context
