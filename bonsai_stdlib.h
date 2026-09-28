@@ -146,6 +146,8 @@ poof(@do_editor_ui)
   thread_local_state *ThreadStates;
   thread_local_state  DefaultThreadState;
 
+  cs ShaderDirectoryPath;
+
   hot_reloadable_file ShaderHeaderFile;
           ansi_stream ShaderHeaderCode;
 
