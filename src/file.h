@@ -21,8 +21,12 @@ enum file_traversal_type
 struct file_traversal_node
 {
   file_traversal_type Type;
-  cs Dir;
-  cs Name;
+
+  // TODO(Jesse): Fix this .. one of these should include the slash, and/or we
+  // should store the entire filepath ..?
+
+  cs Dir;  // NOTE(Jesse): Does not include trailing slash
+  cs Name; // NOTE(Jesse): Does not include leading slash
 };
 
 poof(are_equal(file_traversal_node))

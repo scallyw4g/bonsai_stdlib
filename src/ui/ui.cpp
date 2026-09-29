@@ -3565,6 +3565,27 @@ InitRenderer2D( renderer_2d *Renderer,
 {
   b32 Result = True;
 
+  auto Stdlib = GetStdlib();
+
+  cs AssetDirectory = {};
+  {
+    maybe_file_traversal_node FindResult = FindStdlibAssetsMarker();
+    if (FindResult.Tag)
+    {
+      Info("Found asset root");
+      AssetDirectory = FindResult.Value.Dir;
+
+      auto F = FindResult.Value;
+      Stdlib->ShaderDirectoryPath = Concat(F.Dir, CSz("/shaders/"), PermMemory);
+
+      Stdlib->ShaderHeaderFile.File.Path = Concat(Stdlib->ShaderDirectoryPath, CSz("header.glsl"), PermMemory);
+    }
+    else
+    {
+      Error("Unable to find asset directory, exiting.");
+    }
+  }
+
   Init_Global_QuadVertexBuffer();
 
   Renderer->Strings = InitHeap(Megabytes(4));
@@ -3589,7 +3610,11 @@ InitRenderer2D( renderer_2d *Renderer,
     auto TextGroup = Renderer->TextGroup;
 
     bitmap_block_array Bitmaps = BitmapBlockArray(GetTranArena());
-    LoadBitmapsFromFolderOrdered(CSz("assets/icons/bmp/"), &Bitmaps, GetTranArena(), GetTranArena());
+
+    {
+      cs BitmapDir = Concat(AssetDirectory, CSz("/icons/bmp/"), GetTranArena());
+      LoadBitmapsFromFolderOrdered(BitmapDir, &Bitmaps, GetTranArena(), GetTranArena());
+    }
 
     if (AtElements(&Bitmaps).Index > 0)
     {
@@ -3607,15 +3632,22 @@ InitRenderer2D( renderer_2d *Renderer,
     }
 
 
-    TextGroup->DebugTextureArray = MakeTexture_RGBA(V2i(512), Cast(u32*, 0), CSz("ui textures"), UiTextureSlice_Count);
-    if (!LoadBitmapIntoTextureArray("white.bmp",           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White))
     {
-      SoftError(":'(");
-    }
+      TextGroup->DebugTextureArray = MakeTexture_RGBA(V2i(512), Cast(u32*, 0), CSz("ui textures"), UiTextureSlice_Count);
 
-    if (!LoadBitmapIntoTextureArray("texture_atlas_0.bmp", GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font))
-    {
-      SoftError(":'(");
+      {
+        cs BitmapDir = CS(ConcatZ(AssetDirectory, CSz("/white.bmp"), GetTranArena()));
+        if (!LoadBitmapIntoTextureArray(BitmapDir.Start,           GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_White))
+        {
+          SoftError(":'(");
+        }
+      }
+
+        cs BitmapDir = CS(ConcatZ(AssetDirectory, CSz("/texture_atlas_0.bmp"), GetTranArena()));
+      if (!LoadBitmapIntoTextureArray(BitmapDir.Start, GetTranArena(), &TextGroup->DebugTextureArray, UiTextureSlice_Font))
+      {
+        SoftError(":'(");
+      }
     }
 
     cs VertPath = Concat(GetStdlibShaderDir(), CSz("ui.vertexshader"), GetTranArena());
