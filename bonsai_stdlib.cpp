@@ -2,10 +2,6 @@
 #define BONSAI_SHADER_PATH "shaders/"
 #endif
 
-#ifndef STDLIB_SHADER_PATH
-#define STDLIB_SHADER_PATH "external/bonsai_stdlib/shaders/"
-#endif
-
 
 #ifndef BONSAI_NO_AVX
 #include <bonsai_stdlib/src/perlin.cpp>

@@ -147,20 +147,18 @@ UnregisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
 }
 
 link_internal void
-ReloadShaderHeaderCode(bonsai_stdlib *Stdlib, shader_language_setting ShaderLanguage)
+ReloadShaderHeaderCode(bonsai_stdlib *Stdlib, hot_reloadable_file *ShaderHeaderFile, shader_language_setting ShaderLanguage)
 {
   Shader("Reloading header.glsl");
 
-  cs ShaderVersion = ValueFromSetting(ShaderLanguage);
+  if ( OpenHotReloadableFile(ShaderHeaderFile, FilePermission_Read) )
+  {
+    // ReadEntireFileIntoString closes the file
+    cs HeaderCode =  ReadEntireFileIntoString(&Stdlib->ShaderHeaderFile.File, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory);
 
-  Stdlib->ShaderHeaderFile = OpenHotReloadableFile(CSz(STDLIB_SHADER_PATH "header.glsl"), FilePermission_Read); 
-
-  cs HeaderCode =  ReadEntireFileIntoString(&Stdlib->ShaderHeaderFile.File, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory);
-
-  // ReadEntireFileIntoString closes the file
-  // CloseFile(&Stdlib->ShaderHeaderFile.File);
-
-  Stdlib->ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
+    cs ShaderVersion = ValueFromSetting(ShaderLanguage);
+    Stdlib->ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
+  }
 }
 
 link_internal void
@@ -191,7 +189,7 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
   auto Stdlib = GetStdlib();
   auto GL = GetGL();
 
-  if (Stdlib->ShaderHeaderCode.Start == 0) { ReloadShaderHeaderCode(Stdlib, ShaderLanguageSetting_default); }
+  if (Stdlib->ShaderHeaderCode.Start == 0) { ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_default); }
 
   ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
   ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(FragShaderPath, GetTranArena());
@@ -316,11 +314,10 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
   auto GL = GetGL();
 
-  b32 HeaderIsNew = FileIsNew(STDLIB_SHADER_PATH "header.glsl", &Stdlib->ShaderHeaderFile.LastModified);
-
+  b32 HeaderIsNew = FileIsNew(&Stdlib->ShaderHeaderFile);
   if (HeaderIsNew)
   {
-    ReloadShaderHeaderCode(Stdlib, ShaderLanguageSetting_330core);
+    ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_330core);
   }
 
   IterateOver(&Stdlib->AllShaders, Shader, ShaderIndex)

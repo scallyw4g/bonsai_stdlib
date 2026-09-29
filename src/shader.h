@@ -20,7 +20,7 @@ poof(
       {
         shader_struct.has_tag(frag_source_file)?
         {
-          b32 Result = CompileShaderPair(&Element->Program, CSz((shader_struct.tag_value(vert_source_file))), CSz((shader_struct.tag_value(frag_source_file))));
+          b32 Result = CompileShaderPair(&Element->Program, (shader_struct.tag_value(vert_source_file)), (shader_struct.tag_value(frag_source_file)) );
 
           if (Result)
           {

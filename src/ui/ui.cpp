@@ -3618,7 +3618,9 @@ InitRenderer2D( renderer_2d *Renderer,
       SoftError(":'(");
     }
 
-    CompileShaderPair(&TextGroup->UiShader, CSz(STDLIB_SHADER_PATH "ui.vertexshader"), CSz(STDLIB_SHADER_PATH "ui.fragmentshader") );
+    cs VertPath = Concat(GetStdlibShaderDir(), CSz("ui.vertexshader"), GetTranArena());
+    cs FragPath = Concat(GetStdlibShaderDir(), CSz("ui.fragmentshader"), GetTranArena());
+    CompileShaderPair(&TextGroup->UiShader, VertPath, FragPath );
 
     TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->UiShader.ID, "TextTextureSampler");
 

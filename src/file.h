@@ -40,7 +40,6 @@ struct hot_reloadable_file
 };
 
 
-
 link_internal b32 CloseFile(native_file* File);
 
 link_internal b32 Rename(counted_string CurrentFilePath, counted_string NewFilePath);

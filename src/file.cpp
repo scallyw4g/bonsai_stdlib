@@ -127,6 +127,14 @@ FileIsNew(const char *Filepath, s64 *LastTime)
   return Result;
 }
 
+link_internal b32
+FileIsNew(hot_reloadable_file *File)
+{
+  b32 Result = FileIsNew(File->File.Path.Start, &File->LastModified);
+  return Result;
+}
+
+
 /* link_internal b32 */
 /* FileIsNew(hot_reloadable_file *File, s64 *LastTime) */
 /* { */
@@ -155,34 +163,27 @@ OpenFile(cs FilePath, file_permission Permissions)
   return Result;
 }
 
-link_internal hot_reloadable_file
-OpenHotReloadableFile(cs FilePath, file_permission Permissions)
+link_internal b32
+OpenHotReloadableFile(hot_reloadable_file *File, file_permission Permissions)
 {
-  const char *NullTerminatedFilePath = GetNullTerminated(FilePath);
+  b32 Result = {};
 
-  hot_reloadable_file Result = {};
-
-  s32 MaxRetries = 5;
-  RangeIterator(Iteration, MaxRetries)
+  if (FileIsNew(File))
   {
-    Result = { .File = OpenFile(NullTerminatedFilePath, Permissions), .LastModified = 0 };
-
-    if (Result.File.Handle == 0)
+    File->File = OpenFile(File->File.Path.Start, Permissions);
+    if (File->File.Handle)
     {
-      SleepMs(5);
+      Result = True;
     }
     else
     {
-      break;
+      SoftError("Failed to open (%S) for hot reloading", File->File.Path);
     }
   }
-
-  if (Result.File.Handle == 0)
+  else
   {
-    SoftError("Failed to open (%S) for hot reloading", FilePath);
+    // TODO(Jesse): Should we warn here?
   }
-
-  FileIsNew(NullTerminatedFilePath, &Result.LastModified);
 
   return Result;
 }

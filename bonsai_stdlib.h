@@ -181,6 +181,14 @@ GetStdlib()
   return Global_Stdlib;
 }
 
+link_internal cs
+GetStdlibShaderDir()
+{
+  Assert(Global_Stdlib->ShaderDirectoryPath.Start);
+  return Global_Stdlib->ShaderDirectoryPath;
+}
+
+
 link_internal platform *
 GetPlatform()
 {
