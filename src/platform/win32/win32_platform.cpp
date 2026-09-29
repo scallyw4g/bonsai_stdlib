@@ -113,6 +113,7 @@ PlatformLockMutex(mutex *Mutex)
 link_internal b32
 PlatformPinThreadToPhysicalCore(thread_handle ThreadHandle, u32 ThreadIndex, u32 CoreIndex)
 {
+  TIMED_FUNCTION();
   /* Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX); */
 
   b32 Result = False;
@@ -176,6 +177,7 @@ PlatformPinCurrentThreadToCore(u32 CoreIndex)
 link_internal u32
 PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 ThreadIndex )
 {
+  TIMED_FUNCTION();
   DWORD flags = 0;
   unsigned long ThreadId;
   thread_handle ThreadHandle = CreateThread(

@@ -219,6 +219,8 @@ DefaultWorkerThread(void *Input)
 link_weak void
 LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbackProcs)
 {
+  TIMED_FUNCTION();
+
   s32 TotalThreadCount  = (s32)GetTotalThreadCount();
 
   // This loop is for worker threads; it's skipping thread index 0, the main thread

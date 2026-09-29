@@ -52,6 +52,7 @@ PlatformDebugStacktrace()
 b32
 OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 {
+  TIMED_FUNCTION();
   Info("Creating Context");
 
   // Context configurations

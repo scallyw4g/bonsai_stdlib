@@ -27,6 +27,7 @@ CreateDirectory(const char *zPath)
 link_internal b32
 CreateDirectory(cs Filepath)
 {
+  TIMED_FUNCTION();
   const char* zPath = GetNullTerminated(Filepath);
   b32 Result = CreateDirectory(zPath);
   return Result;
@@ -35,6 +36,7 @@ CreateDirectory(cs Filepath)
 link_internal b32
 TryCreateDirectory(const char* zPath)
 {
+  TIMED_FUNCTION();
   b32 Result = True;
   if (FileExists(zPath) == False)
   {
