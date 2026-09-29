@@ -82,6 +82,12 @@ PlatformInitializeAudio(platform *Plat);
 void
 PlatformShutdownAudio(platform *Plat);
 
+inline char *
+GetCwd();
+
+link_internal void
+SleepMs(u32 Ms);
+
 b32
 PlatformPlaySoundBuffer(platform *Plat,
                         u8 *Data,
@@ -311,7 +317,7 @@ link_internal b32
 PlatformChangeDirectory(const char *Dir)
 {
   b32 Result = (SetCurrentDirectory(Dir) != 0);
+  Info("Current Dir (%s)", GetCwd());
   return Result;
 }
 
-link_internal void SleepMs(u32 Ms);

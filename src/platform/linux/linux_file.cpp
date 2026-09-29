@@ -211,6 +211,8 @@ LinuxDirectoryTraversalCallback(const char *FilePath, const struct stat *Stat, s
 link_internal maybe_file_traversal_node
 PlatformTraverseDirectoryTreeUnordered(cs Dirname, directory_traversal_callback Callback, u64 UserData)
 {
+  TIMED_FUNCTION();
+
   // NOTE(Jesse): This function cannot run concurrently without some extra
   // leg-work because nftw doesn't give us a user-supplied parameter.
   Assert(Global_CurrentDirectoryTraversalCallback == 0);

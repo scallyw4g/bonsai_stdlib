@@ -168,6 +168,8 @@ PlatformPinThreadToPhysicalCore(thread_handle ThreadHandle, u32 ThreadIndex, u32
 link_internal b32
 PlatformPinCurrentThreadToCore(u32 CoreIndex)
 {
+  TIMED_FUNCTION();
+
   Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX);
   thread_handle SystemThread = GetCurrentThread();
   b32 Result = PlatformPinThreadToPhysicalCore(SystemThread, u32(ThreadLocal_ThreadIndex), CoreIndex);
@@ -615,8 +617,25 @@ inline char*
 GetCwd()
 {
   GetCurrentDirectory( CwdBufferLen, CwdBuffer );
+  Info("GetCwd (%s)", CwdBuffer);
   return CwdBuffer;
 }
+
+debug_global char ExecutableDirBuffer[CwdBufferLen];
+inline cs
+PlatformGetExecutableDir()
+{
+  cs Result = {};
+
+  // GetModuleFileNameW fetches the path of the current running executable
+  u32 Size = GetModuleFileName(NULL, ExecutableDirBuffer, CwdBufferLen);
+  if (Size > 0)
+  {
+    Result = Dirname(CS(ExecutableDirBuffer, Size));
+  }
+  return Result;
+}
+
 
 b32
 ProcessOsMessages(os *Os, platform *Plat)

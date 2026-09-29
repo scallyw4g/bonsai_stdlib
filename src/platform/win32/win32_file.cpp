@@ -256,6 +256,7 @@ PlatformWriteToFile(native_file *File, u8* Bytes, umm Count)
   b32 Result = False;
   do
   {
+    TIMED_NAMED_BLOCK(PlatformWriteFileLoop);
     DWORD BytesWritten;
     DWORD BytesPerWrite = DWORD(Min(Gigabytes(2), Count-TotalBytesWritten));
     Result = (WriteFile(File->Handle, Bytes+TotalBytesWritten, BytesPerWrite, &BytesWritten, 0) != 0);

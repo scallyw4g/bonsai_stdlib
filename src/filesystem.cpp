@@ -1,6 +1,8 @@
 link_internal b32
 SearchForProjectRoot(void)
 {
+  TIMED_FUNCTION();
+
 #if EMCC
   b32 Result = True;
 #else
