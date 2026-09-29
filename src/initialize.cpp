@@ -10,9 +10,10 @@ enum bonsai_init_flags
 
   BonsaiInit_LaunchThreadPool       = (1 << 0),
   BonsaiInit_OpenWindow             = (1 << 1),
-  BonsaiInit_InitDebugSystem        = (1 << 2),
-  BonsaiInit_ProfileContextSwitches = (1 << 3),
-  BonsaiInit_Audio                  = (1 << 4),
+  BonsaiInit_Renderer2D             = (1 << 2),
+  BonsaiInit_InitDebugSystem        = (1 << 3),
+  BonsaiInit_ProfileContextSwitches = (1 << 4),
+  BonsaiInit_Audio                  = (1 << 5),
 };
 
 
@@ -87,6 +88,27 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 #else
     Error("Asked to open a window when window implementations were not compiled in!");
 #endif
+  }
+
+  if (Flags & BonsaiInit_Renderer2D)
+  {
+    if (Flags & BonsaiInit_OpenWindow)
+    {
+      // TODO(Jesse): Make this configurable?
+      heap_allocator RendererHeap = InitHeap(Gigabytes(1), False);
+      renderer_2d *Ui = &Stdlib->Ui;
+
+      SetRenderer(Ui);
+
+      v2 MouseP, MouseDP, ScreenDim;
+
+      PlatformMakeRenderContextCurrent(&Stdlib->Os);
+      InitRenderer2D(Ui, &RendererHeap, Memory, &Stdlib->Plat.MouseP, &Stdlib->Plat.MouseDP, &Stdlib->Plat.ScreenDim, &Stdlib->Plat.Input);
+    }
+    else
+    {
+      Error("Unable to do BonsaiInit_Renderer2D without BonsaiInit_OpenWindow.");
+    }
   }
 
   // Intentionally last such that the render thread has a window to make the render context current on.

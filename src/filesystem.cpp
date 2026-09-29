@@ -37,6 +37,8 @@ link_internal maybe_file_traversal_node
 FindStdlibAssetsMarker(void)
 {
   cs RootMarkerName = CSz(".bonsai_stdlib_assets_marker");
+  cs ExecutableDirectory = {};
+
   maybe_file_traversal_node Result = PlatformTraverseDirectoryTreeUnordered(CSz("."), FindFileHelper, Cast(u64, &RootMarkerName));
   return Result;
 }

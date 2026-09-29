@@ -137,6 +137,7 @@ poof(@do_editor_ui)
             platform  Plat;
      application_api  AppApi;
               opengl  GL;
+         renderer_2d  Ui;
 
   // NOTE(Jesse): If we've setup a thread pool we allocate ThreadStates (and
   // set ThreadLocal_ThreadIndex for each thread), but if we just want a

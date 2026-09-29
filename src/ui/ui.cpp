@@ -3569,6 +3569,11 @@ InitRenderer2D( renderer_2d *Renderer,
 
   cs AssetDirectory = {};
   {
+
+    cs CWD = CS(GetCwd());
+
+    Info("CWD(%S)", CWD);
+
     maybe_file_traversal_node FindResult = FindStdlibAssetsMarker();
     if (FindResult.Tag)
     {
