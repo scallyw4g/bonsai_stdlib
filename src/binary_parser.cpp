@@ -624,6 +624,12 @@ Write(u8_cursor_block_array *Dest, u8 *Src, umm Count)
 }
 
 
+link_internal b32
+Write(u8_cursor_block_array *Dest, cs Str)
+{
+  return Write(Dest, Cast(u8*, Str.Start), Cast(umm, Str.Count));
+}
+
 
 poof(
   func gen_write_primitive_from_u8_stream_little_endian(type_poof_symbol PrimitiveTypes)

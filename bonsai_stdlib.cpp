@@ -3,7 +3,7 @@
 #endif
 
 #ifndef STDLIB_SHADER_PATH
-#define STDLIB_SHADER_PATH "include/bonsai_stdlib/shaders/"
+#define STDLIB_SHADER_PATH "external/bonsai_stdlib/shaders/"
 #endif
 
 
