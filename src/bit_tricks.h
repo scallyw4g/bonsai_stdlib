@@ -65,10 +65,10 @@ poof(
 )
 
 poof(gen_bit_operators(u32))
-#include <generated/gen_bit_operators$u32$McrWgWUm.h>
+#include <generated/gen_bit_operators$u32$aODh52SR.h>
 
 poof(gen_bit_operators(u64))
-#include <generated/gen_bit_operators$u64$Z6Tyjq40.h>
+#include <generated/gen_bit_operators$u64$XhGMN4jV.h>
 
 // TODO(Jesse): This is probably _hella_ braindead, but I couldn't think of a
 // cleverer way of doing this, so I used a vim macro ;)

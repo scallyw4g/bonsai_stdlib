@@ -118,7 +118,7 @@ AreEqual(const char *S1, const char *S2)
 }
 
 poof(stream_and_cursor(counted_string))
-#include <generated/stream_and_cursor$counted_string$huJhjpr8.h>
+#include <generated/stream_and_cursor$counted_string$AxypkWwK.h>
 
 struct tagged_counted_string_stream
 {
@@ -126,7 +126,7 @@ struct tagged_counted_string_stream
   counted_string_stream Stream;
 };
 poof(generate_stream(tagged_counted_string_stream))
-#include <generated/generate_stream$tagged_counted_string_stream$8tO8cdVn.h>
+#include <generated/generate_stream$tagged_counted_string_stream$FPUAfl9m.h>
 
 // TODO(Jesse, id: 99, tags: compiler_feature, metaprogramming): Generate this?  Need a compiler feature to generate stuff from primitive types.
 struct char_cursor
@@ -880,7 +880,7 @@ poof(
 )
 
 poof(parse_integer({u32 u64 s32 s64}))
-#include <generated/parse_integer$136174807$bwr6R4Qx.h>
+#include <generated/parse_integer$136174807$OaJpnS3L.h>
 
 link_internal char
 Peek(char_cursor* BufferCursor)
@@ -1156,4 +1156,4 @@ Frontcate(cs *S, umm Count)
 }
 
 poof(block_array_h(counted_string, {32}, {}))
-#include <generated/block_array_h$counted_string.688853862.0$J5YfQamG.h>
+#include <generated/block_array_h$counted_string.688853862.0$hF2RLaRD.h>

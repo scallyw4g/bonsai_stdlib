@@ -223,7 +223,7 @@ enum c_token_type
   CT_PoofModifiedToken,
 };
 poof(generate_string_table(c_token_type))
-#include <generated/generate_string_table$c_token_type$O0uU5eAC.h>
+#include <generated/generate_string_table$c_token_type$CIXHIQhB.h>
 
 enum c_token_flags
 {
@@ -254,7 +254,7 @@ enum token_cursor_source
   TokenCursorSource_Count,
 };
 poof(generate_string_table(token_cursor_source));
-#include <generated/generate_string_table$token_cursor_source$9bgy8AM3.h>
+#include <generated/generate_string_table$token_cursor_source$rIP01o2P.h>
 
 
 // NOTE(Jesse): This struct is getting hella gross .. we should really make it
@@ -388,7 +388,7 @@ struct c_token_cursor
 };
 
 poof(generate_cursor_functions(c_token))
-#include <generated/generate_cursor_functions$c_token$Qy7J9Vd2.h>
+#include <generated/generate_cursor_functions$c_token$gc5lZKn8.h>
 
 link_internal b32
 TokenShouldModifyLineCount(c_token *T, token_cursor_source Source)

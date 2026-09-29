@@ -1,10 +1,10 @@
 // TODO(Jesse): Seems like this and binary_parser.h have a lot of overlap..
 
 poof(generate_cursor(u8))
-#include <generated/generate_cursor$u8$rmKA9EGB.h>
+#include <generated/generate_cursor$u8$ojY2pobR.h>
 
 poof(block_array_h(u8_cursor, {8}, {u64 BlockSize;}))
-#include <generated/block_array_h$u8_cursor.688856411.512687792$UATeigix.h>
+#include <generated/block_array_h$u8_cursor.688856411.512687792$Ucbajpsx.h>
 
 // TODO(Jesse): Get rid of this
 typedef u8_cursor u8_stream;
@@ -30,7 +30,7 @@ enum text_encoding
 };
 
 poof(generate_string_table(text_encoding))
-#include <generated/generate_string_table$text_encoding$BhKKGQ5v.h>
+#include <generated/generate_string_table$text_encoding$XPNbyAJU.h>
 
 struct ansi_stream
 {

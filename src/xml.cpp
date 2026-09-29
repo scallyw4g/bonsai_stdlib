@@ -1,14 +1,14 @@
 poof(are_equal(xml_token))
-#include <generated/are_equal$xml_token$ejcduUxl.h>
+#include <generated/are_equal$xml_token$w5UKw99b.h>
 
 poof(are_equal(xml_property))
-#include <generated/are_equal$xml_property$7gRn0b6R.h>
+#include <generated/are_equal$xml_property$pWEQg9IR.h>
 
 poof(are_equal(xml_tag))
-#include <generated/are_equal$xml_tag$Fy4I2s0Y.h>
+#include <generated/are_equal$xml_tag$QU3Lj14i.h>
 
 poof(hashtable_impl(xml_tag));
-#include <generated/hashtable_impl$xml_tag$pqv8UcQG.h>
+#include <generated/hashtable_impl$xml_tag$7d8kSaGw.h>
 
 inline counted_string*
 GetPropertyValue(xml_tag* Tag, counted_string PropertyName)

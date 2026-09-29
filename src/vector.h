@@ -218,40 +218,40 @@ WithinTolerance(f32 Epsilon, f32 A, f32 B)
 
 
 poof(gen_vector_operators(v2))
-#include <generated/gen_vector_operators$v2$NUarOUG2.h>
+#include <generated/gen_vector_operators$v2$SXlvDPnm.h>
 
 poof(gen_vector_operators(v2i))
-#include <generated/gen_vector_operators$v2i$uMifbQYv.h>
+#include <generated/gen_vector_operators$v2i$Dq5ijfi1.h>
 
 poof(gen_vector_operators(v3))
-#include <generated/gen_vector_operators$v3$x7X3rYwi.h>
+#include <generated/gen_vector_operators$v3$CQf5gCo2.h>
 
 poof(gen_vector_operators(v3i))
-#include <generated/gen_vector_operators$v3i$mLEJxyb6.h>
+#include <generated/gen_vector_operators$v3i$vkIxDCta.h>
 
 poof(gen_vector_operators(v3_u8))
-#include <generated/gen_vector_operators$v3_u8$fv6q44v4.h>
+#include <generated/gen_vector_operators$v3_u8$irCx1rOg.h>
 
 poof(gen_vector_operators(v4))
-#include <generated/gen_vector_operators$v4$GCR4fQed.h>
+#include <generated/gen_vector_operators$v4$bc7A96e5.h>
 
 poof(gen_hetero_vector_operators(v2, v2i))
-#include <generated/gen_hetero_vector_operators$v2.v2i$MrfipAle.h>
+#include <generated/gen_hetero_vector_operators$v2.v2i$4hryKTR1.h>
 
 poof(gen_hetero_vector_operators(v2i, v2))
-#include <generated/gen_hetero_vector_operators$v2i.v2$hPPqPrN9.h>
+#include <generated/gen_hetero_vector_operators$v2i.v2$SunR7Pu9.h>
 
 poof(gen_hetero_vector_operators(v3, v3i))
-#include <generated/gen_hetero_vector_operators$v3.v3i$ccEefOlL.h>
+#include <generated/gen_hetero_vector_operators$v3.v3i$Epo3YboP.h>
 
 poof(gen_hetero_vector_operators(v3i, v3))
-#include <generated/gen_hetero_vector_operators$v3i.v3$T2okLI17.h>
+#include <generated/gen_hetero_vector_operators$v3i.v3$A8Tlqttp.h>
 
 poof(gen_hetero_vector_operators(v3_u8, v3i))
-#include <generated/gen_hetero_vector_operators$v3_u8.v3i$6tgqgrAb.h>
+#include <generated/gen_hetero_vector_operators$v3_u8.v3i$5ndTQ9ld.h>
 
 poof(gen_hetero_vector_operators(v3_u8, v3))
-#include <generated/gen_hetero_vector_operators$v3_u8.v3$qFQ7Tw7B.h>
+#include <generated/gen_hetero_vector_operators$v3_u8.v3$LrBCdFlI.h>
 
 inline v3_u8
 V3U8(v3_u8 V)
@@ -777,16 +777,16 @@ operator%(v3i A, s32 i)
 }
 
 poof(gen_vector_infix_operator(v3i, {^}))
-#include <generated/gen_vector_infix_operator$v3i.688856449$gUwpk6kV.h>
+#include <generated/gen_vector_infix_operator$v3i.688856449$06vHk96Y.h>
 
 poof(gen_vector_infix_operator(v3i, {&}))
-#include <generated/gen_vector_infix_operator$v3i.688856393$jJj6AMa1.h>
+#include <generated/gen_vector_infix_operator$v3i.688856393$dUmHEZgi.h>
 
 poof(vector_interpolation_functions(v2))
-#include <generated/vector_interpolation_functions$v2$MPlQ2tAV.h>
+#include <generated/vector_interpolation_functions$v2$Lwn9cakt.h>
 
 poof(vector_interpolation_functions(v3))
-#include <generated/vector_interpolation_functions$v3$qsX1HSRZ.h>
+#include <generated/vector_interpolation_functions$v3$BRuoHLj5.h>
 
 // TODO(Jesse): The heck do we use this for?
 // UPDATE(Jesse): Apparently nothing..
@@ -794,28 +794,28 @@ poof(vector_interpolation_functions(v3))
 /* #include <generated/gen_lerp_v4.h> */
 
 poof(gen_vector_area(v2))
-#include <generated/gen_vector_area$v2$DdDnWcJV.h>
+#include <generated/gen_vector_area$v2$p9VxZhXd.h>
 
 poof(gen_vector_area(v2i))
-#include <generated/gen_vector_area$v2i$TOwBs10y.h>
+#include <generated/gen_vector_area$v2i$qli0jgDE.h>
 
 poof(gen_common_vector(v2))
-#include <generated/gen_common_vector$v2$0SMSxj2W.h>
+#include <generated/gen_common_vector$v2$nWxZcCrn.h>
 
 poof(gen_common_vector(v3))
-#include <generated/gen_common_vector$v3$jiHdBQQT.h>
+#include <generated/gen_common_vector$v3$oFQUY1XJ.h>
 
 poof(gen_common_vector(v4))
-#include <generated/gen_common_vector$v4$rDvH2hjb.h>
+#include <generated/gen_common_vector$v4$6iBG8kUT.h>
 
 poof(gen_common_vector(v3i))
-#include <generated/gen_common_vector$v3i$Z2rliZDf.h>
+#include <generated/gen_common_vector$v3i$D9w7NMvb.h>
 
 poof(gen_vector_normalize(v2))
-#include <generated/gen_vector_normalize$v2$2R8np5g9.h>
+#include <generated/gen_vector_normalize$v2$Aqmyktm0.h>
 
 poof(gen_vector_normalize(v3))
-#include <generated/gen_vector_normalize$v3$lUoENk6x.h>
+#include <generated/gen_vector_normalize$v3$BbjrW1v2.h>
 
 
 inline v3
@@ -1195,11 +1195,11 @@ PositionFromIndex(s32 Index, chunk_dimension Dim)
 }
 
 poof(maybe(v3))
-#include <generated/maybe$v3$xT2NZvgC.h>
+#include <generated/maybe$v3$4ADsMCvx.h>
 poof(maybe(v3i))
-#include <generated/maybe$v3i$Hs0FI4Lf.h>
+#include <generated/maybe$v3i$DrRsttCH.h>
 
 poof(static_cursor(v2, {16}))
-#include <generated/static_cursor$v2.688854072$04n8GVH5.h>
+#include <generated/static_cursor$v2.688854072$5BqTNfkW.h>
 
 

@@ -202,13 +202,13 @@ poof(
 
 
 poof(gen_map_value_funcs(r32))
-#include <generated/gen_map_value_funcs$r32$br7xuZAG.h>
+#include <generated/gen_map_value_funcs$r32$HpiPGINA.h>
 
 poof(gen_map_value_funcs(u32))
-#include <generated/gen_map_value_funcs$u32$iIlHBlyk.h>
+#include <generated/gen_map_value_funcs$u32$1BenIeLR.h>
 
 poof(gen_map_value_funcs(s32))
-#include <generated/gen_map_value_funcs$s32$DPedbcOZ.h>
+#include <generated/gen_map_value_funcs$s32$36lmRJ61.h>
 
 
 poof(
@@ -228,13 +228,13 @@ poof(
 )
 
 poof(gen_random_between(r32))
-#include <generated/gen_random_between$r32$rsFjbeOo.h>
+#include <generated/gen_random_between$r32$lenYWWit.h>
 
 poof(gen_random_between(u32))
-#include <generated/gen_random_between$u32$fj5E0VJK.h>
+#include <generated/gen_random_between$u32$QlItYtaE.h>
 
 poof(gen_random_between(s32))
-#include <generated/gen_random_between$s32$DPPfhRGf.h>
+#include <generated/gen_random_between$s32$VDToliwH.h>
 
 
 inline b32

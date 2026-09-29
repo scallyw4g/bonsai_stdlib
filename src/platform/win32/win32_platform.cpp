@@ -460,7 +460,7 @@ WindowMessageCallback(
             }
           }
         )
-#include <generated/poof_func.anonymous$input$rqrXHE7T.h>
+#include <generated/poof_func.anonymous$input$HfA1Fng1.h>
 
         BindKeyupToInput(VK_DECIMAL, Dot);
         BindKeyupToInput(VK_DIVIDE,  FSlash);
@@ -488,7 +488,7 @@ WindowMessageCallback(
             }
           }
         )
-#include <generated/poof_func.anonymous$input$N0YtbjCm.h>
+#include <generated/poof_func.anonymous$input$7u8jLJmb.h>
 
         BindKeydownToInput(VK_DECIMAL, Dot);
         BindKeydownToInput(VK_DIVIDE,  FSlash);

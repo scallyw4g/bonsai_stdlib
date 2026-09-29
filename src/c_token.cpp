@@ -1,12 +1,12 @@
 
 poof(buffer(c_token))
-#include <generated/buffer$c_token$c1GPhZlO.h>
+#include <generated/buffer$c_token$pK1OhoVG.h>
 
 poof(buffer(c_token_buffer))
-#include <generated/buffer$c_token_buffer$vNFfClC9.h>
+#include <generated/buffer$c_token_buffer$OWVnLn5m.h>
 
 poof(generate_stream(c_token_buffer))
-#include <generated/generate_stream$c_token_buffer$tyg9UJaE.h>
+#include <generated/generate_stream$c_token_buffer$XVZhq0au.h>
 
 
 link_internal b32

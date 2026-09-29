@@ -3,10 +3,10 @@
 /* #include <generated/block_array_c_texture_688856411.h> */
 
 poof(block_array_c(texture, {8}))
-#include <generated/block_array_c$texture.688856411$sUTPhneD.h>
+#include <generated/block_array_c$texture.688856411$F4Qf0QkZ.h>
 
 poof(block_array_c(texture_ptr, {8}))
-#include <generated/block_array_c$texture_ptr.688856411$BwCMtRuG.h>
+#include <generated/block_array_c$texture_ptr.688856411$6Klba9dN.h>
 
 #define FOURCC_DXT1 0x31545844 // Equivalent to "DXT1" in ASCII
 #define FOURCC_DXT3 0x33545844 // Equivalent to "DXT3" in ASCII

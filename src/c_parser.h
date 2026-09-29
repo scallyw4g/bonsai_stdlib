@@ -60,7 +60,7 @@ enum parse_error_code
   ParseErrorCode_Unknown,
 };
 poof(generate_string_table(parse_error_code))
-#include <generated/generate_string_table$parse_error_code$DxZNysvT.h>
+#include <generated/generate_string_table$parse_error_code$7FHcbI6T.h>
 
 
 struct parser
@@ -91,10 +91,10 @@ DeepCopy( parser *Src, parser *Dest)
 }
 
 poof(generate_cursor(parser))
-#include <generated/generate_cursor$parser$FiFc5Ej5.h>
+#include <generated/generate_cursor$parser$TTv4P7DH.h>
 
 poof(generate_stream(parser))
-#include <generated/generate_stream$parser$rYMf01up.h>
+#include <generated/generate_stream$parser$Dm1S9bUB.h>
 
 link_internal u32
 Hash(parser *Parser)

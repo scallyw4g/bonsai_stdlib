@@ -145,14 +145,14 @@ Sanitize( rect3 *Rect )
 }
 
 poof(gen_rect_helpers(rect2, v2))
-#include <generated/gen_rect_helpers$rect2.v2$lNN4wDFd.h>
+#include <generated/gen_rect_helpers$rect2.v2$fyLHcvqs.h>
 /* poof(gen_rect_helpers(rect2i, v2i)) */
 
 poof(gen_rect_helpers(rect3, v3))
-#include <generated/gen_rect_helpers$rect3.v3$vpj9Wec3.h>
+#include <generated/gen_rect_helpers$rect3.v3$ZIFK8B6x.h>
 
 poof(gen_rect_helpers(rect3i, v3i))
-#include <generated/gen_rect_helpers$rect3i.v3i$vXItI5SB.h>
+#include <generated/gen_rect_helpers$rect3i.v3i$axGXVJrw.h>
 
 link_internal rect3i
 Rect3iMinDim(v3i Min, v3i Dim)

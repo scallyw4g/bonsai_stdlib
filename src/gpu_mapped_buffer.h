@@ -120,10 +120,10 @@ link_internal b32 UnmapGpuBuffer(gpu_element_buffer_handles *Handles);
 
 
 poof(triple_buffered(gpu_mapped_ui_buffer, ui_geometry_buffer))
-#include <generated/triple_buffered$gpu_mapped_ui_buffer.ui_geometry_buffer$cyIClU9b.h>
+#include <generated/triple_buffered$gpu_mapped_ui_buffer.ui_geometry_buffer$SuMRoVc0.h>
 
 poof(triple_buffered(gpu_mapped_element_buffer, untextured_3d_geometry_buffer))
-#include <generated/triple_buffered$gpu_mapped_element_buffer.untextured_3d_geometry_buffer$3JsNBUNL.h>
+#include <generated/triple_buffered$gpu_mapped_element_buffer.untextured_3d_geometry_buffer$WSrKgV76.h>
 
 link_internal void
 SetupVertexAttribsFor_u3d_geo_element_buffer(gpu_element_buffer_handles *Handles);

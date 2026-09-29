@@ -14,7 +14,7 @@ poof(
     }
   }
 )
-#include <generated/poof_builtin.for_datatypes$$W4ZZm5lY.h>
+#include <generated/poof_builtin.for_datatypes$$LAtQuQ4R.h>
 
 // Generate tagged_union for async functions
 //
@@ -118,7 +118,7 @@ poof(
     }
   }
 )
-#include <generated/poof_builtin.for_datatypes$$dwoEEYjr.h>
+#include <generated/poof_builtin.for_datatypes$$WAmjkG0M.h>
 
 
 

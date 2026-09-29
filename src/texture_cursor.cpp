@@ -1,5 +1,5 @@
 poof(are_equal(texture))
-#include <generated/are_equal$texture$ggn3S6KL.h>
+#include <generated/are_equal$texture$BWjnc44A.h>
 
 link_internal void
 DeepCopy(texture *E0, texture *E1)
@@ -8,4 +8,4 @@ DeepCopy(texture *E0, texture *E1)
 }
 
 poof(generate_cursor(texture))
-#include <generated/generate_cursor$texture$YSdk5p6B.h>
+#include <generated/generate_cursor$texture$Kyp0D72x.h>

@@ -1,8 +1,8 @@
 poof(buffer_c(shader_uniform, u32))
-#include <generated/buffer_c$shader_uniform.u32$2HP1wivG.h>
+#include <generated/buffer_c$shader_uniform.u32$ER5w4Qva.h>
 
 poof(block_array_c(shader_ptr, {64}))
-#include <generated/block_array_c$shader_ptr.688853971$nnQk2hkw.h>
+#include <generated/block_array_c$shader_ptr.688853971$rd53rW0F.h>
 
 struct shader_compile_result
 {
@@ -391,25 +391,25 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
 
 poof(set_shader_uniform(texture));
-#include <generated/set_shader_uniform$texture$E5kKrG16.h>
+#include <generated/set_shader_uniform$texture$eruQ9d3W.h>
 
 poof(set_shader_uniform(m4));
-#include <generated/set_shader_uniform$m4$RUk8keVD.h>
+#include <generated/set_shader_uniform$m4$r4tRKWYG.h>
 
 poof(set_shader_uniform(v2));
-#include <generated/set_shader_uniform$v2$wCwRHbYm.h>
+#include <generated/set_shader_uniform$v2$hRTrq6Ll.h>
 
 poof(set_shader_uniform(v3));
-#include <generated/set_shader_uniform$v3$l1P03Tov.h>
+#include <generated/set_shader_uniform$v3$PlhUY9mt.h>
 
 poof(set_shader_uniform(u32));
-#include <generated/set_shader_uniform$u32$eJlDLpGq.h>
+#include <generated/set_shader_uniform$u32$CQ86uERe.h>
 
 poof(set_shader_uniform(s32));
-#include <generated/set_shader_uniform$s32$oA8hROyK.h>
+#include <generated/set_shader_uniform$s32$k7y71ARU.h>
 
 poof(set_shader_uniform(r32));
-#include <generated/set_shader_uniform$r32$hqbhx6co.h>
+#include <generated/set_shader_uniform$r32$qG1h5ut2.h>
 
 
 #if 0

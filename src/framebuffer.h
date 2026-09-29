@@ -13,10 +13,10 @@ struct rtt_framebuffer
 };
 
 poof(static_cursor(rtt_framebuffer, {3}))
-#include <generated/static_cursor$rtt_framebuffer.688856406$o7oU3eED.h>
+#include <generated/static_cursor$rtt_framebuffer.688856406$l1MI4kTb.h>
 
 poof(circular_buffer_h(rtt_framebuffer, {static_cursor_3}))
-#include <generated/circular_buffer_h$rtt_framebuffer.214174779$KERVQhDT.h>
+#include <generated/circular_buffer_h$rtt_framebuffer.214174779$Dsy7t8I4.h>
 
 link_internal void
 BindFramebuffer(rtt_framebuffer *Framebuffer);

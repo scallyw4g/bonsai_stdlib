@@ -80,7 +80,7 @@ poof(@bitfield)
 };
 
 poof(is_valid(window_layout_flags))
-#include <generated/is_valid$window_layout_flags$fho5aN5V.h>
+#include <generated/is_valid$window_layout_flags$g7BVX3jq.h>
 
 global_variable u32 NextWindowStackIndex = 0;
 
@@ -143,13 +143,13 @@ AreEqual(window_layout *Thing1, window_layout *Thing2)
 }
 
 poof(maybe(window_layout))
-#include <generated/maybe$window_layout$mTJVeKKq.h>
+#include <generated/maybe$window_layout$Urm96ZIe.h>
 
 poof(maybe(window_layout_ptr))
-#include <generated/maybe$window_layout_ptr$USCQ3JSk.h>
+#include <generated/maybe$window_layout_ptr$ZVCa0a9v.h>
 
 poof(hashtable_struct(window_layout))
-#include <generated/hashtable_struct$window_layout$9Rpb2Pi8.h>
+#include <generated/hashtable_struct$window_layout$jaqixCrL.h>
 
 #define INTERACTION_ALWAYS_ON_TOP (u64_MAX)
 
@@ -161,7 +161,7 @@ poof(@do_editor_ui)
 };
 
 poof(are_equal(ui_toggle))
-#include <generated/are_equal$ui_toggle$mTpLOHkF.h>
+#include <generated/are_equal$ui_toggle$1NCZy5gT.h>
 
 enum ui_display_type
 {
@@ -207,7 +207,7 @@ enum ui_toggle_button_group_flags
 
 };
 poof(buffer_h(ui_toggle_button_handle, u32))
-#include <generated/buffer_h$ui_toggle_button_handle.u32$lxY8emao.h>
+#include <generated/buffer_h$ui_toggle_button_handle.u32$884YEy22.h>
 
 struct renderer_2d;
 struct ui_toggle_button_group
@@ -322,13 +322,13 @@ Hash(ui_toggle *Toggle)
 }
 
 poof(maybe(ui_toggle))
-#include <generated/maybe$ui_toggle$Y6bI7E4O.h>
+#include <generated/maybe$ui_toggle$BkP07uHf.h>
 
 poof(maybe(ui_toggle_ptr))
-#include <generated/maybe$ui_toggle_ptr$RbS1Iep2.h>
+#include <generated/maybe$ui_toggle_ptr$2q3AAKMZ.h>
 
 poof(hashtable_struct(ui_toggle))
-#include <generated/hashtable_struct$ui_toggle$eXZwCl10.h>
+#include <generated/hashtable_struct$ui_toggle$1oCmtFsx.h>
 
 
 struct text_box_edit_state
@@ -1013,7 +1013,7 @@ poof(
     ui_render_command_debug             enum_only
   }
 )
-#include <generated/poof_builtin.d_union$$DuWc7e8N.h>
+#include <generated/poof_builtin.d_union$$DXcxvZuk.h>
 
 
 

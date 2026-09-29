@@ -237,7 +237,7 @@ poof(
 )
 
 poof( gen_are_equal({s64 u64 r64 s32 u32 r32 s16 u16 s8 u8 }) )
-#include <generated/gen_are_equal$715421923$uJDEaeWK.h>
+#include <generated/gen_are_equal$715421923$fDZsoBFS.h>
 
 link_internal b32
 AreEqual( void *E1, void *E2 )
@@ -261,7 +261,7 @@ poof(
 )
 
 poof( gen_primitive_deep_copy({s64 u64 r64 s32 u32 r32 s16 u16 s8 u8 }) )
-#include <generated/gen_primitive_deep_copy$715421923$DjpoIFs5.h>
+#include <generated/gen_primitive_deep_copy$715421923$Q8X3FsRC.h>
 
 link_internal void PlatformDebugStacktrace();
 
@@ -309,7 +309,7 @@ global_variable u32 Global_TypeByteWidthTable[] =
       enum_t.map(enum_v) { enum_v.has_tag(bit_width)?  { enum_v.tag_value(bit_width), } }
     }
   )
-#include <generated/poof_func.anonymous$primitive_type$ERhCslKN.h>
+#include <generated/poof_func.anonymous$primitive_type$7NN9DQj2.h>
 };
 
 
