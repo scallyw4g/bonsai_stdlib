@@ -3567,9 +3567,44 @@ InitRenderer2D( renderer_2d *Renderer,
 
   auto Stdlib = GetStdlib();
 
-  cs AssetDirectory = {};
   {
 
+    {
+      TIMED_NAMED_BLOCK(NormalizeWorkingDirectory);
+
+      cs StartingCWD = CopyString(CS(GetCwd()), GetTranArena());
+      cs ExeDir = PlatformGetExecutableDir();
+
+      if (!StringsMatch(StartingCWD, ExeDir))
+      {
+        Info("Changing CWD from (%S) -> (%S)", StartingCWD, ExeDir);
+        auto ExeZ = GetNullTerminated(ExeDir);
+        Ensure(PlatformChangeDirectory(ExeZ));
+
+        if (!SearchForProjectRoot())
+        {
+          Ensure(PlatformChangeDirectory(ExeZ));
+        }
+      }
+
+      maybe_file_traversal_node StdlibAssetsMarker = FindStdlibAssetsMarker();
+      if (StdlibAssetsMarker.Tag)
+      {
+        auto CWD = GetCwd();
+        Stdlib->AbsoluteAssetsPath = Concat(CS(CWD), CSz("/"), StdlibAssetsMarker.Value.Dir, PermMemory);
+        Stdlib->AbsoluteShaderDirectoryPath = Concat(Stdlib->AbsoluteAssetsPath, CSz("/shaders/"), PermMemory);
+        Stdlib->ShaderHeaderFile.File.Path = Concat(Stdlib->AbsoluteShaderDirectoryPath, CSz("header.glsl"), PermMemory);
+      }
+
+      {
+        Info("Changing CWD to (%S)", StartingCWD);
+        auto DirZ = GetNullTerminated(StartingCWD);
+        Ensure(PlatformChangeDirectory(DirZ));
+      }
+    }
+
+
+#if 0
     maybe_file_traversal_node FindResult = FindStdlibAssetsMarker();
     if (FindResult.Tag)
     {
@@ -3577,15 +3612,17 @@ InitRenderer2D( renderer_2d *Renderer,
       AssetDirectory = FindResult.Value.Dir;
 
       auto F = FindResult.Value;
-      Stdlib->ShaderDirectoryPath = Concat(F.Dir, CSz("/shaders/"), PermMemory);
-
-      Stdlib->ShaderHeaderFile.File.Path = Concat(Stdlib->ShaderDirectoryPath, CSz("header.glsl"), PermMemory);
+      Stdlib->AbsoluteShaderDirectoryPath = Concat(F.Dir, CSz("/shaders/"), PermMemory);
+      Stdlib->ShaderHeaderFile.File.Path = Concat(Stdlib->AbsoluteShaderDirectoryPath, CSz("header.glsl"), PermMemory);
     }
     else
     {
       Error("Unable to find asset directory, exiting.");
     }
+#endif
   }
+
+  cs AssetDirectory = Stdlib->AbsoluteAssetsPath;
 
   Init_Global_QuadVertexBuffer();
 
@@ -3651,8 +3688,10 @@ InitRenderer2D( renderer_2d *Renderer,
       }
     }
 
-    cs VertPath = Concat(GetStdlibShaderDir(), CSz("ui.vertexshader"), GetTranArena());
-    cs FragPath = Concat(GetStdlibShaderDir(), CSz("ui.fragmentshader"), GetTranArena());
+    Ensure(ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_default));
+
+    cs VertPath = Concat(GetAbsoluteStdlibShaderDir(), CSz("ui.vertexshader"), GetTranArena());
+    cs FragPath = Concat(GetAbsoluteStdlibShaderDir(), CSz("ui.fragmentshader"), GetTranArena());
     CompileShaderPair(&TextGroup->UiShader, VertPath, FragPath );
 
     TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->UiShader.ID, "TextTextureSampler");

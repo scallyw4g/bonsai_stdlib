@@ -190,6 +190,7 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
 link_internal b32
 PlatformRenameFile(cs CurrentFilePath, cs NewFilePath)
 {
+  TIMED_FUNCTION();
   u32 SleepIntervalMS = 15; // Default time-slice on windows.  Chose this at random.
   u32 SleepElapsed = 0;
 

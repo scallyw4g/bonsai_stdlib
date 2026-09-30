@@ -146,12 +146,13 @@ UnregisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
   }
 }
 
-link_internal void
+link_internal b32
 ReloadShaderHeaderCode(bonsai_stdlib *Stdlib, hot_reloadable_file *ShaderHeaderFile, shader_language_setting ShaderLanguage)
 {
-  Shader("Reloading header.glsl");
+  Shader("Reloading (%s)(%S)", GetCwd(), ShaderHeaderFile->File.Path);
 
-  if ( OpenHotReloadableFile(ShaderHeaderFile, FilePermission_Read) )
+  b32 Result = OpenHotReloadableFile(ShaderHeaderFile, FilePermission_Read);
+  if ( Result )
   {
     // ReadEntireFileIntoString closes the file
     cs HeaderCode =  ReadEntireFileIntoString(&Stdlib->ShaderHeaderFile.File, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory);
@@ -159,6 +160,7 @@ ReloadShaderHeaderCode(bonsai_stdlib *Stdlib, hot_reloadable_file *ShaderHeaderF
     cs ShaderVersion = ValueFromSetting(ShaderLanguage);
     Stdlib->ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
   }
+  return Result;
 }
 
 link_internal void
@@ -189,7 +191,7 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
   auto Stdlib = GetStdlib();
   auto GL = GetGL();
 
-  if (Stdlib->ShaderHeaderCode.Start == 0) { ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_default); }
+  Assert(Stdlib->ShaderHeaderCode.Start);
 
   ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
   ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(FragShaderPath, GetTranArena());
@@ -314,12 +316,7 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
   auto GL = GetGL();
 
-  b32 HeaderIsNew = FileIsNew(&Stdlib->ShaderHeaderFile);
-  if (HeaderIsNew)
-  {
-    ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_330core);
-  }
-
+  b32 HeaderIsNew = ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_330core);
   IterateOver(&Stdlib->AllShaders, Shader, ShaderIndex)
   {
     Shader->HotReloaded = False;

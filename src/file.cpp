@@ -182,7 +182,7 @@ OpenHotReloadableFile(hot_reloadable_file *File, file_permission Permissions)
   }
   else
   {
-    // TODO(Jesse): Should we warn here?
+    Warn("Hot reloadable file wasn't new!");
   }
 
   return Result;
@@ -241,6 +241,7 @@ GetTmpFilename(random_series* Entropy, memory_arena *Memory)
 link_internal native_file
 GetTempFile(random_series *Entropy, memory_arena *Memory)
 {
+  TIMED_FUNCTION();
   cs Filename = GetTmpFilename(Entropy, Memory);
   native_file Result = OpenFile(Filename, FilePermission_Write);
   if (!Result.Handle) { Warn("Error opening tmpfile %S", Filename); }

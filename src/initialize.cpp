@@ -65,27 +65,6 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   SetThreadLocal_ThreadIndex(0);
   PlatformPinCurrentThreadToCore(0);
 
-  // NOTE(Jesse): Does string formatting, must come after thread states are valid
-  cs StartingCWD = CopyString(CS(GetCwd()), GetTranArena());
-  {
-    TIMED_NAMED_BLOCK(NormalizeWorkingDirectory);
-
-    cs ExeDir = PlatformGetExecutableDir();
-
-    if (!StringsMatch(StartingCWD, ExeDir))
-    {
-      Info("Changing CWD from (%S) -> (%S)", StartingCWD, ExeDir);
-      auto ExeZ = GetNullTerminated(ExeDir);
-      Ensure(PlatformChangeDirectory(ExeZ));
-
-      if (!SearchForProjectRoot())
-      {
-        Ensure(PlatformChangeDirectory(ExeZ));
-      }
-    }
-  }
-
-
   if (Flags & BonsaiInit_InitDebugSystem)
   {
 #if BONSAI_DEBUG_SYSTEM_API
@@ -155,12 +134,6 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   if (Flags & BonsaiInit_Audio)
   {
     PlatformInitializeAudio(Plat);
-  }
-
-  {
-    Info("Changing CWD to (%S)", StartingCWD);
-    auto DirZ = GetNullTerminated(StartingCWD);
-    Ensure(PlatformChangeDirectory(DirZ));
   }
 
   return True;

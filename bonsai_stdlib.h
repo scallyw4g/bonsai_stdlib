@@ -147,7 +147,8 @@ poof(@do_editor_ui)
   thread_local_state *ThreadStates;
   thread_local_state  DefaultThreadState;
 
-  cs ShaderDirectoryPath;
+  cs AbsoluteAssetsPath;
+  cs AbsoluteShaderDirectoryPath;
 
   hot_reloadable_file ShaderHeaderFile;
           ansi_stream ShaderHeaderCode;
@@ -183,10 +184,11 @@ GetStdlib()
 }
 
 link_internal cs
-GetStdlibShaderDir()
+GetAbsoluteStdlibShaderDir()
 {
-  Assert(Global_Stdlib->ShaderDirectoryPath.Start);
-  return Global_Stdlib->ShaderDirectoryPath;
+  Assert(Global_Stdlib->AbsoluteShaderDirectoryPath.Start);
+  Assert(EndsWith(Global_Stdlib->AbsoluteShaderDirectoryPath, CSz("/")));
+  return Global_Stdlib->AbsoluteShaderDirectoryPath;
 }
 
 

@@ -27,6 +27,7 @@ PlatformCloseFile(native_file* File)
 link_internal b32
 PlatformRenameFile(cs CurrentFilePath, cs NewFilePath)
 {
+  TIMED_FUNCTION();
   cs TmpFilename = {};
   if (FileExists(NewFilePath))
   {

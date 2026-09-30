@@ -613,10 +613,10 @@ PlatformGetEnvironmentVar(const char *VarName, memory_arena *Memory)
 #define CwdBufferLen 2048
 debug_global char CwdBuffer[CwdBufferLen];
 
-inline char*
+inline char *
 GetCwd()
 {
-  GetCurrentDirectory( CwdBufferLen, CwdBuffer );
+  GetCurrentDirectory( CwdBufferLen-1, CwdBuffer );
   Info("GetCwd (%s)", CwdBuffer);
   return CwdBuffer;
 }
