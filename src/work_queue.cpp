@@ -3,18 +3,6 @@ struct work_queue_task;
 struct work_queue_job;
 
 
-link_internal work_queue_job *
-GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex);
-
-link_internal work_queue_task *
-PeekNextTask(work_queue_job *Job);
-
-link_internal work_queue_task *
-PopNextTask(work_queue_job *Job);
-
-link_internal void
-PushTask(work_queue_job *Job, work_queue_task *Task);
-
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 {

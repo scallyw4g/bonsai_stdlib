@@ -123,6 +123,9 @@ GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex);
 link_internal work_queue_job *
 GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex);
 
+link_internal void
+PushTask(work_queue_job *Job, work_queue_task *Task);
+
 link_internal work_queue_task *
 PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex);
 
@@ -134,3 +137,4 @@ PeekNextTask(work_queue_job *Job);
 
 link_internal void
 InitQueue(work_queue* Queue, memory_arena* Memory);
+

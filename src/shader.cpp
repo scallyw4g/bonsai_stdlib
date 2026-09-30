@@ -851,3 +851,9 @@ UseShader(void *Shader)
   UseShader(Cast(shader *, Shader));
 }
 
+link_internal cs
+StdlibShaderPath(cs ShaderFile)
+{
+  return Concat(GetAbsoluteStdlibShaderDir(), ShaderFile, GetTranArena());
+}
+

@@ -99,7 +99,9 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
       heap_allocator RendererHeap = InitHeap(Gigabytes(1), False);
       renderer_2d *Ui = &Stdlib->Ui;
 
-      SetRenderer(Ui);
+#if BONSAI_DEBUG_SYSTEM_API
+      SetDebugRenderer(Ui);
+#endif
 
       v2 MouseP, MouseDP, ScreenDim;
 

@@ -192,6 +192,7 @@ GetAbsoluteStdlibShaderDir()
 }
 
 
+
 link_internal platform *
 GetPlatform()
 {

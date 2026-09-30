@@ -227,3 +227,5 @@ enum shader_language_setting
   ShaderLanguageSetting_default = ShaderLanguageSetting_460core poof(@string_table_skip),
 };
 
+link_internal cs
+StdlibShaderPath(cs ShaderFile);
