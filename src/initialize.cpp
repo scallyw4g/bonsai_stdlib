@@ -107,6 +107,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
       PlatformMakeRenderContextCurrent(&Stdlib->Os);
       InitRenderer2D(Ui, &RendererHeap, Memory, &Stdlib->Plat.MouseP, &Stdlib->Plat.MouseDP, &Stdlib->Plat.ScreenDim, &Stdlib->Plat.Input);
+      PlatformReleaseRenderContext(Os);
     }
     else
     {

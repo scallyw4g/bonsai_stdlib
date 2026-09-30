@@ -114,6 +114,10 @@ BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK()
   WorkerThread_BeforeJobStart(Thread);
 }
 
+link_internal void
+InitQueue(work_queue* Queue, memory_arena* Memory);
+
+
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex);
 
@@ -123,18 +127,20 @@ GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex);
 link_internal work_queue_job *
 GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex);
 
+
 link_internal void
 PushTask(work_queue_job *Job, work_queue_task *Task);
 
-link_internal work_queue_task *
-PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex);
-
-link_internal work_queue_task *
-PopNextTask(work_queue_job *Job);
 
 link_internal work_queue_task *
 PeekNextTask(work_queue_job *Job);
 
-link_internal void
-InitQueue(work_queue* Queue, memory_arena* Memory);
+link_internal work_queue_task *
+PopNextTask(work_queue_job *Job);
+
+link_internal work_queue_job *
+PopNextJob(platform *Plat, work_queue* Queue);
+
+link_internal work_queue_task *
+PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex);
 
