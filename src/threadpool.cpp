@@ -16,6 +16,7 @@ poof(
 )
 #include <generated/poof_builtin.for_datatypes$$LAtQuQ4R.h>
 
+
 // Generate tagged_union for async functions
 //
 enum async_function_call_type
@@ -39,8 +40,17 @@ struct work_queue_task_async_function_call
   async_function_call_type Type;
   union
   {
-    compile_shader_pair_async_params compile_shader_pair_async_params;
-    output_async_params output_async_params;
+    poof(
+      for_datatypes(struct) @code_fragment
+      func (struct_t)
+      {
+        struct_t.has_tag(async_function_params)?
+        {
+          struct_t.name struct_t.name;
+        }
+      }
+    )
+#include <generated/poof_builtin.for_datatypes$$NiTeiJJT.h>  
   };
 };
 #else

@@ -5,6 +5,20 @@
 enum work_queue_task_type
 {
   type_work_queue_task_async_function_call,
+  // NOTE(Jesse): @custom_task_type
+#if 0
+  poof(
+    for_datatypes(struct) @code_fragment
+    func (struct_t)
+    {
+      struct_t.has_tag(work_queue_task)?
+      {
+        type_work_queue_task_(struct_t.name),
+      }
+    }
+  )
+#include <generated/poof_builtin.for_datatypes$$WP0uwQsK.h>
+#endif
 };
 
 struct work_queue_task
@@ -17,6 +31,18 @@ struct work_queue_task
   union
   {
     work_queue_task_async_function_call work_queue_task_async_function_call;
+
+  // NOTE(Jesse): @custom_task_type
+#if 0
+    for_datatypes(struct)
+    func (struct_t)
+    {
+      struct_t.has_tag(async_function_call)?
+      {
+        struct_t.name struct_t.name,
+      }
+    }
+#endif
   };
 };
 
