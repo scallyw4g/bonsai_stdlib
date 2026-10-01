@@ -105,6 +105,7 @@ struct work_queue_job
   u16 NextTaskIndex;      // Index into Tasks for the next task to Pop
 
   global_job_index Index; // global index for this job; indexes into platform::Jobs
+  b32 Submitted;          // Mostly just here for padding; could be Flags
 };
 
 link_internal void

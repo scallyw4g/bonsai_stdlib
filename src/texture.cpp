@@ -229,6 +229,7 @@ MakeTexture_RGBA(    v2i  Dim,
 }
 
 link_internal texture
+poof(@async @render)
 MakeTexture_RGBA(    v2i  Dim,
                       v4 *Data,
                       cs  DebugName,
@@ -271,6 +272,7 @@ MakeTexture_SingleChannel( v2i  Dim,
 }
 
 link_internal texture
+poof(@async @render)
 MakeTexture_RGB(     v2i  Dim,
                 const v3 *Data,
                       cs  DebugName,

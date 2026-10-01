@@ -17,9 +17,13 @@ GenFramebuffer()
 link_internal void
 ClearFramebuffer(rtt_framebuffer *Framebuffer)
 {
+  AssertNoGlErrors;
+
   auto GL = GetGL();
   GL->BindFramebuffer(GL_FRAMEBUFFER, Framebuffer->FBO.ID);
   GL->Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+  AssertNoGlErrors;
 }
 
 link_internal b32

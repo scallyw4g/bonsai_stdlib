@@ -10,7 +10,7 @@ poof(
   {
     func_t.has_tag(async)?
     {
-      asyncify_function_h(func_t)
+      asyncify_function_closure_params(func_t)
     }
   }
 )
@@ -170,6 +170,9 @@ PeekNextTask(work_queue_job *Job)
 link_internal work_queue_task *
 PopNextTask(work_queue_job *Job)
 {
+  Assert(Job->Submitted == True);
+  Job->Submitted = False;
+
   work_queue_task* Result = GetPtr(&Job->Tasks, Job->NextTaskIndex++);
   return Result;
 }
@@ -178,6 +181,35 @@ link_internal void
 PushTask(work_queue_job *Job, work_queue_task *Task)
 {
   Push(&Job->Tasks, Task);
+}
+
+link_internal void
+ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
+{
+  platform *Plat = GetPlatform();
+  if (Queue == &Plat->LoRenderQ || Queue == &Plat->HiRenderQ)
+  {
+    tswitch(Task)
+    {
+      { tmatch(work_queue_task_async_function_call, Task, RPC)
+        Ensure(ValidateRPCForRenderQ(RPC) == True);
+      } break;
+    }
+  }
+  else if (Queue == &Plat->HighPriority || Queue == &Plat->LowPriority)
+  {
+    tswitch(Task)
+    {
+      { tmatch(work_queue_task_async_function_call, Task, RPC)
+        Ensure(ValidateRPCForRenderQ(RPC) == False);
+      } break;
+    }
+  }
+  else
+  {
+    Error("Invalid Queue Pointer (0x%x) passed to ValidateJobForQueue", Queue);
+  }
+
 }
 
 // @assert_job_queue
@@ -189,7 +221,16 @@ SubmitJob( work_queue *Queue, work_queue_job *Job )
 
   TIMED_FUNCTION();
 
+  {
+    auto Task = PeekNextTask(Job);
+    ValidateTaskForQueue(Queue, Task);
+    Assert(Task->Queue == Queue);
+  }
+
   platform *Plat = GetPlatform();
+
+  Assert(Job->Submitted == False);
+  Job->Submitted = True;
 
   AcquireFutex(&Queue->EnqueueFutex);
 
@@ -222,6 +263,77 @@ SubmitJob( work_queue *Queue, work_queue_job *Job )
 }
 
 link_internal void
+ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
+{
+  Assert(Job->Submitted == False);
+  Job->NextTaskIndex = 0;
+
+  Plat->FreeJobs = Plat->FreeJobs +1;
+
+  /* if (work_queue_job_stats *Stats = GetByHashValue(&Plat->JobStatsTable, HashPointer(Job))) */
+  /* { */
+  /*   Stats->RetireTime = GetCycleCount(); */
+  /*   Stats->RetireFrameIndex = GetEngineResources()->FrameIndex; */
+  /* } */
+
+  // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
+  Link_TS(
+    Cast(volatile freelist_entry **, &Plat->JobsFreelist),
+    Cast(freelist_entry *, Job)
+  );
+}
+
+link_internal work_queue_job *
+ReserveWorkQueueJob( platform *Plat, b32 TrackStats /* = False */ )
+{
+  Assert(Plat->Jobs);
+  Assert(Plat->JobsFreelist);
+  Assert(Plat->FreeJobs > 0);
+
+  Plat->FreeJobs = Plat->FreeJobs -1;
+
+  // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
+  work_queue_job *Result = Cast(work_queue_job*,
+                             Unlink_TS(
+                               Cast(volatile freelist_entry **, &Plat->JobsFreelist)
+                             )
+                           );
+
+  ClearList(&Result->Tasks);
+
+  Assert(Result->NextTaskIndex == 0);
+  Assert(Result->Tasks.ElementCount == 0);
+  if (TrackStats)
+  {
+    NotImplemented;
+    work_queue_job_stats Record = {
+      .Job = Result,
+      .ReserveTime = GetCycleCount(),
+      .ReserveFrameIndex = 0, // GetEngineResources()->FrameIndex,
+      .RetireTime = 0,
+      .RetireFrameIndex = 0,
+    };
+
+#if 0
+    if (work_queue_job_stats *Stats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory))
+    {
+    }
+#endif
+  }
+  else
+  {
+    /* if (work_queue_job_stats *Stats = GetByHashValue(&Plat->JobStatsTable, HashPointer(Result))) */
+    /* { */
+    /*   Tombstone( HashPointer(Result), &Plat->JobStatsTable ); */
+    /* } */
+  }
+
+  Assert(Result);
+  return Result;
+}
+
+
+link_internal void
 SubmitSingleTask( work_queue *Queue, work_queue_task *Entry, b32 PerfTrackJob)
 {
   TIMED_FUNCTION();
@@ -235,6 +347,5 @@ SubmitSingleTask( work_queue *Queue, work_queue_task *Entry, b32 PerfTrackJob)
   PushTask(Job, Entry);
   SubmitJob(Queue, Job);
 }
-
 
 

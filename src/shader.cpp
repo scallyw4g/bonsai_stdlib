@@ -506,6 +506,7 @@ link_weak void BindEngineUniform(shader_uniform*);
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, s32 Value)
 {
+  Assert(Name);
   auto GL = GetGL();
 
   s32 Uniform = GL->GetUniformLocation(Shader->ID, Name); 
@@ -522,6 +523,7 @@ BindUniformByName(shader *Shader, const char *Name, s32 Value)
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, b32 Value)
 {
+  Assert(Name);
   auto GL = GetGL();
 
   s32 Uniform = GL->GetUniformLocation(Shader->ID, Name); 
@@ -539,6 +541,7 @@ BindUniformByName(shader *Shader, const char *Name, b32 Value)
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, texture *Texture, u32 TextureUnit)
 {
+  Assert(Name);
   auto GL = GetGL();
 
   GL->ActiveTexture(GL_TEXTURE0 + TextureUnit);
@@ -567,6 +570,7 @@ BindUniformByName(shader *Shader, const char *Name, texture *Texture, u32 Textur
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, r32 Value)
 {
+  Assert(Name);
   auto GL = GetGL();
 
   s32 Uniform = GL->GetUniformLocation(Shader->ID, Name);
@@ -615,6 +619,7 @@ TryBindUniform(shader *Shader, const char *Name, v3 *V)
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, v2 *V)
 {
+  Assert(Name);
   if (TryBindUniform(Shader, Name, V) == False)
   {
     Warn("Couldn't retieve uniform %s", Name);
@@ -624,6 +629,7 @@ BindUniformByName(shader *Shader, const char *Name, v2 *V)
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, v3 *V)
 {
+  Assert(Name);
   if (TryBindUniform(Shader, Name, V) == False)
   {
     Warn("Couldn't retieve uniform %s", Name);
@@ -650,6 +656,7 @@ TryBindUniform(shader *Shader, const char *Name, m4 *Matrix)
 link_internal void
 BindUniformByName(shader *Shader, const char *Name, m4 *Matrix)
 {
+  Assert(Name);
   if (TryBindUniform(Shader, Name, Matrix) == False)
   {
     Warn("Couldn't retieve uniform %s", Name);
@@ -783,6 +790,7 @@ BindUniformByName(shader *Shader, shader_uniform *Uniform, s32 *TextureUnit)
   }
   else
   {
+    Assert(Uniform->Name);
     Uniform->ID = GetGL()->GetUniformLocation(Shader->ID, Uniform->Name);
     if (Uniform->ID != INVALID_SHADER_UNIFORM)
     {

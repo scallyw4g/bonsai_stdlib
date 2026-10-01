@@ -2348,8 +2348,6 @@ poof(
 
     struct block_t
     {
-      /* u32 Index; */
-      umm At;
       element_t.name Elements[n_elements_per_block];
     };
 
@@ -2562,6 +2560,16 @@ poof(
       return FSz("(%u)", Index.Index);
     }
 
+    link_internal b32
+    ValidateBlocksMatchCapacity( block_array_t *Array )
+    {
+      auto Cap = Capacity(Array).Index;
+      auto Elements = AtElements(Array).Index;
+      b32 Result = Elements <= Cap;
+      Assert(Result);
+      return Result;
+    }
+
     link_internal element_t.name element_t.is_pointer?{}{*}
     Set( block_array_t *Arr,
          element_t.name element_t.is_pointer?{}{*}Element,
@@ -2627,6 +2635,7 @@ poof(
       }
 
       Array->ElementCount -= 1;
+      Assert(ValidateBlocksMatchCapacity(Array));
     }
 
     link_internal void
@@ -2640,6 +2649,7 @@ poof(
           break;
         }
       }
+      Assert(ValidateBlocksMatchCapacity(Array));
     }
 
     link_internal index_t
@@ -2684,6 +2694,7 @@ poof(
 
       Array->ElementCount += 1;
 
+      Assert(ValidateBlocksMatchCapacity(Array));
       return Result;
     }
 
@@ -2714,6 +2725,7 @@ poof(
       }
 
       *Prev = *Element;
+      Assert(ValidateBlocksMatchCapacity(Array));
     }
 
     link_internal void
@@ -2734,16 +2746,33 @@ poof(
     /* } */
 
 
+    /// TODO(Jesse): I'm pretty sure this is right, but is there a case here
+    /// where we actually return a pointer into the array that we'd overwrite
+    /// the memory to if we called Push after?
     link_internal element_t.name element_t.is_pointer?{}{*}
     Pop( block_array_t *Array )
     {
-      if (auto Result = TryGetPtr(Array, LastIndex(Array)))
+      element_t.name element_t.is_pointer?{}{*} Result = {};
+
+      if (auto P = TryGetPtr(Array, LastIndex(Array)))
       {
         Assert(Array->ElementCount > 0);
         Array->ElementCount -= 1;
-        return Result;
+        Result = P;
       }
-      return 0;
+      Assert(ValidateBlocksMatchCapacity(Array));
+      return Result;
+    }
+
+    link_internal void
+    ClearList( block_array_t *Array )
+    {
+      IterateOver(Array, Element, ElementIndex)
+      {
+        *Element = {};
+      }
+
+      Array->ElementCount = 0;
     }
 
   }

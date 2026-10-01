@@ -162,7 +162,13 @@ global_variable bonsai_stdlib *Global_Stdlib;
 link_internal opengl *
 GetGL()
 {
-  return &Global_Stdlib->GL;
+  auto Result = &Global_Stdlib->GL;
+  if (Result->Initialized)
+  {
+    u32 glErrorNo = Result->GetError();
+    DumpGlErrorEnum(glErrorNo);
+  }
+  return Result;
 }
 
 link_internal bonsai_stdlib *
