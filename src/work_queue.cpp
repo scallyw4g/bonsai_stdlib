@@ -2,7 +2,10 @@
 struct work_queue_task;
 struct work_queue_job;
 
-
+poof(hashtable_impl(work_queue_job_stats))
+#include <generated/hashtable_impl$work_queue_job_stats$5cwEEtEf.h>
+poof(hashtable_get_by_key(work_queue_job_stats))
+#include <generated/hashtable_get_by_key$work_queue_job_stats$H3A23qAm.h>
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 {

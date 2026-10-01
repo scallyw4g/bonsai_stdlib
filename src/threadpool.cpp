@@ -270,11 +270,11 @@ ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
 
   Plat->FreeJobs = Plat->FreeJobs +1;
 
-  /* if (work_queue_job_stats *Stats = GetByHashValue(&Plat->JobStatsTable, HashPointer(Job))) */
-  /* { */
-  /*   Stats->RetireTime = GetCycleCount(); */
-  /*   Stats->RetireFrameIndex = GetEngineResources()->FrameIndex; */
-  /* } */
+  if (work_queue_job_stats *Stats = GetByKey(&Plat->JobStatsTable, Job))
+  {
+    Stats->RetireTime = GetCycleCount();
+    Stats->RetireFrameIndex = GetEngineResources()->FrameIndex;
+  }
 
   // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
   Link_TS(
@@ -305,26 +305,23 @@ ReserveWorkQueueJob( platform *Plat, b32 TrackStats /* = False */ )
   Assert(Result->Tasks.ElementCount == 0);
   if (TrackStats)
   {
-    NotImplemented;
     work_queue_job_stats Record = {
       .Job = Result,
       .ReserveTime = GetCycleCount(),
-      .ReserveFrameIndex = 0, // GetEngineResources()->FrameIndex,
+      .ReserveFrameIndex = GetEngineResources()->FrameIndex,
       .RetireTime = 0,
       .RetireFrameIndex = 0,
     };
 
-#if 0
     if (work_queue_job_stats *Stats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory))
     {
     }
-#endif
   }
   else
   {
-    /* if (work_queue_job_stats *Stats = GetByHashValue(&Plat->JobStatsTable, HashPointer(Result))) */
+    /* if (work_queue_job_stats *Stats = GetByKey(&Plat->JobStatsTable, Job)) */
     /* { */
-    /*   Tombstone( HashPointer(Result), &Plat->JobStatsTable ); */
+    /*   Tombstone( Job, &Plat->JobStatsTable ); */
     /* } */
   }
 

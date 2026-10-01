@@ -50,6 +50,8 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
       s32 TotalJobs = WORK_QUEUE_SIZE*6;
       AllocateJobsArray(Plat, TotalJobs);
 
+      Plat->JobStatsTable = Allocate_work_queue_job_stats_hashtable(u32(TotalJobs), WorkQueueMemory);
+
       InitQueue(&Plat->HighPriority, WorkQueueMemory);
       InitQueue(&Plat->LowPriority,  WorkQueueMemory);
       InitQueue(&Plat->HiRenderQ,    WorkQueueMemory);

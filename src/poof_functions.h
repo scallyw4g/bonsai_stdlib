@@ -872,13 +872,15 @@ poof(
     link_internal (Type.name)_linked_list_node**
     GetMatchingBucket((Type.name) Element, (Type.name)_hashtable *Table, memory_arena *Memory)
     {
+      NotImplemented;
       u32 HashValue = Hash(&Element) % Table->Size;
       (Type.name)_linked_list_node **Bucket = Table->Elements + HashValue;
-      while (*Bucket)
-      {
-        if (AreEqual(&Bucket[0]->Element, &Element)) { break; }
-        Bucket = &(*Bucket)->Next;
-      }
+      /* while (*Bucket) */
+      /* { */
+      /*   if ( Bucket->Tombstoned == False && AreEqual(&Bucket[0]->Element, &Element) ) */
+      /*       { break; } */
+      /*   Bucket = &(*Bucket)->Next; */
+      /* } */
       return Bucket;
     }
 
@@ -926,35 +928,6 @@ poof(
 
       return Result;
     }
-
-    //
-    // Get
-    //
-
-    /* Type.member(@hashtable_key, (key_member) { @var key key_member }); */
-
-    /* link_internal (Type.name) * */
-    /* GetByKey( (Type.name)_hashtable *Table, key.type KeyQuery ) */
-    /* { */
-    /*   (Type.name) *Result = {}; */
-    /*   (Type.name)_linked_list_node *Bucket = GetBucketBy(key.name)(Table, KeyQuery); */
-    /*   while (Bucket) */
-    /*   { */
-    /*     Type.is_primitive? */
-    /*     { if (Bucket->Tombstoned == False && AreEqual(*E, KeyQuery)) } */
-    /*     { if (Bucket->Tombstoned == False && AreEqual(E->key.name, KeyQuery)) } */
-    /*     { */
-    /*       Result = &Bucket->Element; */
-    /*       break; */
-    /*     } */
-    /*     else */
-    /*     { */
-    /*       Bucket = Bucket->Next; */
-    /*     } */
-    /*   } */
-
-    /*   return Result; */
-    /* } */
 
     //
     // Iterator impl.
@@ -1034,6 +1007,45 @@ poof(
 
   }
 )
+
+poof(
+  func hashtable_get_by_key(Type)
+  {
+    //
+    // Get
+    //
+
+    /// Check for and define the key
+    @var key_name Type.member(@hashtable_key, (key_member) { key_member.name })
+    @var key_type Type.member(@hashtable_key, (key_member) { key_member.type })
+
+    link_internal (Type.name) *
+    GetByKey( (Type.name)_hashtable *Table, key_type *KeyQuery )
+    {
+      (Type.name) *Result = {};
+
+      u32 HashValue = Hash(KeyQuery);
+      (Type.name)_linked_list_node *Bucket = GetHashBucket(HashValue, Table);
+      while (Bucket)
+      {
+        Type.is_primitive?
+        { if (Bucket->Tombstoned == False && AreEqual(Bucket->Element, *KeyQuery)) }
+        { if (Bucket->Tombstoned == False && AreEqual(Bucket->Element.key_name, KeyQuery)) }
+        {
+          Result = &Bucket->Element;
+          break;
+        }
+        else
+        {
+          Bucket = Bucket->Next;
+        }
+      }
+
+      return Result;
+    }
+  }
+)
+
 
 poof(
   /// TODO(Jesse): Rename to hashtable_get_value ..?

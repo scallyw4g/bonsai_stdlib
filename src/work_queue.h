@@ -5,7 +5,7 @@ struct work_queue_job;
 
 struct work_queue_job_stats
 {
-  work_queue_job *Job;
+  work_queue_job *Job; poof(@hashtable_key)
 
   u64 ReserveTime;
   u64 RetireTime;
@@ -19,6 +19,9 @@ poof(maybe(work_queue_job_stats))
 
 poof(hashtable_struct(work_queue_job_stats))
 #include <generated/hashtable_struct$work_queue_job_stats$iM2uaXol.h>
+
+link_internal work_queue_job_stats_hashtable
+Allocate_work_queue_job_stats_hashtable(u32 ElementCount, memory_arena *Memory);
 
 link_internal b32
 AreEqual(work_queue_job_stats *Element1, work_queue_job_stats *Element2 )
@@ -39,7 +42,7 @@ Hash(work_queue_job *Element)
 link_internal u32
 Hash(work_queue_job_stats *Element)
 {
-  u32 Result = HashPointer(Element->Job) ^ Hash(&Element->ReserveTime) ^ Hash(&Element->ReserveFrameIndex);
+  u32 Result = HashPointer(Element->Job);
   return Result;
 }
 
@@ -147,6 +150,7 @@ SubmitSingleTask( work_queue *Queue, work_queue_task *Task, b32 PerfTrackJob = F
 
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job );
+
 
 link_internal void
 ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job);
