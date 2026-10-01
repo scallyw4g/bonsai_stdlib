@@ -313,8 +313,15 @@ ReserveWorkQueueJob( platform *Plat, b32 TrackStats /* = False */ )
       .RetireFrameIndex = 0,
     };
 
-    if (work_queue_job_stats *Stats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory))
+    if (work_queue_job_stats *Stats = GetByKey(&Plat->JobStatsTable, Result))
     {
+      *Stats = Record;
+    }
+    else
+    {
+      work_queue_job_stats *NewStats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory);
+      *NewStats = Record;
+      Assert(NewStats);
     }
   }
   else
