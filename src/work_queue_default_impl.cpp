@@ -94,11 +94,14 @@ HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppA
   MaybeResubmitJob(Job);
 }
 
+struct work_queue_job_stats;
+
 // TODO(Jesse): Do alignment and padding for cache lines
 #define WORK_QUEUE_JOB_MAGIC_NUMBER (0x1337)
 struct work_queue_job
 {
-  work_queue_job *Next;
+  work_queue_job *Next;   // TODO(Jesse): Pretty sure we don't actually need this..
+  work_queue_job_stats *Stats;
   work_queue_task_block_array Tasks;
 
   u16 Magic;              // WORK_QUEUE_JOB_MAGIC_NUMBER

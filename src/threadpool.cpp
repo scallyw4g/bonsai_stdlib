@@ -266,15 +266,16 @@ link_internal void
 ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job)
 {
   Assert(Job->Submitted == False);
-  Job->NextTaskIndex = 0;
-
   Plat->FreeJobs = Plat->FreeJobs +1;
 
-  if (work_queue_job_stats *Stats = GetByKey(&Plat->JobStatsTable, Job))
+  if (Job->Stats)
   {
-    Stats->RetireTime = GetCycleCount();
-    Stats->RetireFrameIndex = GetEngineResources()->FrameIndex;
+    Job->Stats->RetireTime = GetCycleCount();
+    Job->Stats->RetireFrameIndex = GetEngineResources()->FrameIndex;
   }
+
+  Job->NextTaskIndex = 0;
+  Job->Stats = 0;
 
   // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
   Link_TS(
@@ -313,16 +314,7 @@ ReserveWorkQueueJob( platform *Plat, b32 TrackStats /* = False */ )
       .RetireFrameIndex = 0,
     };
 
-    if (work_queue_job_stats *Stats = GetByKey(&Plat->JobStatsTable, Result))
-    {
-      *Stats = Record;
-    }
-    else
-    {
-      work_queue_job_stats *NewStats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory);
-      *NewStats = Record;
-      Assert(NewStats);
-    }
+    Result->Stats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory);
   }
   else
   {
