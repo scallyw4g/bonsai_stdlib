@@ -1308,7 +1308,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   }
   else if (Pressed(Group, &TitleBarHandle))
   {
-    Window->Basis -= *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
+    Window->Basis += *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
     Window->Flags &= ~(WindowLayoutFlag_Align_BottomRight);
   }
   else if (!Window->Minimized && Clicked(Group, &MinimizeButtonHandle))
@@ -1354,6 +1354,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     Window->Flags &= ~(WindowLayoutFlag_Size_Dynamic|WindowLayoutFlag_Align_BottomRight);
 
     v2 AbsoluteTitleBounds = Window->Basis + TitleBounds;
+    // TODO(Jesse): Probably make this use MouseDP ..?
     v2 TestMaxClip = *Group->MouseP - Window->Basis;
 
     if (Group->MouseP->x > AbsoluteTitleBounds.x )
@@ -1375,6 +1376,12 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     }
   }
 
+
+  // Clip scroll values to their max
+  {
+    r32 MaxScroll = Window->ContentDim.y - Window->MaxClip.y;
+    Window->Scroll.y = Clamp(0.f, Window->Scroll.y, MaxScroll);
+  }
 
   // Do not let window width get below a reasonable threshold
   Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 25.f);
@@ -1455,7 +1462,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 /*   PushResetDrawBounds(Group); */
 
   PushForceUpdateBasis(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f);
-  PushForceUpdateBasis(Group, WindowScroll);
+  PushForceUpdateBasis(Group, -1.f*WindowScroll);
 
   PushResetDrawBounds(Group);
 }
@@ -1503,7 +1510,7 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window)
         r32 ScrollRatio = Window->Scroll.y/Window->ContentDim.y;
 
         r32 Inset = (TrackThickness-ScrollbarThickness)/2.f;
-        v2 ScrollbarOffset = V2(TrackOffset.x + Inset, TrackOffset.y - TrackDim.y*ScrollRatio);
+        v2 ScrollbarOffset = V2(TrackOffset.x + Inset, TrackOffset.y + TrackDim.y*ScrollRatio);
 
         PushButtonStart(Group, ScrollbarId);
           PushUntexturedQuadAt(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, UiElementLayoutFlag_DisableClipping);
@@ -1515,17 +1522,6 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window)
       {
         r32 DragRatio = Group->MouseDP->y / ScrollbarDim.y;
         Window->Scroll.y += TrackDim.y * DragRatio;
-      }
-
-      r32 MaxScroll = ContentDim.y - Window->MaxClip.y;
-      if ( Abs(Window->Scroll.y) > MaxScroll )
-      {
-        Window->Scroll.y = -MaxScroll;
-      }
-
-      if (Window->Scroll.y > 0.f)
-      {
-        Window->Scroll.y = 0.f;
       }
     }
 
@@ -3979,11 +3975,14 @@ UiFrameEnd(renderer_2d *Ui)
   {
     if (Input->Ctrl.Pressed)
     {
-      Ui->HighestWindow->Scroll.x += Input->MouseWheelDelta;
+      // Mouse wheel up scrolls content to the left
+      Ui->HighestWindow->Scroll.x -= Input->MouseWheelDelta;
     }
     else
     {
-      Ui->HighestWindow->Scroll.y += Input->MouseWheelDelta;
+      // Conceptually, if the mouse wheel goes up, we want the content to go down,
+      // so we subtract the delta from the scroll
+      Ui->HighestWindow->Scroll.y -= Input->MouseWheelDelta;
     }
   }
 
