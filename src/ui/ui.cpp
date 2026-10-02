@@ -1835,25 +1835,23 @@ GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId, window_layout_flags Flags, v2
     window_layout Dummy = {};
     Dummy.HashtableKey = WindowId;
     Dummy.Flags = Flags;
+    Dummy.Basis = InitialBasis;
+    Dummy.MaxClip = InitialSize;
     Result = Upsert(Dummy, &Ui->WindowTable, &Ui->WindowTableArena);
-    Result->Basis = InitialBasis;
   }
 
-  if (u64(Result) == 0x8) { RuntimeBreak(); }
-  Assert(Result);
   return Result;
 }
 
 link_internal window_layout *
 GetOrCreateWindow( renderer_2d *Ui,
-    const char *WindowName,
-    window_layout_flags Flags = WindowLayoutFlag_Default,
-    v2 InitialBasis = {},
-    v2 InitialSize = {}
-    )
+                    const char *WindowName,
+           window_layout_flags  Flags        = {},
+                            v2  InitialBasis = {},
+                            v2  InitialSize  = {} )
 {
   ui_id ID = UiId(WindowName);
-  window_layout *Result = GetOrCreateWindow(Ui, ID, Flags, InitialBasis, InitialSize);
+  window_layout *Result = GetOrCreateWindow(Ui, ID, window_layout_flags(WindowLayoutFlag_Default|Flags), InitialBasis, InitialSize);
 
   if (Result)
   {
@@ -1863,14 +1861,16 @@ GetOrCreateWindow( renderer_2d *Ui,
   return Result;
 }
 
+#if 0
 link_internal window_layout *
-GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, s32 FlagsInt)
+GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, window_layout_flags ExtraFlags)
 {
   ui_id ID = UiId(WindowName);
-  window_layout_flags Flags = window_layout_flags(FlagsInt);
+  window_layout_flags Flags = window_layout_flags(WindowLayoutFlag_Default|ExtraFlags);
   auto Result = GetOrCreateWindow(Ui, WindowName, Flags);
   return Result;
 }
+#endif
 
 link_internal window_layout *
 GetOrCreateWindow(renderer_2d *Ui, const char *WindowName, v2 InitialBasis, v2 InitialSize = DefaultWindowSize)
@@ -3045,6 +3045,11 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           v2 ClippedMaxCorner = (*Group->ScreenDim - TypedCommand->Window->Basis) - DefaultWindowSideOffset;
           v2 WindowMaxCorner = RenderState->Layout->DrawBounds.Max + Global_ResizeHandleDim;
           TypedCommand->Window->MaxClip = Min(ClippedMaxCorner, WindowMaxCorner);
+        }
+
+        if (GetUiDebug && GetUiDebug()->OutlineWindowDrawBounds)
+        {
+          BufferBorder(Group, RenderState->Layout->DrawBounds, V3(1,0,0), 0.9f, DISABLE_CLIPPING);
         }
 
         Assert(TypedCommand->Window == RenderState->Window);

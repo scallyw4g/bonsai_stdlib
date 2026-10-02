@@ -32,6 +32,7 @@ poof(@do_editor_ui)
   b8 OutlineUiButtons;
   b8 OutlineUiTables;
   b8 OutlineUiTableColumns;
+  b8 OutlineWindowDrawBounds;
 
   b8 DebugBreakOnElementClick;
   b8 DebugBreakUiCommand;
