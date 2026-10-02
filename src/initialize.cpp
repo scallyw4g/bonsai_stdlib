@@ -153,6 +153,7 @@ OpenAndInitializeWindow(u32 VSyncFrames = 0)
 }
 #endif
 
+#if 0
 link_internal void
 BonsaiFrameBegin(bonsai_stdlib *Stdlib, renderer_2d *Ui, b32 DebugToggleMenu, b32 DebugToggleProfile)
 {
@@ -200,3 +201,4 @@ BonsaiFrameEnd(bonsai_stdlib *Stdlib, renderer_2d *Ui)
   DEBUG_FRAME_END(Plat->dt);
   MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(Plat->dt);
 }
+#endif

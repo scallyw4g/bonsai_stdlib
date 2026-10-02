@@ -633,6 +633,7 @@ BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip, v4 Thi
   v2 TopRight    = V2(Rect.Max.x, Rect.Min.y);
   v2 BottomLeft  = V2(Rect.Min.x, Rect.Max.y);
 
+  // @border_drawn_around_input_rect
   rect2 TopRect    = RectMinMax(TopLeft ,    TopRight    - V2(0, Thickness.Top));
   rect2 BottomRect = RectMinMax(BottomLeft,  BottomRight + V2(0, Thickness.Bottom));
   rect2 LeftRect   = RectMinMax(TopLeft-Thickness.Left ,    BottomLeft);
@@ -1181,6 +1182,11 @@ PushRelativeBorder(renderer_2d *Group, v2 Dim, v3 Color, v4 Thickness = V4(1), z
 
   PushUiRenderCommand(Group, &Command);
 }
+
+// Borders are drawn *around* the Absolute bounds
+//
+// @border_drawn_around_input_rect
+//
 link_internal void
 PushBorder(renderer_2d *Group, rect2 AbsoluteBounds, v3 Color, v4 Thickness = V4(1), rect2 Clip = DISABLE_CLIPPING)
 {
@@ -1374,12 +1380,16 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 25.f);
   Window->MaxClip.y = Max(Window->MaxClip.y, TitleRect.Max.y + ResizeHandleDim.y  + 6.f);
 
+  // NOTE(Jesse): Manually set to the height of the title bar that we draw.  Should we do better?
+  // @manually_set_content_start
+  Window->ContentStart = V2(0, Global_TitleBarHeight);
+
   v2 ResizeHandleMin = GetAbsoluteMaxClip(Window)-ResizeHandleDim;
   v2 MinimizeButtonOffset = V2(Window->MaxClip.x-TitleRect.Max.x-50, 0);
 
- v2 WindowBasis = Window->Basis;
- v2 WindowMaxClip = Window->MaxClip;
- v2 WindowScroll = Window->Scroll;
+  v2 WindowBasis = Window->Basis;
+  v2 WindowMaxClip = Window->MaxClip;
+  v2 WindowScroll = Window->Scroll;
 
   rect2 AbsWindowBounds = RectMinDim(WindowBasis, WindowMaxClip);
   rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max);
@@ -1413,15 +1423,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   /* rect2 MinimizedTitleBarBounds = RectMinDim({}, V2(TitleRect.Max.x, Global_TitleBarHeight)); */
 
 
-  {
-    rect2 BorderClip = AbsWindowBounds;
-    BorderClip.Min.y += Global_TitleBarHeight;
-    /* BorderClip.Min.y += UI_WINDOW_BORDER_DEFAULT_WIDTH.Top + 1.f; */
-    BorderClip.Max.x += UI_WINDOW_BORDER_DEFAULT_WIDTH.Right;
-    BorderClip.Max.y += UI_WINDOW_BORDER_DEFAULT_WIDTH.Bottom;
-
-    PushBorder(Group, AbsWindowBounds, UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, UI_WINDOW_BORDER_DEFAULT_WIDTH, BorderClip);
-  }
+  PushBorder(Group, AbsWindowBounds, UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, UI_WINDOW_BORDER_DEFAULT_WIDTH);
 
   // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
   PushButtonStart(Group, ResizeHandleInteractionId);
@@ -1429,6 +1431,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   PushButtonEnd(Group);
 
   // Title bar
+  // @manually_set_content_start
   PushButtonStart(Group, TitleBarInteractionId);
     PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &DefaultWindowBezelStyle);
   PushButtonEnd(Group);
@@ -1462,7 +1465,96 @@ link_internal void
 PushWindowEnd(renderer_2d *Group, window_layout *Window)
 {
   /* PushForceAdvance(Group, Global_ResizeHandleDim+V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*4.f); */
-  PushForceAdvance(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*4.f);
+  PushForceAdvance(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top));
+
+  r32 TrackThickness = Global_ResizeHandleDim.x;
+  r32 ScrollbarThickness = TrackThickness - 6.f;
+
+  v2 ContentStart = Window->ContentStart;
+  v2 ContentDim = Window->ContentDim;
+  v2 ViewDim = Window->MaxClip;
+
+  b32 HasVerticalScrollbar = ContentDim.y > ViewDim.y;
+  b32 HasHorizontalScrollbar = ContentDim.x > ViewDim.x;
+
+  if (HasVerticalScrollbar || HasHorizontalScrollbar)
+  {
+    ui_style TrackStyle = FlatUiStyle(UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED, &Global_Font);
+    ui_style ScrollbarStyle = FlatUiStyle(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, &Global_Font);
+
+    if (HasVerticalScrollbar)
+    {
+      ui_id ScrollbarId = UiId(Window, "WindowVerticalScrollbarScrollbar", 0u);
+      interactable_handle ScrollbarHandle = { .Id = ScrollbarId };
+
+
+      v2 TrackOffset = Window->Basis + V2(Window->MaxClip.x - TrackThickness, ContentStart.y);
+      v2 TrackDim = V2(
+          TrackThickness,
+          ViewDim.y - Global_ResizeHandleDim.y - ContentStart.y);
+
+      PushUntexturedQuadAt(Group, TrackOffset, TrackDim, zDepth_Border, &TrackStyle, UiElementLayoutFlag_DisableClipping);
+
+      /* { */
+        r32 ScrollbarSizeRatio = ViewDim.y/Window->ContentDim.y;
+        v2 ScrollbarDim = V2(ScrollbarThickness, ViewDim.y*ScrollbarSizeRatio);
+
+        /* r32 ScrollRatio = Clamp01((ViewDim.y+Window->Scroll.y)/Window->ContentDim.y); */
+        r32 ScrollRatio = Window->Scroll.y/Window->ContentDim.y;
+
+        r32 Inset = (TrackThickness-ScrollbarThickness)/2.f;
+        v2 ScrollbarOffset = V2(TrackOffset.x + Inset, TrackOffset.y - TrackDim.y*ScrollRatio);
+
+        PushButtonStart(Group, ScrollbarId);
+          PushUntexturedQuadAt(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, UiElementLayoutFlag_DisableClipping);
+        PushButtonEnd(Group);
+      /* } */
+
+
+      if (Pressed(Group, &ScrollbarHandle))
+      {
+        r32 DragRatio = Group->MouseDP->y / ScrollbarDim.y;
+        Window->Scroll.y += TrackDim.y * DragRatio;
+      }
+
+      r32 MaxScroll = ContentDim.y - Window->MaxClip.y;
+      if ( Abs(Window->Scroll.y) > MaxScroll )
+      {
+        Window->Scroll.y = -MaxScroll;
+      }
+
+      if (Window->Scroll.y > 0.f)
+      {
+        Window->Scroll.y = 0.f;
+      }
+    }
+
+#if 0
+    if (HasHorizontalScrollbar && TrackDim.x > 0.f)
+    {
+      r32 TrackLength = TrackDim.x;
+      r32 Overflow = Window->ContentDim.x - ViewDim.x;
+      r32 ThumbLength = Min(TrackLength, Max(ScrollbarThickness*2.f, TrackLength*(ViewDim.x/Window->ContentDim.x)));
+      v2 TrackMin = Window->Basis +  V2(0.f, ViewDim.y-ScrollbarThickness);
+      ui_id ThumbId = UiId(Window, "WindowHorizontalScrollbarThumb", 0u);
+      interactable_handle ThumbHandle = { .Id = ThumbId };
+
+      v2 DragOffset = {};
+      if (Pressed(Group, &ThumbHandle, &DragOffset))
+      {
+        Window->Scroll.x += Group->MouseDP->x;
+      }
+
+      r32 ScrollProgress = Clamp01(Window->Scroll.x/Overflow);
+      r32 ThumbOffset = (TrackLength - ThumbLength)*ScrollProgress;
+
+      PushUntexturedQuadAt(Group, TrackMin, V2(TrackLength, ScrollbarThickness), zDepth_Border, &TrackStyle, UiElementLayoutFlag_DisableClipping);
+      PushButtonStart(Group, ThumbId);
+        PushUntexturedQuadAt(Group, TrackMin + V2(ThumbOffset, 0.f), V2(ThumbLength, ScrollbarThickness), zDepth_Border, &ThumbStyle, UiElementLayoutFlag_DisableClipping);
+      PushButtonEnd(Group);
+    }
+#endif
+  }
 
   ui_render_command EndCommand = {};
   EndCommand.Type = type_ui_render_command_window_end;
@@ -2910,6 +3002,9 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_window_end:
       {
         ui_render_command_window_end* TypedCommand = RenderCommandAs(window_end, Command);
+
+        v2 ContentDim = RenderState->Layout->DrawBounds.Max - RenderState->Layout->DrawBounds.Min;
+        TypedCommand->Window->ContentDim = Max(V2(0), ContentDim - TypedCommand->Window->ContentStart);
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupSize_InferHeight)
         {

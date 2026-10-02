@@ -97,9 +97,11 @@ poof(@do_editor_ui)
 
   s32 Flags = WindowLayoutFlag_Default; // window_layout_flags
 
-  v2 Basis;   // Absolute offset from (0,0)
-  v2 MaxClip; // Basis-relative maximum corner of the window
-  v2 Scroll;  // Basis-relative offset of the content within the window
+  v2 Basis;        // Absolute offset from (0,0) (left, top)
+  v2 MaxClip;      // Basis-relative maximum corner of the window
+  v2 Scroll;       // Basis-relative offset of the content within the window
+  v2 ContentStart; // Basis-relative corner of the content region
+  v2 ContentDim;   // ContentStart-relative bounds of all layed out content, including clipped content
 
   // NOTE(Jesse): For resetting when we un-minimize
   s32 CachedFlags;
