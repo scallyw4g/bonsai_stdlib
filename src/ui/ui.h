@@ -99,8 +99,12 @@ poof(@do_editor_ui)
   s32 Flags = WindowLayoutFlag_Default; // window_layout_flags
 
   v2 Basis;        // Absolute offset from (0,0) (left, top)
+
+  // TODO(Jesse): Rename to MaxCorner
   v2 MaxClip;      // Basis-relative maximum corner of the window
   v2 Scroll;       // Basis-relative offset of the content within the window
+
+  // TODO(Jesse): Rename to rect2 ContentArea
   v2 ContentStart; // Basis-relative corner of the content region
   v2 ContentDim;   // ContentStart-relative bounds of all layed out content, including clipped content
 
@@ -485,17 +489,32 @@ enum ui_element_alignment_flags
 {
   UiElementAlignmentFlag_LeftAlign  = 0,
   UiElementAlignmentFlag_RightAlign = (1 << 0),
+
 };
 
 enum ui_element_layout_flags
 {
-  UiElementLayoutFlag_NoAdvance       = 0,
-  UiElementLayoutFlag_AdvanceLayout   = (1 << 0),
-  UiElementLayoutFlag_AdvanceClip     = (1 << 1),
-  UiElementLayoutFlag_DisableClipping = (1 << 2),
+  UiElementLayoutFlag_Default             = 0,
+  UiElementLayoutFlag_NoAdvanceLayout     = (1 << 0),
+  UiElementLayoutFlag_NoUpdateDrawBounds  = (1 << 1),
+  UiElementLayoutFlag_DisableClipping     = (1 << 2),
 
-  UiElementLayoutFlag_Default = (UiElementLayoutFlag_AdvanceLayout|UiElementLayoutFlag_AdvanceClip),
+  UiElementLayoutFlag_NoAdvance         =  UiElementLayoutFlag_NoAdvanceLayout    |
+                                           UiElementLayoutFlag_NoUpdateDrawBounds ,
 };
+
+link_internal b32 AdvanceLayout(ui_element_layout_flags Flags)
+{
+  b32 Result = (Flags & UiElementLayoutFlag_NoAdvanceLayout) == 0;
+  return Result;
+}
+
+link_internal b32 UpdateDrawBounds(ui_element_layout_flags Flags)
+{
+  b32 Result = (Flags & UiElementLayoutFlag_NoUpdateDrawBounds) == 0;
+  return Result;
+}
+
 
 /* enum ui_element_layout_flags */
 /* { */
@@ -841,9 +860,20 @@ struct ui_render_command_abs_border
 
 struct ui_render_command_window_start
 {
+         layout  Layout;
+          rect2  ClipRect;
+  window_layout *Window;
+};
+
+struct ui_render_command_layout_start
+{
   layout Layout;
-  rect2 ClipRect;
-  window_layout* Window;
+  ui_element_layout_flags Flags;
+};
+
+struct ui_render_command_layout_end
+{
+  ui_element_layout_flags Flags;
 };
 
 struct ui_render_command_window_end
@@ -857,8 +887,8 @@ struct ui_render_command_column_start
   ui_style Style;
   r32 Width;
   r32 MaxWidth;
-  ui_element_alignment_flags      AlignFlags;
-  /* ui_element_layout_flags LayoutFlags; */ // NOTE(Jesse): Asking for a column that doesn't advance the layout is kinda just nonsense ..?
+  ui_element_alignment_flags AlignFlags;
+  ui_element_layout_flags    LayoutFlags;
 };
 
 struct ui_render_command_column_end
@@ -904,11 +934,11 @@ struct ui_render_command_untextured_quad
 
 struct ui_render_command_untextured_quad_at
 {
+  layout Layout;
+  ui_style Style;
   v2 QuadDim;
   z_depth zDepth;
   ui_element_layout_flags Params;
-  ui_style Style;
-  layout Layout;
 };
 
 struct ui_render_command_textured_quad
@@ -975,14 +1005,11 @@ struct ui_render_command_force_update_basis
 };
 
 
-struct ui_render_command_layout_start
-{
-  layout Layout;
-};
-
 poof(
   d_union ui_render_command
   {
+    ui_render_command_read_current_layout enum_only
+
     ui_render_command_window_start
     ui_render_command_window_end
 
@@ -1009,7 +1036,7 @@ poof(
     ui_render_command_force_update_basis
 
     ui_render_command_layout_start
-    ui_render_command_layout_end        enum_only
+    ui_render_command_layout_end
 
     ui_render_command_new_row           enum_only
     ui_render_command_reset_draw_bounds enum_only

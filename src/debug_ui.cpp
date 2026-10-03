@@ -25,10 +25,10 @@ PushCycleBar(debug_ui_render_group* Group, cycle_range* Range, cycle_range* Fram
 
       v2 Offset = V2(xOffset, yOffset);
 
-      PushUntexturedQuad(Group, Offset, BarDim, zDepth_Text, Style, Padding, UiElementLayoutFlag_AdvanceClip);
+      PushUntexturedQuad(Group, Offset, BarDim, zDepth_Text, Style, Padding, UiElementLayoutFlag_NoAdvanceLayout);
       ui_style NameStyle = DefaultStyle;
       NameStyle.Font = Global_SmallFont;
-      if (Name.Count) { Text(Group, Name, &NameStyle, UiElementLayoutFlag_NoAdvance, Offset, RectMinDim({}, BarDim)); }
+      if (Name.Count) { Text(Group, Name, &NameStyle, UiElementLayoutFlag_NoAdvanceLayout, Offset, RectMinDim({}, BarDim)); }
     }
   }
   /* else */

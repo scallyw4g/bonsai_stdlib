@@ -468,6 +468,13 @@ operator+(aabb AABB, v3 V)
   return Result;
 }
 
+link_internal rect2
+RectCenterDim(v2 Center, v2 Dim)
+{
+  rect2 Result = {Center-Dim, Center+Dim};
+  return Result;
+}
+
 link_internal v3
 HalfDim( v3 P1 )
 {

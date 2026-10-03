@@ -694,10 +694,13 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
     xDelta += Style->Font.Size.x + Global_FontKerningTweak;
   }
 
-  // TODO(Jesse)(nopush): Respect AdvanceLayout & AdvanceClip independantly
-  if ( (Params&UiElementLayoutFlag_AdvanceLayout) || (Params&UiElementLayoutFlag_AdvanceClip) )
+  if (AdvanceLayout(Params))
   {
     AdvanceLayoutStackBy(V2(xDelta, 0), Layout);
+  }
+
+  if (UpdateDrawBounds(Params))
+  {
     v2 MaxP = Layout->At + V2(0, Style->Font.Size.y);
     UpdateDrawBounds(Layout, MaxP);
   }
@@ -856,7 +859,8 @@ link_internal u32
 StartColumn(          renderer_2d *Group,
                          ui_style *Style,
                                v4  Padding,
-       ui_element_alignment_flags  AlignFlags  = UiElementAlignmentFlag_RightAlign )
+       ui_element_alignment_flags  AlignFlags  = UiElementAlignmentFlag_RightAlign,
+          ui_element_layout_flags  LayoutFlags = UiElementLayoutFlag_Default )
 {
   ui_render_command Command = {
     .Type = type_ui_render_command_column_start,
@@ -866,7 +870,7 @@ StartColumn(          renderer_2d *Group,
       .Width = 0.f,
       .MaxWidth = 0.f,
       .AlignFlags = AlignFlags,
-      /* .LayoutFlags = LayoutFlags, */
+      .LayoutFlags = LayoutFlags,
     }
   };
 
@@ -884,7 +888,7 @@ StartColumn(renderer_2d *Group, ui_render_params *Params = &DefaultUiRenderParam
 {
   UNPACK_UI_RENDER_PARAMS(Params);
 
-  u32 Result = StartColumn(Group, FStyle, Padding, AlignFlags);
+  u32 Result = StartColumn(Group, FStyle, Padding, AlignFlags, LayoutFlags);
   return Result;
 }
 
@@ -907,10 +911,11 @@ PushColumn(           renderer_2d *Group,
                                cs  String,
                          ui_style *FStyle,
                                v4  Padding     = DefaultColumnPadding,
-       ui_element_alignment_flags  AlignParams = UiElementAlignmentFlag_RightAlign )
+       ui_element_alignment_flags  AlignFlags  = UiElementAlignmentFlag_RightAlign,
+          ui_element_layout_flags  LayoutFlags = UiElementLayoutFlag_Default )
 {
-  u32 StartIndex = StartColumn(Group, FStyle, Padding, AlignParams);
-    Text(Group, String, FStyle);
+  u32 StartIndex = StartColumn(Group, FStyle, Padding, AlignFlags, LayoutFlags);
+    Text(Group, String, FStyle, LayoutFlags);
   EndColumn(Group, StartIndex);
 }
 
@@ -918,7 +923,7 @@ link_internal void
 PushColumn(renderer_2d *Group, counted_string String, ui_render_params *Params = &DefaultUiRenderParams_Column)
 {
   UNPACK_UI_RENDER_PARAMS(Params);
-  PushColumn(Group, String, FStyle, Padding, AlignFlags);
+  PushColumn(Group, String, FStyle, Padding, AlignFlags, LayoutFlags);
 }
 
 link_internal void
@@ -1409,15 +1414,17 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   //
 
 
-  ui_render_command Command = {
+  PushBorder(Group, AbsWindowBounds, UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, UI_WINDOW_BORDER_DEFAULT_WIDTH);
+
+  ui_render_command StartCommand = {
     .Type = type_ui_render_command_window_start,
 
     .ui_render_command_window_start = {
       .Window = Window,
       .ClipRect = ClipRect,
       .Layout = {
-        .Basis = WindowBasis,
         .At = {},
+        .Basis = Window->Basis,
         .DrawBounds = InvertedInfinityRectangle(),
         .Padding = {},
         .Prev = {},
@@ -1425,46 +1432,47 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     }
   };
 
-  PushUiRenderCommand(Group, &Command);
+  PushUiRenderCommand(Group, &StartCommand);
 
   /* rect2 MinimizedTitleBarBounds = RectMinDim({}, V2(TitleRect.Max.x, Global_TitleBarHeight)); */
 
-
-  PushBorder(Group, AbsWindowBounds, UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, UI_WINDOW_BORDER_DEFAULT_WIDTH);
-
-  // NOTE(Jesse): Must come first to take precedence over the title bar when clicking
+  // Resize Handle
+  //
+  // NOTE(Jesse): must come first to take precedence over the title bar when clicking
+  //
   PushButtonStart(Group, ResizeHandleInteractionId);
-    PushUntexturedQuadAt(Group, ResizeHandleMin, ResizeHandleDim, zDepth_Border, &SaturatedWindowBezelStyle, UiElementLayoutFlag_DisableClipping);
+    PushUntexturedQuadAt( Group, ResizeHandleMin, ResizeHandleDim, zDepth_Border,
+                         &SaturatedWindowBezelStyle, UiElementLayoutFlag_DisableClipping);
   PushButtonEnd(Group);
 
   // Title bar
+  //
   // @manually_set_content_start
   PushButtonStart(Group, TitleBarInteractionId);
-    PushUntexturedQuadAt(Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight), zDepth_TitleBar, &DefaultWindowBezelStyle);
+    PushUntexturedQuadAt( Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight),
+                          zDepth_TitleBar, &DefaultWindowBezelStyle, UiElementLayoutFlag_NoAdvance);
   PushButtonEnd(Group);
 
+  /* PushForceAdvance(Group, V2(Global_TitleBarPadding)); */
+
+  // Title text
+  /* PushTableStart(Group); */
+    /* Text(Group, TitleText, &DefaultStyle, UiElementLayoutFlag_DisableClipping); */
+    auto Params = DefaultUiRenderParams_Column;
+    Params.LayoutFlags = UiElementLayoutFlag_DisableClipping;
+    PushColumn(Group, TitleText, &Params);
+    PushNewRow(Group);
+  /* PushTableEnd(Group); */
+
+  PushResetDrawBounds(Group);
+
+  /* PushForceUpdateBasis(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f); */
+  PushForceUpdateBasis(Group, -1.f*WindowScroll); // -1.f because we want the scroll effect to move content up for a positive value
+                                                  //
   // Window Background
   PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle);
 
-  PushForceAdvance(Group, V2(Global_TitleBarPadding));
-
-  Text(Group, TitleText, &DefaultStyle, UiElementLayoutFlag_DisableClipping );
-
-  if (!Window->Minimized)
-  {
-    PushButtonStart(Group, MinimizeInteractionId);
-      Text(Group, MinimizedIcon, &DefaultStyle, UiElementLayoutFlag_DisableClipping, MinimizeButtonOffset );
-    PushButtonEnd(Group);
-  }
-
-  PushNewRow(Group);
-
-/*   PushResetDrawBounds(Group); */
-
-  PushForceUpdateBasis(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f);
-  PushForceUpdateBasis(Group, -1.f*WindowScroll);
-
-  PushResetDrawBounds(Group);
+  /* PushResetDrawBounds(Group); */
 }
 
 
@@ -2256,8 +2264,8 @@ DrawFileNodes(renderer_2d *Ui,  file_traversal_node Node, filtered_file_traversa
 link_internal void
 PushLayout(layout** Dest, layout* Layout, ui_element_layout_flags Flags = UiElementLayoutFlag_Default)
 {
-  b32 DoUpdateDrawBounds   = Flags & UiElementLayoutFlag_AdvanceClip;
-  b32 DoAdvanceLayoutStack = Flags & UiElementLayoutFlag_AdvanceLayout;
+  b32 DoUpdateDrawBounds   = UpdateDrawBounds(Flags);
+  b32 DoAdvanceLayoutStack = AdvanceLayout(Flags);
 
   Assert(!Layout->Prev);
   Layout->Prev = *Dest;
@@ -2423,13 +2431,13 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
 
   if (Command->Texture == 0) { BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, UiElementLayoutFlag_NoAdvance); }
 
-  if (Command->Params & UiElementLayoutFlag_AdvanceClip)
+  if (UpdateDrawBounds(Command->Params))
   {
     UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At);
     UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At + Dim);
   }
 
-  if (Command->Params & UiElementLayoutFlag_AdvanceLayout)
+  if (AdvanceLayout(Command->Params))
   {
     AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
   }
@@ -2453,14 +2461,31 @@ ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_qua
 
   BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, MinP, Dim, Color, Z, Clip);
 
+#if 0
+  if (Command->Params & UiElementLayoutFlag_AdvanceClip)
+  {
+    UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At);
+    UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At + Dim);
+  }
+
+  if (Command->Params & UiElementLayoutFlag_AdvanceLayout)
+  {
+    AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
+  }
+#else
   UpdateDrawBounds(&Command->Layout, MinP);
   UpdateDrawBounds(&Command->Layout, MinP + Dim);
+
+  /* AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout); */
+#endif
 
   return;
 }
 
 link_internal void
-ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad *Command, render_state* RenderState)
+ProcessUntexturedQuadPush( renderer_2d *Group,
+     ui_render_command_untextured_quad *Command,
+                          render_state *RenderState )
 {
   rect2 Clip = RenderState->ClipRect;
   v2 MinP    = GetAbsoluteAt(RenderState->Layout);
@@ -2480,13 +2505,13 @@ ProcessUntexturedQuadPush(renderer_2d* Group, ui_render_command_untextured_quad 
     Command->LayoutClip = Clip;
   }
 
-  if (Command->Params & UiElementLayoutFlag_AdvanceClip)
+  if (UpdateDrawBounds(Command->Params))
   {
     UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At);
     UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At + Dim);
   }
 
-  if (Command->Params & UiElementLayoutFlag_AdvanceLayout)
+  if (AdvanceLayout(Command->Params))
   {
     AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
   }
@@ -2977,6 +3002,33 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         if (GetUiDebug && GetUiDebug()->DebugBreakUiCommand) { RuntimeBreak(); }
       } break;
 
+      case type_ui_render_command_read_current_layout:
+      {
+#if 0
+        auto *TypedCommand = RenderCommandAs(start_layout, Command);
+        *TypedCommand->Layout = *RenderState->Layout;
+#endif
+        NotImplemented;
+      } break;
+
+      case type_ui_render_command_layout_start:
+      {
+        auto *TypedCommand = RenderCommandAs(layout_start, Command);
+
+        // TODO(Jesse): Support flags
+        Assert(TypedCommand->Flags == UiElementLayoutFlag_Default);
+        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
+      } break;
+
+      case type_ui_render_command_layout_end:
+      {
+        auto *TypedCommand = RenderCommandAs(layout_end, Command);
+        // TODO(Jesse): Support flags
+        Assert(TypedCommand->Flags == UiElementLayoutFlag_Default);
+
+        PopLayout(&RenderState->Layout);
+      } break;
+
       case type_ui_render_command_window_start:
       {
         Assert(LengthSq(DefaultLayout->Padding.xy) == 0);
@@ -3049,7 +3101,43 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         if (GetUiDebug && GetUiDebug()->OutlineWindowDrawBounds)
         {
-          BufferBorder(Group, RenderState->Layout->DrawBounds, V3(1,0,0), 0.9f, DISABLE_CLIPPING);
+          auto Window = TypedCommand->Window;
+
+          // Draw bounds
+          {
+            rect2 Bounds = RectMinDim(RenderState->Layout->Basis, GetDim(RenderState->Layout->DrawBounds));
+            BufferBorder(Group, Bounds, V3(1,0,0), 0.9f, DISABLE_CLIPPING);
+          }
+
+          // Layout basis marker
+          {
+            rect2 Bounds = RectCenterDim(RenderState->Layout->Basis, V2(2));
+            BufferBorder(Group, Bounds, V3(1,0,1), 0.9f, DISABLE_CLIPPING);
+          }
+
+          // Window Basis marker
+          {
+            rect2 Bounds = RectCenterDim(Window->Basis, V2(4));
+            BufferBorder(Group, Bounds, V3(0,1,1), 0.9f, DISABLE_CLIPPING);
+          }
+
+          // Window ContentStart marker
+          {
+            rect2 Bounds = RectCenterDim(Window->Basis + Window->ContentStart, V2(4));
+            BufferBorder(Group, Bounds, V3(0,1,1), 0.9f, DISABLE_CLIPPING);
+          }
+
+          /* // Window ContentDim marker */
+          /* { */
+          /*   rect2 Bounds = RectCenterDim(Window->Basis + Window->ContentStart, V2(4)); */
+          /*   BufferBorder(Group, Bounds, V3(0,1,1), 0.9f, DISABLE_CLIPPING); */
+          /* } */
+
+          // Window ContentDim
+          {
+            rect2 Bounds = RectMinMax(V2(1.f), V2(-1.f)) + RectMinDim(Window->Basis + Window->ContentStart, Window->ContentDim);
+            BufferBorder(Group, Bounds , V3(0,1,1), 0.9f, DISABLE_CLIPPING);
+          }
         }
 
         Assert(TypedCommand->Window == RenderState->Window);
@@ -3065,16 +3153,16 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         RenderState->ClipRect = DISABLE_CLIPPING;
       } break;
 
-      case type_ui_render_command_layout_start:
-      {
-        ui_render_command_layout_start *TypedCommand = RenderCommandAs(layout_start, Command);
-        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
-      } break;
+      /* case type_ui_render_command_layout_start: */
+      /* { */
+      /*   ui_render_command_layout_start *TypedCommand = RenderCommandAs(layout_start, Command); */
+      /*   PushLayout(&RenderState->Layout, &TypedCommand->Layout); */
+      /* } break; */
 
-      case type_ui_render_command_layout_end:
-      {
-        PopLayout(&RenderState->Layout);
-      } break;
+      /* case type_ui_render_command_layout_end: */
+      /* { */
+      /*   PopLayout(&RenderState->Layout); */
+      /* } break; */
 
       case type_ui_render_command_table_start:
       {
@@ -3245,6 +3333,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         /* if (TypedCommand->Shader) { break; } */
 
         TypedCommand->Layout.Basis += GetAbsoluteAt(RenderState->Layout);
+        /* TypedCommand->Layout.DrawBounds.Max += GetAbsoluteAt(RenderState->Layout); */
 
         v2 PadOffset = V2(TypedCommand->Layout.Padding.Left, TypedCommand->Layout.Padding.Top);
 
@@ -3252,8 +3341,8 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         b32 UpdateDrawBound = True;
         b32 AdvanceLayoutStack = True;
 #else
-        b32 UpdateDrawBound = (TypedCommand->Params & UiElementLayoutFlag_AdvanceClip) == UiElementLayoutFlag_AdvanceClip;
-        b32 AdvanceLayoutStack = (TypedCommand->Params & UiElementLayoutFlag_AdvanceLayout) == UiElementLayoutFlag_AdvanceLayout;
+        b32 UpdateDrawBound = UpdateDrawBounds(TypedCommand->Params);
+        b32 AdvanceLayoutStack = AdvanceLayout(TypedCommand->Params);
         if (UpdateDrawBound == False)
         {
           TypedCommand->Layout.Basis += PadOffset;
@@ -3268,7 +3357,14 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_untextured_quad_at:
       {
         ui_render_command_untextured_quad_at* TypedCommand = RenderCommandAs(untextured_quad_at, Command);
+
+        /* b32 UpdateDrawBound = (TypedCommand->Params & UiElementLayoutFlag_AdvanceClip) == UiElementLayoutFlag_AdvanceClip; */
+        /* b32 AdvanceLayoutStack = (TypedCommand->Params & UiElementLayoutFlag_AdvanceLayout) == UiElementLayoutFlag_AdvanceLayout; */
+        /* b32 AdvanceLayoutStack = False; */
+
+        /* PushLayout(&RenderState->Layout, &TypedCommand->Layout, TypedCommand->Params); */
         ProcessUntexturedQuadAtPush(Group, TypedCommand, RenderState);
+        /* PopLayout(&RenderState->Layout, UpdateDrawBound, AdvanceLayoutStack); */
       } break;
 
       case type_ui_render_command_new_row:
@@ -3509,6 +3605,11 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_reset_draw_bounds:
       case type_ui_render_command_debug:
         { break; }
+
+      case type_ui_render_command_read_current_layout:
+      {
+        NotImplemented;
+      } break;
 
       case type_ui_render_command_untextured_quad:
       {
