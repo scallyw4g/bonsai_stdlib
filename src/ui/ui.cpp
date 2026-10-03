@@ -1414,8 +1414,6 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   //
 
 
-  PushBorder(Group, AbsWindowBounds, UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, UI_WINDOW_BORDER_DEFAULT_WIDTH);
-
   ui_render_command StartCommand = {
     .Type = type_ui_render_command_window_start,
 
@@ -1433,6 +1431,8 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   };
 
   PushUiRenderCommand(Group, &StartCommand);
+
+  PushBorder(Group, AbsWindowBounds, UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, UI_WINDOW_BORDER_DEFAULT_WIDTH);
 
   /* rect2 MinimizedTitleBarBounds = RectMinDim({}, V2(TitleRect.Max.x, Global_TitleBarHeight)); */
 

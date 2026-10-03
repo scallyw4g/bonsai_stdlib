@@ -3277,7 +3277,7 @@ poof(
 
         if (DrawChildren)
         {
-          if (Name.Count) { PushTableStart(Ui); }
+          PushTableStart(Ui);
 
           if (DidToggle) { OPEN_INDENT_FOR_TOGGLEABLE_REGION(); }
             type.map(member)
@@ -3477,7 +3477,7 @@ poof(
               }
             }
           if (DidToggle) { CLOSE_INDENT_FOR_TOGGLEABLE_REGION(); }
-          if (Name.Count) { PushTableEnd(Ui); }
+          PushTableEnd(Ui);
         }
         else
         {
