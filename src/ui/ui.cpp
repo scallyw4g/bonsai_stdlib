@@ -1441,38 +1441,31 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   // NOTE(Jesse): must come first to take precedence over the title bar when clicking
   //
   PushButtonStart(Group, ResizeHandleInteractionId);
+    ui_element_layout_flags Flags = ui_element_layout_flags(UiElementLayoutFlag_DisableClipping|UiElementLayoutFlag_NoAdvance);
     PushUntexturedQuadAt( Group, ResizeHandleMin, ResizeHandleDim, zDepth_Border,
-                         &SaturatedWindowBezelStyle, UiElementLayoutFlag_DisableClipping);
+                         &SaturatedWindowBezelStyle, Flags);
+                         
   PushButtonEnd(Group);
 
   // Title bar
   //
   // @manually_set_content_start
   PushButtonStart(Group, TitleBarInteractionId);
-    PushUntexturedQuadAt( Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight),
-                          zDepth_TitleBar, &DefaultWindowBezelStyle, UiElementLayoutFlag_NoAdvance);
+    PushUntexturedQuad( Group, {}, V2(WindowMaxClip.x, Global_TitleBarHeight),
+                          zDepth_TitleBar, &DefaultWindowBezelStyle, {}, UiElementLayoutFlag_NoAdvanceLayout);
   PushButtonEnd(Group);
 
-  /* PushForceAdvance(Group, V2(Global_TitleBarPadding)); */
-
   // Title text
-  /* PushTableStart(Group); */
-    /* Text(Group, TitleText, &DefaultStyle, UiElementLayoutFlag_DisableClipping); */
-    auto Params = DefaultUiRenderParams_Column;
-    Params.LayoutFlags = UiElementLayoutFlag_DisableClipping;
-    PushColumn(Group, TitleText, &Params);
-    PushNewRow(Group);
-  /* PushTableEnd(Group); */
+  //
+  auto Params = DefaultUiRenderParams_Column;
+  Params.LayoutFlags = UiElementLayoutFlag_DisableClipping;
+  PushColumn(Group, TitleText, &Params);
+  PushNewRow(Group);
 
-  PushResetDrawBounds(Group);
-
-  /* PushForceUpdateBasis(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*2.f); */
-  PushForceUpdateBasis(Group, -1.f*WindowScroll); // -1.f because we want the scroll effect to move content up for a positive value
-                                                  //
   // Window Background
   PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle);
 
-  /* PushResetDrawBounds(Group); */
+  PushForceUpdateBasis(Group, -1.f*WindowScroll); // -1.f because we want the scroll effect to move content up for a positive value
 }
 
 
@@ -3095,7 +3088,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         if (TypedCommand->Window->Flags & WindowLayoutFlag_Size_Dynamic)
         {
           v2 ClippedMaxCorner = (*Group->ScreenDim - TypedCommand->Window->Basis) - DefaultWindowSideOffset;
-          v2 WindowMaxCorner = RenderState->Layout->DrawBounds.Max + Global_ResizeHandleDim;
+          v2 WindowMaxCorner = RenderState->Layout->DrawBounds.Max;
           TypedCommand->Window->MaxClip = Min(ClippedMaxCorner, WindowMaxCorner);
         }
 
