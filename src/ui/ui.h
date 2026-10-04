@@ -23,7 +23,20 @@
 #define OPEN_INDENT_FOR_TOGGLEABLE_REGION() (PushForceUpdateBasis(Ui, V2(20.f, 0.f)))
 #define CLOSE_INDENT_FOR_TOGGLEABLE_REGION() (PushForceUpdateBasis(Ui, V2(-20.f, 0.f)))
 
+struct layout
+{
+  v2 Basis;
 
+  // Relative to Basis
+  v2 At;
+
+  // Relative to Basis
+  rect2 DrawBounds = InvertedInfinityRectangle();
+
+  v4 Padding;
+
+  layout* Prev;
+};
 
 struct ui_debug
 poof(@do_editor_ui)
@@ -107,6 +120,9 @@ poof(@do_editor_ui)
   // TODO(Jesse): Rename to rect2 ContentArea
   v2 ContentStart; // Basis-relative corner of the content region
   v2 ContentDim;   // ContentStart-relative bounds of all layed out content, including clipped content
+
+  layout TitleBarLayoutResult;
+  layout ContentLayoutResult;
 
   // NOTE(Jesse): For resetting when we un-minimize
   s32 CachedFlags;
@@ -425,21 +441,6 @@ poof(@do_editor_ui)
 
 typedef render_buffers_2d debug_text_render_group;
 typedef renderer_2d debug_ui_render_group;
-
-struct layout
-{
-  v2 Basis;
-
-  // Relative to Basis
-  v2 At;
-
-  // Relative to Basis
-  rect2 DrawBounds = InvertedInfinityRectangle();
-
-  v4 Padding;
-
-  layout* Prev;
-};
 
 struct table_info
 {
@@ -873,6 +874,9 @@ struct ui_render_command_layout_start
 
 struct ui_render_command_layout_end
 {
+  v3 DebugColor;
+  layout *WritebackDest;
+
   ui_element_layout_flags Flags;
 };
 
