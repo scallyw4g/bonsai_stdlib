@@ -834,6 +834,19 @@ Text(        renderer_2d* Group,
 }
 
 link_internal u32
+PushDebugDrawLayout( renderer_2d *Group, layout *Layout, v3 Color)
+{
+  ui_render_command Command = { };
+  Command.Type = type_ui_render_command_debug_draw_layout;
+  Command.ui_render_command_debug_draw_layout = {};
+  Command.ui_render_command_debug_draw_layout.Layout = Layout;
+  Command.ui_render_command_debug_draw_layout.Color = Color;
+  u32 Result = PushUiRenderCommand(Group, &Command);
+  return Result;
+}
+
+
+link_internal u32
 PushLayoutStart( renderer_2d *Group, v2 Basis )
 {
   ui_render_command Command = { };
@@ -846,12 +859,13 @@ PushLayoutStart( renderer_2d *Group, v2 Basis )
 }
 
 link_internal u32
-PushLayoutEnd( renderer_2d *Group, layout *WritebackDest, v3 DebugColor)
+PushLayoutEnd( renderer_2d *Group, layout *WritebackDest = 0, v3 DebugColor = V3(0))
 {
   ui_render_command Command = { };
   Command.Type = type_ui_render_command_layout_end;
   Command.ui_render_command_layout_end = {};
   Command.ui_render_command_layout_end.WritebackDest = WritebackDest;
+  Command.ui_render_command_layout_end.DebugColor = DebugColor;
   u32 Result = PushUiRenderCommand(Group, &Command);
   return Result;
 }
@@ -1262,13 +1276,6 @@ PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowM
     .ui_render_command_window_start = {
       .Window = Window,
       .ClipRect = ClipRect,
-      .Layout = {
-        .At = {},
-        .Basis = Window->Basis,
-        .DrawBounds = InvertedInfinityRectangle(),
-        .Padding = {},
-        .Prev = {},
-      }
     }
   };
 
@@ -1341,12 +1348,12 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     rect2 MinimizedTitleBarBounds = RectMinDim({}, V2(TitleRect.Max.x, Global_TitleBarHeight));
 
     v2 WindowOffsetFromCornerOfScreen = V2(20);
-    v2 WindowDim  = MinimizedTitleBarBounds.Max + V2(ResizeHandleDim.x, 0) + V2(20, 0);
-    v2 WindowBasis = V2(Group->ScreenDim->x - WindowDim.x - WindowOffsetFromCornerOfScreen.x, (Window->MinimizeIndex * Global_TitleBarHeight) + WindowOffsetFromCornerOfScreen.y );
+    /* v2 WindowDim  = MinimizedTitleBarBounds.Max + V2(ResizeHandleDim.x, 0) + V2(20, 0); */
+    /* v2 WindowBasis = V2(Group->ScreenDim->x - WindowDim.x - WindowOffsetFromCornerOfScreen.x, (Window->MinimizeIndex * Global_TitleBarHeight) + WindowOffsetFromCornerOfScreen.y ); */
 
     Window->Flags = WindowLayoutFlag_Align_Right;
-    Window->Basis = WindowBasis;
-    Window->MaxClip = WindowDim;
+    /* Window->Basis = WindowBasis; */
+    /* Window->MaxClip = WindowDim; */
   }
 
 
@@ -1386,6 +1393,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   }
 
 
+#if 0
   // Clip scroll values to their max
   {
     r32 MaxScroll = Window->ContentDim.y - Window->MaxClip.y;
@@ -1395,6 +1403,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   // Do not let window width get below a reasonable threshold
   Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 25.f);
   Window->MaxClip.y = Max(Window->MaxClip.y, TitleRect.Max.y + ResizeHandleDim.y  + 6.f);
+#endif
 
   // NOTE(Jesse): Manually set to the height of the title bar that we draw.  Should we do better?
   // @manually_set_content_start
@@ -1417,6 +1426,8 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   //
   //
 
+  // @overall_window_layout
+  PushLayoutStart(Group, WindowBasis);
 
   ui_render_command StartCommand = {
     .Type = type_ui_render_command_window_start,
@@ -1424,21 +1435,19 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     .ui_render_command_window_start = {
       .Window = Window,
       .ClipRect = ClipRect,
-      .Layout = {
-        .At = {},
-        .Basis = Window->Basis,
-        .DrawBounds = InvertedInfinityRectangle(),
-        .Padding = {},
-        .Prev = {},
-      }
     }
   };
+
 
   PushUiRenderCommand(Group, &StartCommand);
 
   PushBorder(Group, AbsWindowBounds, UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, UI_WINDOW_BORDER_DEFAULT_WIDTH);
 
   ui_element_layout_flags NoClippingNoAdvanceFlags = ui_element_layout_flags(UiElementLayoutFlag_DisableClipping|UiElementLayoutFlag_NoAdvance);
+
+  // Window Background
+  //
+  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle);
 
   // Resize Handle  NOTE(Jesse): must come first to take precedence over the title bar when clicking
   //
@@ -1451,42 +1460,41 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   //
 
   // Layout for the title bar
-  /* PushLayoutStart(Group, WindowBasis); */
+  PushLayoutStart(Group, WindowBasis);
+
     PushButtonStart(Group, TitleBarInteractionId);
-      PushUntexturedQuad( Group, WindowBasis, V2(WindowMaxClip.x, Global_TitleBarHeight),
-                            zDepth_TitleBar, &DefaultWindowBezelStyle);
+      PushUntexturedQuad( Group, {}, V2(WindowMaxClip.x, Global_TitleBarHeight),
+                            zDepth_TitleBar, &DefaultWindowBezelStyle, {},
+                            ui_element_layout_flags(UiElementLayoutFlag_DisableClipping|UiElementLayoutFlag_NoAdvanceLayout));
     PushButtonEnd(Group);
-  /* PushLayoutEnd(Group, &Window->TitleBarLayoutResult, V3(1,0,0)); */
-  PushNewRow(Group);
 
-  // Title text
-  //
-  auto Params = DefaultUiRenderParams_Column;
-  Params.LayoutFlags = NoClippingNoAdvanceFlags;
-  /* Params.LayoutFlags = UiElementLayoutFlag_DisableClipping; */
-  PushColumn(Group, TitleText, &Params);
-  /* PushNewRow(Group); */
-
-  // Window Background
-  //
-  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle);
+    // Title text
+    //
+    auto Params = DefaultUiRenderParams_Column;
+    /* Params.LayoutFlags = NoClippingNoAdvanceFlags; */
+    Params.LayoutFlags = UiElementLayoutFlag_DisableClipping;
+    PushColumn(Group, TitleText, &Params);
+    PushNewRow(Group);
+    PushLayoutEnd(Group, &Window->TitleBarLayoutResult);
+    PushDebugDrawLayout(Group, &Window->TitleBarLayoutResult, V3(1,1,0));
 
   // Layout for the content region
   // @content_region_layout
-  PushLayoutStart(Group, WindowBasis);
+  PushLayoutStart(Group, Window->Basis + Window->TitleBarLayoutResult.At);
 
   PushForceUpdateBasis(Group, -1.f*WindowScroll); // -1.f because we want the scroll effect to move content up for a positive value
 }
 
 
 link_internal void
-PushWindowEnd(renderer_2d *Group, window_layout *Window, layout *WritebackDest = 0)
+PushWindowEnd(renderer_2d *Group, window_layout *Window)
 {
   /* PushForceAdvance(Group, Global_ResizeHandleDim+V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)*4.f); */
   /* PushForceAdvance(Group, V2(UI_WINDOW_BORDER_DEFAULT_WIDTH.Left, UI_WINDOW_BORDER_DEFAULT_WIDTH.Top)); */
 
   // Pop content region layout @content_region_layout
   PushLayoutEnd(Group, &Window->ContentLayoutResult, V3(0,1,1));
+  PushDebugDrawLayout(Group, &Window->ContentLayoutResult, V3(0,1,1));
 
   r32 TrackThickness = Global_ResizeHandleDim.x;
   r32 ScrollbarThickness = TrackThickness - 6.f;
@@ -1570,6 +1578,11 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window, layout *WritebackDest =
   EndCommand.ui_render_command_window_end.Window = Window;
   /* EndCommand.ui_render_command_window_end.Dest = Dest; */
   PushUiRenderCommand(Group, &EndCommand);
+
+  // @overall_window_layout
+  PushLayoutEnd(Group, &Window->WindowLayoutResult);
+  PushDebugDrawLayout(Group, &Window->WindowLayoutResult, V3(1,0,1));
+
   return;
 }
 
@@ -2273,7 +2286,7 @@ PushLayout(layout** Dest, layout* Layout, ui_element_layout_flags Flags = UiElem
   b32 DoUpdateDrawBounds   = UpdateDrawBounds(Flags);
   b32 DoAdvanceLayoutStack = AdvanceLayout(Flags);
 
-  Assert(!Layout->Prev);
+  Assert(Layout->Prev == 0);
   Layout->Prev = *Dest;
   *Dest = Layout;
 
@@ -3010,7 +3023,7 @@ DebugDrawLayout(renderer_2d *Ui, layout *Layout, v3 Color = V3(1,0,0))
   }
   // At marker
   {
-    rect2 Rect = RectCenterDim(Layout->At, V2(2));
+    rect2 Rect = RectCenterDim(Layout->Basis + Layout->At, V2(4));
     BufferBorder(Ui, Rect, Color, Z, DISABLE_CLIPPING);
   }
   // Draw Bounds
@@ -3056,9 +3069,20 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         NotImplemented;
       } break;
 
+      case type_ui_render_command_debug_draw_layout:
+      {
+        auto *TypedCommand = RenderCommandAs(debug_draw_layout, Command);
+        DebugDrawLayout(Group, TypedCommand->Layout, TypedCommand->Color);
+      } break;
+
       case type_ui_render_command_layout_start:
       {
         auto *TypedCommand = RenderCommandAs(layout_start, Command);
+
+        if (RenderState->Layout == DefaultLayout)
+        {
+          PopLayout(&RenderState->Layout);
+        }
 
         // TODO(Jesse): Support flags
         Assert(TypedCommand->Flags == UiElementLayoutFlag_Default);
@@ -3074,8 +3098,12 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         layout *Popped = PopLayout(&RenderState->Layout);
         if (TypedCommand->WritebackDest)
         {
-          DebugDrawLayout(Group, Popped, TypedCommand->DebugColor);
           *TypedCommand->WritebackDest = *Popped;
+        }
+
+        if (RenderState->Layout == 0)
+        {
+          PushLayout(&RenderState->Layout, DefaultLayout);
         }
       } break;
 
@@ -3084,15 +3112,14 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         Assert(LengthSq(DefaultLayout->Padding.xy) == 0);
         Assert(LengthSq(DefaultLayout->Padding.zw) == 0);
 
-        Assert(RenderState->Layout == DefaultLayout);
-        PopLayout(&RenderState->Layout);
-
+        /* Assert(RenderState->Layout == DefaultLayout); */
+        /* PopLayout(&RenderState->Layout); */
 
         Assert(!RenderState->Window);
         ui_render_command_window_start* TypedCommand = RenderCommandAs(window_start, Command);
         RenderState->WindowStartCommandIndex = NextCommandIndex-1;
 
-        PushLayout(&RenderState->Layout, &TypedCommand->Layout);
+        /* PushLayout(&RenderState->Layout, &TypedCommand->Layout); */
         RenderState->Window = TypedCommand->Window;
         RenderState->ClipRect = TypedCommand->ClipRect;
       } break;
@@ -3134,21 +3161,25 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           // both clipped to the screen.  This is pretty weird, but it's
           // necessary because if we just do one or the other we get visual
           // artifacts when the size of the content in the window changes.
+#if 0
           r32 ContentWindowMinCorner = Group->ScreenDim->x - RenderState->Layout->DrawBounds.Max.x - DefaultWindowSideOffset;
           r32 ActualWindowMinCorner = Group->ScreenDim->x - TypedCommand->Window->MaxClip.x - DefaultWindowSideOffset;
           r32 ClippedWindowMinCorner = Min(ContentWindowMinCorner, ActualWindowMinCorner);
 
           TypedCommand->Window->Basis.x = ClippedWindowMinCorner;
+#endif
         }
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_Align_Bottom)
         {
+#if 0
           r32 ContentWindowMinCorner = Group->ScreenDim->y - RenderState->Layout->DrawBounds.Max.y - DefaultWindowSideOffset;
           r32 ActualWindowMinCorner = Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset;
           r32 ClippedWindowMinCorner = Min(ContentWindowMinCorner, ActualWindowMinCorner);
 
           // NOTE(Jesse): This has an extra term & Max() to push the window below the default layout
           TypedCommand->Window->Basis.y = Max( ClippedWindowMinCorner, DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset);
+#endif
         }
 
         if (TypedCommand->Window->Flags & WindowLayoutFlag_Size_Dynamic)
@@ -3199,13 +3230,13 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         Assert(TypedCommand->Window == RenderState->Window);
         RenderState->Window = 0;
-        PopLayout(&RenderState->Layout);
-        Assert(RenderState->Layout == 0);
+        /* PopLayout(&RenderState->Layout); */
+        /* Assert(RenderState->Layout == 0); */
 
         RenderState->WindowStartCommandIndex = 0;
 
-        PushLayout(&RenderState->Layout, DefaultLayout);
-        Assert(RenderState->Layout == DefaultLayout);
+        /* PushLayout(&RenderState->Layout, DefaultLayout); */
+        /* Assert(RenderState->Layout == DefaultLayout); */
 
         RenderState->ClipRect = DISABLE_CLIPPING;
       } break;
@@ -3641,6 +3672,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
     {
       InvalidCase(type_ui_render_command_noop);
 
+      case type_ui_render_command_debug_draw_layout:
       case type_ui_render_command_layout_start:
       case type_ui_render_command_layout_end:
       case type_ui_render_command_window_start:

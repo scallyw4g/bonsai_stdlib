@@ -123,6 +123,7 @@ poof(@do_editor_ui)
 
   layout TitleBarLayoutResult;
   layout ContentLayoutResult;
+  layout WindowLayoutResult;
 
   // NOTE(Jesse): For resetting when we un-minimize
   s32 CachedFlags;
@@ -861,9 +862,17 @@ struct ui_render_command_abs_border
 
 struct ui_render_command_window_start
 {
-         layout  Layout;
           rect2  ClipRect;
   window_layout *Window;
+};
+
+struct ui_render_command_debug_draw_layout
+{
+  // NOTE(Jesse): This is a major hack; this is a pointer because it would fuck
+  // up the generated code that does bounds preprocessing if it was a literal.
+  // .. yikes ..
+  layout *Layout;
+  v3 Color;
 };
 
 struct ui_render_command_layout_start
@@ -1038,6 +1047,8 @@ poof(
 
     ui_render_command_force_advance
     ui_render_command_force_update_basis
+
+    ui_render_command_debug_draw_layout
 
     ui_render_command_layout_start
     ui_render_command_layout_end
