@@ -106,8 +106,8 @@ poof(@do_editor_ui)
   cs Title;
 
   // TODO(Jesse): Pack Minimized into flags somehow?
-  b32 Minimized;
-  u32 MinimizeIndex;
+  /* b32 Minimized; */
+  /* u32 MinimizeIndex; */
 
   s32 Flags = WindowLayoutFlag_Default; // window_layout_flags
 
@@ -117,20 +117,17 @@ poof(@do_editor_ui)
   v2 MaxClip;      // Basis-relative maximum corner of the window
   v2 Scroll;       // Basis-relative offset of the content within the window
 
-  // TODO(Jesse): Rename to rect2 ContentArea
-  v2 ContentStart; // Basis-relative corner of the content region
-  v2 ContentDim;   // ContentStart-relative bounds of all layed out content, including clipped content
-
   layout TitleBarLayoutResult;
   layout ContentLayoutResult;
   layout WindowLayoutResult;
+  layout RightScrollbarLayoutResult;
+  layout BottomScrollbarLayoutResult;
 
   // NOTE(Jesse): For resetting when we un-minimize
   s32 CachedFlags;
   v2  CachedBasis;
   v2  CachedMaxClip;
   v2  CachedScroll;
-
 
   u64 InteractionStackIndex = NextWindowStackIndex++;
 
@@ -414,8 +411,8 @@ poof(@do_editor_ui)
 
 
 
-#define MAX_MINIMIZED_WINDOWS 64
-  window_layout *MinimizedWindowBuffer[MAX_MINIMIZED_WINDOWS];
+/* #define MAX_MINIMIZED_WINDOWS 64 */
+  /* window_layout *MinimizedWindowBuffer[MAX_MINIMIZED_WINDOWS]; */
   window_layout *HighestWindow; // NOTE(Jesse): Highest in terms of InteractionStackIndex
 
   interactable Active;
@@ -866,11 +863,14 @@ struct ui_render_command_window_start
   window_layout *Window;
 };
 
+struct ui_render_command_debug_draw_rect
+{
+  rect2 Rect;
+    v3 Color;
+};
+
 struct ui_render_command_debug_draw_layout
 {
-  // NOTE(Jesse): This is a major hack; this is a pointer because it would fuck
-  // up the generated code that does bounds preprocessing if it was a literal.
-  // .. yikes ..
   layout *Layout;
   v3 Color;
 };
@@ -1048,6 +1048,7 @@ poof(
     ui_render_command_force_advance
     ui_render_command_force_update_basis
 
+    ui_render_command_debug_draw_rect
     ui_render_command_debug_draw_layout
 
     ui_render_command_layout_start

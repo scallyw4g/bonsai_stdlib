@@ -311,6 +311,15 @@ poof(
           return Result;
         }
 
+        inline Type.name
+        Clamp( Type.name MinVal, Type.name Current, Type.name MaxVal )
+        {
+          Type.name Result = {{
+            E.map_array(Index) { Clamp(MinVal.E.name[Index], Current.E.name[Index], MaxVal.E.name[Index]), }
+          }};
+          return Result;
+        }
+
         inline E.type
         Sum( Type.name P1 )
         {

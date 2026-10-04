@@ -834,6 +834,19 @@ Text(        renderer_2d* Group,
 }
 
 link_internal u32
+PushDebugDrawRect( renderer_2d *Group, rect2 Rect, v3 Color)
+{
+  ui_render_command Command = { };
+  Command.Type = type_ui_render_command_debug_draw_rect;
+  Command.ui_render_command_debug_draw_rect = {};
+  Command.ui_render_command_debug_draw_rect.Rect = Rect;
+  Command.ui_render_command_debug_draw_rect.Color = Color;
+  u32 Result = PushUiRenderCommand(Group, &Command);
+  return Result;
+}
+
+
+link_internal u32
 PushDebugDrawLayout( renderer_2d *Group, layout *Layout, v3 Color)
 {
   ui_render_command Command = { };
@@ -1283,20 +1296,6 @@ PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowM
 }
 
 link_internal void
-UnminimizeWindow(renderer_2d *Group, window_layout *Window)
-{
-  Window->Minimized = False;
-
-  Group->MinimizedWindowBuffer[Window->MinimizeIndex] = 0;
-  Window->MinimizeIndex = 0;
-
-  Window->Flags = Window->CachedFlags;
-  Window->Basis = Window->CachedBasis;
-  Window->MaxClip = Window->CachedMaxClip;
-  Window->Scroll = Window->CachedScroll;
-}
-
-link_internal void
 PushWindowStart(renderer_2d *Group, window_layout *Window)
 {
   TIMED_FUNCTION();
@@ -1305,112 +1304,17 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
   /* counted_string TitleText = FCS(CSz("%S (%u) (%.1f, %.1f)"), Window->Title, Window->InteractionStackIndex, double(Window->Scroll.x), double(Window->Scroll.y) ); */
   counted_string TitleText = Window->Title;
-  counted_string MinimizedIcon = CSz(" _ ");
   rect2 TitleRect = GetDrawBounds(TitleText, &DefaultStyle);
-  rect2 MinimizeRect = GetDrawBounds(MinimizedIcon, &DefaultStyle);
-
-  ui_id TitleBarInteractionId = UiId(Window, Cast(void*, "WindowTitleBar"), 0);
-  interactable_handle TitleBarHandle = { .Id = TitleBarInteractionId };
-
-
-  ui_id MinimizeInteractionId = UiId(Window, Cast(void*, "WindowMinimizeInteraction"), 0);
-  interactable_handle MinimizeButtonHandle = { .Id = MinimizeInteractionId };
-
-  if (Window->Minimized && Clicked(Group, &TitleBarHandle))
-  {
-    UnminimizeWindow(Group, Window);
-  }
-  else if (Pressed(Group, &TitleBarHandle))
-  {
-    Window->Basis += *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
-    Window->Flags &= ~(WindowLayoutFlag_Align_BottomRight);
-  }
-  else if (!Window->Minimized && Clicked(Group, &MinimizeButtonHandle))
-  {
-    Window->Minimized = True;
-
-    for (u32 MinimizeIndex = 0; MinimizeIndex < MAX_MINIMIZED_WINDOWS; ++MinimizeIndex)
-    {
-      window_layout **Slot = Group->MinimizedWindowBuffer + MinimizeIndex;
-      if (*Slot == 0)
-      {
-        *Slot = Window;
-        Window->MinimizeIndex = MinimizeIndex;
-        break;
-      }
-    }
-
-    Window->CachedFlags = Window->Flags;
-    Window->CachedBasis = Window->Basis;
-    Window->CachedMaxClip = Window->MaxClip;
-    Window->CachedScroll = Window->Scroll;
-
-    rect2 MinimizedTitleBarBounds = RectMinDim({}, V2(TitleRect.Max.x, Global_TitleBarHeight));
-
-    v2 WindowOffsetFromCornerOfScreen = V2(20);
-    /* v2 WindowDim  = MinimizedTitleBarBounds.Max + V2(ResizeHandleDim.x, 0) + V2(20, 0); */
-    /* v2 WindowBasis = V2(Group->ScreenDim->x - WindowDim.x - WindowOffsetFromCornerOfScreen.x, (Window->MinimizeIndex * Global_TitleBarHeight) + WindowOffsetFromCornerOfScreen.y ); */
-
-    Window->Flags = WindowLayoutFlag_Align_Right;
-    /* Window->Basis = WindowBasis; */
-    /* Window->MaxClip = WindowDim; */
-  }
-
-
-  ui_id ResizeHandleInteractionId = UiId(Window, Cast(void*, "WindowResizeWidget"), Window);
-  interactable_handle ResizeHandle = { .Id = ResizeHandleInteractionId };
 
   v2 TitleBounds = V2(GetDrawBounds(Window->Title, &Global_Font).Max.x, Global_Font.Size.y);
   Window->MaxClip = Max(TitleBounds, Window->MaxClip);
-
-  // Resize
-  //
-  if (Pressed(Group, &ResizeHandle))
-  {
-    Window->Flags &= ~(WindowLayoutFlag_Size_Dynamic|WindowLayoutFlag_Align_BottomRight);
-
-    v2 AbsoluteTitleBounds = Window->Basis + TitleBounds;
-    // TODO(Jesse): Probably make this use MouseDP ..?
-    v2 TestMaxClip = *Group->MouseP - Window->Basis;
-
-    if (Group->MouseP->x > AbsoluteTitleBounds.x )
-    {
-      Window->MaxClip.x = Max(TitleBounds.x, TestMaxClip.x);
-    }
-    else
-    {
-      Window->MaxClip.x = TitleBounds.x;
-    }
-
-    if (Group->MouseP->y > AbsoluteTitleBounds.y )
-    {
-      Window->MaxClip.y = Max(TitleBounds.y, TestMaxClip.y);
-    }
-    else
-    {
-      Window->MaxClip.y = TitleBounds.y;
-    }
-  }
-
-
 #if 0
-  // Clip scroll values to their max
-  {
-    r32 MaxScroll = Window->ContentDim.y - Window->MaxClip.y;
-    Window->Scroll.y = Clamp(0.f, Window->Scroll.y, MaxScroll);
-  }
-
   // Do not let window width get below a reasonable threshold
-  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + MinimizeRect.Max.x + MinimizeRect.Max.x + 25.f);
+  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + 25.f);
   Window->MaxClip.y = Max(Window->MaxClip.y, TitleRect.Max.y + ResizeHandleDim.y  + 6.f);
 #endif
 
-  // NOTE(Jesse): Manually set to the height of the title bar that we draw.  Should we do better?
-  // @manually_set_content_start
-  Window->ContentStart = V2(0, Global_TitleBarHeight);
-
   v2 ResizeHandleMin = GetAbsoluteMaxClip(Window)-ResizeHandleDim;
-  v2 MinimizeButtonOffset = V2(Window->MaxClip.x-TitleRect.Max.x-50, 0);
 
   v2 WindowBasis = Window->Basis;
   v2 WindowMaxClip = Window->MaxClip;
@@ -1449,8 +1353,9 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   //
   PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle);
 
-  // Resize Handle  NOTE(Jesse): must come first to take precedence over the title bar when clicking
+  // Resize Handle  NOTE(Jesse): must come befor title bar to take precedence when clicking
   //
+  ui_id ResizeHandleInteractionId = UiId(Window, Cast(void*, "WindowResizeWidget"), Window);
   PushButtonStart(Group, ResizeHandleInteractionId);
     PushUntexturedQuadAt( Group, ResizeHandleMin, ResizeHandleDim, zDepth_Border,
                          &SaturatedWindowBezelStyle, NoClippingNoAdvanceFlags);
@@ -1462,6 +1367,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   // Layout for the title bar
   PushLayoutStart(Group, WindowBasis);
 
+    ui_id TitleBarInteractionId = UiId(Window, Cast(void*, "WindowTitleBar"), 0);
     PushButtonStart(Group, TitleBarInteractionId);
       PushUntexturedQuad( Group, {}, V2(WindowMaxClip.x, Global_TitleBarHeight),
                             zDepth_TitleBar, &DefaultWindowBezelStyle, {},
@@ -1475,8 +1381,106 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     Params.LayoutFlags = UiElementLayoutFlag_DisableClipping;
     PushColumn(Group, TitleText, &Params);
     PushNewRow(Group);
-    PushLayoutEnd(Group, &Window->TitleBarLayoutResult);
-    PushDebugDrawLayout(Group, &Window->TitleBarLayoutResult, V3(1,1,0));
+
+  PushLayoutEnd(Group, &Window->TitleBarLayoutResult);
+
+  r32 TrackThickness = Global_ResizeHandleDim.x;
+  r32 ScrollbarThickness = TrackThickness - 6.f;
+
+  v2 ContentStart = Window->ContentLayoutResult.Basis;
+  v2 ContentDim   = GetDim(Window->ContentLayoutResult.DrawBounds);
+  v2 HeaderDim    = GetDim(Window->TitleBarLayoutResult.DrawBounds);
+
+  v2 ViewDim      = Window->MaxClip - V2(0, HeaderDim.y);
+  rect2 ViewRect  = RectMinDim(ContentStart, ViewDim);
+
+  b32 HasVerticalScrollbar = ContentDim.y > ViewDim.y;
+  b32 HasHorizontalScrollbar = ContentDim.x > ViewDim.x;
+
+  if (HasVerticalScrollbar || HasHorizontalScrollbar)
+  {
+    ui_style TrackStyle = FlatUiStyle(UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED, &Global_Font);
+    ui_style ScrollbarStyle = FlatUiStyle(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, &Global_Font);
+
+    if (HasVerticalScrollbar)
+    {
+      v2 TrackDim = V2( TrackThickness, ViewDim.y);
+
+      v2 ScrollbarBasis = V2(
+          GetAbsoluteDrawBounds(&Window->TitleBarLayoutResult).Max.x - TrackDim.x,
+          GetAbsoluteDrawBounds(&Window->TitleBarLayoutResult).Max.y
+        );
+
+      PushLayoutStart(Group, ScrollbarBasis);
+      {
+        r32 ScrollbarSizeRatio = ViewDim.y/ContentDim.y;
+         v2 ScrollbarDim = V2(ScrollbarThickness, ViewDim.y*ScrollbarSizeRatio);
+
+        r32 ScrollRatio = Window->Scroll.y/ContentDim.y;
+
+        r32 Inset = (TrackThickness-ScrollbarThickness)/2.f;
+         v2 ScrollbarOffset = V2(Inset, TrackDim.y*ScrollRatio);
+
+        ui_id ScrollbarId = UiId(Window, "WindowVerticalScrollbarScrollbar", 0u);
+        interactable_handle ScrollbarHandle = PushButtonStart(Group, ScrollbarId);
+          PushUntexturedQuad(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, {}, UiElementLayoutFlag_DisableClipping);
+        PushButtonEnd(Group);
+
+        if (Pressed(Group, &ScrollbarHandle))
+        {
+          r32 DragRatio = Group->MouseDP->y / ScrollbarDim.y;
+          Window->Scroll.y += TrackDim.y * DragRatio;
+        }
+      }
+      PushLayoutEnd(Group, &Window->RightScrollbarLayoutResult);
+
+
+    }
+
+    if (HasHorizontalScrollbar)
+    {
+      v2 TrackDim = V2( ViewDim.x, TrackThickness );
+
+      v2 ScrollbarBasis = Window->Basis +
+        V2(0, Window->MaxClip.y - TrackDim.y);
+
+      PushLayoutStart(Group, ScrollbarBasis);
+      {
+        r32 ScrollbarSizeRatio = ViewDim.x/ContentDim.x;
+         v2 ScrollbarDim = V2(ViewDim.x*ScrollbarSizeRatio, ScrollbarThickness);
+
+        r32 ScrollRatio = Window->Scroll.x/ContentDim.x;
+
+        r32 Inset = (TrackThickness-ScrollbarThickness)/2.f;
+         v2 ScrollbarOffset = V2(TrackDim.x*ScrollRatio, Inset);
+
+        ui_id ScrollbarId = UiId(Window, "WindowHorizontalScrollbarScrollbar", 0u);
+        interactable_handle ScrollbarHandle = PushButtonStart(Group, ScrollbarId);
+          PushUntexturedQuad(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, {}, UiElementLayoutFlag_DisableClipping);
+        PushButtonEnd(Group);
+
+        if (Pressed(Group, &ScrollbarHandle))
+        {
+          r32 DragRatio = Group->MouseDP->x / ScrollbarDim.x;
+          Window->Scroll.x += TrackDim.x * DragRatio;
+        }
+      }
+      PushLayoutEnd(Group, &Window->RightScrollbarLayoutResult);
+
+    }
+
+  }
+
+
+#if 1
+  // Clip scroll values to their max
+  {
+    v2 MaxScroll = ContentDim - ViewDim;
+    Window->Scroll = Clamp(V2(0.f), Window->Scroll, MaxScroll);
+  }
+#endif
+
+
 
   // Layout for the content region
   // @content_region_layout
@@ -1494,84 +1498,7 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window)
 
   // Pop content region layout @content_region_layout
   PushLayoutEnd(Group, &Window->ContentLayoutResult, V3(0,1,1));
-  PushDebugDrawLayout(Group, &Window->ContentLayoutResult, V3(0,1,1));
 
-  r32 TrackThickness = Global_ResizeHandleDim.x;
-  r32 ScrollbarThickness = TrackThickness - 6.f;
-
-  v2 ContentStart = Window->ContentStart;
-  v2 ContentDim = Window->ContentDim;
-  v2 ViewDim = Window->MaxClip;
-
-  b32 HasVerticalScrollbar = ContentDim.y > ViewDim.y;
-  b32 HasHorizontalScrollbar = ContentDim.x > ViewDim.x;
-
-  if (HasVerticalScrollbar || HasHorizontalScrollbar)
-  {
-    ui_style TrackStyle = FlatUiStyle(UI_WINDOW_BEZEL_DEFAULT_COLOR_MUTED, &Global_Font);
-    ui_style ScrollbarStyle = FlatUiStyle(UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, &Global_Font);
-
-    if (HasVerticalScrollbar)
-    {
-      ui_id ScrollbarId = UiId(Window, "WindowVerticalScrollbarScrollbar", 0u);
-      interactable_handle ScrollbarHandle = { .Id = ScrollbarId };
-
-      v2 TrackOffset = Window->Basis + V2(Window->MaxClip.x - TrackThickness, ContentStart.y);
-      v2 TrackDim = V2(
-          TrackThickness,
-          ViewDim.y - Global_ResizeHandleDim.y - ContentStart.y);
-
-      PushUntexturedQuadAt(Group, TrackOffset, TrackDim, zDepth_Border, &TrackStyle, UiElementLayoutFlag_DisableClipping);
-
-      /* { */
-        r32 ScrollbarSizeRatio = ViewDim.y/Window->ContentDim.y;
-        v2 ScrollbarDim = V2(ScrollbarThickness, ViewDim.y*ScrollbarSizeRatio);
-
-        /* r32 ScrollRatio = Clamp01((ViewDim.y+Window->Scroll.y)/Window->ContentDim.y); */
-        r32 ScrollRatio = Window->Scroll.y/Window->ContentDim.y;
-
-        r32 Inset = (TrackThickness-ScrollbarThickness)/2.f;
-        v2 ScrollbarOffset = V2(TrackOffset.x + Inset, TrackOffset.y + TrackDim.y*ScrollRatio);
-
-        PushButtonStart(Group, ScrollbarId);
-          PushUntexturedQuadAt(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, UiElementLayoutFlag_DisableClipping);
-        PushButtonEnd(Group);
-      /* } */
-
-
-      if (Pressed(Group, &ScrollbarHandle))
-      {
-        r32 DragRatio = Group->MouseDP->y / ScrollbarDim.y;
-        Window->Scroll.y += TrackDim.y * DragRatio;
-      }
-    }
-
-#if 0
-    if (HasHorizontalScrollbar && TrackDim.x > 0.f)
-    {
-      r32 TrackLength = TrackDim.x;
-      r32 Overflow = Window->ContentDim.x - ViewDim.x;
-      r32 ThumbLength = Min(TrackLength, Max(ScrollbarThickness*2.f, TrackLength*(ViewDim.x/Window->ContentDim.x)));
-      v2 TrackMin = Window->Basis +  V2(0.f, ViewDim.y-ScrollbarThickness);
-      ui_id ThumbId = UiId(Window, "WindowHorizontalScrollbarThumb", 0u);
-      interactable_handle ThumbHandle = { .Id = ThumbId };
-
-      v2 DragOffset = {};
-      if (Pressed(Group, &ThumbHandle, &DragOffset))
-      {
-        Window->Scroll.x += Group->MouseDP->x;
-      }
-
-      r32 ScrollProgress = Clamp01(Window->Scroll.x/Overflow);
-      r32 ThumbOffset = (TrackLength - ThumbLength)*ScrollProgress;
-
-      PushUntexturedQuadAt(Group, TrackMin, V2(TrackLength, ScrollbarThickness), zDepth_Border, &TrackStyle, UiElementLayoutFlag_DisableClipping);
-      PushButtonStart(Group, ThumbId);
-        PushUntexturedQuadAt(Group, TrackMin + V2(ThumbOffset, 0.f), V2(ThumbLength, ScrollbarThickness), zDepth_Border, &ThumbStyle, UiElementLayoutFlag_DisableClipping);
-      PushButtonEnd(Group);
-    }
-#endif
-  }
 
   ui_render_command EndCommand = {};
   EndCommand.Type = type_ui_render_command_window_end;
@@ -1581,7 +1508,30 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window)
 
   // @overall_window_layout
   PushLayoutEnd(Group, &Window->WindowLayoutResult);
-  PushDebugDrawLayout(Group, &Window->WindowLayoutResult, V3(1,0,1));
+
+  /* PushDebugDrawLayout(Group, &Window->WindowLayoutResult,   V3(1,0,1)); */
+  PushDebugDrawLayout(Group, &Window->TitleBarLayoutResult, V3(1,1,0));
+  PushDebugDrawLayout(Group, &Window->ContentLayoutResult,  V3(0,1,1));
+  PushDebugDrawLayout(Group, &Window->RightScrollbarLayoutResult, V3(1,0,0));
+  /* PushDebugDrawRect(Group, ViewRect, V3(1)); */
+
+  ui_id TitleBarInteractionId = UiId(Window, Cast(void*, "WindowTitleBar"), 0);
+  interactable_handle TitleBarHandle = { .Id = TitleBarInteractionId };
+  if (Pressed(Group, &TitleBarHandle))
+  {
+    Window->Basis += *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
+    Window->Flags &= ~(WindowLayoutFlag_Align_BottomRight);
+  }
+
+  // Resize
+  //
+  ui_id ResizeHandleInteractionId = UiId(Window, Cast(void*, "WindowResizeWidget"), Window);
+  interactable_handle ResizeHandle = { .Id = ResizeHandleInteractionId };
+  if (Pressed(Group, &ResizeHandle))
+  {
+    Window->Flags &= ~(WindowLayoutFlag_Size_Dynamic|WindowLayoutFlag_Align_BottomRight);
+    Window->MaxClip += *Group->MouseDP;
+  }
 
   return;
 }
@@ -2463,9 +2413,11 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
 }
 
 link_internal void
-ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_quad_at *Command, render_state* RenderState)
+ProcessUntexturedQuadAtPush( renderer_2d *Group,
+    ui_render_command_untextured_quad_at *Command,
+                            render_state *RenderState )
 {
-  rect2 Clip = RenderState->ClipRect; //GetAbsoluteClip(RenderState->Window);
+  rect2 Clip = RenderState->ClipRect;
   v2 MinP    = GetAbsoluteAt(&Command->Layout);
   v2 Dim     = Command->QuadDim;
   v3 Color   = SelectColorState(RenderState, &Command->Style);
@@ -2480,22 +2432,21 @@ ProcessUntexturedQuadAtPush(renderer_2d* Group, ui_render_command_untextured_qua
 
   BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, MinP, Dim, Color, Z, Clip);
 
-#if 0
-  if (Command->Params & UiElementLayoutFlag_AdvanceClip)
-  {
-    UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At);
-    UpdateDrawBounds(RenderState->Layout, RenderState->Layout->At + Dim);
-  }
-
-  if (Command->Params & UiElementLayoutFlag_AdvanceLayout)
-  {
-    AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
-  }
-#else
   UpdateDrawBounds(&Command->Layout, MinP);
   UpdateDrawBounds(&Command->Layout, MinP + Dim);
 
-  /* AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout); */
+#if 1
+  v2 CurrentLayoutToCommandLayout = MinP - GetAbsoluteAt(RenderState->Layout);
+  if (AdvanceLayout(Command->Params))
+  {
+    AdvanceLayoutStackBy(CurrentLayoutToCommandLayout + V2(Dim.x, 0), RenderState->Layout);
+  }
+
+  if (UpdateDrawBounds(Command->Params))
+  {
+    UpdateDrawBounds(RenderState->Layout, CurrentLayoutToCommandLayout + RenderState->Layout->At);
+    UpdateDrawBounds(RenderState->Layout, CurrentLayoutToCommandLayout + RenderState->Layout->At + Dim);
+  }
 #endif
 
   return;
@@ -2512,6 +2463,11 @@ ProcessUntexturedQuadPush( renderer_2d *Group,
   v3 Color   = SelectColorState(RenderState, &Command->Style);
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
 
+  ui_element_layout_flags RenderParams = Command->Params;
+  if (RenderParams & UiElementLayoutFlag_DisableClipping)
+  {
+    Clip = DISABLE_CLIPPING;
+  }
 
   if (Command->ShaderSetupCallback == 0)
   {
@@ -3013,9 +2969,14 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
 }
 
 link_internal void
-DebugDrawLayout(renderer_2d *Ui, layout *Layout, v3 Color = V3(1,0,0))
+DebugDrawRect(renderer_2d *Ui, rect2 Rect, v3 Color, r32 Z = 0.9f)
 {
-  r32 Z = 0.9f;
+  BufferBorder(Ui, Rect, Color, Z, DISABLE_CLIPPING);
+}
+
+link_internal void
+DebugDrawLayout(renderer_2d *Ui, layout *Layout, v3 Color = V3(1,0,0), r32 Z = 0.9f)
+{
   // Basis marker
   {
     rect2 Rect = RectCenterDim(Layout->Basis, V2(2));
@@ -3067,6 +3028,12 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         *TypedCommand->Layout = *RenderState->Layout;
 #endif
         NotImplemented;
+      } break;
+
+      case type_ui_render_command_debug_draw_rect:
+      {
+        auto *TypedCommand = RenderCommandAs(debug_draw_rect, Command);
+        DebugDrawRect(Group, TypedCommand->Rect, TypedCommand->Color);
       } break;
 
       case type_ui_render_command_debug_draw_layout:
@@ -3129,17 +3096,6 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         ui_render_command_window_end* TypedCommand = RenderCommandAs(window_end, Command);
 
         auto Window = TypedCommand->Window;
-
-        v2 DrawRect = GetDim(RenderState->Layout->DrawBounds);
-
-        // Set the ContentDim to the full draw rect of the content
-        v2 ContentDim = DrawRect;
-
-        // Clip to the window bounds
-        ContentDim = Min(ContentDim, Window->MaxClip);
-
-        TypedCommand->Window->ContentDim = Max(V2(0), ContentDim - TypedCommand->Window->ContentStart);
-
         if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupSize_InferHeight)
         {
           TypedCommand->Window->Flags = (TypedCommand->Window->Flags&(~WindowLayoutFlag_StartupSize_InferHeight));
@@ -3191,29 +3147,29 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         if (GetUiDebug && GetUiDebug()->OutlineWindowDrawBounds)
         {
-          // Draw bounds
-          {
-            rect2 Bounds = RectMinDim(RenderState->Layout->Basis, GetDim(RenderState->Layout->DrawBounds));
-            BufferBorder(Group, Bounds, V3(1,0,0), 0.9f, DISABLE_CLIPPING);
-          }
+          /* // Draw bounds */
+          /* { */
+          /*   rect2 Bounds = RectMinDim(RenderState->Layout->Basis, GetDim(RenderState->Layout->DrawBounds)); */
+          /*   BufferBorder(Group, Bounds, V3(1,0,0), 0.9f, DISABLE_CLIPPING); */
+          /* } */
 
-          // Layout basis marker
-          {
-            rect2 Bounds = RectCenterDim(RenderState->Layout->Basis, V2(2));
-            BufferBorder(Group, Bounds, V3(1,0,1), 0.9f, DISABLE_CLIPPING);
-          }
+          /* // Layout basis marker */
+          /* { */
+          /*   rect2 Bounds = RectCenterDim(RenderState->Layout->Basis, V2(2)); */
+          /*   BufferBorder(Group, Bounds, V3(1,0,1), 0.9f, DISABLE_CLIPPING); */
+          /* } */
 
-          // Window Basis marker
-          {
-            rect2 Bounds = RectCenterDim(Window->Basis, V2(4));
-            BufferBorder(Group, Bounds, V3(0,1,1), 0.9f, DISABLE_CLIPPING);
-          }
+          /* // Window Basis marker */
+          /* { */
+          /*   rect2 Bounds = RectCenterDim(Window->Basis, V2(4)); */
+          /*   BufferBorder(Group, Bounds, V3(0,1,1), 0.9f, DISABLE_CLIPPING); */
+          /* } */
 
-          // Window ContentStart marker
-          {
-            rect2 Bounds = RectCenterDim(Window->Basis + Window->ContentStart, V2(4));
-            BufferBorder(Group, Bounds, V3(0,1,1), 0.9f, DISABLE_CLIPPING);
-          }
+          /* // Window ContentStart marker */
+          /* { */
+          /*   rect2 Bounds = RectCenterDim(Window->Basis + Window->ContentStart, V2(4)); */
+          /*   BufferBorder(Group, Bounds, V3(0,1,1), 0.9f, DISABLE_CLIPPING); */
+          /* } */
 
           /* // Window ContentDim marker */
           /* { */
@@ -3221,11 +3177,11 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           /*   BufferBorder(Group, Bounds, V3(0,1,1), 0.9f, DISABLE_CLIPPING); */
           /* } */
 
-          // Window ContentDim
-          {
-            rect2 Bounds = RectMinMax(V2(1.f), V2(-1.f)) + RectMinDim(Window->Basis + Window->ContentStart, Window->ContentDim);
-            BufferBorder(Group, Bounds , V3(0,1,1), 0.9f, DISABLE_CLIPPING);
-          }
+          /* // Window ContentDim */
+          /* { */
+          /*   rect2 Bounds = RectMinMax(V2(1.f), V2(-1.f)) + RectMinDim(Window->Basis + Window->ContentStart, Window->ContentDim); */
+          /*   BufferBorder(Group, Bounds , V3(0,1,1), 0.9f, DISABLE_CLIPPING); */
+          /* } */
         }
 
         Assert(TypedCommand->Window == RenderState->Window);
@@ -3672,6 +3628,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
     {
       InvalidCase(type_ui_render_command_noop);
 
+      case type_ui_render_command_debug_draw_rect:
       case type_ui_render_command_debug_draw_layout:
       case type_ui_render_command_layout_start:
       case type_ui_render_command_layout_end:

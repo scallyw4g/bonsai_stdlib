@@ -437,7 +437,7 @@ poof(
   }
 )
 
-poof(scalar_math_fuctions({r32 r64 u32 u64 s32 s64}))
+poof(scalar_math_fuctions({r32 r64 u8 u16 u32 u64 s8 s16 s32 s64}))
 #include <generated/scalar_math_fuctions$451039071$BKD3ixle.h>
 
 inline r32
