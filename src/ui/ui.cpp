@@ -1393,9 +1393,13 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
   v2 ViewDim      = Window->MaxClip - V2(0, HeaderDim.y);
   rect2 ViewRect  = RectMinDim(ContentStart, ViewDim);
+  PushDebugDrawRect(Group, ViewRect, V3(1, 0, 0));
 
   b32 HasVerticalScrollbar = ContentDim.y > ViewDim.y;
   b32 HasHorizontalScrollbar = ContentDim.x > ViewDim.x;
+
+  if (HasVerticalScrollbar) { ContentDim.x -= TrackThickness; }
+  if (HasHorizontalScrollbar) { ContentDim.y -= TrackThickness; }
 
   if (HasVerticalScrollbar || HasHorizontalScrollbar)
   {
@@ -1404,10 +1408,10 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
     if (HasVerticalScrollbar)
     {
-      v2 TrackDim = V2( TrackThickness, ViewDim.y);
+      v2 TrackDim = V2( TrackThickness, ViewDim.y - ResizeHandleDim.y);
 
       v2 ScrollbarBasis = V2(
-          GetAbsoluteDrawBounds(&Window->TitleBarLayoutResult).Max.x - TrackDim.x,
+          ViewRect.Max.x - TrackDim.x,
           GetAbsoluteDrawBounds(&Window->TitleBarLayoutResult).Max.y
         );
 
@@ -1465,12 +1469,27 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
           Window->Scroll.x += TrackDim.x * DragRatio;
         }
       }
-      PushLayoutEnd(Group, &Window->RightScrollbarLayoutResult);
+      PushLayoutEnd(Group, &Window->BottomScrollbarLayoutResult);
 
     }
 
   }
 
+  if (Window == Group->HighestWindow)
+  {
+    auto Input = Group->Input;
+    if (Input->Ctrl.Pressed)
+    {
+      // Mouse wheel up scrolls content to the left
+      Window->Scroll.x -= Input->MouseWheelDelta;
+    }
+    else
+    {
+      // Conceptually, if the mouse wheel goes up, we want the content to go down,
+      // so we subtract the delta from the scroll
+      Window->Scroll.y -= Input->MouseWheelDelta;
+    }
+  }
 
 #if 1
   // Clip scroll values to their max
@@ -1479,8 +1498,6 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     Window->Scroll = Clamp(V2(0.f), Window->Scroll, MaxScroll);
   }
 #endif
-
-
 
   // Layout for the content region
   // @content_region_layout
@@ -1510,9 +1527,9 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window)
   PushLayoutEnd(Group, &Window->WindowLayoutResult);
 
   /* PushDebugDrawLayout(Group, &Window->WindowLayoutResult,   V3(1,0,1)); */
-  PushDebugDrawLayout(Group, &Window->TitleBarLayoutResult, V3(1,1,0));
-  PushDebugDrawLayout(Group, &Window->ContentLayoutResult,  V3(0,1,1));
-  PushDebugDrawLayout(Group, &Window->RightScrollbarLayoutResult, V3(1,0,0));
+  /* PushDebugDrawLayout(Group, &Window->TitleBarLayoutResult, V3(1,1,0)); */
+  /* PushDebugDrawLayout(Group, &Window->ContentLayoutResult,  V3(0,1,1)); */
+  /* PushDebugDrawLayout(Group, &Window->RightScrollbarLayoutResult, V3(1,0,0)); */
   /* PushDebugDrawRect(Group, ViewRect, V3(1)); */
 
   ui_id TitleBarInteractionId = UiId(Window, Cast(void*, "WindowTitleBar"), 0);
@@ -4123,6 +4140,7 @@ UiFrameEnd(renderer_2d *Ui)
 
   Ui->HighestWindow = GetHighestWindow(Ui, Ui->CommandBuffer);
 
+#if 0
   if (Ui->HighestWindow)
   {
     if (Input->Ctrl.Pressed)
@@ -4137,6 +4155,7 @@ UiFrameEnd(renderer_2d *Ui)
       Ui->HighestWindow->Scroll.y -= Input->MouseWheelDelta;
     }
   }
+#endif
 
   DrawUi(Ui, Ui->CommandBuffer);
 
