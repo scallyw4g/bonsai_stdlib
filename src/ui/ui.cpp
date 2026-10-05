@@ -1318,7 +1318,6 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
   v2 WindowBasis = Window->Basis;
   v2 WindowMaxClip = Window->MaxClip;
-  v2 WindowScroll = Window->Scroll;
 
   rect2 AbsWindowBounds = RectMinDim(WindowBasis, WindowMaxClip);
   rect2 ClipRect = RectMinMax(AbsWindowBounds.Min + V2(0, Global_TitleBarHeight), AbsWindowBounds.Max);
@@ -1387,7 +1386,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   r32 TrackThickness = Global_ResizeHandleDim.x;
   r32 ScrollbarThickness = TrackThickness - 6.f;
 
-  v2 ContentStart = Window->ContentLayoutResult.Basis;
+  v2 ContentStart = Window->Basis + V2(0.f, Window->TitleBarLayoutResult.DrawBounds.Max.y);
   v2 ContentDim   = GetDim(Window->ContentLayoutResult.DrawBounds);
   v2 HeaderDim    = GetDim(Window->TitleBarLayoutResult.DrawBounds);
 
@@ -1398,8 +1397,11 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   b32 HasVerticalScrollbar = ContentDim.y > ViewDim.y;
   b32 HasHorizontalScrollbar = ContentDim.x > ViewDim.x;
 
-  if (HasVerticalScrollbar) { ContentDim.x -= TrackThickness; }
-  if (HasHorizontalScrollbar) { ContentDim.y -= TrackThickness; }
+  v2 ScrollViewDim = ViewDim - V2(
+      HasVerticalScrollbar ? TrackThickness : 0.f,
+      HasHorizontalScrollbar ? TrackThickness : 0.f);
+
+  v2 MaxScroll = Max(V2(0.f), ContentDim - ScrollViewDim);
 
   if (HasVerticalScrollbar || HasHorizontalScrollbar)
   {
@@ -1408,7 +1410,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
     if (HasVerticalScrollbar)
     {
-      v2 TrackDim = V2( TrackThickness, ViewDim.y - ResizeHandleDim.y);
+      v2 TrackDim = V2(TrackThickness, ViewDim.y - ResizeHandleDim.y);
 
       v2 ScrollbarBasis = V2(
           ViewRect.Max.x - TrackDim.x,
@@ -1417,23 +1419,25 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
       PushLayoutStart(Group, ScrollbarBasis);
       {
-        r32 ScrollbarSizeRatio = ViewDim.y/ContentDim.y;
-         v2 ScrollbarDim = V2(ScrollbarThickness, ViewDim.y*ScrollbarSizeRatio);
-
-        r32 ScrollRatio = Window->Scroll.y/ContentDim.y;
+        r32 ScrollbarDimY = TrackDim.y * ScrollViewDim.y / ContentDim.y;
+        v2 ScrollbarDim = V2(ScrollbarThickness, ScrollbarDimY);
 
         r32 Inset = (TrackThickness-ScrollbarThickness)/2.f;
-         v2 ScrollbarOffset = V2(Inset, TrackDim.y*ScrollRatio);
+        r32 ScrollbarTravel = TrackDim.y - ScrollbarDim.y;
+        r32 ScrollRatio = MaxScroll.y > 0.f ? Window->Scroll.y / MaxScroll.y : 0.f;
+        v2 ScrollbarOffset = V2(Inset, ScrollbarTravel*ScrollRatio);
 
-        ui_id ScrollbarId = UiId(Window, "WindowVerticalScrollbarScrollbar", 0u);
+        ui_id ScrollbarId = UiId(Window, "WindowVerticalScrollbar", 0u);
         interactable_handle ScrollbarHandle = PushButtonStart(Group, ScrollbarId);
           PushUntexturedQuad(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, {}, UiElementLayoutFlag_DisableClipping);
         PushButtonEnd(Group);
 
         if (Pressed(Group, &ScrollbarHandle))
         {
-          r32 DragRatio = Group->MouseDP->y / ScrollbarDim.y;
-          Window->Scroll.y += TrackDim.y * DragRatio;
+          if (ScrollbarTravel > 0.f)
+          {
+            Window->Scroll.y += Group->MouseDP->y * MaxScroll.y / ScrollbarTravel;
+          }
         }
       }
       PushLayoutEnd(Group, &Window->RightScrollbarLayoutResult);
@@ -1443,30 +1447,32 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
     if (HasHorizontalScrollbar)
     {
-      v2 TrackDim = V2( ViewDim.x, TrackThickness );
+      v2 TrackDim = V2(ViewDim.x - ResizeHandleDim.x, TrackThickness);
 
       v2 ScrollbarBasis = Window->Basis +
         V2(0, Window->MaxClip.y - TrackDim.y);
 
       PushLayoutStart(Group, ScrollbarBasis);
       {
-        r32 ScrollbarSizeRatio = ViewDim.x/ContentDim.x;
-         v2 ScrollbarDim = V2(ViewDim.x*ScrollbarSizeRatio, ScrollbarThickness);
-
-        r32 ScrollRatio = Window->Scroll.x/ContentDim.x;
+        r32 ScrollbarDimX = TrackDim.x * ScrollViewDim.x / ContentDim.x;
+        v2 ScrollbarDim = V2(ScrollbarDimX, ScrollbarThickness);
 
         r32 Inset = (TrackThickness-ScrollbarThickness)/2.f;
-         v2 ScrollbarOffset = V2(TrackDim.x*ScrollRatio, Inset);
+        r32 ScrollbarTravel = TrackDim.x - ScrollbarDim.x;
+        r32 ScrollRatio = MaxScroll.x > 0.f ? Window->Scroll.x / MaxScroll.x : 0.f;
+        v2 ScrollbarOffset = V2(ScrollbarTravel*ScrollRatio, Inset);
 
-        ui_id ScrollbarId = UiId(Window, "WindowHorizontalScrollbarScrollbar", 0u);
+        ui_id ScrollbarId = UiId(Window, "WindowHorizontalScrollbar", 0u);
         interactable_handle ScrollbarHandle = PushButtonStart(Group, ScrollbarId);
           PushUntexturedQuad(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, {}, UiElementLayoutFlag_DisableClipping);
         PushButtonEnd(Group);
 
         if (Pressed(Group, &ScrollbarHandle))
         {
-          r32 DragRatio = Group->MouseDP->x / ScrollbarDim.x;
-          Window->Scroll.x += TrackDim.x * DragRatio;
+          if (ScrollbarTravel > 0.f)
+          {
+            Window->Scroll.x += Group->MouseDP->x * MaxScroll.x / ScrollbarTravel;
+          }
         }
       }
       PushLayoutEnd(Group, &Window->BottomScrollbarLayoutResult);
@@ -1491,19 +1497,16 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
     }
   }
 
-#if 1
   // Clip scroll values to their max
   {
-    v2 MaxScroll = ContentDim - ViewDim;
     Window->Scroll = Clamp(V2(0.f), Window->Scroll, MaxScroll);
   }
-#endif
 
   // Layout for the content region
   // @content_region_layout
   PushLayoutStart(Group, Window->Basis + Window->TitleBarLayoutResult.At);
 
-  PushForceUpdateBasis(Group, -1.f*WindowScroll); // -1.f because we want the scroll effect to move content up for a positive value
+  PushForceUpdateBasis(Group, -1.f*Window->Scroll); // -1.f because we want the scroll effect to move content up for a positive value
 }
 
 
