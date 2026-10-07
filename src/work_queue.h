@@ -3,6 +3,13 @@
 
 struct work_queue_job;
 
+enum work_queue_job_reserve_flags
+{
+  WorkQueueJobReserveFlag_None             = 0,
+  WorkQueueJobReserveFlag_Await            = (1 << 0),
+  WorkQueueJobReserveFlag_TrackPerformance = (1 << 1),
+};
+
 struct work_queue_job_stats
 {
   work_queue_job *Job; poof(@hashtable_key)
@@ -168,7 +175,7 @@ link_internal void
 Unawait(platform *Plat, work_queue_job *Job);
 
 link_internal global_job_index
-SubmitSingleTask( work_queue *Queue, work_queue_task *Task, u32 AwaitCount, b32 PerfTrackJob = False);
+SubmitSingleTask( work_queue *Queue, work_queue_task *Task, work_queue_job_reserve_flags Flags);
 
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job );
@@ -178,7 +185,7 @@ link_internal void
 RetireWorkQueueJob(platform *Plat, work_queue_job *Job);
 
 link_internal work_queue_job *
-ReserveWorkQueueJob( platform *Plat, u32 AwaitCount, b32 TrackStats = False );
+ReserveWorkQueueJob( platform *Plat, work_queue_job_reserve_flags Flags);
 
 link_internal b32
 MaybeResubmitJob(work_queue_job *Job);

@@ -50,36 +50,6 @@ poof(block_array_h(work_queue_task, {8}, {}))
 poof(block_array_c(work_queue_task, {8}))
 #include <generated/block_array_c$work_queue_task.688856411$8iAEZ8gE.h>
 
-link_internal void
-HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppApi)
-{
-  if ( AppApi->WorkerMain &&
-       AppApi->WorkerMain(Job, Thread))
-  {
-    // App exported a WorkerMain, and it handled the job
-  }
-  else
-  {
-        auto *Plat = GetPlatform();
-    auto LoRenderQ = &Plat->LoRenderQ;
-    auto HiRenderQ = &Plat->HiRenderQ;
-
-    auto WrappedTask = PopNextTask(Job);
-    tswitch (WrappedTask)
-    {
-      { tmatch(work_queue_task_await, WrappedTask, Task)
-        InvalidCodePath();
-      } break;
-
-      { tmatch(work_queue_task_async_function_call, WrappedTask, Task)
-        DispatchAsyncFunctionCall(Task);
-      } break;
-    }
-  }
-
-  MaybeResubmitJob(Job);
-}
-
 struct work_queue_job_stats;
 
 enum work_queue_job_state
@@ -208,3 +178,34 @@ AllocateJobsArray(platform *Plat, s32 TotalJobs)
 
   /* Plat->JobStatsTable = Allocate_work_queue_job_stats_hashtable(4096, Plat->TaskMemory); */
 }
+
+link_internal void
+HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppApi)
+{
+  if ( AppApi->WorkerMain &&
+       AppApi->WorkerMain(Job, Thread))
+  {
+    // App exported a WorkerMain, and it handled the job
+  }
+  else
+  {
+        auto *Plat = GetPlatform();
+    auto LoRenderQ = &Plat->LoRenderQ;
+    auto HiRenderQ = &Plat->HiRenderQ;
+
+    auto WrappedTask = PopNextTask(Job);
+    tswitch (WrappedTask)
+    {
+      { tmatch(work_queue_task_await, WrappedTask, Task)
+        InvalidCodePath();
+      } break;
+
+      { tmatch(work_queue_task_async_function_call, WrappedTask, Task)
+        DispatchAsyncFunctionCall(Task);
+      } break;
+    }
+  }
+
+  MaybeResubmitJob(Job);
+}
+

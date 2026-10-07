@@ -189,7 +189,7 @@ Await(work_queue_job *Job)
   // and the awaiter never gets notified.
   if (Job->AwaitCount == 0)
   {
-    Assert(Job->State < WorkQueueJobState_Submitted);
+    Assert(Job->State == WorkQueueJobState_Reserved);
   }
   AtomicIncrement(&Job->AwaitCount);
 }
@@ -347,7 +347,7 @@ RetireWorkQueueJob(platform *Plat, work_queue_job *Job)
 }
 
 link_internal work_queue_job *
-ReserveWorkQueueJob( platform *Plat, u32 AwaitCount, b32 TrackStats /* = False */ )
+ReserveWorkQueueJob( platform *Plat, work_queue_job_reserve_flags Flags )
 {
   Assert(Plat->Jobs);
   Assert(Plat->JobsFreelist);
@@ -362,15 +362,18 @@ ReserveWorkQueueJob( platform *Plat, u32 AwaitCount, b32 TrackStats /* = False *
                              )
                            );
 
-  Result->AwaitCount = AwaitCount;
-
   ClearList(&Result->Tasks);
 
   StateTransition(Result, WorkQueueJobState_Reserved);
 
+  if (Flags & WorkQueueJobReserveFlag_Await)
+  {
+    Await(Result);
+  }
+
   Assert(Result->NextTaskIndex == 0);
   Assert(Result->Tasks.ElementCount == 0);
-  if (TrackStats)
+  if (Flags & WorkQueueJobReserveFlag_TrackPerformance)
   {
     work_queue_job_stats Record = {
       .Job = Result,
@@ -398,7 +401,7 @@ ReserveWorkQueueJob( platform *Plat, u32 AwaitCount, b32 TrackStats /* = False *
 
 
 link_internal global_job_index
-SubmitSingleTask( work_queue *Queue, work_queue_task *Entry, u32 AwaitCount, b32 PerfTrackJob)
+SubmitSingleTask( work_queue *Queue, work_queue_task *Entry, work_queue_job_reserve_flags Flags)
 {
   TIMED_FUNCTION();
 
@@ -407,13 +410,13 @@ SubmitSingleTask( work_queue *Queue, work_queue_task *Entry, u32 AwaitCount, b32
   Assert(Entry->Queue == Queue);
 
   // TODO(Jesse): Pass in Platform
-  work_queue_job *Job = ReserveWorkQueueJob(GetPlatform(), AwaitCount, PerfTrackJob);
+  work_queue_job *Job = ReserveWorkQueueJob(GetPlatform(), Flags);
   PushTask(Job, Entry);
   SubmitJob(Queue, Job);
 
   // @await_0_returns_invalid_global_job_index
   global_job_index Result = {};
-  if (AwaitCount) { Result = Job->Index; }
+  if (Flags & WorkQueueJobReserveFlag_Await) { Result = Job->Index; }
 
   return Result;
 }

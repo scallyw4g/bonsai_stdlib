@@ -51,7 +51,8 @@ poof(
         work_queue *Queue
         func_t.map(arg) {, arg }                           /// Closure args
         func_t.value? { , func_t.value* FuncResultDest }   /// Func result pointer (optional)
-        , u32 AwaitCount = 0 )
+        , work_queue_job_reserve_flags Flags = WorkQueueJobReserveFlag_None 
+      )
     {
       (func_t.name.to_snake_case)_async_params Params =
       {
@@ -60,7 +61,7 @@ poof(
       };
 
       work_queue_task Task = WorkQueueEntryAsyncFunction(Queue, &Params);
-      work_queue_job *Result = ReserveWorkQueueJob(GetPlatform(), AwaitCount, 0);
+      work_queue_job *Result = ReserveWorkQueueJob(GetPlatform(), Flags);
 
       PushTask(Result, &Task);
 
@@ -74,7 +75,7 @@ poof(
         work_queue *Queue
         func_t.map(arg) {, arg }
         func_t.value? { , func_t.value *Result } 
-        , u32 AwaitCount = 0
+        , work_queue_job_reserve_flags Flags = WorkQueueJobReserveFlag_None
       )
     {
       /// Call helper to initialize the job
@@ -82,7 +83,7 @@ poof(
         Queue
         func_t.map(arg) {, arg.name }
         func_t.value? { , Result }
-        , AwaitCount
+        , Flags
       );
 
       SubmitJob(Queue, Job);
