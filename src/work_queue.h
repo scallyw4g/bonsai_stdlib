@@ -72,8 +72,8 @@ Hash(work_queue_job_stats *Element)
 //
 struct global_job_index
 {
-  u32 Index;
-  u32 Generation;
+  u16 Index;
+  u16 Generation;
 };
 
 struct queue_job_index
@@ -138,9 +138,21 @@ BONSAI_API_WORKER_THREAD_BEFORE_JOB_CALLBACK()
   WorkerThread_BeforeJobStart(Thread);
 }
 
+// Allocate and initialize
+//
+
+link_internal void
+AllocateJobsArray(platform *Plat, s32 TotalJobs);
+
 link_internal void
 InitQueue(work_queue* Queue, memory_arena* Memory);
 
+
+// Job lifecycle API
+//
+
+link_internal work_queue_job *
+ReserveWorkQueueJob( platform *Plat, work_queue_job_reserve_flags Flags);
 
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex);
@@ -151,10 +163,28 @@ GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex);
 link_internal work_queue_job *
 GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex);
 
+link_internal void
+SubmitJob( work_queue *Queue, work_queue_job *Job );
+
+link_internal b32
+MaybeResubmitJob(work_queue_job *Job);
+
+// TODO(Jesse): Rename to .. ExecuteJob ..?
+link_internal void
+HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppApi);
+
+link_internal void
+RetireWorkQueueJob(platform *Plat, work_queue_job *Job);
+
+
+// Job & Task API
+//
+
+link_internal work_queue_job *
+PopNextJob(platform *Plat, work_queue* Queue);
 
 link_internal void
 PushTask(work_queue_job *Job, work_queue_task *Task);
-
 
 link_internal work_queue_task *
 PeekNextTask(work_queue_job *Job);
@@ -162,12 +192,16 @@ PeekNextTask(work_queue_job *Job);
 link_internal work_queue_task *
 PopNextTask(work_queue_job *Job);
 
-link_internal work_queue_job *
-PopNextJob(platform *Plat, work_queue* Queue);
-
 link_internal work_queue_task *
 PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex);
 
+link_internal global_job_index
+SubmitSingleTask( work_queue *Queue, work_queue_task *Task, work_queue_job_reserve_flags Flags);
+
+
+
+// Await & Join API
+//
 
 link_internal void
 Await(work_queue_job *Job);
@@ -175,18 +209,6 @@ Await(work_queue_job *Job);
 link_internal void
 Unawait(platform *Plat, work_queue_job *Job);
 
-link_internal global_job_index
-SubmitSingleTask( work_queue *Queue, work_queue_task *Task, work_queue_job_reserve_flags Flags);
-
-link_internal void
-SubmitJob( work_queue *Queue, work_queue_job *Job );
 
 
-link_internal void
-RetireWorkQueueJob(platform *Plat, work_queue_job *Job);
 
-link_internal work_queue_job *
-ReserveWorkQueueJob( platform *Plat, work_queue_job_reserve_flags Flags);
-
-link_internal b32
-MaybeResubmitJob(work_queue_job *Job);
