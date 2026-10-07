@@ -61,11 +61,13 @@ enum work_queue_job_state
   WorkQueueJobState_Submitted,      // Has been submitted
   /* WorkQueueJobState_Active,      // Has been popped by a worker thread and has a task in-flight */
 
-                                    // TODO(Jesse): Should we actually have this?
+                                    // TODO(Jesse): Should we actually have this?  I think it might
+                                    // be more necessary once we do continuations on awaits, but right
+                                    // now it's mostly superfluous.
                                     //
   WorkQueueJobState_Complete,       // All tasks complete.  This is here mainly for safety..
                                     // there's an assert in StateTransition that there are no remaining tasks
-                                    // and we want to know if we're going to await, that we completed
+                                    // and, if we're going to await, we want to know that we completed
                                     //
   WorkQueueJobState_Await,          // Other threads are waiting for the job, do not retire yet
   WorkQueueJobState_AwaitComplete,  // Await thread signalled we can retire

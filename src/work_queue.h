@@ -6,6 +6,7 @@ struct work_queue_job;
 enum work_queue_job_reserve_flags
 {
   WorkQueueJobReserveFlag_None             = 0,
+
   WorkQueueJobReserveFlag_Await            = (1 << 0),
   WorkQueueJobReserveFlag_TrackPerformance = (1 << 1),
 };
