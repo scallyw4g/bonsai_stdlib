@@ -71,5 +71,5 @@
 
 #if BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
 #else
-#include <bonsai_stdlib/src/threadpool.cpp>
+#include <bonsai_stdlib/src/work_queue.cpp>
 #endif
