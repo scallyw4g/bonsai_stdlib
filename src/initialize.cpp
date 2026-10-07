@@ -123,7 +123,10 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     if (AppApi)
     {
       if (AppApi->WorkerInit) { AppApi->WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
+      SignalFutex(&Plat->WorkerThreadsReady);
       LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
+      WaitForWorkers(&Plat->WorkerThreadsReady);
+      UnsignalFutex(&Plat->WorkerThreadsReady);
     }
     else
     {
@@ -140,6 +143,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   {
     PlatformInitializeAudio(Plat);
   }
+
 
   return True;
 }

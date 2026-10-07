@@ -47,9 +47,25 @@ Hash(work_queue_job_stats *Element)
 }
 
 
+// NOTE(Jesse): A zero'd out one of these is invalid; the Generation is pre-incremented
+// on reserve, so a cleared one as a return value indicates you didn't get a valid
+// slot.  At the moment, there are two reasons this might happen:
+//
+// 1. We ran out of jobs
+//
+// 2. During SubmitSingleTask, you didn't ask to await.  Conceptually, I think
+// it's actually fine to return the valid index from that if you don't ask for
+// an await, because the system will fail to fetch it once the job completes
+// and is reallocated.  The material use-case for this would be to poll for job
+// completion, which actually might be a better strategy that the await count,
+// but I'm doing it this way for now and going to see how it goes.
+//
+// @await_0_returns_invalid_global_job_index
+//
 struct global_job_index
 {
   u32 Index;
+  u32 Generation;
 };
 
 struct queue_job_index
@@ -146,14 +162,23 @@ PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index Q
 
 
 link_internal void
-SubmitSingleTask( work_queue *Queue, work_queue_task *Task, b32 PerfTrackJob = False);
+Await(work_queue_job *Job);
+
+link_internal void
+Unawait(platform *Plat, work_queue_job *Job);
+
+link_internal global_job_index
+SubmitSingleTask( work_queue *Queue, work_queue_task *Task, u32 AwaitCount, b32 PerfTrackJob = False);
 
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job );
 
 
 link_internal void
-ReleaseWorkQueueJob(platform *Plat, work_queue_job *Job);
+RetireWorkQueueJob(platform *Plat, work_queue_job *Job);
 
 link_internal work_queue_job *
-ReserveWorkQueueJob( platform *Plat, b32 TrackStats = False );
+ReserveWorkQueueJob( platform *Plat, u32 AwaitCount, b32 TrackStats = False );
+
+link_internal b32
+MaybeResubmitJob(work_queue_job *Job);

@@ -15,7 +15,7 @@ poof(@do_editor_ui)
   bonsai_futex HighPriorityModeFutex;
   bonsai_futex WorkerThreadsSuspendFutex;
   bonsai_futex WorkerThreadsExitFutex;
-  bonsai_futex ReadyToStartMainLoop;
+  bonsai_futex WorkerThreadsReady;
 
 
   // NOTE(Jesse): The work_queues store indices into this array such that the
@@ -27,7 +27,7 @@ poof(@do_editor_ui)
   volatile work_queue_job *Jobs; //         poof(@array_count(Element->TotalJobs));
   volatile work_queue_job *JobsFreelist;
   volatile u32 FreeJobs;
-  u32 TotalJobs;
+  u32 JobCount;
 
   work_queue_job_stats_hashtable JobStatsTable;
 

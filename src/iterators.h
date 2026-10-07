@@ -75,6 +75,7 @@
 #define ReinterpretCast(T, Object) (*(T*)(&(Object)))
 
 #define StripVolatile(T, Ptr) const_cast<T>(Ptr)
+#define AddVolatile(T, Ptr) const_cast<volatile T>(Ptr)
 
 // TODO(Jesse): Rename
 #define TryCast(T, Ptr) ((Ptr)->Type == type_##T ? (&(Ptr)->T) : 0)

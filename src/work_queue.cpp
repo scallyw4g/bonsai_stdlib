@@ -6,6 +6,8 @@ poof(hashtable_impl(work_queue_job_stats))
 #include <generated/hashtable_impl$work_queue_job_stats$5cwEEtEf.h>
 poof(hashtable_get_by_key(work_queue_job_stats))
 #include <generated/hashtable_get_by_key$work_queue_job_stats$H3A23qAm.h>
+
+
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 {
@@ -67,6 +69,7 @@ PopNextJob(platform *Plat, work_queue* Queue)
 
 
 
+
 link_internal void
 DrainQueue(platform *Plat, work_queue* Queue, thread_local_state* Thread, application_api *GameApi)
 {
@@ -115,7 +118,8 @@ DefaultWorkerThread(void *Input)
 
   if (Stdlib->AppApi.WorkerInit) { Stdlib->AppApi.WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
 
-  WaitOnFutex(&Plat->ReadyToStartMainLoop, True);
+  // Signal to main thread we're ready to start
+  WaitOnFutex(&Plat->WorkerThreadsReady, True);
 
   while (FutexNotSignaled(WorkerThreadsExitFutex))
   {
@@ -247,10 +251,19 @@ ShutdownWorkerThreads(platform *Plat)
 link_internal void
 InitQueue(work_queue* Queue, memory_arena* Memory)
 {
+  Assert(Queue->JobIndices == 0);
+
   Queue->EnqueueIndex = 0;
   Queue->DequeueIndex = 0;
 
   Queue->JobIndices = Allocate(global_job_index, Memory, WORK_QUEUE_SIZE);
 }
 
+
+link_internal void
+AssertWorkerThreadsSuspended(platform *Plat)
+{
+  Assert(Plat->WorkerThreadsSuspendFutex.SignalValue != FUTEX_UNSIGNALLED_VALUE);
+  Assert(Plat->WorkerThreadsSuspendFutex.ThreadsWaiting == GetWorkerThreadCount());
+}
 

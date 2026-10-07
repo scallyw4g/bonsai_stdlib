@@ -31,6 +31,17 @@ WaitForWorkerThreads(volatile u32 *WorkerCount)
 }
 
 link_internal void
+WaitForWorkers(bonsai_futex *Futex)
+{
+  TIMED_FUNCTION();
+
+  Assert(FutexIsSignaled(Futex));
+
+  u32 WorkerThreadCount = GetWorkerThreadCount();
+  while(Futex->ThreadsWaiting < WorkerThreadCount) { SleepMs(1); }
+}
+
+link_internal void
 SignalAndWaitForWorkers(bonsai_futex *Futex)
 {
   TIMED_FUNCTION();
@@ -47,7 +58,10 @@ WaitOnFutex(bonsai_futex *Futex, b32 DoSleep)
   /* TIMED_FUNCTION(); */
 
   AtomicIncrement(&Futex->ThreadsWaiting);
-  while (Futex->SignalValue != FUTEX_UNSIGNALLED_VALUE) { if (DoSleep) { SleepMs(1); } }
+
+  // NOTE(Jesse): Not sure why I wrote it this way, these should be analagous
+  while (FutexIsSignaled(Futex)) { if (DoSleep) { SleepMs(1); } }
+  /* while (Futex->SignalValue != FUTEX_UNSIGNALLED_VALUE) { if (DoSleep) { SleepMs(1); } } */
   /* Assert(Futex->ThreadsWaiting > 0); */
   AtomicDecrement(&Futex->ThreadsWaiting);
 }

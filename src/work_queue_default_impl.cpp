@@ -1,10 +1,8 @@
-/* #ifdef BONSAI_STDLIB_USE_CUSTOM_THREADPOOL */
-/* #error "Included work_queue_default_impl.h when BONSAI_STDLIB_USE_CUSTOM_THREADPOOL was defined" */
-/* #endif */
 
 enum work_queue_task_type
 {
   type_work_queue_task_async_function_call,
+  type_work_queue_task_await,
   // NOTE(Jesse): @custom_task_type
 #if 0
   poof(
@@ -31,6 +29,7 @@ struct work_queue_task
   union
   {
     work_queue_task_async_function_call work_queue_task_async_function_call;
+    work_queue_task_await work_queue_task_await;
 
   // NOTE(Jesse): @custom_task_type
 #if 0
@@ -51,22 +50,6 @@ poof(block_array_h(work_queue_task, {8}, {}))
 poof(block_array_c(work_queue_task, {8}))
 #include <generated/block_array_c$work_queue_task.688856411$8iAEZ8gE.h>
 
-link_internal b32
-MaybeResubmitJob(work_queue_job *Job)
-{
-  b32 Result = False;
-  if (work_queue_task *Next = PeekNextTask(Job))
-  {
-    Result = True;
-    SubmitJob(Next->Queue, Job);
-  }
-  else
-  {
-    ReleaseWorkQueueJob(GetPlatform(), Job);
-  }
-  return Result;
-}
-
 link_internal void
 HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppApi)
 {
@@ -82,9 +65,12 @@ HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppA
     auto HiRenderQ = &Plat->HiRenderQ;
 
     auto WrappedTask = PopNextTask(Job);
-
     tswitch (WrappedTask)
     {
+      { tmatch(work_queue_task_await, WrappedTask, Task)
+        InvalidCodePath();
+      } break;
+
       { tmatch(work_queue_task_async_function_call, WrappedTask, Task)
         DispatchAsyncFunctionCall(Task);
       } break;
@@ -96,7 +82,26 @@ HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppA
 
 struct work_queue_job_stats;
 
-// TODO(Jesse): Do alignment and padding for cache lines
+enum work_queue_job_state
+{
+  WorkQueueJobState_Undefined,      // Initial, cleared state.  Should never be hit except during init
+
+  WorkQueueJobState_Free,           // Is on the freelist
+  WorkQueueJobState_Reserved,       // Has been reserved by someone intending to submit it
+  WorkQueueJobState_Submitted,      // Has been submitted
+  /* WorkQueueJobState_Active,      // Has been popped by a worker thread and has a task in-flight */
+
+                                    // TODO(Jesse): Should we actually have this?
+                                    //
+  WorkQueueJobState_Complete,       // All tasks complete.  This is here mainly for safety..
+                                    // there's an assert in StateTransition that there are no remaining tasks
+                                    // and we want to know if we're going to await, that we completed
+                                    //
+  WorkQueueJobState_Await,          // Other threads are waiting for the job, do not retire yet
+  WorkQueueJobState_AwaitComplete,  // Await thread signalled we can retire
+  /* WorkQueueJobState_Retired,        // Retired by the runtime, to eventually be re-reserved */
+};
+
 #define WORK_QUEUE_JOB_MAGIC_NUMBER (0x1337)
 struct work_queue_job
 {
@@ -104,22 +109,87 @@ struct work_queue_job
   work_queue_job_stats *Stats;
   work_queue_task_block_array Tasks;
 
+  u32 AwaitCount;
   u16 Magic;              // WORK_QUEUE_JOB_MAGIC_NUMBER
   u16 NextTaskIndex;      // Index into Tasks for the next task to Pop
 
   global_job_index Index; // global index for this job; indexes into platform::Jobs
-  b32 Submitted;          // Mostly just here for padding; could be Flags
+  work_queue_job_state State;
+
+  u8 Pad[CACHE_LINE_SIZE - 8 - 8 - sizeof(work_queue_task_block_array) -4 - 2 - 2 - sizeof(global_job_index) - 4];
 };
+CAssert(sizeof(work_queue_job) == CACHE_LINE_SIZE);
+
+link_internal b32
+StateTransition(work_queue_job *Job, work_queue_job_state NextState)
+{
+  // TODO(Jesse): This isn't stricly necessary because if it's not valid, none
+  // of the compares will hit,  but it would be nice to have
+  /* Assert(IsValid(Job->State)); */
+
+  b32 Result = False;
+  switch (NextState)
+  {
+    InvalidCase(WorkQueueJobState_Undefined);
+
+    case WorkQueueJobState_Free:
+    {
+      Result = (Job->State == WorkQueueJobState_Undefined    ||
+                Job->State == WorkQueueJobState_Complete     ||
+                Job->State == WorkQueueJobState_AwaitComplete );
+    } break;
+
+    case WorkQueueJobState_Reserved:
+    {
+      Result = (Job->State == WorkQueueJobState_Free);
+      Job->Index.Generation += 1;
+    } break;
+
+    case WorkQueueJobState_Submitted:
+    {
+      Result = (Job->State == WorkQueueJobState_Reserved);
+    } break;
+
+    case WorkQueueJobState_Complete:
+    {
+      Assert(PeekNextTask(Job) == 0);
+      Result = (Job->State == WorkQueueJobState_Submitted);
+    } break;
+
+    case WorkQueueJobState_Await:
+    {
+      Result = (Job->State == WorkQueueJobState_Complete);
+    } break;
+
+    case WorkQueueJobState_AwaitComplete:
+    {
+      Result = (Job->State == WorkQueueJobState_Await);
+    } break;
+
+    /* case WorkQueueJobState_Retired: */
+    /* { */
+    /*   Result = (Job->State == WorkQueueJobState_Completed      || */
+    /*             Job->State == WorkQueueJobState_AwaitComplete ); */
+    /* } break; */
+
+  }
+
+  Assert(Result);
+  Job->State = NextState;
+  return Result;
+}
 
 link_internal void
 AllocateJobsArray(platform *Plat, s32 TotalJobs)
 {
   Assert(Plat->TaskMemory == 0);
+  Assert(Plat->Jobs == 0);
+  Assert(Plat->JobCount == 0);
 
   Plat->TaskMemory = AllocateArena(Megabytes(4));
   Plat->Jobs = Allocate(work_queue_job, Plat->TaskMemory, TotalJobs);
 
-  Plat->TotalJobs = u32(TotalJobs);
+  Plat->JobCount = u32(TotalJobs);
   Plat->FreeJobs  = u32(TotalJobs);
 
   auto Freelist = Cast(volatile freelist_entry **, &Plat->JobsFreelist);
@@ -129,6 +199,7 @@ AllocateJobsArray(platform *Plat, s32 TotalJobs)
 
     Job->Index.Index = Index;
     Job->Magic = WORK_QUEUE_JOB_MAGIC_NUMBER;
+    StateTransition(Job, WorkQueueJobState_Free);
 
     Job->Tasks.Memory = Plat->TaskMemory;
 
