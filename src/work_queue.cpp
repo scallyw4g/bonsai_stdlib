@@ -1,11 +1,198 @@
 
-struct work_queue_task;
-struct work_queue_job;
+poof(block_array(global_job_index, {64}))
+#include <generated/block_array$global_job_index.688853971$6LIdaKhl.h>
+
+link_internal void
+AwaitContinuation( global_job_index_block_array AwaitJobIds );
+
 
 poof(hashtable_impl(work_queue_job_stats))
 #include <generated/hashtable_impl$work_queue_job_stats$5cwEEtEf.h>
+
 poof(hashtable_get_by_key(work_queue_job_stats))
 #include <generated/hashtable_get_by_key$work_queue_job_stats$H3A23qAm.h>
+
+poof(
+  for_datatypes(func)
+  func (func_t)
+  {
+    func_t.has_tag(async)?
+    {
+      asyncify_function_closure_params(func_t)
+    }
+  }
+)
+#include <generated/poof_builtin.for_datatypes$$LAtQuQ4R.h>
+
+
+// Generate tagged_union for async functions
+//
+enum async_function_call_type
+{
+  poof(
+    for_datatypes(struct) @code_fragment
+    func (struct_t)
+    {
+      struct_t.has_tag(async_function_params)?
+      {
+        type_(struct_t.name),
+      }
+    }
+  )
+#include <generated/poof_builtin.for_datatypes$$hj2VWJGQ.h>
+};
+
+
+struct work_queue_task_await_continuation
+{
+};
+
+struct work_queue_task_async_function_call
+{
+  async_function_call_type Type;
+  union
+  {
+    poof(
+      for_datatypes(struct) @code_fragment
+      func (struct_t)
+      {
+        struct_t.has_tag(async_function_params)?
+        {
+          struct_t.name struct_t.name;
+        }
+      }
+    )
+#include <generated/poof_builtin.for_datatypes$$NiTeiJJT.h>  
+  };
+};
+
+enum work_queue_task_type
+{
+  type_work_queue_task_async_function_call,
+  type_work_queue_task_await_continuation,
+};
+
+// NOTE(Jesse): At this point, I'm nearly 100% certain async_function_call
+// is all you need, but I'm not so confident yet that I'm going to delete it..
+//
+struct work_queue_task
+{
+  // NOTE(Jesse): This is the queue the job needs to be submitted to to
+  // complete this task.
+  work_queue_ptr Queue;
+  work_queue_task_type Type;
+
+  union
+  {
+    work_queue_task_async_function_call work_queue_task_async_function_call;
+    work_queue_task_await_continuation work_queue_task_await_continuation;
+  };
+};
+
+poof(block_array_h(work_queue_task, {8}, {}))
+#include <generated/block_array_h$work_queue_task.688856411.0$Dps6gqjO.h>
+poof(block_array_c(work_queue_task, {8}))
+#include <generated/block_array_c$work_queue_task.688856411$8iAEZ8gE.h>
+
+enum work_queue_job_state
+{
+  WorkQueueJobState_Undefined,      // Initial, cleared state.  Should never be hit except during init
+
+  WorkQueueJobState_Free,           // Is on the freelist
+  WorkQueueJobState_Reserved,       // Has been reserved by someone intending to submit it
+  WorkQueueJobState_Submitted,      // Has been submitted
+  /* WorkQueueJobState_Active,      // Has been popped by a worker thread and has a task in-flight */
+
+                                    // TODO(Jesse): Should we actually have this?  I think it might
+                                    // be more necessary once we do continuations on awaits, but right
+                                    // now it's mostly superfluous.
+                                    //
+  WorkQueueJobState_Complete,       // All tasks complete.  This is here mainly for safety..
+                                    // there's an assert in StateTransition that there are no remaining tasks
+                                    // and, if we're going to await, we want to know that we completed
+                                    //
+  WorkQueueJobState_Await,          // Other threads are waiting for the job, do not retire yet
+  WorkQueueJobState_AwaitComplete,  // Await thread signalled we can retire
+  /* WorkQueueJobState_Retired,        // Retired by the runtime, to eventually be re-reserved */
+};
+
+struct work_queue_job
+{
+  work_queue_job *Next;   // TODO(Jesse): Pretty sure we don't actually need this..
+  work_queue_job_stats *Stats;
+  work_queue_task_block_array Tasks;
+
+  u16 NextTaskIndex; // Index into Tasks for the next task to Pop
+  u16 Pad;
+
+  volatile u32 AwaitCount;
+  global_job_index AwaitContinuationJobId; // If we have awaiters, this job fires when they all hit 0
+
+  global_job_index Index;         // global index for this job; indexes into platform::Jobs
+  work_queue_job_state State;
+};
+CAssert(sizeof(work_queue_job) == CACHE_LINE_SIZE);
+
+link_internal b32
+StateTransition(work_queue_job *Job, work_queue_job_state NextState)
+{
+  // TODO(Jesse): This isn't stricly necessary because if it's not valid, none
+  // of the compares will hit,  but it would be nice to have
+  /* Assert(IsValid(Job->State)); */
+
+  b32 Result = False;
+  switch (NextState)
+  {
+    InvalidCase(WorkQueueJobState_Undefined);
+
+    case WorkQueueJobState_Free:
+    {
+      Result = (Job->State == WorkQueueJobState_Undefined    ||
+                Job->State == WorkQueueJobState_Complete     ||
+                Job->State == WorkQueueJobState_AwaitComplete );
+    } break;
+
+    case WorkQueueJobState_Reserved:
+    {
+      Result = (Job->State == WorkQueueJobState_Free);
+      Job->Index.Generation += 1;
+    } break;
+
+    case WorkQueueJobState_Submitted:
+    {
+      Result = (Job->State == WorkQueueJobState_Reserved);
+    } break;
+
+    case WorkQueueJobState_Complete:
+    {
+      Assert(PeekNextTask(Job) == 0);
+      Result = (Job->State == WorkQueueJobState_Submitted);
+    } break;
+
+    case WorkQueueJobState_Await:
+    {
+      Result = (Job->State == WorkQueueJobState_Complete);
+    } break;
+
+    case WorkQueueJobState_AwaitComplete:
+    {
+      Result = (Job->State == WorkQueueJobState_Await);
+    } break;
+
+    /* case WorkQueueJobState_Retired: */
+    /* { */
+    /*   Result = (Job->State == WorkQueueJobState_Completed      || */
+    /*             Job->State == WorkQueueJobState_AwaitComplete ); */
+    /* } break; */
+
+  }
+
+  Assert(Result);
+  Job->State = NextState;
+  return Result;
+}
+
+
 
 
 link_internal global_job_index
@@ -270,221 +457,11 @@ AssertWorkerThreadsSuspended(platform *Plat)
 
 
 
-poof(
-  for_datatypes(func)
-  func (func_t)
-  {
-    func_t.has_tag(async)?
-    {
-      asyncify_function_closure_params(func_t)
-    }
-  }
-)
-#include <generated/poof_builtin.for_datatypes$$LAtQuQ4R.h>
-
-
-// Generate tagged_union for async functions
-//
-enum async_function_call_type
-{
-  poof(
-    for_datatypes(struct) @code_fragment
-    func (struct_t)
-    {
-      struct_t.has_tag(async_function_params)?
-      {
-        type_(struct_t.name),
-      }
-    }
-  )
-#include <generated/poof_builtin.for_datatypes$$hj2VWJGQ.h>
-};
-
-#if 1
-struct work_queue_task_await_continuation
-{
-};
-
-struct work_queue_task_async_function_call
-{
-  async_function_call_type Type;
-  union
-  {
-    poof(
-      for_datatypes(struct) @code_fragment
-      func (struct_t)
-      {
-        struct_t.has_tag(async_function_params)?
-        {
-          struct_t.name struct_t.name;
-        }
-      }
-    )
-#include <generated/poof_builtin.for_datatypes$$NiTeiJJT.h>  
-  };
-};
-#else
-poof(
-  func gen_work_queue_task_async_function_call()
-  {
-    struct work_queue_task_async_function_call
-    {
-      async_function_call_type Type;
-      union
-      {
-        for_datatypes(struct) @code_fragment
-        func (struct_t)
-        {
-          struct_t.has_tag(async_function_params)?
-          {
-            struct_t.name struct_t.name;
-          }
-        }
-      };
-    };
-  }
-)
-
-poof(gen_work_queue_task_async_function_call())
-#include <generated/gen_work_queue_task_async_function_call$$rJefEXhD.h>
-
-poof(string_and_value_tables(async_function_call_type))
-#include <generated/string_and_value_tables$async_function_call_type$hJOrda0k.h>
-#endif
-
-
-
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job );
 
 link_internal void
 DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask);
-
-enum work_queue_task_type
-{
-  type_work_queue_task_async_function_call,
-  type_work_queue_task_await_continuation,
-};
-
-struct work_queue_task
-{
-  // NOTE(Jesse): This is the queue the job needs to be submitted to to
-  // complete this task.
-  work_queue_ptr Queue;
-  work_queue_task_type Type;
-
-  union
-  {
-    work_queue_task_async_function_call work_queue_task_async_function_call;
-    work_queue_task_await_continuation work_queue_task_await_continuation;
-  };
-};
-
-poof(block_array_h(work_queue_task, {8}, {}))
-#include <generated/block_array_h$work_queue_task.688856411.0$Dps6gqjO.h>
-poof(block_array_c(work_queue_task, {8}))
-#include <generated/block_array_c$work_queue_task.688856411$8iAEZ8gE.h>
-
-struct work_queue_job_stats;
-
-enum work_queue_job_state
-{
-  WorkQueueJobState_Undefined,      // Initial, cleared state.  Should never be hit except during init
-
-  WorkQueueJobState_Free,           // Is on the freelist
-  WorkQueueJobState_Reserved,       // Has been reserved by someone intending to submit it
-  WorkQueueJobState_Submitted,      // Has been submitted
-  /* WorkQueueJobState_Active,      // Has been popped by a worker thread and has a task in-flight */
-
-                                    // TODO(Jesse): Should we actually have this?  I think it might
-                                    // be more necessary once we do continuations on awaits, but right
-                                    // now it's mostly superfluous.
-                                    //
-  WorkQueueJobState_Complete,       // All tasks complete.  This is here mainly for safety..
-                                    // there's an assert in StateTransition that there are no remaining tasks
-                                    // and, if we're going to await, we want to know that we completed
-                                    //
-  WorkQueueJobState_Await,          // Other threads are waiting for the job, do not retire yet
-  WorkQueueJobState_AwaitComplete,  // Await thread signalled we can retire
-  /* WorkQueueJobState_Retired,        // Retired by the runtime, to eventually be re-reserved */
-};
-
-#define WORK_QUEUE_JOB_MAGIC_NUMBER (0x1337)
-struct work_queue_job
-{
-  work_queue_job *Next;   // TODO(Jesse): Pretty sure we don't actually need this..
-  work_queue_job_stats *Stats;
-  work_queue_task_block_array Tasks;
-
-  u16 NextTaskIndex; // Index into Tasks for the next task to Pop
-  u16 Pad;
-
-  volatile u32 AwaitCount;
-  global_job_index AwaitContinuationJobId; // If we have awaiters, this job fires when they all hit 0
-
-  global_job_index Index;         // global index for this job; indexes into platform::Jobs
-  work_queue_job_state State;
-};
-CAssert(sizeof(work_queue_job) == CACHE_LINE_SIZE);
-
-link_internal b32
-StateTransition(work_queue_job *Job, work_queue_job_state NextState)
-{
-  // TODO(Jesse): This isn't stricly necessary because if it's not valid, none
-  // of the compares will hit,  but it would be nice to have
-  /* Assert(IsValid(Job->State)); */
-
-  b32 Result = False;
-  switch (NextState)
-  {
-    InvalidCase(WorkQueueJobState_Undefined);
-
-    case WorkQueueJobState_Free:
-    {
-      Result = (Job->State == WorkQueueJobState_Undefined    ||
-                Job->State == WorkQueueJobState_Complete     ||
-                Job->State == WorkQueueJobState_AwaitComplete );
-    } break;
-
-    case WorkQueueJobState_Reserved:
-    {
-      Result = (Job->State == WorkQueueJobState_Free);
-      Job->Index.Generation += 1;
-    } break;
-
-    case WorkQueueJobState_Submitted:
-    {
-      Result = (Job->State == WorkQueueJobState_Reserved);
-    } break;
-
-    case WorkQueueJobState_Complete:
-    {
-      Assert(PeekNextTask(Job) == 0);
-      Result = (Job->State == WorkQueueJobState_Submitted);
-    } break;
-
-    case WorkQueueJobState_Await:
-    {
-      Result = (Job->State == WorkQueueJobState_Complete);
-    } break;
-
-    case WorkQueueJobState_AwaitComplete:
-    {
-      Result = (Job->State == WorkQueueJobState_Await);
-    } break;
-
-    /* case WorkQueueJobState_Retired: */
-    /* { */
-    /*   Result = (Job->State == WorkQueueJobState_Completed      || */
-    /*             Job->State == WorkQueueJobState_AwaitComplete ); */
-    /* } break; */
-
-  }
-
-  Assert(Result);
-  Job->State = NextState;
-  return Result;
-}
 
 link_internal void
 AllocateJobsArray(platform *Plat, s32 TotalJobs)
@@ -632,6 +609,22 @@ GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex)
 }
 
 
+
+
+link_internal void
+poof(@async)
+AwaitContinuation( global_job_index_block_array AwaitJobIds )
+{
+  Info("yaaaaaaaaaay");
+}
+
+link_internal void
+OnComplete(work_queue_job *Job, work_queue_job *Continuation)
+{
+  Await(Continuation);
+  Job->AwaitContinuationJobId = Continuation->Index;
+}
+
 link_internal void
 Await(work_queue_job *Job)
 {
@@ -645,17 +638,31 @@ Await(work_queue_job *Job)
   AtomicIncrement(&Job->AwaitCount);
 }
 
-link_internal void
-Unawait(platform *Plat, work_queue_job *Job)
+link_internal u32
+UnawaitAndRetire(platform *Plat, work_queue_job *Job)
 {
-  AtomicDecrement(&Job->AwaitCount);
+  Assert(Job->State == WorkQueueJobState_Await);
+
+  u32 Result = AtomicDecrement(&Job->AwaitCount);
   if (Job->AwaitCount == 0)
   {
     StateTransition(Job, WorkQueueJobState_AwaitComplete);
     RetireWorkQueueJob(Plat, Job);
   }
+  return Result;
 }
 
+link_internal u32
+UnawaitAndSubmit(work_queue_job *Job)
+{
+  u32 Result = AtomicDecrement(&Job->AwaitCount);
+  Assert(Job->State == WorkQueueJobState_Reserved);
+  if (Job->AwaitCount == 0)
+  {
+    SubmitJob(Job);
+  }
+  return Result;
+}
 
 
 link_internal work_queue_task *
@@ -719,21 +726,30 @@ ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
 
 }
 
-// @assert_job_queue
-//
+// TODO(Jesse): This was just to conform with the old task-only API and can be
+// safely removed
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job )
 {
-  Assert(Queue);
+  auto *Task = PeekNextTask(Job);
+  Assert(Task);
+  Assert(Task->Queue == Queue);
+  SubmitJob(Job);
+}
 
+// @assert_job_queue
+//
+link_internal void
+SubmitJob( work_queue_job *Job )
+{
   TIMED_FUNCTION();
 
   if (work_queue_task *Task = PeekNextTask(Job))
   {
-    {
-      ValidateTaskForQueue(Queue, Task);
-      Assert(Task->Queue == Queue);
-    }
+    auto Queue = Task->Queue;
+
+    // Debug
+    ValidateTaskForQueue(Queue, Task);
 
     platform *Plat = GetPlatform();
 
@@ -876,6 +892,11 @@ link_internal b32
 MaybeResubmitJob(work_queue_job *Job)
 {
   b32 Result = False;
+
+  // pass this in
+  platform *Plat = GetPlatform();
+
+  // We've got a new task, resubmit
   if (work_queue_task *Next = PeekNextTask(Job))
   {
     Result = True;
@@ -883,15 +904,25 @@ MaybeResubmitJob(work_queue_job *Job)
   }
   else
   {
+    // Complete the task
+    // Retire if not awaited
+    // Also check for an AwaitContinuation, and fire it off if we're the last waiter
+    //
     StateTransition(Job, WorkQueueJobState_Complete);
 
     if (Job->AwaitCount)
     {
       StateTransition(Job, WorkQueueJobState_Await);
+
+      if (IsValid(Job->AwaitContinuationJobId))
+      {
+        work_queue_job *Continuation = GetJobFromGlobal(Plat, Job->AwaitContinuationJobId);
+        UnawaitAndSubmit(Continuation);
+      }
     }
     else
     {
-      RetireWorkQueueJob(GetPlatform(), Job);
+      RetireWorkQueueJob(Plat, Job);
     }
   }
   return Result;

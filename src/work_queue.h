@@ -76,6 +76,13 @@ struct global_job_index
   u16 Generation;
 };
 
+// @await_0_returns_invalid_global_job_index
+link_internal b32
+IsValid(global_job_index Index)
+{
+  return Index.Generation > 0;
+}
+
 struct queue_job_index
 {
   u32 Index;
@@ -166,6 +173,9 @@ GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job );
 
+link_internal void
+SubmitJob( work_queue_job *Job );
+
 link_internal b32
 MaybeResubmitJob(work_queue_job *Job);
 
@@ -206,8 +216,11 @@ SubmitSingleTask( work_queue *Queue, work_queue_task *Task, work_queue_job_reser
 link_internal void
 Await(work_queue_job *Job);
 
-link_internal void
-Unawait(platform *Plat, work_queue_job *Job);
+link_internal u32
+UnawaitAndSubmit(work_queue_job *Job);
+
+link_internal u32
+UnawaitAndRetire(platform *Plat, work_queue_job *Job);
 
 
 
