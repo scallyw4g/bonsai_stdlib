@@ -604,6 +604,8 @@ DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask)
 link_internal work_queue_job *
 GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex)
 {
+  Assert(GlobalJobIndex.Index < Plat->JobCount);
+
   work_queue_job *Job = StripVolatile(work_queue_job*, Plat->Jobs+GlobalJobIndex.Index);
 
   work_queue_job *Result = 0;
@@ -694,8 +696,6 @@ UnawaitAndRetire(platform *Plat, work_queue_job *Job)
   if (Result == 0)
   {
     StateTransition(Job, WorkQueueJobState_AwaitComplete);
-    /* Assert(Job->OwningThreadId == INVALID_THREAD_LOCAL_THREAD_INDEX); */
-    /* Job->OwningThreadId = ThreadLocal_ThreadIndex; */
     RetireWorkQueueJob(Plat, Job);
   }
   return Result;

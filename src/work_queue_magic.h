@@ -87,7 +87,17 @@ poof(
       );
 
       SubmitJob(Queue, Job);
-      return Job->Index;
+
+      /// Return a valid index only if the job has the await flag set,
+      /// otherwise querying for this job is undefined as it can be in any
+      /// arbitrary state (including retired and reused, though the generation
+      /// prevents actually getting a pointer to the reused slot).
+      global_job_index JobIndex = {};
+      if ( Flags & WorkQueueJobReserveFlag_Await )
+      {
+        JobIndex = Job->Index;
+      }
+      return JobIndex;
     }
 
     /// Execute the function from the captured closure
