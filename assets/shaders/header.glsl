@@ -1,6 +1,8 @@
 
 
+#if __VERSION__ >= 430
 #extension GL_ARB_explicit_uniform_location : enable
+#endif
 
 
 precision highp float;

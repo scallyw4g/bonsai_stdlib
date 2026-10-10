@@ -5,6 +5,9 @@ link_internal void
 PrintToStdout(counted_string S);
 
 link_internal void
+FlushStdout();
+
+link_internal void
 SetupStdout(u32 ArgCount, const char** ArgStrings);
 
 /* link_internal counted_string */

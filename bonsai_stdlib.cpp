@@ -1,3 +1,8 @@
+// Single-threaded clients may omit job dispatch; custom pools still provide it.
+#if BONSAI_STDLIB_NO_THREADPOOL && BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
+#error "Select either no threadpool or a custom threadpool, not both"
+#endif
+
 #ifndef BONSAI_SHADER_PATH
 #define BONSAI_SHADER_PATH "shaders/"
 #endif
@@ -69,7 +74,6 @@
 #include <bonsai_debug/debug.cpp>
 #endif
 
-#if BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
-#else
+#if !BONSAI_STDLIB_USE_CUSTOM_THREADPOOL && !BONSAI_STDLIB_NO_THREADPOOL
 #include <bonsai_stdlib/src/threadpool.cpp>
 #endif

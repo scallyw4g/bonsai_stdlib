@@ -17,6 +17,7 @@ void assert_fail(cs, cs, const char *);
 #  define RuntimeBreak() do {                                                             \
   if (Global_DoRuntimeBreak) {                                                            \
     LogDirect(CSz("\n%S  # Runtime Break #%S\n\n"), TerminalColors.Red, TerminalColors.White); \
+    FlushStdout();                                                                        \
     PLATFORM_RUNTIME_BREAK();                                                             \
   } else {                                                                                \
     DebugLine("   Break   - Skipped");                                                    \

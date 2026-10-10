@@ -34,13 +34,26 @@ union v3i
   };
 };
 
+// Direct-mapped byte vertices need a four-byte stride on the macOS GL driver.
+#if BONSAI_MACOS
+union alignas(4) v3_u8
+#else
 union v3_u8
+#endif
 {
   u8 E[3];
   struct { u8 x; u8 y; u8 z; };
   struct { u8 r; u8 g; u8 b; };
 };
+#if BONSAI_MACOS
+CAssert(sizeof(v3_u8) == 4);
+CAssert(alignof(v3_u8) == 4);
+#else
 CAssert(sizeof(v3_u8) == 3);
+#endif
+CAssert(OffsetOf(x, v3_u8) == 0);
+CAssert(OffsetOf(y, v3_u8) == 1);
+CAssert(OffsetOf(z, v3_u8) == 2);
 
 union v3
 {

@@ -138,7 +138,7 @@ FileIsNew(hot_reloadable_file *File)
 /* link_internal b32 */
 /* FileIsNew(hot_reloadable_file *File, s64 *LastTime) */
 /* { */
-/*   b32 Result = */ 
+/*   b32 Result = */
 /*   return Result; */
 /* } */
 
@@ -368,6 +368,17 @@ PrintToStdout(cs Output)
 #endif
 }
 
+
+link_internal void
+FlushStdout()
+{
+  // stdout and stderr are unbuffered on linux and macOS; it's the buffered
+  // Global_StdoutLogfile.Handle that gets swallowed, especially in asserts
+#if !BONSAI_WIN32
+  if (Stdout.Handle) { fflush(Stdout.Handle); }
+  if (Global_StdoutLogfile.Handle) { fflush(Global_StdoutLogfile.Handle); }
+#endif
+}
 
 link_internal file_traversal_node
 DeepCopy(heap_allocator *Memory, file_traversal_node *Node)
