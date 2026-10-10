@@ -55,7 +55,7 @@ u32 DataTypeToElementSize[] = {
   0,  // DataType_Undefinded,
   4,  // DataType_f32,
   12, // DataType_v3,
-  3,  // DataType_v3_u8,
+  sizeof(v3_u8), // DataType_v3_u8
 };
 
 

@@ -25,6 +25,14 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
                                      void *ThreadState_UserData      = 0,
          thread_main_callback_type_buffer *WorkerThreadCallbackProcs = 0)
 {
+#if BONSAI_STDLIB_NO_THREADPOOL
+  if (Flags & BonsaiInit_LaunchThreadPool)
+  {
+    Error("Threadpool initialization requested with BONSAI_STDLIB_NO_THREADPOOL");
+    return False;
+  }
+#endif
+
   Global_Stdlib = Stdlib;
 
   Info("Initializing Bonsai");
@@ -33,6 +41,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
   Stdlib->Plat.Memory = Memory;
 
+#if !BONSAI_STDLIB_NO_THREADPOOL
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
     TIMED_NAMED_BLOCK(LaunchThreadPool);
@@ -59,13 +68,16 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     }
   }
   else
+#endif
   {
     Stdlib->ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, 1, ThreadState_UserData, Memory);
   }
 
   // Must come after ThreadStates are valid
   SetThreadLocal_ThreadIndex(0);
+#if BONSAI_WIN32
   PlatformPinCurrentThreadToCore(0);
+#endif
 
   if (Flags & BonsaiInit_InitDebugSystem)
   {

@@ -1,5 +1,5 @@
 
-#if BONSAI_LINUX || BONSAI_EMCC
+#if BONSAI_LINUX || BONSAI_MACOS || BONSAI_EMCC
 #include <bonsai_stdlib/src/platform/posix_platform.cpp>
 #endif
 
@@ -7,6 +7,8 @@
 #include <bonsai_stdlib/src/platform/win32/win32_platform.cpp>
 #elif BONSAI_LINUX
 #include <bonsai_stdlib/src/platform/linux/linux_platform.cpp>
+#elif BONSAI_MACOS
+#include <bonsai_stdlib/src/platform/macos/macos_platform.cpp>
 #elif BONSAI_EMCC
 #include <bonsai_stdlib/src/platform/wasm_platform.cpp>
 #include <bonsai_stdlib/src/platform/linux/linux_file.cpp>

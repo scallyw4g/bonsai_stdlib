@@ -33,6 +33,10 @@ struct platform;
 #include <bonsai_stdlib/src/platform/posix_platform.h>
 #include <bonsai_stdlib/src/platform/linux/linux_platform.h>
 
+#elif BONSAI_MACOS
+#include <bonsai_stdlib/src/platform/posix_platform.h>
+#include <bonsai_stdlib/src/platform/macos/macos_platform.h>
+
 #elif BONSAI_EMCC
 #include <bonsai_stdlib/src/platform/posix_platform.h>
 #include <bonsai_stdlib/src/platform/wasm_platform.h>

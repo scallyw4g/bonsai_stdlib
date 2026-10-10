@@ -1,3 +1,11 @@
+#if BONSAI_MACOS || BONSAI_LINUX
+#include <limits.h>
+#include <stdlib.h>
+#endif
+#if BONSAI_MACOS
+#include <mach-o/dyld.h>
+#endif
+
 inline void
 PrintSemValue(semaphore *Semaphore)
 {
@@ -228,10 +236,17 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
   u32 Result = u32(INVALID_THREAD_HANDLE);
   if (Success)
   {
-    Result = u32(Thread);
+    Result = u32((umm)Thread);
   }
 
   return Result;
+}
+
+b32
+PlatformInitializeAudio(platform *Plat)
+{
+  Warn("PlatformInitializeAudio is not implemented on this platform.");
+  return False;
 }
 
 
@@ -246,6 +261,60 @@ GetCwd()
   char *Result = getcwd(Global_CwdBuffer, Global_CwdBufferLength);
   return (Result);
 }
+
+#if BONSAI_MACOS || BONSAI_LINUX
+// Like the Windows implementation, returns a view into persistent storage.
+inline cs
+PlatformGetExecutableDir()
+{
+  local_persist char ExecutablePath[PATH_MAX];
+#if BONSAI_MACOS
+  char PathBuffer[PATH_MAX];
+  char *Path = PathBuffer;
+  uint32_t Size = sizeof(PathBuffer);
+  if (_NSGetExecutablePath(Path, &Size) != 0)
+  {
+    // dyld's uncanonicalized path can exceed PATH_MAX.
+    Path = (char*)malloc(Size);
+    if (!Path)
+    {
+      Error("Unable to allocate executable path buffer");
+      return {};
+    }
+    if (_NSGetExecutablePath(Path, &Size) != 0)
+    {
+      free(Path);
+      Error("Unable to get executable path");
+      return {};
+    }
+  }
+
+  // Resolve symlinks and relative components before the caller changes CWD.
+  char *Resolved = realpath(Path, ExecutablePath);
+  s32 PathError = errno;
+  if (Path != PathBuffer) { free(Path); }
+  if (!Resolved)
+  {
+    Error("Unable to resolve executable path: %s", strerror(PathError));
+    return {};
+  }
+#else
+  ssize_t Size = readlink("/proc/self/exe", ExecutablePath, sizeof(ExecutablePath));
+  if (Size < 0)
+  {
+    Error("Unable to get executable path: %s", strerror(errno));
+    return {};
+  }
+  if ((umm)Size >= sizeof(ExecutablePath))
+  {
+    Error("Executable path exceeds platform path limit");
+    return {};
+  }
+  ExecutablePath[Size] = 0;
+#endif
+  return Dirname(CS(ExecutablePath));
+}
+#endif
 
 b32
 IsFilesystemRoot(char *Filepath)
@@ -263,6 +332,13 @@ PlatformSetThreadPriority(s32 Priority)
   bonsai_sched_param Param = {};
   Param.sched_priority = Priority;
 
+#if BONSAI_MACOS
+  s32 E = pthread_setschedparam(pthread_self(), SCHED_FIFO, &Param);
+  if (E)
+  {
+    Warn("Setting Scheduler for main thread (%s)", strerror(E));
+  }
+#else
   errno = 0;
   s32 E = sched_setscheduler(0, SCHED_FIFO, &Param);
   if (E)
@@ -283,6 +359,7 @@ PlatformSetThreadPriority(s32 Priority)
       InvalidDefaultCase;
     }
   }
+#endif
 
   return;
 }

@@ -47,6 +47,35 @@ elif [[ "$Platform" == "Windows" ]] ; then
 
   PLATFORM_EXE_EXTENSION=".exe"
   PLATFORM_LIB_EXTENSION=".dll"
+
+elif [[ "$Platform" == "macOS" ]] ; then
+
+  PLATFORM_LINKER_OPTIONS="-framework Cocoa -framework OpenGL"
+
+  PLATFORM_DEFINES="-D BONSAI_MACOS"
+
+  # The SIMD implementation requires x86_64; Cocoa is compiled in the unity translation unit.
+  PLATFORM_CXX_OPTIONS="-ggdb -x objective-c++ -target x86_64-apple-macos11"
+
+
+  SHARED_LIBRARY_FLAGS="-dynamiclib"
+
+  # Optional weak hooks are supplied by dlopen, not a link-time dylib.
+  # ld64 still requires an explicit undefined-symbol allowlist for these imports.
+  PLATFORM_LINKER_OPTIONS="$PLATFORM_LINKER_OPTIONS \
+    -Wl,-U,_BindEngineUniform \
+    -Wl,-U,_EntityUserDataDeserialize \
+    -Wl,-U,_EntityUserDataEditorUi \
+    -Wl,-U,_EntityUserDataSerialize \
+    -Wl,-U,_GameEntityUpdate \
+    -Wl,-U,_LaunchWorkerThreads \
+    -Wl,-U,_WorkerThread_BeforeSleep"
+
+  PLATFORM_EXE_EXTENSION=""
+  PLATFORM_LIB_EXTENSION=".dylib"
+
+  PLATFORM_INCLUDE_DIRS=""
+
 else
   echo "Unsupported Platform ($Platform), exiting." && exit 1
 fi

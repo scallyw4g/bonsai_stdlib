@@ -49,12 +49,12 @@ FlushBuffersToCard_gpu_mapped_element_buffer(gpu_element_buffer_handles *Handles
     case DataType_v3_u8:
     {
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_VertexHandle]);
-      GetGL()->VertexAttribIPointer(VERTEX_POSITION_LAYOUT_LOCATION, 3, GL_BYTE, 0, (void*)0);
+      GetGL()->VertexAttribIPointer(VERTEX_POSITION_LAYOUT_LOCATION, 3, GL_BYTE, sizeof(v3_u8), (void*)0);
       BufferUnmapped = GetGL()->UnmapBuffer(GL_ARRAY_BUFFER);
       AssertNoGlErrors;
 
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_NormalHandle]);
-      GetGL()->VertexAttribPointer(VERTEX_NORMAL_LAYOUT_LOCATION, 3, GL_BYTE, GL_TRUE, 0, (void*)0);
+      GetGL()->VertexAttribPointer(VERTEX_NORMAL_LAYOUT_LOCATION, 3, GL_BYTE, GL_TRUE, sizeof(v3_u8), (void*)0);
       BufferUnmapped &= GetGL()->UnmapBuffer(GL_ARRAY_BUFFER);
       AssertNoGlErrors;
 
@@ -457,11 +457,11 @@ SetupVertexAttribsFor_u3d_geo_element_buffer(gpu_element_buffer_handles *Handles
     case DataType_v3_u8:
     {
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_VertexHandle]);
-      GetGL()->VertexAttribPointer(VERTEX_POSITION_LAYOUT_LOCATION, 3, GL_BYTE, GL_FALSE, 0, (void*)0);
+      GetGL()->VertexAttribPointer(VERTEX_POSITION_LAYOUT_LOCATION, 3, GL_BYTE, GL_FALSE, sizeof(v3_u8), (void*)0);
       AssertNoGlErrors;
 
       GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[mesh_NormalHandle]);
-      GetGL()->VertexAttribPointer(VERTEX_NORMAL_LAYOUT_LOCATION, 3, GL_BYTE, GL_TRUE, 0, (void*)0);
+      GetGL()->VertexAttribPointer(VERTEX_NORMAL_LAYOUT_LOCATION, 3, GL_BYTE, GL_TRUE, sizeof(v3_u8), (void*)0);
       AssertNoGlErrors;
     } break;
   }

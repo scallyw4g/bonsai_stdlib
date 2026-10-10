@@ -48,6 +48,9 @@ struct audio
 
 link_internal void SleepMs(u32 Ms);
 
+b32 PlatformInitializeAudio(platform *Plat);
+
+
 inline void
 WakeThread( semaphore *Semaphore )
 {

@@ -23,12 +23,6 @@ TestSuiteBegin(const char *TestSuite, s32 ArgCount, const char** Args)
 
 
   auto Flags = BonsaiInit_Default;
-  /* auto Flags = BonsaiInit_InitDebugSystem; */
-  /* auto Flags = bonsai_init_flags( BonsaiInit_OpenWindow            | */
-  /*                                 BonsaiInit_LaunchThreadPool      | */
-  /*                                 BonsaiInit_InitDebugSystem       ); */
-
-  auto Flags = BonsaiInit_Default;
   bonsai_stdlib Stdlib = {};
   Ensure( InitializeBonsaiStdlib( Flags, 0, &Stdlib, Memory) );
 

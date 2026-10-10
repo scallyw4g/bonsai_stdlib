@@ -1,5 +1,14 @@
 
 #include <ftw.h>
+#include <sys/stat.h>
+
+link_internal b32
+PlatformFileExists(const char *Filepath)
+{
+  struct stat FileStatus;
+  // Match Windows: follow the path and exclude directories.
+  return stat(Filepath, &FileStatus) == 0 && !S_ISDIR(FileStatus.st_mode);
+}
 
 link_internal b32
 PlatformCloseFile(native_file* File)

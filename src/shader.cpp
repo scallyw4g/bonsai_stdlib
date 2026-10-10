@@ -98,6 +98,11 @@ ValueFromSetting(shader_language_setting ShaderLanguage)
       Result = CSz("#version 330 core\n\n");
     } break;
 
+    case ShaderLanguageSetting_410core:
+    {
+      Result = CSz("#version 410 core\n\n");
+    } break;
+
     case ShaderLanguageSetting_460core:
     {
       Result = CSz("#version 460 core\n\n");
@@ -316,7 +321,12 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
   auto GL = GetGL();
 
-  b32 HeaderIsNew = ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_330core);
+  s64 HeaderTime = Stdlib->ShaderHeaderFile.LastModified;
+  b32 HeaderIsNew = False;
+  if (FileIsNew(Stdlib->ShaderHeaderFile.File.Path.Start, &HeaderTime))
+  {
+    HeaderIsNew = ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_default);
+  }
   IterateOver(&Stdlib->AllShaders, Shader, ShaderIndex)
   {
     Shader->HotReloaded = False;
