@@ -47,7 +47,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     {
       memory_arena *WorkQueueMemory = AllocateArena();
 
-      s32 TotalJobs = WORK_QUEUE_SIZE*6;
+      s32 TotalJobs = u16_MAX;
       AllocateJobsArray(Plat, TotalJobs);
 
       Plat->JobStatsTable = Allocate_work_queue_job_stats_hashtable(u32(TotalJobs), WorkQueueMemory);

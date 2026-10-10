@@ -53,7 +53,7 @@ SignalAndWaitForWorkers(bonsai_futex *Futex)
 }
 
 link_internal void
-WaitOnFutex(bonsai_futex *Futex, b32 DoSleep)
+WaitOnFutex(bonsai_futex *Futex, b32 DoSleep /* = True */)
 {
   /* TIMED_FUNCTION(); */
 
@@ -139,9 +139,29 @@ GetThreadLocalState(s32 ThreadIndex)
 
 }
 
-link_internal memory_arena*
+link_internal memory_arena *
 GetTranArena()
 {
   thread_local_state *Thread = GetThreadLocalState(ThreadLocal_ThreadIndex);
   return Thread->TempMemory;
+}
+
+link_internal void
+SpinlockNs(s32 Nanoseconds)
+{
+  TIMED_FUNCTION();
+
+  r64 StartMs = GetHighPrecisionClock();
+
+  for (;;)
+  {
+    r64 CurrentMs = GetHighPrecisionClock();
+    r64 Elapsed = CurrentMs - StartMs;
+
+    s32 ElapsedNs = s32(MillisecondsToNanoseconds(Elapsed));
+    if (ElapsedNs > Nanoseconds)
+    {
+      break;
+    }
+  }
 }

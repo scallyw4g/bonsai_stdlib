@@ -118,20 +118,30 @@ enum work_queue_job_state
 
 struct work_queue_job
 {
-  work_queue_job *Next;   // TODO(Jesse): Pretty sure we don't actually need this..
-  work_queue_job_stats *Stats;
+  work_queue_job_stats *Stats; // NOTE(Jesse): Next pointer in linked list overwrites this
   work_queue_task_block_array Tasks;
 
-  u16 NextTaskIndex; // Index into Tasks for the next task to Pop
-  u16 Pad;
+  // nocheckin debug
+  s32 _OwningThreadId; // = INVALID_THREAD_LOCAL_THREAD_INDEX; Set in AllocateJobsArray
+  u32 Pad_;
 
-  volatile u32 AwaitCount;
-  global_job_index AwaitContinuationJobId; // If we have awaiters, this job fires when they all hit 0
+  u32 NextTaskIndex; // Index into Tasks for the next task to Pop
+
+  u32 Pad__;
+  global_job_index JoinContinuationJobId; // If we have awaiters, this job fires when they all hit 0
 
   global_job_index Index;         // global index for this job; indexes into platform::Jobs
   work_queue_job_state State;
+
+  // cache line boundary
+  volatile u32 JoinCount;
+  u8 pad___[60];
+
+  // cache line boundary
+  volatile u32 AwaitCount;
+  u8 pad____[60];
 };
-CAssert(sizeof(work_queue_job) == CACHE_LINE_SIZE);
+CAssert(sizeof(work_queue_job) == CACHE_LINE_SIZE*3);
 
 link_internal b32
 StateTransition(work_queue_job *Job, work_queue_job_state NextState)
@@ -154,28 +164,38 @@ StateTransition(work_queue_job *Job, work_queue_job_state NextState)
 
     case WorkQueueJobState_Reserved:
     {
+      /* Assert(Job->OwningThreadId == INVALID_THREAD_LOCAL_THREAD_INDEX); Job->OwningThreadId = ThreadLocal_ThreadIndex; */
+
       Result = (Job->State == WorkQueueJobState_Free);
       Job->Index.Generation += 1;
     } break;
 
     case WorkQueueJobState_Submitted:
     {
+      /* Assert(Job->OwningThreadId == ThreadLocal_ThreadIndex); Job->OwningThreadId = INVALID_THREAD_LOCAL_THREAD_INDEX; */
+
       Result = (Job->State == WorkQueueJobState_Reserved);
     } break;
 
     case WorkQueueJobState_Complete:
     {
+      /* Assert(Job->OwningThreadId == ThreadLocal_ThreadIndex); Job->OwningThreadId = INVALID_THREAD_LOCAL_THREAD_INDEX; */
+
       Assert(PeekNextTask(Job) == 0);
       Result = (Job->State == WorkQueueJobState_Submitted);
     } break;
 
     case WorkQueueJobState_Await:
     {
+      /* Assert(Job->OwningThreadId == INVALID_THREAD_LOCAL_THREAD_INDEX); */
+
       Result = (Job->State == WorkQueueJobState_Complete);
     } break;
 
     case WorkQueueJobState_AwaitComplete:
     {
+      /* Assert(Job->OwningThreadId == INVALID_THREAD_LOCAL_THREAD_INDEX); */
+
       Result = (Job->State == WorkQueueJobState_Await);
     } break;
 
@@ -195,6 +215,13 @@ StateTransition(work_queue_job *Job, work_queue_job_state NextState)
 
 
 
+link_internal void
+OverwriteQueueJob(work_queue *Queue, queue_job_index Index)
+{
+  Queue->JobIndices[Index.Index] = {};
+}
+
+
 link_internal global_job_index
 GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 {
@@ -203,48 +230,63 @@ GetGlobalJobIndex(work_queue *Queue, queue_job_index QueueIndex)
 }
 
 link_internal work_queue_job *
-GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex)
+PopNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex)
 {
-  work_queue_job *Result = GetJobFromGlobal(Plat, GetGlobalJobIndex(Queue, QueueJobIndex));
+  auto GlobalIndex = GetGlobalJobIndex(Queue, QueueJobIndex);
+  work_queue_job *Result = GetJobFromGlobal(Plat, GlobalIndex);
+  OverwriteQueueJob(Queue, QueueJobIndex);
   return Result;
 }
 
 link_internal work_queue_task *
 PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueIndex)
 {
-  global_job_index GlobalJobIndex = GetGlobalJobIndex(Queue, QueueIndex);
-  work_queue_job *Job = GetJobFromGlobal(Plat, GlobalJobIndex);
-
+  auto Job = PopNextQueuedJob(Plat, Queue, QueueIndex);
   work_queue_task *Result = PopNextTask(Job);
   return Result;
 }
 
 link_internal work_queue_job *
-PopNextJob(platform *Plat, work_queue* Queue)
+PopNextJob(platform *Plat, work_queue* Queue, u32 CompareExchangeRetryCount /* = u32_MAX */)
 {
   TIMED_FUNCTION();
 
   work_queue_job *Result = {};
-  for (;;)
+
+  AcquireFutex(&Queue->DequeueFutex);
+
+  // NOTE(Jesse): These are just here for debugging .. they should probably go
+  // back in the loop ..?
+  u32 DequeueIndex;
+  u32 NextIndex;
+  RangeIterator_t(u32, RetryIndex, CompareExchangeRetryCount)
   {
     /* WORKER_THREAD_ADVANCE_DEBUG_SYSTEM(); */
 
     // NOTE(Jesse): Must read and comared DequeueIndex instead of calling QueueIsEmpty
-    u32 DequeueIndex = Queue->DequeueIndex;
+    DequeueIndex = Queue->DequeueIndex;
     if (DequeueIndex == Queue->EnqueueIndex)
     {
       break;
     }
 
+    NextIndex = GetNextQueueIndex(DequeueIndex);
     b32 Exchanged = AtomicCompareExchange( &Queue->DequeueIndex,
-                                           GetNextQueueIndex(DequeueIndex),
+                                           NextIndex,
                                            DequeueIndex );
-    if ( Exchanged )
+    Assert ( Exchanged );
     {
-      Result = GetJobFromQueue(Plat, Queue, {DequeueIndex});
+      Result = PopNextQueuedJob(Plat, Queue, {DequeueIndex});
       break;
     }
   }
+
+  if (Result)
+  {
+    Assert(Result->State == WorkQueueJobState_Submitted);
+  }
+
+  ReleaseFutex(&Queue->DequeueFutex);
 
   return Result;
 }
@@ -257,32 +299,6 @@ PopNextJob(platform *Plat, work_queue* Queue)
 
 
 
-link_internal void
-DrainQueue(platform *Plat, work_queue* Queue, thread_local_state* Thread, application_api *GameApi)
-{
-  TIMED_FUNCTION();
-
-  for (;;)
-  {
-    /* WORKER_THREAD_ADVANCE_DEBUG_SYSTEM(); */
-
-    // NOTE(Jesse): Must read and comared DequeueIndex instead of calling QueueIsEmpty
-    u32 DequeueIndex = Queue->DequeueIndex;
-    if (DequeueIndex == Queue->EnqueueIndex)
-    {
-      break;
-    }
-
-    b32 Exchanged = AtomicCompareExchange( &Queue->DequeueIndex,
-                                           GetNextQueueIndex(DequeueIndex),
-                                           DequeueIndex );
-    if ( Exchanged )
-    {
-      work_queue_job *Job = GetJobFromQueue(Plat, Queue, {DequeueIndex});
-      HandleJob(Job, Thread, GameApi);
-    }
-  }
-}
 
 link_internal THREAD_MAIN_RETURN
 DefaultWorkerThread(void *Input)
@@ -306,21 +322,14 @@ DefaultWorkerThread(void *Input)
   if (Stdlib->AppApi.WorkerInit) { Stdlib->AppApi.WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
 
   // Signal to main thread we're ready to start
-  WaitOnFutex(&Plat->WorkerThreadsReady, True);
+  WaitOnFutex(&Plat->WorkerThreadsReady);
 
   while (FutexNotSignaled(WorkerThreadsExitFutex))
   {
-#if 0
-    // This is a pointer to a single semaphore for all queues, so only sleeping
-    // on one is sufficient, and equal to sleeping on all, because they all
-    // point to the same semaphore
-    ThreadSleep( Thread->HighPriority->GlobalQueueSemaphore );
-#else
+    // Ready-Wait loop for work to come in 
     for (;;)
     {
       WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
-
-      /* TIMED_NAMED_BLOCK("CheckForWorkAndSleep"); */
 
       if (!QueueIsEmpty(HighPriority)) break;
 
@@ -335,7 +344,6 @@ DefaultWorkerThread(void *Input)
 
       SleepMs(1);
     }
-#endif
 
     WaitOnFutex(WorkerThreadsSuspendFutex);
 
@@ -344,23 +352,29 @@ DefaultWorkerThread(void *Input)
     WorkerThread_BeforeJobStart(Thread);
     if (Stdlib->AppApi.WorkerBeforeJob) { Stdlib->AppApi.WorkerBeforeJob(Thread); }
 
-    AtomicIncrement(HighPriorityWorkerCount);
-    DrainQueue(Plat, HighPriority, Thread, &GetStdlib()->AppApi );
-    AtomicDecrement(HighPriorityWorkerCount);
-
-#if 1
-    if ( ! FutexIsSignaled(HighPriorityModeFutex) )
+    // Drain hi-priority queue
     {
-      Ensure( RewindArena(Thread->TempMemory) );
-    }
-#else
-    // Can't do this because the debug system needs a static handle to the base
-    // address of the arena, which VaporizeArena unmaps
-    //
-    Ensure( VaporizeArena(Thread.TempMemory) );
-    Ensure( Thread.TempMemory = AllocateArena() );
-#endif
+      AtomicIncrement(HighPriorityWorkerCount);
 
+      /* DrainQueue(Plat, HighPriority, Thread, &GetStdlib()->AppApi ); */
+      while (auto Job = PopNextJob(Plat, HighPriority))
+      {
+        // TODO(Jesse): Seems like we should call this here?
+        //
+        // WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
+
+        HandleJob( Job, Thread, &GetStdlib()->AppApi );
+
+        if ( FutexIsSignaled(WorkerThreadsExitFutex) ) break;
+
+        if ( FutexIsSignaled(WorkerThreadsSuspendFutex) ) break;
+      }
+
+      AtomicDecrement(HighPriorityWorkerCount);
+    }
+
+    // Drain lo-priority queue until we get preempted by hi-priority, or a
+    // request to suspend/exit
     for (;;)
     {
       WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
@@ -373,23 +387,25 @@ DefaultWorkerThread(void *Input)
 
       if ( FutexIsSignaled(WorkerThreadsSuspendFutex) ) break;
 
-      // NOTE(Jesse): Must read and comared DequeueIndex instead of calling QueueIsEmpty
-      u32 DequeueIndex = LowPriority->DequeueIndex;
-      if (DequeueIndex == LowPriority->EnqueueIndex)
+      if (work_queue_job *Job = PopNextJob(Plat, LowPriority, 1))
       {
-        break;
+        HandleJob(Job, Thread, &GetStdlib()->AppApi);
+        Ensure( RewindArena(Thread->TempMemory) ); // TODO(Jesse): Do we want this here ..?
       }
 
-      b32 Exchanged = AtomicCompareExchange( &LowPriority->DequeueIndex,
-                                              GetNextQueueIndex(DequeueIndex),
-                                              DequeueIndex );
-      if ( Exchanged )
-      {
-        work_queue_job *Job = GetJobFromQueue(Plat, LowPriority, {DequeueIndex});
-        HandleJob(Job, Thread, &GetStdlib()->AppApi);
-        Ensure( RewindArena(Thread->TempMemory) );
-      }
     }
+
+    if ( ! FutexIsSignaled(HighPriorityModeFutex) )
+    {
+      Ensure( RewindArena(Thread->TempMemory) );
+
+      // Can't do this because the debug system needs a static handle to the base
+      // address of the arena, which VaporizeArena unmaps
+      //
+      /* Ensure( VaporizeArena(Thread.TempMemory) ); */
+      /* Ensure( Thread.TempMemory = AllocateArena() ); */
+    }
+
   }
 
   Info("Exiting Worker Thread (%d)", Thread->ThreadIndex);
@@ -471,7 +487,10 @@ AllocateJobsArray(platform *Plat, s32 TotalJobs)
   Assert(Plat->JobCount == 0);
 
   Plat->TaskMemory = AllocateArena(Megabytes(4));
-  Plat->Jobs = Allocate(work_queue_job, Plat->TaskMemory, TotalJobs);
+
+  // Ensure alignment to cache lines so we don't get false sharing, or tearing
+  // on reads straddling the boudnary
+  Plat->Jobs = AllocateAligned(work_queue_job, Plat->TaskMemory, TotalJobs, CACHE_LINE_SIZE);
 
   Plat->JobCount = u32(TotalJobs);
   Plat->FreeJobs  = u32(TotalJobs);
@@ -495,6 +514,8 @@ AllocateJobsArray(platform *Plat, s32 TotalJobs)
 link_internal void
 HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppApi)
 {
+  Assert(Job->State == WorkQueueJobState_Submitted);
+
   if ( AppApi->WorkerMain &&
        AppApi->WorkerMain(Job, Thread))
   {
@@ -619,10 +640,34 @@ AwaitContinuation( global_job_index_block_array AwaitJobIds )
 }
 
 link_internal void
+Join(work_queue_job *Job)
+{
+  // NOTE(Jesse): It's a bug waiting to happen if you submit a job, then await it.
+  // The bug is that the job completes before the submition code hits the await,
+  // and the awaiter never gets notified.
+  //
+  // @await_join_reserved_job_bug
+  if (Job->JoinCount == 0)
+  {
+    Assert(Job->State == WorkQueueJobState_Reserved);
+  }
+  AtomicIncrement(&Job->JoinCount);
+}
+
+link_internal void
 OnComplete(work_queue_job *Job, work_queue_job *Continuation)
 {
-  Await(Continuation);
-  Job->AwaitContinuationJobId = Continuation->Index;
+  // It's an error to attach an OnComplete to a job that's been submitted
+  // because the job could have already run to completion, in which case it
+  // won't reach out to the continuation and decrement it's await counter
+  //
+  // Similar story with the Continuation, except it'll execute early
+  Assert(Job->State == WorkQueueJobState_Reserved);
+  Assert(Continuation->State == WorkQueueJobState_Reserved);
+
+  Join(Continuation);
+  /* Await(Continuation); */
+  Job->JoinContinuationJobId = Continuation->Index;
 }
 
 link_internal void
@@ -631,6 +676,8 @@ Await(work_queue_job *Job)
   // NOTE(Jesse): It's a bug waiting to happen if you submit a job, then await it.
   // The bug is that the job completes before the submition code hits the await,
   // and the awaiter never gets notified.
+  //
+  // @await_join_reserved_job_bug
   if (Job->AwaitCount == 0)
   {
     Assert(Job->State == WorkQueueJobState_Reserved);
@@ -644,21 +691,50 @@ UnawaitAndRetire(platform *Plat, work_queue_job *Job)
   Assert(Job->State == WorkQueueJobState_Await);
 
   u32 Result = AtomicDecrement(&Job->AwaitCount);
-  if (Job->AwaitCount == 0)
+  if (Result == 0)
   {
     StateTransition(Job, WorkQueueJobState_AwaitComplete);
+    /* Assert(Job->OwningThreadId == INVALID_THREAD_LOCAL_THREAD_INDEX); */
+    /* Job->OwningThreadId = ThreadLocal_ThreadIndex; */
     RetireWorkQueueJob(Plat, Job);
   }
   return Result;
 }
 
 link_internal u32
+JoinAndMaybeSubmit(work_queue_job *Job)
+{
+  u32 Result = AtomicDecrement(&Job->JoinCount);
+
+  // NOTE(Jesse): It is valid for the reserver to submit a job, so we have to check
+  // for that case
+  Assert(
+      Job->State == WorkQueueJobState_Reserved  ||
+      Job->State == WorkQueueJobState_Submitted ||
+      Job->State == WorkQueueJobState_Await     );
+
+  if (Result == 0)
+  {
+    Assert(Job->State == WorkQueueJobState_Reserved);
+    SubmitJob(Job);
+  }
+  return Result;
+}
+link_internal u32
 UnawaitAndSubmit(work_queue_job *Job)
 {
   u32 Result = AtomicDecrement(&Job->AwaitCount);
-  Assert(Job->State == WorkQueueJobState_Reserved);
-  if (Job->AwaitCount == 0)
+
+  // NOTE(Jesse): It is valid for the reserver to submit a job, so we have to check
+  // for that case
+  Assert(
+      Job->State == WorkQueueJobState_Reserved  ||
+      Job->State == WorkQueueJobState_Submitted ||
+      Job->State == WorkQueueJobState_Await     );
+
+  if (Result == 0)
   {
+    Assert(Job->State == WorkQueueJobState_Reserved);
     SubmitJob(Job);
   }
   return Result;
@@ -675,15 +751,16 @@ PeekNextTask(work_queue_job *Job)
 link_internal work_queue_task *
 PopNextTask(work_queue_job *Job)
 {
-  /* StateTransition(Job, WorkQueueJobState_Allocated); */
-
-  work_queue_task* Result = GetPtr(&Job->Tasks, Job->NextTaskIndex++);
+  Assert(Job->NextTaskIndex == 0);
+  work_queue_task* Result = GetPtr(&Job->Tasks, Job->NextTaskIndex);
+  AtomicIncrement(&Job->NextTaskIndex); // I'm almost certain we don't need to atomically increment this
   return Result;
 }
 
 link_internal void
 PushTask(work_queue_job *Job, work_queue_task *Task)
 {
+  Assert(Job->NextTaskIndex == 0); // nocheckin
   Push(&Job->Tasks, Task);
 }
 
@@ -731,6 +808,7 @@ ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job )
 {
+  Assert(Job->NextTaskIndex == 0); // nocheckin
   auto *Task = PeekNextTask(Job);
   Assert(Task);
   Assert(Task->Queue == Queue);
@@ -743,6 +821,11 @@ link_internal void
 SubmitJob( work_queue_job *Job )
 {
   TIMED_FUNCTION();
+
+  /* Assert(Job->OwningThreadId == ThreadLocal_ThreadIndex); */
+  /* Job->OwningThreadId = INVALID_THREAD_LOCAL_THREAD_INDEX; */
+
+  Assert(Job->NextTaskIndex == 0);
 
   if (work_queue_task *Task = PeekNextTask(Job))
   {
@@ -766,19 +849,21 @@ SubmitJob( work_queue_job *Job )
         HighPriorityMode = True;
       }
 
-      Perf("Queue full!");
-      SleepMs(1);
+      /* Perf("Queue full!"); */
+      SpinlockNs(10);
+      /* SleepMs(1); */
 
       if (HighPriorityMode) { SignalFutex(&Plat->HighPriorityModeFutex); }
     }
 
     FullBarrier;
 
-    Queue->JobIndices[Queue->EnqueueIndex] = Job->Index;
+    u32 EnqueueIndex = Queue->EnqueueIndex;
+    Queue->JobIndices[EnqueueIndex] = Job->Index;
 
-    u32 NewIndex = GetNextQueueIndex(Queue->EnqueueIndex);
+    u32 NewIndex = GetNextQueueIndex(EnqueueIndex);
     Assert(NewIndex != Queue->DequeueIndex); // QueueIsFull check
-    AtomicExchange(&Queue->EnqueueIndex, NewIndex);
+    Ensure( AtomicCompareExchange(&Queue->EnqueueIndex, NewIndex, EnqueueIndex) );
 
     FullBarrier;
 
@@ -793,6 +878,9 @@ SubmitJob( work_queue_job *Job )
 link_internal void
 RetireWorkQueueJob(platform *Plat, work_queue_job *Job)
 {
+  Assert(Job->JoinCount == 0);
+  Assert(Job->AwaitCount == 0);
+
   if (Job->Stats)
   {
     Job->Stats->RetireTime = GetCycleCount();
@@ -803,13 +891,17 @@ RetireWorkQueueJob(platform *Plat, work_queue_job *Job)
   Job->NextTaskIndex = 0;
   Job->Stats = 0;
 
+  /* Assert(Job->OwningThreadId == ThreadLocal_ThreadIndex); */
+  /* Job->OwningThreadId = INVALID_THREAD_LOCAL_THREAD_INDEX; */
+
+  StateTransition(Job, WorkQueueJobState_Free);
+
   // TODO(Jesse): This is fucking gnarly .. we should poof a freelist type ..?
   Link_TS(
     Cast(volatile freelist_entry **, &Plat->JobsFreelist),
     Cast(freelist_entry *, Job)
   );
 
-  StateTransition(Job, WorkQueueJobState_Free);
   AtomicIncrement(&Plat->FreeJobs);
 }
 
@@ -828,6 +920,9 @@ ReserveWorkQueueJob( platform *Plat, work_queue_job_reserve_flags Flags )
                                Cast(volatile freelist_entry **, &Plat->JobsFreelist)
                              )
                            );
+
+  /* Assert(Result->OwningThreadId == INVALID_THREAD_LOCAL_THREAD_INDEX); */
+  /* Result->OwningThreadId = ThreadLocal_ThreadIndex; */
 
   ClearList(&Result->Tasks);
 
@@ -899,6 +994,7 @@ MaybeResubmitJob(work_queue_job *Job)
   // We've got a new task, resubmit
   if (work_queue_task *Next = PeekNextTask(Job))
   {
+    Assert(False); // nocheckin
     Result = True;
     SubmitJob(Next->Queue, Job);
   }
@@ -910,15 +1006,26 @@ MaybeResubmitJob(work_queue_job *Job)
     //
     StateTransition(Job, WorkQueueJobState_Complete);
 
+
+    if (IsValid(Job->JoinContinuationJobId))
+    {
+      work_queue_job *Continuation = GetJobFromGlobal(Plat, Job->JoinContinuationJobId);
+      JoinAndMaybeSubmit(Continuation);
+    }
+
+    FullBarrier;
+
+
     if (Job->AwaitCount)
     {
+      // NOTE(Jesse): Must come after the next job gets submitted because of a
+      // race condition. The bug, if we transition to await before we dispatch
+      // the next job:
+      //
+      // 1. 
+      /* Assert(Job->OwningThreadId == ThreadLocal_ThreadIndex); */
+      /* Job->OwningThreadId = INVALID_THREAD_LOCAL_THREAD_INDEX; */
       StateTransition(Job, WorkQueueJobState_Await);
-
-      if (IsValid(Job->AwaitContinuationJobId))
-      {
-        work_queue_job *Continuation = GetJobFromGlobal(Plat, Job->AwaitContinuationJobId);
-        UnawaitAndSubmit(Continuation);
-      }
     }
     else
     {

@@ -93,6 +93,7 @@ struct work_queue
 poof(@do_editor_ui)
 {
   bonsai_futex EnqueueFutex;
+  bonsai_futex DequeueFutex;
 
   volatile u32 EnqueueIndex;
   volatile u32 DequeueIndex;
@@ -168,7 +169,7 @@ link_internal work_queue_job *
 GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex);
 
 link_internal work_queue_job *
-GetJobFromQueue(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex);
+PopNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index QueueJobIndex);
 
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job );
@@ -191,7 +192,7 @@ RetireWorkQueueJob(platform *Plat, work_queue_job *Job);
 //
 
 link_internal work_queue_job *
-PopNextJob(platform *Plat, work_queue* Queue);
+PopNextJob(platform *Plat, work_queue* Queue, u32 CompareExchangeRetryCount = u32_MAX);
 
 link_internal void
 PushTask(work_queue_job *Job, work_queue_task *Task);
