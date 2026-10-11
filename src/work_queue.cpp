@@ -1,6 +1,21 @@
+// TODO(Jesse): Does this go here ..?
+poof(
+  for_datatypes(func)
+  func (func_t)
+  {
+    func_t.has_tag(async)?
+    {
+      async_function_prototypes(func_t)
+    }
+  }
+)
+#include <generated/poof_builtin.for_datatypes$$qOVfxMom.h>
+
+
 
 poof(block_array_c(global_job_index, {64}))
 #include <generated/block_array$global_job_index.688853971$6LIdaKhl.h>
+
 
 link_internal void
 AwaitContinuation( global_job_index_block_array AwaitJobIds );
@@ -623,13 +638,6 @@ GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex)
 
 
 
-
-link_internal void
-poof(@async)
-AwaitContinuation( global_job_index_block_array AwaitJobIds )
-{
-  Info("yaaaaaaaaaay");
-}
 
 link_internal void
 Join(work_queue_job *Job)

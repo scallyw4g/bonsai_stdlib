@@ -37,7 +37,7 @@ link_internal debug_state * GetDebugState();
 #include <immintrin.h>
 #include <emmintrin.h>
 #include <xmmintrin.h>
-#include <wasm_simd128.h> 
+#include <wasm_simd128.h>
 #endif
 
 
