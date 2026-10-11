@@ -117,14 +117,28 @@ link_internal debug_state * GetDebugState();
   platform *Plat = &(Stdlib)->Plat;
 
 
+enum bonsai_init_flags
+{
+  BonsaiInit_Default = 0,
+
+  BonsaiInit_LaunchThreadPool       = (1 << 0),
+  BonsaiInit_OpenWindow             = (1 << 1),
+  BonsaiInit_Renderer2D             = (1 << 2),
+  BonsaiInit_InitDebugSystem        = (1 << 3),
+  BonsaiInit_ProfileContextSwitches = (1 << 4),
+  BonsaiInit_Audio                  = (1 << 5),
+};
+
 struct bonsai_stdlib
 poof(@do_editor_ui)
 {
-                  os  Os;
-            platform  Plat;
-     application_api  AppApi;
-              opengl  GL;
-         renderer_2d  Ui;
+  bonsai_init_flags  InitFlags;
+
+                 os  Os;
+           platform  Plat;
+    application_api  AppApi;
+             opengl  GL;
+        renderer_2d  Ui;
 
   // NOTE(Jesse): If we've setup a thread pool we allocate ThreadStates (and
   // set ThreadLocal_ThreadIndex for each thread), but if we just want a

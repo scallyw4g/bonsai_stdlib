@@ -25,12 +25,14 @@ TestSuiteBegin(const char *TestSuite, s32 ArgCount, const char** Args)
   /* auto Flags = BonsaiInit_Default; */
   /* auto Flags = BonsaiInit_InitDebugSystem; */
 
-  auto Flags = bonsai_init_flags( BonsaiInit_LaunchThreadPool      |
-                                  BonsaiInit_InitDebugSystem       );
+  /* auto Flags = bonsai_init_flags( BonsaiInit_LaunchThreadPool      | */
+  /*                                 BonsaiInit_InitDebugSystem       ); */
 
-/*   auto Flags = bonsai_init_flags( BonsaiInit_OpenWindow            | */
-/*                                   BonsaiInit_LaunchThreadPool      | */
-/*                                   BonsaiInit_InitDebugSystem       ); */
+  auto Flags = bonsai_init_flags( BonsaiInit_OpenWindow             |
+                                  BonsaiInit_Renderer2D             |
+                                  BonsaiInit_ProfileContextSwitches |
+                                  BonsaiInit_LaunchThreadPool       |
+                                  BonsaiInit_InitDebugSystem  );
 
   application_api AppApi = {};
   bonsai_stdlib Stdlib = {};
@@ -54,6 +56,77 @@ TestSuiteEnd()
   LogDirect("%S   Passed  %S- %u Tests " Newline, TerminalColors.Green, TerminalColors.White, TestsPassed);
   if (TestsFailed) { LogDirect("%S   Failed  %S- %u Tests " Newline, TerminalColors.Red, TerminalColors.White, TestsFailed); }
   LogDirect(Newline);
+
+  auto Stdlib = GetStdlib();
+  UNPACK_STDLIB(Stdlib);
+
+  renderer_2d *Ui = &Stdlib->Ui;
+  if (Stdlib->InitFlags & BonsaiInit_OpenWindow)
+  {
+    PlatformMakeRenderContextCurrent(Os);
+    while (Os->ContinueRunning)
+    {
+
+      // TODO(Jesse): Make a stdlib function that wraps all this stuff up
+      // @stdlib_frame_preamble
+      ResetInputForFrameStart(&Plat->Input);
+
+      // @stdlib_frame_preamble
+      v2 LastMouseP = Plat->MouseP;
+      ProcessOsMessages(&Stdlib->Os, &Stdlib->Plat);
+      Plat->MouseDP =  Plat->MouseP - LastMouseP;
+
+      // @stdlib_frame_preamble?
+      Ui->Input = &Plat->Input;
+      Ui->MouseP = &Plat->MouseP;
+      Ui->MouseDP = &Plat->MouseDP;
+      Ui->ScreenDim = &Plat->ScreenDim;
+
+
+      UiFrameBegin(Ui);
+
+      // TODO(Jesse): move this!
+      // Map GPU buffers for next frame
+      MapGpuBuffer(&Ui->SolidQuadGeometryBuffer);
+      MapGpuBuffer(&Ui->TextGroup->Buf);
+
+
+      if (Stdlib->Plat.Input.Escape.Clicked) { break; }
+
+      b32 Toggle = False, Toggle2 = False;
+      if (Stdlib->Plat.Input.F1.Clicked) { Info("F1"); Toggle = True; }
+      if (Stdlib->Plat.Input.F2.Clicked) { Info("F2"); Toggle2 = True; }
+
+      /* DebugState->DisplayDebugMenu = True; */
+      DEBUG_FRAME_BEGIN(Ui, Plat->dt, Toggle, Toggle2);
+
+      PushTableStart(Ui);
+      PushTableEnd(Ui);
+
+      DEBUG_FRAME_END(Plat->dt);
+      {
+        layout DefaultLayout = {};
+        render_state RenderState = {};
+        RenderState.Layout = &DefaultLayout;
+
+        SetWindowZDepths(Ui->CommandBuffer);
+        FlushCommandBuffer(Ui, &RenderState, Ui->CommandBuffer, &DefaultLayout);
+      }
+
+      UiFrameEnd(Ui);
+
+      BonsaiSwapBuffers(&Stdlib->Os);
+
+      auto GL = GetGL();
+
+      GL->BindFramebuffer(GL_FRAMEBUFFER, 0);
+      GL->ClearColor(0.2f, 0.2f, 0.2f, 1.f);
+      GL->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      /* MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(GetDt()); */
+      Ensure(RewindArena(GetTranArena()));
+    }
+  }
 
   return;
 }

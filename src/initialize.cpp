@@ -4,18 +4,6 @@ void Platform_EnableContextSwitchTracing();
 void Platform_EnableContextSwitchTracing() { SoftError("Context switch tracing not compiled in!"); }
 #endif
 
-enum bonsai_init_flags
-{
-  BonsaiInit_Default = 0,
-
-  BonsaiInit_LaunchThreadPool       = (1 << 0),
-  BonsaiInit_OpenWindow             = (1 << 1),
-  BonsaiInit_Renderer2D             = (1 << 2),
-  BonsaiInit_InitDebugSystem        = (1 << 3),
-  BonsaiInit_ProfileContextSwitches = (1 << 4),
-  BonsaiInit_Audio                  = (1 << 5),
-};
-
 
 link_internal b32
 InitializeBonsaiStdlib( bonsai_init_flags  Flags,
@@ -32,6 +20,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   UNPACK_STDLIB(Stdlib);
 
   Stdlib->Plat.Memory = Memory;
+  Stdlib->InitFlags = Flags;
 
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
@@ -93,28 +82,44 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 #endif
   }
 
+  // TODO(Jesse): Does it ever make sense to request a window without
+  // initializing the 2D renderer?
+  if (Flags & BonsaiInit_OpenWindow)
+  {
+    if ((Flags & BonsaiInit_Renderer2D) == False)
+    {
+      Error("Opening a window requires also initializing the 2D renderer.");
+    }
+  }
+
+  // NOTE(Jesse): Initializing the renderer requires an opengl context, so we
+  // actually have to open a window.  It might make sense to just get rid of
+  // the renderer2d flag and make it implicit, but I'm going to leave it like
+  // this for now.
   if (Flags & BonsaiInit_Renderer2D)
   {
-    if (Flags & BonsaiInit_OpenWindow)
+    if ((Flags & BonsaiInit_OpenWindow) == False)
     {
-      // TODO(Jesse): Make this configurable?
-      heap_allocator RendererHeap = InitHeap(Gigabytes(1), False);
-      renderer_2d *Ui = &Stdlib->Ui;
+      Error("Initializing the 2D Renderer requires opening a window.");
+    }
+  }
+
+
+  if ( (Flags & BonsaiInit_Renderer2D) && (Flags & BonsaiInit_OpenWindow) )
+  {
+    // TODO(Jesse): Make this configurable?
+    heap_allocator RendererHeap = InitHeap(Gigabytes(1), False);
+    renderer_2d *Ui = &Stdlib->Ui;
 
 #if BONSAI_DEBUG_SYSTEM_API
-      SetDebugRenderer(Ui);
+    SetDebugRenderer(Ui);
 #endif
 
-      v2 MouseP, MouseDP, ScreenDim;
+    v2 MouseP, MouseDP, ScreenDim;
 
-      PlatformMakeRenderContextCurrent(&Stdlib->Os);
-      InitRenderer2D(Ui, &RendererHeap, Memory, &Stdlib->Plat.MouseP, &Stdlib->Plat.MouseDP, &Stdlib->Plat.ScreenDim, &Stdlib->Plat.Input);
-      PlatformReleaseRenderContext(Os);
-    }
-    else
-    {
-      Error("Unable to do BonsaiInit_Renderer2D without BonsaiInit_OpenWindow.");
-    }
+    PlatformMakeRenderContextCurrent(&Stdlib->Os);
+    InitRenderer2D(Ui, &RendererHeap, Memory, &Stdlib->Plat.MouseP, &Stdlib->Plat.MouseDP, &Stdlib->Plat.ScreenDim, &Stdlib->Plat.Input);
+    PlatformReleaseRenderContext(Os);
   }
 
   // Intentionally last such that the render thread has a window to make the render context current on.

@@ -254,7 +254,7 @@ PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index Q
 link_internal work_queue_job *
 PopNextJob(platform *Plat, work_queue* Queue, u32 CompareExchangeRetryCount /* = u32_MAX */)
 {
-  TIMED_FUNCTION();
+  /* TIMED_FUNCTION(); */
 
   work_queue_job *Result = {};
 
