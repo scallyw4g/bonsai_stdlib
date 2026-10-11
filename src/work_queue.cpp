@@ -17,10 +17,6 @@ poof(block_array_c(global_job_index, {64}))
 #include <generated/block_array$global_job_index.688853971$6LIdaKhl.h>
 
 
-link_internal void
-AwaitContinuation( global_job_index_block_array AwaitJobIds );
-
-
 poof(hashtable_impl(work_queue_job_stats))
 #include <generated/hashtable_impl$work_queue_job_stats$5cwEEtEf.h>
 
