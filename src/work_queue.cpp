@@ -1,5 +1,5 @@
 
-poof(block_array(global_job_index, {64}))
+poof(block_array_c(global_job_index, {64}))
 #include <generated/block_array$global_job_index.688853971$6LIdaKhl.h>
 
 link_internal void
@@ -43,10 +43,6 @@ enum async_function_call_type
 };
 
 
-struct work_queue_task_await_continuation
-{
-};
-
 struct work_queue_task_async_function_call
 {
   async_function_call_type Type;
@@ -69,7 +65,6 @@ struct work_queue_task_async_function_call
 enum work_queue_task_type
 {
   type_work_queue_task_async_function_call,
-  type_work_queue_task_await_continuation,
 };
 
 // NOTE(Jesse): At this point, I'm nearly 100% certain async_function_call
@@ -85,7 +80,6 @@ struct work_queue_task
   union
   {
     work_queue_task_async_function_call work_queue_task_async_function_call;
-    work_queue_task_await_continuation work_queue_task_await_continuation;
   };
 };
 
@@ -530,10 +524,6 @@ HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppA
     auto WrappedTask = PopNextTask(Job);
     tswitch (WrappedTask)
     {
-      { tmatch(work_queue_task_await_continuation, WrappedTask, Task)
-        InvalidCodePath();
-      } break;
-
       { tmatch(work_queue_task_async_function_call, WrappedTask, Task)
         DispatchAsyncFunctionCall(Task);
       } break;
@@ -751,7 +741,6 @@ PeekNextTask(work_queue_job *Job)
 link_internal work_queue_task *
 PopNextTask(work_queue_job *Job)
 {
-  Assert(Job->NextTaskIndex == 0);
   work_queue_task* Result = GetPtr(&Job->Tasks, Job->NextTaskIndex);
   AtomicIncrement(&Job->NextTaskIndex); // I'm almost certain we don't need to atomically increment this
   return Result;
@@ -760,7 +749,6 @@ PopNextTask(work_queue_job *Job)
 link_internal void
 PushTask(work_queue_job *Job, work_queue_task *Task)
 {
-  Assert(Job->NextTaskIndex == 0); // nocheckin
   Push(&Job->Tasks, Task);
 }
 
@@ -772,10 +760,6 @@ ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
   {
     tswitch(Task)
     {
-      { tmatch(work_queue_task_await_continuation, Task, _)
-        InvalidCodePath();
-      } break;
-
       { tmatch(work_queue_task_async_function_call, Task, RPC)
         // nocheckin
         /* Ensure(ValidateRPCForRenderQ(RPC) == True); */
@@ -786,10 +770,6 @@ ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
   {
     tswitch(Task)
     {
-      { tmatch(work_queue_task_await_continuation, Task, _)
-        InvalidCodePath();
-      } break;
-
       { tmatch(work_queue_task_async_function_call, Task, RPC)
         // nocheckin
         /* Ensure(ValidateRPCForRenderQ(RPC) == False); */
@@ -808,7 +788,6 @@ ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job )
 {
-  Assert(Job->NextTaskIndex == 0); // nocheckin
   auto *Task = PeekNextTask(Job);
   Assert(Task);
   Assert(Task->Queue == Queue);
@@ -822,11 +801,7 @@ SubmitJob( work_queue_job *Job )
 {
   TIMED_FUNCTION();
 
-  /* Assert(Job->OwningThreadId == ThreadLocal_ThreadIndex); */
-  /* Job->OwningThreadId = INVALID_THREAD_LOCAL_THREAD_INDEX; */
-
-  Assert(Job->NextTaskIndex == 0);
-
+  platform *Plat = GetPlatform();
   if (work_queue_task *Task = PeekNextTask(Job))
   {
     auto Queue = Task->Queue;
@@ -834,9 +809,11 @@ SubmitJob( work_queue_job *Job )
     // Debug
     ValidateTaskForQueue(Queue, Task);
 
-    platform *Plat = GetPlatform();
 
-    StateTransition(Job, WorkQueueJobState_Submitted);
+    if (Job->State != WorkQueueJobState_Submitted)
+    {
+      StateTransition(Job, WorkQueueJobState_Submitted);
+    }
 
     AcquireFutex(&Queue->EnqueueFutex);
 
@@ -994,7 +971,6 @@ MaybeResubmitJob(work_queue_job *Job)
   // We've got a new task, resubmit
   if (work_queue_task *Next = PeekNextTask(Job))
   {
-    Assert(False); // nocheckin
     Result = True;
     SubmitJob(Next->Queue, Job);
   }

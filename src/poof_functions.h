@@ -2361,8 +2361,7 @@ poof(
 
 
 poof(
-  func block_array_h(element_t, type_poof_symbol n_elements_per_block, type_poof_symbol extra_members)
-  {
+  func block_array_h(element_t, type_poof_symbol n_elements_per_block, type_poof_symbol extra_members) {
     @var block_array_t (element_t.name)_block_array
     @var block_t       (element_t.name)_block
     @var index_t       (element_t.name)_block_array_index

@@ -76,6 +76,8 @@ struct global_job_index
   u16 Generation;
 };
 
+poof(block_array_h(global_job_index, {64}, {}))
+#include <generated/block_array_h$global_job_index.688853971.0$jx6N6caG.h>
 // @await_0_returns_invalid_global_job_index
 link_internal b32
 IsValid(global_job_index Index)
@@ -225,4 +227,8 @@ UnawaitAndRetire(platform *Plat, work_queue_job *Job);
 
 
 
+// Debug
+
+link_internal void
+AssertWorkerThreadsSuspended(platform *Plat);
 

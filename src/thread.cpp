@@ -58,11 +58,7 @@ WaitOnFutex(bonsai_futex *Futex, b32 DoSleep /* = True */)
   /* TIMED_FUNCTION(); */
 
   AtomicIncrement(&Futex->ThreadsWaiting);
-
-  // NOTE(Jesse): Not sure why I wrote it this way, these should be analagous
   while (FutexIsSignaled(Futex)) { if (DoSleep) { SleepMs(1); } }
-  /* while (Futex->SignalValue != FUTEX_UNSIGNALLED_VALUE) { if (DoSleep) { SleepMs(1); } } */
-  /* Assert(Futex->ThreadsWaiting > 0); */
   AtomicDecrement(&Futex->ThreadsWaiting);
 }
 

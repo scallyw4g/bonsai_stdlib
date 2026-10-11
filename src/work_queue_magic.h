@@ -17,11 +17,28 @@ poof(
 poof(
   func async_function_prototypes(func_t)
   {
-    link_internal work_queue_task 
-    (func_t.name)_Task( work_queue *Queue func_t.map(arg) {, arg } func_t.value? { , func_t.value* FuncResultDest } );
+    link_internal work_queue_task
+    (func_t.name)_Task(
+        work_queue *Queue
+        func_t.map(arg) {, arg }                           /// Closure args
+        func_t.value? { , func_t.value* FuncResultDest }   /// Func result pointer (optional)
+      );
 
-    link_internal void
-    (func_t.name)_Async( work_queue *Queue func_t.map(arg) {, arg } func_t.value? { , func_t.value *Result } );
+    link_internal work_queue_job *
+    (func_t.name)_Job(
+        work_queue *Queue
+        func_t.map(arg) {, arg }                           /// Closure args
+        func_t.value? { , func_t.value* FuncResultDest }   /// Func result pointer (optional)
+        , work_queue_job_reserve_flags Flags = WorkQueueJobReserveFlag_None
+      );
+
+    link_internal global_job_index
+    (func_t.name)_Async(
+        work_queue *Queue
+        func_t.map(arg) {, arg }
+        func_t.value? { , func_t.value *Result } 
+        , work_queue_job_reserve_flags Flags = WorkQueueJobReserveFlag_None
+      );
   }
 )
 
@@ -34,7 +51,8 @@ poof(
     (func_t.name)_Task(
         work_queue *Queue
         func_t.map(arg) {, arg }                           /// Closure args
-        func_t.value? { , func_t.value* FuncResultDest } ) /// Func result pointer (optional)
+        func_t.value? { , func_t.value* FuncResultDest }   /// Func result pointer (optional)
+      )
     {
       (func_t.name.to_snake_case)_async_params Params =
       {
@@ -51,7 +69,7 @@ poof(
         work_queue *Queue
         func_t.map(arg) {, arg }                           /// Closure args
         func_t.value? { , func_t.value* FuncResultDest }   /// Func result pointer (optional)
-        , work_queue_job_reserve_flags Flags = WorkQueueJobReserveFlag_None 
+        , work_queue_job_reserve_flags Flags /* = WorkQueueJobReserveFlag_None */
       )
     {
       (func_t.name.to_snake_case)_async_params Params =
@@ -75,29 +93,30 @@ poof(
         work_queue *Queue
         func_t.map(arg) {, arg }
         func_t.value? { , func_t.value *Result } 
-        , work_queue_job_reserve_flags Flags = WorkQueueJobReserveFlag_None
+        , work_queue_job_reserve_flags Flags /* = WorkQueueJobReserveFlag_None */
       )
     {
-      /// Call helper to initialize the job
-      auto Job = (func_t.name)_Job(
+      /// Call helper to initialize the job.  Use a weird name so we don't
+      /// accidentally collide with input arguments
+      auto __JobLocal = (func_t.name)_Job(
         Queue
         func_t.map(arg) {, arg.name }
         func_t.value? { , Result }
         , Flags
       );
 
-      SubmitJob(Queue, Job);
+      SubmitJob(Queue, __JobLocal);
 
       /// Return a valid index only if the job has the await flag set,
       /// otherwise querying for this job is undefined as it can be in any
       /// arbitrary state (including retired and reused, though the generation
       /// prevents actually getting a pointer to the reused slot).
-      global_job_index JobIndex = {};
+      global_job_index __JobIndex = {};
       if ( Flags & WorkQueueJobReserveFlag_Await )
       {
-        JobIndex = Job->Index;
+        __JobIndex = __JobLocal->Index;
       }
-      return JobIndex;
+      return __JobIndex;
     }
 
     /// Execute the function from the captured closure
