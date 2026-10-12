@@ -17,8 +17,6 @@ poof(@do_editor_ui)
 };
 
 
-#define MillisecondsToNanoseconds(ms) (ms*1000000.0)
-
 link_internal void SpinlockNs(s32 Nanoseconds);
 
 

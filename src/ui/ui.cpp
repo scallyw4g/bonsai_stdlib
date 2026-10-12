@@ -1392,7 +1392,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
   v2 ViewDim      = Window->MaxClip - V2(0, HeaderDim.y);
   rect2 ViewRect  = RectMinDim(ContentStart, ViewDim);
-  PushDebugDrawRect(Group, ViewRect, V3(1, 0, 0));
+  /* PushDebugDrawRect(Group, ViewRect, V3(1, 0, 0)); */
 
   b32 HasVerticalScrollbar = ContentDim.y > ViewDim.y;
   b32 HasHorizontalScrollbar = ContentDim.x > ViewDim.x;

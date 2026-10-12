@@ -154,7 +154,7 @@ SpinlockNs(s32 Nanoseconds)
     r64 CurrentMs = GetHighPrecisionClock();
     r64 Elapsed = CurrentMs - StartMs;
 
-    s32 ElapsedNs = s32(MillisecondsToNanoseconds(Elapsed));
+    s32 ElapsedNs = SafeTruncateToS32(MillisecondsToNanoseconds(Elapsed));
     if (ElapsedNs > Nanoseconds)
     {
       break;

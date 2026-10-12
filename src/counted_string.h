@@ -1069,7 +1069,19 @@ f64ToChar(char_cursor* Dest, r64 Value, u32 Precision = DEFAULT_FORMAT_PRECISION
 inline u32
 Hash(counted_string* String)
 {
-  u32 Result = 0;
+  /* u32 Result = 2147483647; */
+  u32 Result = 0; //2147483647;
+
+#if 0
+  for (umm CharIndex = 0;
+      CharIndex < String->Count;
+      ++CharIndex)
+  {
+    u32 C = (u32)String->Start[CharIndex];
+    Result ^= ChrisWellonsIntegerHash_lowbias32(C);
+  }
+#endif
+
 
 #if 1
   /* TODO(Jesse, id: 82, tags: robustness, rng, hashing): 257 seemed to produce
@@ -1091,7 +1103,9 @@ Hash(counted_string* String)
     Result = (Result + (C - (u64)('a' + 1)) * p_pow) % m;
     p_pow = (p_pow*p) % m;
   }
-#else
+#endif
+
+#if 0
   // Note(Jesse): This is just some random thing I came up with that I thought
   // sounded good ..it's worse than the implementation I got off the internet,
   // but I though I'd leave it here for posterity.

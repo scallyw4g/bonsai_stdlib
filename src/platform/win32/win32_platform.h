@@ -248,38 +248,26 @@ PlatformGetGlFunction(const char* Name)
 }
 
 
-// NOTE(Jesse): The win32 api GetSystemTimePreciseAsFileTime returns a result
-// measured in 100ns intervals
-/* #define _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(FT) u64((((FT).dwHighDateTime << 31) | ((FT).dwLowDateTime))) */
-
 inline r64
 GetHighPrecisionClock()
 {
-  local_persist u64 BaseNS = {};
-
-  ULARGE_INTEGER LargeInt;
-
-  if (BaseNS == 0)
-  {
-    _FILETIME BaseTime = {};
-    GetSystemTimePreciseAsFileTime(&BaseTime);
-    LargeInt.LowPart = BaseTime.dwLowDateTime;
-    LargeInt.HighPart = BaseTime.dwHighDateTime;
-    BaseNS = LargeInt.QuadPart;
-    /* BaseNS = _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(BaseTime); */
-  }
-
   _FILETIME Time = {};
   GetSystemTimePreciseAsFileTime(&Time);
+
+  ULARGE_INTEGER LargeInt;
   LargeInt.LowPart = Time.dwLowDateTime;
   LargeInt.HighPart = Time.dwHighDateTime;
-  u64 ThisNS = LargeInt.QuadPart;
-  /* u64 ThisNS = _FILETIME_STRUCT_TO_HUNDRED_NANOSECONDS(Time); */
 
-  u64 RelNs = (ThisNS - BaseNS);
-  r64 ResultMs = (RelNs / 1000000.0);
-  /* Info("BaseNS (%llu) ThisNS (%llu) RelNs (%llu) Result(%f)", BaseNS, ThisNS, RelNs, ResultMs); */
-  return ResultMs;
+  // NOTE(Jesse): The win32 GetSystemTimePreciseAsFileTime
+  // returns the number of 100ns tick intervals
+  //
+  u64 HundredNanosecondTickCount = LargeInt.QuadPart;
+
+  // Convert 100ns intervals to nanoseconds
+  r64 Ns = r64(HundredNanosecondTickCount*100);
+
+  // Return Milliseconds
+  return NanosecondsToMilliseconds(Ns);
 }
 
 inline void*

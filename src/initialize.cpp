@@ -15,6 +15,10 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 {
   Global_Stdlib = Stdlib;
 
+  GetDt();
+
+  TIMED_FUNCTION();
+
   Info("Initializing Bonsai");
 
   UNPACK_STDLIB(Stdlib);

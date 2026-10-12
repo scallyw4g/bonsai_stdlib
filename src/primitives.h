@@ -27,6 +27,9 @@
 
 #define ArrayCount(a) (sizeof(a)/sizeof(a[0]))
 
+#define MillisecondsToNanoseconds(ms) (ms*1000000.0)
+#define NanosecondsToMilliseconds(ns) (ns/1000000.0)
+
 // 8 Bit types
 typedef char           s8;
 typedef unsigned char  u8;

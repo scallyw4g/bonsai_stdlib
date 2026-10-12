@@ -254,7 +254,7 @@ PopNextTaskForNextQueuedJob(platform *Plat, work_queue *Queue, queue_job_index Q
 link_internal work_queue_job *
 PopNextJob(platform *Plat, work_queue* Queue, u32 CompareExchangeRetryCount /* = u32_MAX */)
 {
-  /* TIMED_FUNCTION(); */
+  TIMED_FUNCTION();
 
   work_queue_job *Result = {};
 
@@ -331,6 +331,14 @@ DefaultWorkerThread(void *Input)
 
   while (FutexNotSignaled(WorkerThreadsExitFutex))
   {
+    WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
+
+    // NOTE(Jesse): There's a fucky drawing bug when drawing the threads view
+    // .. I have no idea what it was, but we were overdrawing children when I time this function ..
+    // It's something to do with TIMED_FUNCTIONs spanning debug advance boundaries
+    //
+    /* TIMED_FUNCTION(); */
+
     // Ready-Wait loop for work to come in 
     for (;;)
     {
@@ -392,10 +400,15 @@ DefaultWorkerThread(void *Input)
 
       if ( FutexIsSignaled(WorkerThreadsSuspendFutex) ) break;
 
-      if (work_queue_job *Job = PopNextJob(Plat, LowPriority, 1))
+      // 4 Seems like a reasonable retry count ..
+      if (work_queue_job *Job = PopNextJob(Plat, LowPriority, 4))
       {
         HandleJob(Job, Thread, &GetStdlib()->AppApi);
         Ensure( RewindArena(Thread->TempMemory) ); // TODO(Jesse): Do we want this here ..?
+      }
+      else
+      {
+        break;
       }
 
     }

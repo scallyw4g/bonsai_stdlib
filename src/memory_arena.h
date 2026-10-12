@@ -52,6 +52,14 @@ SafeTruncateTo_f32(f64 Size)
 }
 
 inline s32
+SafeTruncateToS32(r64 Size)
+{
+  Assert(Size > r64(s32_MIN) && Size < r64(s32_MAX));
+  s32 Result = Cast(s32, Cast(s64, Size));
+  return Result;
+}
+
+inline s32
 SafeTruncateToS32(u64 Size)
 {
   Assert(Size <= s32_MAX);
