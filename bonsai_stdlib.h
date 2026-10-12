@@ -178,6 +178,7 @@ GetGL()
   auto Result = &Global_Stdlib->GL;
   if (Result->Initialized)
   {
+    PlatformAssertRenderThreadCurrent();
     u32 glErrorNo = Result->GetError();
     DumpGlErrorEnum(glErrorNo);
   }

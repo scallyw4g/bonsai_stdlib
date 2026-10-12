@@ -668,6 +668,13 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
 {
   auto GL = GetGL();
 
+#if BONSAI_INTERNAL
+  s32 CurrentProgram = 0;
+  GL->GetIntegerv(GL_CURRENT_PROGRAM, &CurrentProgram);
+  s32 Location = GL->GetUniformLocation(u32(CurrentProgram), Uniform->Name);
+  Assert(Location == Uniform->ID);
+#endif
+
   s32 Count = Uniform->Count ? s32(*Uniform->Count) : 1;
 
   // NOTE(Jesse): It is actually valid to have a count of zero, for example if
@@ -694,8 +701,19 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
           /* Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures? */
 
           GL->ActiveTexture(GL_TEXTURE0 + Cast(u32, *TextureUnit));
+          AssertNoGlErrors;
           GL->Uniform1i(Uniform->ID, *TextureUnit);
-          GL->BindTexture(GL_TEXTURE_2D, Uniform->Texture->ID);
+          AssertNoGlErrors;
+
+          auto Texture = Uniform->Texture;
+          if (Texture->Slices > 1)
+          {
+            GL->BindTexture(GL_TEXTURE_2D_ARRAY, Texture->ID);
+          }
+          else
+          {
+            GL->BindTexture(GL_TEXTURE_2D, Texture->ID);
+          }
 
           *TextureUnit = *TextureUnit + 1;
           END_BLOCK();
@@ -707,6 +725,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
           Assert(Count == 1);
           GL->Uniform1ui(Uniform->ID, *Uniform->U32);
           END_BLOCK();
+          AssertNoGlErrors;
         } break;
 
         case ShaderUniform_R32:
@@ -715,6 +734,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
           Assert(Count == 1);
           GL->Uniform1f(Uniform->ID, *Uniform->R32);
           END_BLOCK();
+          AssertNoGlErrors;
         } break;
 
         case ShaderUniform_S32:
@@ -723,6 +743,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
           Assert(Count == 1);
           GL->Uniform1i(Uniform->ID, *Uniform->S32);
           END_BLOCK();
+          AssertNoGlErrors;
         } break;
 
         case ShaderUniform_M4:
@@ -731,6 +752,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
           Assert(Count);
           GL->UniformMatrix4fv(Uniform->ID, Count, GL_FALSE, (r32*)Uniform->M4);
           END_BLOCK();
+          AssertNoGlErrors;
         } break;
 
         case ShaderUniform_V2:
@@ -740,6 +762,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
           Assert(Count);
           GL->Uniform2fv(Uniform->ID, Count, (r32*)Uniform->V2);
           END_BLOCK();
+          AssertNoGlErrors;
         } break;
 
         case ShaderUniform_V3:
@@ -749,6 +772,7 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
           Assert(Count);
           GL->Uniform3fv(Uniform->ID, Count, (r32*)Uniform->V3);
           END_BLOCK();
+          AssertNoGlErrors;
         } break;
 
         default:
@@ -828,8 +852,19 @@ CleanupTextureBindings(shader *Shader)
       case ShaderUniform_Texture:
       {
         GL->ActiveTexture(GL_TEXTURE0 + TextureUnit);
-        GL->BindTexture(GL_TEXTURE_2D, 0);
+
+        auto Texture = Uniform->Texture;
+        if (Texture->Slices > 1)
+        {
+          GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+        }
+        else
+        {
+          GL->BindTexture(GL_TEXTURE_2D, 0);
+        }
+
         TextureUnit++;
+        AssertNoGlErrors;
       } break;
 
       default: { } break;

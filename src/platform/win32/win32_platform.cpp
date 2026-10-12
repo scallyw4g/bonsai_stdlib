@@ -668,7 +668,12 @@ ProcessOsMessages(os *Os, platform *Plat)
 link_internal void
 PlatformMakeRenderContextCurrent(os *Os)
 {
-  if (wglMakeCurrent(Os->Display, Os->GlContext) == False)
+  if (wglMakeCurrent(Os->Display, Os->GlContext))
+  {
+    Assert(Os->RenderThread == INVALID_THREAD_LOCAL_THREAD_INDEX);
+    Os->RenderThread = ThreadLocal_ThreadIndex;
+  }
+  else
   {
     Win32PrintLastError();
     Error("Making render context current.");
@@ -678,11 +683,22 @@ PlatformMakeRenderContextCurrent(os *Os)
 link_internal void
 PlatformReleaseRenderContext(os *Os)
 {
-  if (wglMakeCurrent(Os->Display, 0) == False)
+  if (wglMakeCurrent(Os->Display, 0))
+  {
+    Assert(Os->RenderThread == ThreadLocal_ThreadIndex);
+    Os->RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;;
+  }
+  else
   {
     Win32PrintLastError();
     Error("Releasing render context.");
   }
+}
+
+link_internal void
+PlatformAssertRenderThreadCurrent()
+{
+  Assert(GetStdlib()->Os.RenderThread == ThreadLocal_ThreadIndex);
 }
 
 inline void

@@ -1,13 +1,13 @@
 //
 // Wrapper so assertions give us file/line numbers
 
-/* #define AssertNoGlErrors */
+#define AssertNoGlErrors
 
-#define AssertNoGlErrors do { \
-    TIMED_NAMED_BLOCK(GL_GetError); \
-    u32 glErrorNo = GetGL()->GetError();         \
-    DumpGlErrorEnum(glErrorNo);            \
-  } while (0)
+/* #define AssertNoGlErrors do { \ */
+/*     TIMED_NAMED_BLOCK(GL_GetError); \ */
+/*     u32 glErrorNo = GetGL()->GetError();         \ */
+/*     DumpGlErrorEnum(glErrorNo);            \ */
+/*   } while (0) */
 
 #define GL_NO_ERROR                       0
 
@@ -174,6 +174,7 @@
 #define GL_DEPTH_TEST                     0x0B71
 
 #define GL_ARRAY_BUFFER                   0x8892
+#define GL_CURRENT_PROGRAM                0x8B8D
 #define GL_READ_ONLY                      0x88B8
 #define GL_WRITE_ONLY                     0x88B9
 #define GL_READ_WRITE                     0x88BA
@@ -360,6 +361,7 @@ typedef void            (*OpenglDepthFunc)                 (GLenum func);
 typedef void            (*OpenglBlendFunc)                 (GLenum sfactor, GLenum dfactor);
 typedef void            (*OpenglBlendFunci)                (GLuint buf, GLenum sfactor, GLenum dfactor);
 typedef void            (*OpenglDrawArrays)                (GLenum mode, GLint first, GLsizei count);
+typedef void            (*OpenglDrawArraysInstanced)       (GLenum mode, GLint first, GLsizei count, GLsizei instancecount);
 typedef void            (*OpenglDrawArraysIndirect)        (GLenum mode, const void *indirect);
 typedef void            (*OpenglMultiDrawArraysIndirect)   (GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride);
 typedef void            (*OpenglClear)                     (GLbitfield mask);
@@ -598,6 +600,7 @@ struct opengl
   OpenglMapBuffer MapBuffer;
   OpenglMapBufferRange MapBufferRange;
   OpenglUnmapBuffer UnmapBuffer;
+  OpenglDrawArraysInstanced DrawArraysInstanced;
   OpenglDrawArraysIndirect DrawArraysIndirect;
   OpenglMultiDrawArraysIndirect MultiDrawArraysIndirect;
   OpenglDrawBuffers DrawBuffers;

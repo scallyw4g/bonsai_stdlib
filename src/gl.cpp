@@ -74,6 +74,11 @@ InitializeOpenglFunctions()
 {
   Info("Initializing OpenGL Extensions");
 
+  // NOTE(Jesse): We call these from the outside world.. not sure why.  I assume
+  // it's cause of an old initialization order issue, but we should be able to
+  // safely call these here..
+  // @init_opengl_make_render_context_current
+  /* PlatformMakeRenderContextCurrent(&GetStdlib()->Os); */
 #if 0
   const char* glxExtensionString = glXQueryExtensionsString(Os->Display, DefaultScreen(Os->Display));
   const char* glExtensionString = (const char*)glGetString(GL_EXTENSIONS);
@@ -124,6 +129,9 @@ InitializeOpenglFunctions()
 
       GL->DrawArrays                = (OpenglDrawArrays)PlatformGetGlFunction("glDrawArrays");
       GL->Initialized               &= GL->DrawArrays != 0;
+
+      GL->DrawArraysInstanced       = (OpenglDrawArraysInstanced)PlatformGetGlFunction("glDrawArraysInstanced");
+      GL->Initialized               &= GL->DrawArraysInstanced != 0;
 
       GL->DrawArraysIndirect        = (OpenglDrawArraysIndirect)PlatformGetGlFunction("glDrawArraysIndirect");
       GL->Initialized               &= GL->DrawArraysIndirect != 0;
@@ -530,6 +538,9 @@ InitializeOpenglFunctions()
   }
 
   AssertNoGlErrors;
+
+  // @init_opengl_make_render_context_current
+  /* PlatformReleaseRenderContext(&GetStdlib()->Os); */
 
   // TODO(Jesse): Should we actually not just use a local for this .. it seems
   // weird to toggle it to true then false afterwards ..

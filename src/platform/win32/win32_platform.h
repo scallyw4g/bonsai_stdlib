@@ -53,6 +53,8 @@ struct os
   HDC Display;
   HGLRC GlContext;
 
+  s32 RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;
+
   b32 ContinueRunning = True;
 };
 
@@ -309,3 +311,5 @@ PlatformChangeDirectory(const char *Dir)
   return Result;
 }
 
+link_internal void
+PlatformAssertRenderThreadCurrent();
