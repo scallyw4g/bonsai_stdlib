@@ -3894,6 +3894,8 @@ InitRenderer2D( renderer_2d *Renderer,
   Renderer->TextGroup     = Allocate(render_buffers_2d, PermMemory, 1);
   Renderer->CommandBuffer = Allocate(ui_render_command_buffer, PermMemory, 1);
 
+  *Renderer->TextGroup = {};
+
   // TODO(Jesse, memory): Instead of allocate insanely massive buffers
   // we should have a system that streams blocks of memory in as-necessary
   // @streaming_ui_render_memory

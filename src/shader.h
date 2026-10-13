@@ -204,11 +204,8 @@ poof(@do_editor_ui)
   u32 ID = INVALID_SHADER;
   shader_uniform_buffer Uniforms;
 
-  cs VertexSourceFilename;
-  cs FragSourceFilename;
-
-  s64 VertexTimeModifiedWhenLoaded;
-  s64 FragmentTimeModifiedWhenLoaded;
+  hot_reloadable_file Vert;
+  hot_reloadable_file Frag;
 
   b32 HotReloaded;
 };

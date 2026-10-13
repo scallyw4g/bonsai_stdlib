@@ -120,12 +120,12 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
   auto Index = Find(&Stdlib->AllShaders, Shader).Index;
   if (Index == INVALID_BLOCK_ARRAY_INDEX)
   {
-    Shader("Registered (%S|%S) successfully for hot-reload at Index (%d).", Shader->VertexSourceFilename, Shader->FragSourceFilename, AtElements(&Stdlib->AllShaders));
+    Shader("Registered (%S|%S) successfully for hot-reload at Index (%d).", Shader->Vert.File.Path, Shader->Frag.File.Path, AtElements(&Stdlib->AllShaders));
     Push(&Stdlib->AllShaders, Shader);
   }
   else
   {
-    Warn("Shader pair (%S|%S) already registered for hot-reload, not registering duplicate.", Shader->VertexSourceFilename, Shader->FragSourceFilename);
+    Warn("Shader pair (%S|%S) already registered for hot-reload, not registering duplicate.", Shader->Vert.File.Path, Shader->Frag.File.Path);
   }
 }
 
@@ -137,23 +137,24 @@ UnregisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
   auto I = Find(&Stdlib->AllShaders, Shader);
   if (IsValid(&I))
   {
-    Shader("Unregistered (%S|%S) successfully for hot-reload at Index (%d).", Shader->VertexSourceFilename, Shader->FragSourceFilename, AtElements(&Stdlib->AllShaders));
+    Shader("Unregistered (%S|%S) successfully for hot-reload at Index (%d).", Shader->Vert.File.Path, Shader->Vert.File.Path, AtElements(&Stdlib->AllShaders));
     RemoveUnordered(&Stdlib->AllShaders, I);
   }
   else
   {
-    Warn("Shader pair (%S|%S) not registered for hot-reload.", Shader->VertexSourceFilename, Shader->FragSourceFilename);
+    Warn("Shader pair (%S|%S) not registered for hot-reload.", Shader->Vert.File.Path, Shader->Frag.File.Path);
   }
 }
 
 link_internal b32
 ReloadShaderHeaderCode(bonsai_stdlib *Stdlib, hot_reloadable_file *ShaderHeaderFile, shader_language_setting ShaderLanguage)
 {
-  Shader("Reloading (%s)(%S)", GetCwd(), ShaderHeaderFile->File.Path);
-
-  b32 Result = OpenHotReloadableFile(ShaderHeaderFile, FilePermission_Read);
+  TIMED_FUNCTION();
+  b32 Result = TryOpenHotReloadableFile(ShaderHeaderFile, FilePermission_Read);
   if ( Result )
   {
+    Shader("Reloading (%S)", ShaderHeaderFile->File.Path);
+
     // ReadEntireFileIntoString closes the file
     cs HeaderCode =  ReadEntireFileIntoString(&Stdlib->ShaderHeaderFile.File, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory);
 
@@ -183,15 +184,35 @@ DumpShaderSource(u32 ShaderId)
 }
 
 link_internal b32
-poof(@async @render)
-CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 DumpErrors = True, b32 RegisterForHotReload = True)
+CompileShaderPair(shader *Shader, b32 DumpErrors = True, b32 RegisterForHotReload = True)
 {
-  Shader("Creating : (%S | %S)", VertShaderPath, FragShaderPath);
-
   auto Stdlib = GetStdlib();
   auto GL = GetGL();
 
+  if (IsHeapAllocated(&Stdlib->Ui.Strings, Cast(void*, Shader->Vert.File.Path.Start)) == False)
+  {
+    Shader->Vert.File.Path = CopyString(Shader->Vert.File.Path, &Stdlib->Ui.Strings);
+  }
+
+  if (IsHeapAllocated(&Stdlib->Ui.Strings, Cast(void*, Shader->Frag.File.Path.Start)) == False)
+  {
+    Shader->Frag.File.Path = CopyString(Shader->Frag.File.Path, &Stdlib->Ui.Strings);
+  }
+
+  cs VertShaderPath = Shader->Vert.File.Path;
+  cs FragShaderPath = Shader->Frag.File.Path;
+
+  // NOTE(Jesse): This is wack.
+  Shader->Vert.LastModified = GetLastModifiedtime(GetNullTerminated(Shader->Vert.File.Path));
+  Shader->Frag.LastModified = GetLastModifiedtime(GetNullTerminated(Shader->Frag.File.Path));
+
   Assert(Stdlib->ShaderHeaderCode.Start);
+  Assert(VertShaderPath.Count);
+  Assert(FragShaderPath.Count);
+
+  Shader("Creating : (%S | %S)", VertShaderPath, FragShaderPath);
+
+
 
   ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
   ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(FragShaderPath, GetTranArena());
@@ -205,7 +226,9 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
   AssertNoGlErrors;
 
   memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
-  *Shader = { INVALID_SHADER, {}, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0, False};
+
+  /* *Shader = { INVALID_SHADER, {}, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0, False}; */
+  Shader->ID = INVALID_SHADER;
 
   // NOTE(Jesse): Not doing this because the errors come through when you go to link the program.  Of course ..
   /* if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER) */
@@ -259,11 +282,6 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
     GL->DeleteShader(FragResult.ShaderId);
     AssertNoGlErrors;
 
-    // NOTE(Jesse): Kind of a hack to set the last modified times on the shader.  Should
-    // really be able to do this when reading the source code into buffers, but .. meh ..
-    FileIsNew(GetNullTerminated(Shader->VertexSourceFilename), &Shader->VertexTimeModifiedWhenLoaded);
-    FileIsNew(GetNullTerminated(Shader->FragSourceFilename), &Shader->FragmentTimeModifiedWhenLoaded);
-
     if (CompileSucceeded == False)
     {
       GL->DeleteProgram(ProgramID);
@@ -280,6 +298,20 @@ CompileShaderPair(shader *Shader, cs VertShaderPath, cs FragShaderPath, b32 Dump
 
   AssertNoGlErrors;
   return CompileSucceeded;
+}
+
+// Convenience path for compiling a new shader.  Just here for compat with an old API ..should be removed?
+//
+link_internal b32
+poof(@async @render)
+CompileShaderPair(shader *Shader, cs VertPath, cs FragPath, b32 DumpErrors = True, b32 RegisterForHotReload = True)
+{
+  Assert(Shader->ID == INVALID_SHADER);
+
+  Shader->Vert.File.Path = VertPath;
+  Shader->Frag.File.Path = FragPath;
+  b32 Result = CompileShaderPair(Shader, DumpErrors, RegisterForHotReload);
+  return Result;
 }
 
 link_internal s32
@@ -319,24 +351,26 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
   b32 HeaderIsNew = ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_330core);
   IterateOver(&Stdlib->AllShaders, Shader, ShaderIndex)
   {
+    // TODO(Jesse): This seems like it should be an assert instead .. shouldn't this just be False already?
     Shader->HotReloaded = False;
 
-    b32 VertIsNew = FileIsNew(GetNullTerminated(Shader->VertexSourceFilename), &Shader->VertexTimeModifiedWhenLoaded);
-    b32 FragIsNew = FileIsNew(GetNullTerminated(Shader->FragSourceFilename),   &Shader->FragmentTimeModifiedWhenLoaded);
-    if (HeaderIsNew || VertIsNew || FragIsNew)
+    u64 NewVertTime = FileIsNew(&Shader->Vert);
+    u64 NewFragTime = FileIsNew(&Shader->Frag);
+    if (HeaderIsNew || NewVertTime || NewFragTime)
     {
+      // TODO(Jesse): Why's this here?
       SleepMs(5);
-
-      auto T1 = Shader->VertexTimeModifiedWhenLoaded;
-      auto T2 = Shader->FragmentTimeModifiedWhenLoaded;
 
       s32 MaxRetryCount = 5;
       shader LoadedShader = {};
+      LoadedShader.Vert = Shader->Vert;
+      LoadedShader.Frag = Shader->Frag;
+
       b32 RegisterForHotReload = False; // We're hot reloading now ..
       RangeIterator(RetryCount, MaxRetryCount)
       {
         b32 DumpErrors = (RetryCount == MaxRetryCount-1);
-        if (CompileShaderPair(&LoadedShader, Shader->VertexSourceFilename, Shader->FragSourceFilename, DumpErrors, RegisterForHotReload))
+        if (CompileShaderPair(&LoadedShader, DumpErrors, RegisterForHotReload))
         {
           break;
         }
@@ -884,7 +918,7 @@ UseShader(shader *Shader)
   }
   else
   {
-    SoftError("Attempted to bind uncompiled Shader (%S) | (%S)", Shader->VertexSourceFilename, Shader->FragSourceFilename);
+    SoftError("Attempted to bind uncompiled Shader (%S) | (%S)", Shader->Vert.File.Path, Shader->Frag.File.Path);
   }
 }
 

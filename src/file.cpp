@@ -108,39 +108,43 @@ TryDeleteDirectory(cs Filepath)
 
 
 
-
-link_internal b32
-FileIsNew(const char *Filepath, s64 *LastTime)
+link_internal u64
+GetLastModifiedtime(const char *Filepath)
 {
-  b32 Result = False;
+  u64 Result = 0;
   struct stat StatStruct;
 
   if (stat(Filepath, &StatStruct) == 0)
   {
-    if (StatStruct.st_mtime > *LastTime)
-    {
-      *LastTime = StatStruct.st_mtime;
-      Result = True;
-    }
+    // st_mtime is the number of seconds since the unix EPOCH (Jan 1, 1970)..
+    // presumably we'd never stat a file that's dated before this, so getting
+    // a negative number here seems like a bug.
+    Assert(StatStruct.st_mtime > 0);
+    Result = u64(StatStruct.st_mtime);
   }
 
   return Result;
 }
 
-link_internal b32
-FileIsNew(hot_reloadable_file *File)
+link_internal u64
+FileIsNew(const char *Filepath, u64 LastRecordedTime)
 {
-  b32 Result = FileIsNew(File->File.Path.Start, &File->LastModified);
+  u64 Result = 0;
+  u64 LastModifiedTime = GetLastModifiedtime(Filepath);
+
+  if ( LastModifiedTime > LastRecordedTime)
+  {
+    Result = LastModifiedTime;
+  }
   return Result;
 }
 
-
-/* link_internal b32 */
-/* FileIsNew(hot_reloadable_file *File, s64 *LastTime) */
-/* { */
-/*   b32 Result = */ 
-/*   return Result; */
-/* } */
+link_internal u64
+FileIsNew(hot_reloadable_file *File)
+{
+  u64 Result = FileIsNew(File->File.Path.Start, File->LastModified);
+  return Result;
+}
 
 link_internal b32
 Remove(cs FilePath)
@@ -164,25 +168,28 @@ OpenFile(cs FilePath, file_permission Permissions)
 }
 
 link_internal b32
-OpenHotReloadableFile(hot_reloadable_file *File, file_permission Permissions)
+TryOpenHotReloadableFile(hot_reloadable_file *File, file_permission Permissions)
 {
   b32 Result = {};
 
-  if (FileIsNew(File))
+  if (u64 NewTime = FileIsNew(File))
   {
+    Assert(File->File.Handle == 0);
     File->File = OpenFile(File->File.Path.Start, Permissions);
     if (File->File.Handle)
     {
       Result = True;
+      File->LastModified = NewTime;
     }
     else
     {
-      SoftError("Failed to open (%S) for hot reloading", File->File.Path);
+      // This should be a hard error .. or at least a retry situation .. I think ..
+      SoftError("Failed to open (%S) for hot reloading, even though FileIsNew worked.", File->File.Path);
     }
   }
   else
   {
-    Warn("Hot reloadable file wasn't new!");
+    /* Warn("Hot reloadable file wasn't new!"); */
   }
 
   return Result;

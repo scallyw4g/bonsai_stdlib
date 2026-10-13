@@ -40,8 +40,17 @@ typedef maybe_file_traversal_node (*directory_traversal_callback)(file_traversal
 struct hot_reloadable_file
 {
   native_file File;
-  s64 LastModified;
+  u64 LastModified;
 };
+
+link_internal hot_reloadable_file
+HotReloadableFile(cs FilePath, memory_arena *Memory)
+{
+  // NOTE(Jesse): Make sure to copy path
+  hot_reloadable_file Result = {};
+  NotImplemented;
+  return Result;
+}
 
 
 link_internal b32 CloseFile(native_file* File);
