@@ -5,7 +5,6 @@ poof(
     /// Generate a struct to capture closure arguments
     struct (func_t.name.to_snake_case)_async_params poof(@async_function_params)
     {
-      func_t.value ? { func_t.value* Result; }
       func_t.map(arg)
       {
         arg;
@@ -21,14 +20,12 @@ poof(
     (func_t.name)_Task(
         work_queue *Queue
         func_t.map(arg) {, arg }                           /// Closure args
-        func_t.value? { , func_t.value* FuncResultDest }   /// Func result pointer (optional)
       );
 
     link_internal work_queue_job *
     (func_t.name)_Job(
         work_queue *Queue
         func_t.map(arg) {, arg }                           /// Closure args
-        func_t.value? { , func_t.value* FuncResultDest }   /// Func result pointer (optional)
         , work_queue_job_reserve_flags Flags = WorkQueueJobReserveFlag_None
       );
 
@@ -36,7 +33,6 @@ poof(
     (func_t.name)_Async(
         work_queue *Queue
         func_t.map(arg) {, arg }
-        func_t.value? { , func_t.value *Result } 
         , work_queue_job_reserve_flags Flags = WorkQueueJobReserveFlag_None
       );
   }
@@ -51,12 +47,10 @@ poof(
     (func_t.name)_Task(
         work_queue *Queue
         func_t.map(arg) {, arg }                           /// Closure args
-        func_t.value? { , func_t.value* FuncResultDest }   /// Func result pointer (optional)
       )
     {
       (func_t.name.to_snake_case)_async_params Params =
       {
-        func_t.value?   {  FuncResultDest, }
         func_t.map(arg) { arg.name, }
       };
 
@@ -68,13 +62,11 @@ poof(
     (func_t.name)_Job(
         work_queue *Queue
         func_t.map(arg) {, arg }                           /// Closure args
-        func_t.value? { , func_t.value* FuncResultDest }   /// Func result pointer (optional)
         , work_queue_job_reserve_flags Flags /* = WorkQueueJobReserveFlag_None */
       )
     {
       (func_t.name.to_snake_case)_async_params Params =
       {
-        func_t.value?   {  FuncResultDest, }
         func_t.map(arg) { arg.name, }
       };
 
@@ -92,7 +84,6 @@ poof(
     (func_t.name)_Async(
         work_queue *Queue
         func_t.map(arg) {, arg }
-        func_t.value? { , func_t.value *Result } 
         , work_queue_job_reserve_flags Flags /* = WorkQueueJobReserveFlag_None */
       )
     {
@@ -101,7 +92,6 @@ poof(
       auto __JobLocal = (func_t.name)_Job(
         Queue
         func_t.map(arg) {, arg.name }
-        func_t.value? { , Result }
         , Flags
       );
 
@@ -123,8 +113,7 @@ poof(
     link_internal void
     ExecFunction((func_t.name.to_snake_case)_async_params *Params)
     {
-      func_t.value? { auto Result = } func_t.name((func_t.map(arg).sep(,) { Params->(arg.name) }));
-      func_t.value? { if (Params->Result) { *Params->Result = Result; } }
+      func_t.name((func_t.map(arg).sep(,) { Params->(arg.name) }));
     }
   }
 )

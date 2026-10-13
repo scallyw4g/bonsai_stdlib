@@ -78,9 +78,6 @@ enum work_queue_task_type
   type_work_queue_task_async_function_call,
 };
 
-// NOTE(Jesse): At this point, I'm nearly 100% certain async_function_call
-// is all you need, but I'm not so confident yet that I'm going to delete it..
-//
 struct work_queue_task
 {
   // NOTE(Jesse): This is the queue the job needs to be submitted to to
@@ -88,6 +85,7 @@ struct work_queue_task
   work_queue_ptr Queue;
   work_queue_task_type Type;
 
+  // TODO(Jesse): Get rid of this
   union
   {
     work_queue_task_async_function_call work_queue_task_async_function_call;
