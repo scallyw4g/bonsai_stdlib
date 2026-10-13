@@ -175,6 +175,8 @@ global_variable bonsai_stdlib *Global_Stdlib;
 link_internal opengl *
 GetGL()
 {
+  TIMED_FUNCTION();
+
   auto Result = &Global_Stdlib->GL;
   if (Result->Initialized)
   {

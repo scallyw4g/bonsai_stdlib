@@ -349,59 +349,61 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
   auto GL = GetGL();
 
   b32 HeaderIsNew = ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_330core);
-  IterateOver(&Stdlib->AllShaders, Shader, ShaderIndex)
+
   {
-    // TODO(Jesse): This seems like it should be an assert instead .. shouldn't this just be False already?
-    Shader->HotReloaded = False;
-
-    u64 NewVertTime = FileIsNew(&Shader->Vert);
-    u64 NewFragTime = FileIsNew(&Shader->Frag);
-    if (HeaderIsNew || NewVertTime || NewFragTime)
+    TIMED_NAMED_BLOCK(ReloadLoop);
+    IterateOver(&Stdlib->AllShaders, Shader, ShaderIndex)
     {
-      // TODO(Jesse): Why's this here?
-      SleepMs(5);
+      // TODO(Jesse): This seems like it should be an assert instead .. shouldn't this just be False already?
+      Shader->HotReloaded = False;
 
-      s32 MaxRetryCount = 5;
-      shader LoadedShader = {};
-      LoadedShader.Vert = Shader->Vert;
-      LoadedShader.Frag = Shader->Frag;
-
-      b32 RegisterForHotReload = False; // We're hot reloading now ..
-      RangeIterator(RetryCount, MaxRetryCount)
+      u64 NewVertTime = FileIsNew(&Shader->Vert);
+      u64 NewFragTime = FileIsNew(&Shader->Frag);
+      if (HeaderIsNew || NewVertTime || NewFragTime)
       {
-        b32 DumpErrors = (RetryCount == MaxRetryCount-1);
-        if (CompileShaderPair(&LoadedShader, DumpErrors, RegisterForHotReload))
+        s32 MaxRetryCount = 5;
+        shader LoadedShader = {};
+        LoadedShader.Vert = Shader->Vert;
+        LoadedShader.Frag = Shader->Frag;
+
+        b32 RegisterForHotReload = False; // We're hot reloading now ..
+        RangeIterator(RetryCount, MaxRetryCount)
         {
-          break;
+          b32 DumpErrors = (RetryCount == MaxRetryCount-1);
+          if (CompileShaderPair(&LoadedShader, DumpErrors, RegisterForHotReload))
+          {
+            break;
+          }
+
+          // TODO(Jesse): Is this actually necessary anymore?
+          /* SpinlockNs(100); */
         }
 
-        SleepMs(5);
-      }
-
-      if (LoadedShader.ID == INVALID_SHADER)
-      {
-        // Hit an error loading the shader .. leave the old stuff intact.
-      }
-      else
-      {
-        // Delete old shader, and replace with new
-        //
-        GL->DeleteProgram(Shader->ID);
-
-        auto Uniforms = Shader->Uniforms;
-        *Shader = LoadedShader;
-        Shader->Uniforms = Uniforms;
-
-        Shader->HotReloaded = True;
-
-        IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
+        if (LoadedShader.ID == INVALID_SHADER)
         {
-          ReloadShaderUniform(Shader, Uniform);
+          // Hit an error loading the shader .. leave the old stuff intact.
+        }
+        else
+        {
+          // Delete old shader, and replace with new
+          //
+          GL->DeleteProgram(Shader->ID);
+
+          auto Uniforms = Shader->Uniforms;
+          *Shader = LoadedShader;
+          Shader->Uniforms = Uniforms;
+
+          Shader->HotReloaded = True;
+
+          IterateOver(&Shader->Uniforms, Uniform, UniformIndex)
+          {
+            ReloadShaderUniform(Shader, Uniform);
+          }
+
         }
 
+        AssertNoGlErrors;
       }
-
-      AssertNoGlErrors;
     }
   }
 }
