@@ -71,6 +71,9 @@ struct work_queue_task_async_function_call
     )
 #include <generated/poof_builtin.for_datatypes$$NiTeiJJT.h>  
   };
+
+  debug_profile_scope *StartScope;
+  debug_profile_scope *EndScope;
 };
 
 enum work_queue_task_type
@@ -80,10 +83,12 @@ enum work_queue_task_type
 
 struct work_queue_task
 {
+  work_queue_task_type Type;
+  u32 Pad_;
+
   // NOTE(Jesse): This is the queue the job needs to be submitted to to
   // complete this task.
   work_queue_ptr Queue;
-  work_queue_task_type Type;
 
   // TODO(Jesse): Get rid of this
   union
@@ -136,6 +141,8 @@ struct work_queue_job
   global_job_index Index;         // global index for this job; indexes into platform::Jobs
   work_queue_job_state State;
 
+  // TODO(Jesse): Remove these cache line pads ..?
+  //
   // cache line boundary
   volatile u32 JoinCount;
   u8 pad___[60];
@@ -145,6 +152,13 @@ struct work_queue_job
   u8 pad____[60];
 };
 CAssert(sizeof(work_queue_job) == CACHE_LINE_SIZE*3);
+
+link_internal u32
+Hash(work_queue_job *Element)
+{
+  u32 Result = Hash(&Element->Index);
+  return Result;
+}
 
 link_internal b32
 StateTransition(work_queue_job *Job, work_queue_job_state NextState)
@@ -370,7 +384,10 @@ DefaultWorkerThread(void *Input)
       /* DrainQueue(Plat, HighPriority, Thread, &GetStdlib()->AppApi ); */
       while (auto Job = PopNextJob(Plat, HighPriority))
       {
-        // TODO(Jesse): Seems like we should call this here?
+        // TODO(Jesse): Seems like we should call this here ..?  Although we
+        // should be guaranteed to never actually advance when we're doing
+        // hi-priority jobs .. so .. maybe not.  It would be nice if we could
+        // assert we would not advance.
         //
         // WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
 
@@ -386,6 +403,7 @@ DefaultWorkerThread(void *Input)
 
     // Drain lo-priority queue until we get preempted by hi-priority, or a
     // request to suspend/exit
+    //
     for (;;)
     {
       WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
@@ -493,7 +511,7 @@ link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job );
 
 link_internal void
-DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask);
+DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask, b32 Profile);
 
 link_internal void
 AllocateJobsArray(platform *Plat, s32 TotalJobs)
@@ -532,6 +550,8 @@ HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppA
 {
   Assert(Job->State == WorkQueueJobState_Submitted);
 
+  // TODO(Jesse): Do we actually want this anymore?  Probably not.
+  //
   if ( AppApi->WorkerMain &&
        AppApi->WorkerMain(Job, Thread))
   {
@@ -547,7 +567,8 @@ HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppA
     tswitch (WrappedTask)
     {
       { tmatch(work_queue_task_async_function_call, WrappedTask, Task)
-        DispatchAsyncFunctionCall(Task);
+        b32 Profile = (Job->Stats != 0);
+        DispatchAsyncFunctionCall(Task, Profile);
       } break;
     }
   }
@@ -593,8 +614,14 @@ poof(
 
 
 link_internal void
-DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask)
+DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask, b32 Profile)
 {
+  if (Profile)
+  {
+    debug_timed_function Timer(__func__);
+    WrappedTask->StartScope = Timer.Scope;
+  }
+
   tswitch(WrappedTask)
   {
     poof(
@@ -610,6 +637,12 @@ DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask)
       }
     )
 #include <generated/poof_func.anonymous$async_function_call_type$DwG4hpHD.h>
+  }
+
+  if (Profile)
+  {
+    debug_timed_function Timer(__func__);
+    WrappedTask->EndScope = Timer.Scope;
   }
 }
 
@@ -776,8 +809,7 @@ ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
     tswitch(Task)
     {
       { tmatch(work_queue_task_async_function_call, Task, RPC)
-        // nocheckin
-        /* Ensure(ValidateRPCForRenderQ(RPC) == True); */
+        Ensure(ValidateRPCForRenderQ(RPC) == True);
       } break;
     }
   }
@@ -786,8 +818,7 @@ ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
     tswitch(Task)
     {
       { tmatch(work_queue_task_async_function_call, Task, RPC)
-        // nocheckin
-        /* Ensure(ValidateRPCForRenderQ(RPC) == False); */
+        Ensure(ValidateRPCForRenderQ(RPC) == False);
       } break;
     }
   }
@@ -876,8 +907,7 @@ RetireWorkQueueJob(platform *Plat, work_queue_job *Job)
   if (Job->Stats)
   {
     Job->Stats->RetireTime = GetCycleCount();
-    // nocheckin
-    /* Job->Stats->RetireFrameIndex = GetEngineResources()->FrameIndex; */
+    Job->Stats->RetireFrameIndex = GetEngineResources()->FrameIndex;
   }
 
   Job->NextTaskIndex = 0;
@@ -927,26 +957,21 @@ ReserveWorkQueueJob( platform *Plat, work_queue_job_reserve_flags Flags )
 
   Assert(Result->NextTaskIndex == 0);
   Assert(Result->Tasks.ElementCount == 0);
-  if (Flags & WorkQueueJobReserveFlag_TrackPerformance)
-  {
-    work_queue_job_stats Record = {
-      .Job = Result,
-      .ReserveTime = GetCycleCount(),
-      // nocheckin
-      /* .ReserveFrameIndex = GetEngineResources()->FrameIndex, */
-      .ReserveFrameIndex = 0,
-      .RetireTime = 0,
-      .RetireFrameIndex = 0,
-    };
 
-    Result->Stats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory);
-  }
-  else
+  if (GetDebugState()->DebugDoScopeProfiling)
   {
-    /* if (work_queue_job_stats *Stats = GetByKey(&Plat->JobStatsTable, Job)) */
-    /* { */
-    /*   Tombstone( Job, &Plat->JobStatsTable ); */
-    /* } */
+    if (Flags & WorkQueueJobReserveFlag_TrackPerformance)
+    {
+      work_queue_job_stats Record = {
+        .JobId = Result->Index,
+        .ReserveTime = GetCycleCount(),
+        .ReserveFrameIndex = GetEngineResources()->FrameIndex,
+        .RetireTime = 0,
+        .RetireFrameIndex = 0,
+      };
+
+      Result->Stats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory);
+    }
   }
 
   Assert(Result);

@@ -11,50 +11,6 @@ enum work_queue_job_reserve_flags
   WorkQueueJobReserveFlag_TrackPerformance = (1 << 1),
 };
 
-struct work_queue_job_stats
-{
-  work_queue_job *Job; poof(@hashtable_key)
-
-  u64 ReserveTime;
-  u64 RetireTime;
-
-  u32 ReserveFrameIndex;
-  u32 RetireFrameIndex;
-};
-
-poof(maybe(work_queue_job_stats))
-#include <generated/maybe$work_queue_job_stats$9A6NE84h.h>
-
-poof(hashtable_struct(work_queue_job_stats))
-#include <generated/hashtable_struct$work_queue_job_stats$iM2uaXol.h>
-
-link_internal work_queue_job_stats_hashtable
-Allocate_work_queue_job_stats_hashtable(u32 ElementCount, memory_arena *Memory);
-
-link_internal b32
-AreEqual(work_queue_job_stats *Element1, work_queue_job_stats *Element2 )
-{
-  b32 Result = Element1->Job == Element2->Job &&
-               Element1->ReserveTime == Element2->ReserveTime &&
-               Element1->ReserveFrameIndex == Element2->ReserveFrameIndex;
-  return Result;
-}
-
-link_internal u32
-Hash(work_queue_job *Element)
-{
-  u32 Result = HashPointer(Element);
-  return Result;
-}
-
-link_internal u32
-Hash(work_queue_job_stats *Element)
-{
-  u32 Result = HashPointer(Element->Job);
-  return Result;
-}
-
-
 // NOTE(Jesse): A zero'd out one of these is invalid; the Generation is pre-incremented
 // on reserve, so a cleared one as a return value indicates you didn't get a valid
 // slot.  At the moment, there are two reasons this might happen:
@@ -76,8 +32,11 @@ struct global_job_index
   u16 Generation;
 };
 
+poof(are_equal(global_job_index))
+#include <generated/are_equal$global_job_index$82DiL9H8.h>
 poof(block_array_h(global_job_index, {64}, {}))
 #include <generated/block_array_h$global_job_index.688853971.0$jx6N6caG.h>
+
 // @await_0_returns_invalid_global_job_index
 link_internal b32
 IsValid(global_job_index Index)
@@ -89,6 +48,52 @@ struct queue_job_index
 {
   u32 Index;
 };
+
+
+struct work_queue_job_stats
+{
+  global_job_index JobId; poof(@hashtable_key)
+
+  u64 ReserveTime;
+  u64 RetireTime;
+
+  u32 ReserveFrameIndex;
+  u32 RetireFrameIndex;
+};
+
+poof(maybe(work_queue_job_stats))
+#include <generated/maybe$work_queue_job_stats$9A6NE84h.h>
+
+poof(hashtable_struct(work_queue_job_stats))
+#include <generated/hashtable_struct$work_queue_job_stats$iM2uaXol.h>
+
+link_internal work_queue_job_stats_hashtable
+Allocate_work_queue_job_stats_hashtable(u32 ElementCount, memory_arena *Memory);
+
+link_internal b32
+AreEqual(work_queue_job_stats *Element1, work_queue_job_stats *Element2 )
+{
+  b32 Result = Element1->JobId.Index      == Element2->JobId.Index &&
+               Element1->JobId.Generation == Element2->JobId.Generation;
+  return Result;
+}
+
+link_internal u32
+Hash(work_queue_job *Element);
+
+link_internal u32
+Hash(global_job_index *Element)
+{
+  u32 Result = u32(Element->Index) | (u32(Element->Generation) << 31);
+  return Result;
+}
+
+link_internal u32
+Hash(work_queue_job_stats *Element)
+{
+  u32 Result = Hash(&Element->JobId);
+  return Result;
+}
 
 
 struct work_queue
@@ -139,7 +144,7 @@ link_internal work_queue_job* AllocateWorkQueueJob(platform *Plat);
 
     link_weak           void   LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbacks);
 
-link_internal void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
+/* link_internal void WorkerThread_ApplicationDefaultImplementation(BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS); */
     link_weak void WorkerThread_BeforeSleep();
 link_internal void WorkerThread_BeforeJobStart(thread_local_state *StartupParams);
 

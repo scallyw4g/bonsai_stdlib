@@ -206,7 +206,7 @@ GetAbsoluteStdlibShaderDir()
 link_internal platform *
 GetPlatform()
 {
-  auto Result = &GetStdlib()->Plat;
+  platform *Result = &GetStdlib()->Plat;
   return Result;
 }
 

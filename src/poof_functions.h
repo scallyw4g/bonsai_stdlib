@@ -1039,7 +1039,7 @@ poof(
       {
         Type.is_primitive?
         { if (Bucket->Tombstoned == False && AreEqual(Bucket->Element, *KeyQuery)) }
-        { if (Bucket->Tombstoned == False && AreEqual(Bucket->Element.key_name, KeyQuery)) }
+        { if (Bucket->Tombstoned == False && AreEqual( (key_type.is_pointer?{}{&})Bucket->Element.key_name, KeyQuery)) }
         {
           Result = &Bucket->Element;
           break;

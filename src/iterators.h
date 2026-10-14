@@ -19,6 +19,12 @@
 
 
 
+#define For( ArgName, RangeMax ) \
+  for (s32 ArgName = 0; ArgName < RangeMax; ++ArgName)
+
+#define For_t(type, ArgName, RangeMax ) \
+  for (type ArgName = 0; ArgName < RangeMax; ++ArgName)
+
 #define RangeIterator( ArgName, RangeMax ) \
   for (s32 ArgName = 0; ArgName < RangeMax; ++ArgName)
 

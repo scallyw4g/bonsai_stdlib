@@ -43,7 +43,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
       s32 TotalJobs = u16_MAX;
       AllocateJobsArray(Plat, TotalJobs);
 
-      Plat->JobStatsTable = Allocate_work_queue_job_stats_hashtable(u32(TotalJobs), WorkQueueMemory);
+      Plat->JobStatsTable = Allocate_work_queue_job_stats_hashtable(u32(1024), WorkQueueMemory);
 
       InitQueue(&Plat->HighPriority, WorkQueueMemory);
       InitQueue(&Plat->LowPriority,  WorkQueueMemory);
@@ -65,7 +65,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 #if BONSAI_DEBUG_SYSTEM_API
     Ensure( InitDebugState(&Stdlib->DebugState) );
     Assert(GetDebugState());
-    MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(0.0f);
+    MAIN_THREAD_ADVANCE_DEBUG_SYSTEM(0.0f, 0);
 #else
     Error("Asked to init debug system when BONSAI_DEBUG_SYSTEM_API was not compiled in!");
 #endif
