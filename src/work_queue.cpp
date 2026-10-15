@@ -373,36 +373,56 @@ DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask)
 }
 
 link_internal void
+ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
+{
+  platform *Plat = GetPlatform();
+  if (Queue == &Plat->LoRenderQ || Queue == &Plat->HiRenderQ)
+  {
+    tswitch(Task)
+    {
+      { tmatch(work_queue_task_async_function_call, Task, RPC)
+        Ensure(ValidateRPCForRenderQ(RPC) == True);
+      } break;
+    }
+  }
+  else if (Queue == &Plat->HighPriority || Queue == &Plat->LowPriority)
+  {
+    tswitch(Task)
+    {
+      { tmatch(work_queue_task_async_function_call, Task, RPC)
+        Ensure(ValidateRPCForRenderQ(RPC) == False);
+      } break;
+    }
+  }
+  else
+  {
+    Error("Invalid Queue Pointer (0x%x) passed to ValidateJobForQueue", Queue);
+  }
+
+}
+
+
+link_internal void
 HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppApi)
 {
   Assert(Job->State == WorkQueueJobState_Submitted);
 
-  // TODO(Jesse): Do we actually want this anymore?  Probably not.
-  //
-  if ( AppApi->WorkerMain &&
-       AppApi->WorkerMain(Job, Thread))
+  if (Job->Stats)
   {
-    // App exported a WorkerMain, and it handled the job
+    debug_timed_function Timer(__func__);
+    if (Timer.Scope) // 0 if DebugDoScopeProfiling is off
+    {
+      Push(&Job->Stats->ExecScopes, Timer.Scope);
+    }
   }
-  else
-  {
-    if (Job->Stats)
-    {
-      Job->Stats->ThreadIndex = ThreadLocal_ThreadIndex;
-      debug_timed_function Timer(__func__);
-      if (Timer.Scope) // 0 if DebugDoScopeProfiling is off
-      {
-        Push(&Job->Stats->ExecScopes, Timer.Scope);
-      }
-    }
 
-    work_queue_task *WrappedTask = PopNextTask(Job);
-    tswitch (WrappedTask)
-    {
-      { tmatch(work_queue_task_async_function_call, WrappedTask, Task)
-        DispatchAsyncFunctionCall(Task);
-      } break;
-    }
+  work_queue_task *WrappedTask = PopNextTask(Job);
+  tswitch (WrappedTask)
+  {
+    { tmatch(work_queue_task_async_function_call, WrappedTask, Task)
+      ValidateTaskForQueue(WrappedTask->Queue, WrappedTask);
+      DispatchAsyncFunctionCall(Task);
+    } break;
   }
 
   MaybeResubmitJob(Job);
@@ -792,35 +812,6 @@ PushTask(work_queue_job *Job, work_queue_task *Task)
   Push(&Job->Tasks, Task);
 }
 
-link_internal void
-ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
-{
-  platform *Plat = GetPlatform();
-  if (Queue == &Plat->LoRenderQ || Queue == &Plat->HiRenderQ)
-  {
-    tswitch(Task)
-    {
-      { tmatch(work_queue_task_async_function_call, Task, RPC)
-        Ensure(ValidateRPCForRenderQ(RPC) == True);
-      } break;
-    }
-  }
-  else if (Queue == &Plat->HighPriority || Queue == &Plat->LowPriority)
-  {
-    tswitch(Task)
-    {
-      { tmatch(work_queue_task_async_function_call, Task, RPC)
-        Ensure(ValidateRPCForRenderQ(RPC) == False);
-      } break;
-    }
-  }
-  else
-  {
-    Error("Invalid Queue Pointer (0x%x) passed to ValidateJobForQueue", Queue);
-  }
-
-}
-
 // TODO(Jesse): This was just to conform with the old task-only API and can be
 // safely removed
 link_internal void
@@ -846,7 +837,6 @@ SubmitJob( work_queue_job *Job )
 
     // Debug
     ValidateTaskForQueue(Queue, Task);
-
 
     if (Job->State != WorkQueueJobState_Submitted)
     {
@@ -962,7 +952,6 @@ ReserveWorkQueueJob( platform *Plat, work_queue_job_reserve_flags Flags )
         .RetireTime = 0,
         .RetireFrameIndex = 0,
         .ExecScopes = {},
-        .ThreadIndex = INVALID_THREAD_LOCAL_THREAD_INDEX,
       };
 
       Record.ExecScopes.Memory = Plat->TaskMemory;

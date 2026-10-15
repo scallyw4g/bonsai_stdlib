@@ -154,6 +154,8 @@ typedef void (*bonsai_worker_thread_before_job_callback) (BONSAI_API_WORKER_THRE
 typedef bool        (*bonsai_worker_thread_callback)    (BONSAI_API_WORKER_THREAD_CALLBACK_PARAMS);
 typedef game_state* (*bonsai_main_thread_init_callback) (BONSAI_API_MAIN_THREAD_INIT_CALLBACK_PARAMS);
 
+typedef b32 (*bonsai_drain_queue_callback)            (engine_resources*, work_queue*, bonsai_futex*);
+
 typedef b32 (*bonsai_engine_callback)            (engine_resources*);
 typedef b32 (*bonsai_engine_init_callback)       (engine_resources*, thread_local_state*);
 
@@ -165,6 +167,8 @@ struct application_api
 
   bonsai_worker_thread_init_callback WorkerInit;
   bonsai_worker_thread_before_job_callback WorkerBeforeJob;
+
+  // TODO(Jesse): Remove this
   bonsai_worker_thread_callback WorkerMain;
 
   bonsai_main_thread_callback OnLibraryLoad; // Anytime the game library is loaded

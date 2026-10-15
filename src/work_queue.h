@@ -65,8 +65,6 @@ struct work_queue_job_stats
   u32 ReserveFrameIndex;
   u32 RetireFrameIndex;
 
-  s32 ThreadIndex;
-
   debug_profile_scope_ptr_block_array ExecScopes;
 };
 
@@ -246,3 +244,5 @@ UnawaitAndRetire(platform *Plat, work_queue_job *Job);
 link_internal void
 AssertWorkerThreadsSuspended(platform *Plat);
 
+link_internal void
+ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task);
