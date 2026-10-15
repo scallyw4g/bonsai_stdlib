@@ -76,6 +76,9 @@ link_internal debug_state * GetDebugState();
 #include <bonsai_stdlib/src/simplex.h>
 #include <bonsai_stdlib/src/input.h>
 #include <bonsai_stdlib/src/mutex.h>
+
+#include <bonsai_debug/debug.h>
+
 #include <bonsai_stdlib/src/work_queue_magic.h> // poof functions for asyncify
 #include <bonsai_stdlib/src/work_queue.h>
 
@@ -107,9 +110,6 @@ link_internal debug_state * GetDebugState();
 
 #include <bonsai_stdlib/src/debug_ui.h>
 
-
-
-#include <bonsai_debug/debug.h>
 #include <bonsai_debug/src/api.h>
 
 #define UNPACK_STDLIB(Stdlib) \

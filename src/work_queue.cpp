@@ -1,3 +1,6 @@
+poof(block_array_c(debug_profile_scope_ptr, {16}))
+#include <generated/block_array_c$debug_profile_scope_ptr.688854072$xXGEEoWk.h>
+
 // TODO(Jesse): Does this go here ..?
 poof(
   for_datatypes(func)
@@ -71,9 +74,6 @@ struct work_queue_task_async_function_call
     )
 #include <generated/poof_builtin.for_datatypes$$NiTeiJJT.h>  
   };
-
-  debug_profile_scope *StartScope;
-  debug_profile_scope *EndScope;
 };
 
 enum work_queue_task_type
@@ -84,7 +84,6 @@ enum work_queue_task_type
 struct work_queue_task
 {
   work_queue_task_type Type;
-  u32 Pad_;
 
   // NOTE(Jesse): This is the queue the job needs to be submitted to to
   // complete this task.
@@ -99,6 +98,7 @@ struct work_queue_task
 
 poof(block_array_h(work_queue_task, {8}, {}))
 #include <generated/block_array_h$work_queue_task.688856411.0$Dps6gqjO.h>
+
 poof(block_array_c(work_queue_task, {8}))
 #include <generated/block_array_c$work_queue_task.688856411$8iAEZ8gE.h>
 
@@ -316,6 +316,98 @@ PopNextJob(platform *Plat, work_queue* Queue, u32 CompareExchangeRetryCount /* =
 
 
 
+poof(
+  for_datatypes(struct)
+  func (struct_t)
+  {
+    struct_t.has_tag(async_function_params)?
+    {
+      struct struct_t.name;
+      link_internal work_queue_task
+      WorkQueueEntryAsyncFunction( work_queue *Queue, (struct_t.name) *Params )
+      {
+        work_queue_task Result = {};
+        Result.Queue = Queue;
+        Result.Type = type_work_queue_task_async_function_call;
+        Result.work_queue_task_async_function_call.Type = type_(struct_t.name);
+        Result.work_queue_task_async_function_call.(struct_t.name) = *Params;
+        return Result;
+      }
+    }
+  }
+)
+#include <generated/poof_builtin.for_datatypes$$rcup4r0h.h>
+
+poof(
+  for_datatypes(func)
+  func (func_t)
+  {
+    func_t.has_tag(async)?
+    {
+      asyncify_function_c(func_t)
+    }
+  }
+)
+#include <generated/poof_builtin.for_datatypes$$WAmjkG0M.h>
+
+
+link_internal void
+DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask)
+{
+  tswitch(WrappedTask)
+  {
+    poof(
+      func (async_function_call_type tag_t) @code_fragment
+      {
+        tag_t.map(tag_v)
+        {
+          {
+            tmatch( tag_v.name.strip_single_prefix, WrappedTask, FuncParams );
+            ExecFunction(FuncParams);
+          } break;
+        }
+      }
+    )
+#include <generated/poof_func.anonymous$async_function_call_type$DwG4hpHD.h>
+  }
+}
+
+link_internal void
+HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppApi)
+{
+  Assert(Job->State == WorkQueueJobState_Submitted);
+
+  // TODO(Jesse): Do we actually want this anymore?  Probably not.
+  //
+  if ( AppApi->WorkerMain &&
+       AppApi->WorkerMain(Job, Thread))
+  {
+    // App exported a WorkerMain, and it handled the job
+  }
+  else
+  {
+    if (Job->Stats)
+    {
+      Job->Stats->ThreadIndex = ThreadLocal_ThreadIndex;
+      debug_timed_function Timer(__func__);
+      if (Timer.Scope) // 0 if DebugDoScopeProfiling is off
+      {
+        Push(&Job->Stats->ExecScopes, Timer.Scope);
+      }
+    }
+
+    work_queue_task *WrappedTask = PopNextTask(Job);
+    tswitch (WrappedTask)
+    {
+      { tmatch(work_queue_task_async_function_call, WrappedTask, Task)
+        DispatchAsyncFunctionCall(Task);
+      } break;
+    }
+  }
+
+  MaybeResubmitJob(Job);
+}
+
 
 link_internal THREAD_MAIN_RETURN
 DefaultWorkerThread(void *Input)
@@ -510,8 +602,6 @@ AssertWorkerThreadsSuspended(platform *Plat)
 link_internal void
 SubmitJob( work_queue *Queue, work_queue_job *Job );
 
-link_internal void
-DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask, b32 Profile);
 
 link_internal void
 AllocateJobsArray(platform *Plat, s32 TotalJobs)
@@ -545,106 +635,8 @@ AllocateJobsArray(platform *Plat, s32 TotalJobs)
   /* Plat->JobStatsTable = Allocate_work_queue_job_stats_hashtable(4096, Plat->TaskMemory); */
 }
 
-link_internal void
-HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppApi)
-{
-  Assert(Job->State == WorkQueueJobState_Submitted);
-
-  // TODO(Jesse): Do we actually want this anymore?  Probably not.
-  //
-  if ( AppApi->WorkerMain &&
-       AppApi->WorkerMain(Job, Thread))
-  {
-    // App exported a WorkerMain, and it handled the job
-  }
-  else
-  {
-        auto *Plat = GetPlatform();
-    auto LoRenderQ = &Plat->LoRenderQ;
-    auto HiRenderQ = &Plat->HiRenderQ;
-
-    auto WrappedTask = PopNextTask(Job);
-    tswitch (WrappedTask)
-    {
-      { tmatch(work_queue_task_async_function_call, WrappedTask, Task)
-        b32 Profile = (Job->Stats != 0);
-        DispatchAsyncFunctionCall(Task, Profile);
-      } break;
-    }
-  }
-
-  MaybeResubmitJob(Job);
-}
 
 
-poof(
-  for_datatypes(struct)
-  func (struct_t)
-  {
-    struct_t.has_tag(async_function_params)?
-    {
-      struct struct_t.name;
-      link_internal work_queue_task
-      WorkQueueEntryAsyncFunction( work_queue *Queue, (struct_t.name) *Params )
-      {
-        work_queue_task Result = {};
-        Result.Queue = Queue;
-        Result.Type = type_work_queue_task_async_function_call;
-        Result.work_queue_task_async_function_call.Type = type_(struct_t.name);
-        Result.work_queue_task_async_function_call.(struct_t.name) = *Params;
-        return Result;
-      }
-    }
-  }
-)
-#include <generated/poof_builtin.for_datatypes$$rcup4r0h.h>
-
-poof(
-  for_datatypes(func)
-  func (func_t)
-  {
-    func_t.has_tag(async)?
-    {
-      asyncify_function_c(func_t)
-    }
-  }
-)
-#include <generated/poof_builtin.for_datatypes$$WAmjkG0M.h>
-
-
-
-link_internal void
-DispatchAsyncFunctionCall(work_queue_task_async_function_call *WrappedTask, b32 Profile)
-{
-  if (Profile)
-  {
-    debug_timed_function Timer(__func__);
-    WrappedTask->StartScope = Timer.Scope;
-  }
-
-  tswitch(WrappedTask)
-  {
-    poof(
-      func (async_function_call_type tag_t) @code_fragment
-      {
-        tag_t.map(tag_v)
-        {
-          {
-            tmatch( tag_v.name.strip_single_prefix, WrappedTask, FuncParams );
-            ExecFunction(FuncParams);
-          } break;
-        }
-      }
-    )
-#include <generated/poof_func.anonymous$async_function_call_type$DwG4hpHD.h>
-  }
-
-  if (Profile)
-  {
-    debug_timed_function Timer(__func__);
-    WrappedTask->EndScope = Timer.Scope;
-  }
-}
 
 link_internal work_queue_job *
 GetJobFromGlobal(platform *Plat, global_job_index GlobalJobIndex)
@@ -913,6 +905,7 @@ RetireWorkQueueJob(platform *Plat, work_queue_job *Job)
   Job->NextTaskIndex = 0;
   Job->Stats = 0;
 
+
   /* Assert(Job->OwningThreadId == ThreadLocal_ThreadIndex); */
   /* Job->OwningThreadId = INVALID_THREAD_LOCAL_THREAD_INDEX; */
 
@@ -968,7 +961,11 @@ ReserveWorkQueueJob( platform *Plat, work_queue_job_reserve_flags Flags )
         .ReserveFrameIndex = GetEngineResources()->FrameIndex,
         .RetireTime = 0,
         .RetireFrameIndex = 0,
+        .ExecScopes = {},
+        .ThreadIndex = INVALID_THREAD_LOCAL_THREAD_INDEX,
       };
+
+      Record.ExecScopes.Memory = Plat->TaskMemory;
 
       Result->Stats = Insert(Record, &Plat->JobStatsTable, Plat->TaskMemory);
     }

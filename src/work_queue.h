@@ -34,6 +34,7 @@ struct global_job_index
 
 poof(are_equal(global_job_index))
 #include <generated/are_equal$global_job_index$82DiL9H8.h>
+
 poof(block_array_h(global_job_index, {64}, {}))
 #include <generated/block_array_h$global_job_index.688853971.0$jx6N6caG.h>
 
@@ -49,6 +50,10 @@ struct queue_job_index
   u32 Index;
 };
 
+typedef debug_profile_scope* debug_profile_scope_ptr;
+
+poof(block_array_h(debug_profile_scope_ptr, {16}, {}))
+#include <generated/block_array_h$debug_profile_scope_ptr.688854072$xXGEEoWk.h>
 
 struct work_queue_job_stats
 {
@@ -59,6 +64,10 @@ struct work_queue_job_stats
 
   u32 ReserveFrameIndex;
   u32 RetireFrameIndex;
+
+  s32 ThreadIndex;
+
+  debug_profile_scope_ptr_block_array ExecScopes;
 };
 
 poof(maybe(work_queue_job_stats))
