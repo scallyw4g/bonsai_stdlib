@@ -50,6 +50,13 @@ struct queue_job_index
   u32 Index;
 };
 
+// NOTE(Jesse): work_queue_job is incomplete here (and platform needs this
+// array), so the array holds pointers into platform::Jobs.
+typedef work_queue_job* work_queue_job_ptr;
+
+poof(block_array_h(work_queue_job_ptr, {8}, {}))
+#include <generated/block_array_h$work_queue_job_ptr.688856411.0$Tm0utJb1.h>
+
 typedef debug_profile_scope* debug_profile_scope_ptr;
 
 poof(block_array_h(debug_profile_scope_ptr, {16}, {}))
@@ -193,6 +200,9 @@ SubmitJob( work_queue_job *Job );
 
 link_internal b32
 MaybeResubmitJob(work_queue_job *Job);
+
+link_internal void
+SubmitExpiredTimeoutJobs(platform *Plat);
 
 // TODO(Jesse): Rename to .. ExecuteJob ..?
 link_internal void

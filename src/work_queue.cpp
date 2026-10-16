@@ -89,6 +89,11 @@ struct work_queue_task
   // complete this task.
   work_queue_ptr Queue;
 
+  // If Timeout > 0, the job is held in platform::TimeoutJobs until
+  // platform::GameTime >= NextSubmit, which is computed at submit time.
+  r64 Timeout;
+  r64 NextSubmit;
+
   // TODO(Jesse): Get rid of this
   union
   {
@@ -152,6 +157,9 @@ struct work_queue_job
   u8 pad____[60];
 };
 CAssert(sizeof(work_queue_job) == CACHE_LINE_SIZE*3);
+
+poof(block_array_c(work_queue_job_ptr, {8}))
+#include <generated/block_array_c$work_queue_job_ptr.688856411$Tm0utJc1.h>
 
 link_internal u32
 Hash(work_queue_job *Element)
@@ -428,6 +436,33 @@ HandleJob(work_queue_job *Job, thread_local_state *Thread, application_api *AppA
   MaybeResubmitJob(Job);
 }
 
+link_internal void
+SubmitJobImmediate( work_queue_job *Job );
+
+link_internal void
+TrySubmitExpiredTimeoutJobs(platform *Plat)
+{
+  if (SignalFutex(&Plat->TimeoutJobsFutex))
+  {
+    r64 Now = GetHighPrecisionClock();
+    RangeIterator_t(umm, JobI, Count(&Plat->TimeoutJobs))
+    {
+      work_queue_job *Job = GetPtr(&Plat->TimeoutJobs, JobI);
+      work_queue_task *Task = PeekNextTask(Job);
+
+      Assert(Task);
+      if (Now >= Task->NextSubmit)
+      {
+        RemoveUnordered(&Plat->TimeoutJobs, {JobI});
+        JobI = JobI-1;
+        SubmitJobImmediate(Job);
+        break;
+      }
+    }
+    ReleaseFutex(&Plat->TimeoutJobsFutex);
+  }
+}
+
 
 link_internal THREAD_MAIN_RETURN
 DefaultWorkerThread(void *Input)
@@ -467,6 +502,8 @@ DefaultWorkerThread(void *Input)
     for (;;)
     {
       WORKER_THREAD_ADVANCE_DEBUG_SYSTEM();
+
+      TrySubmitExpiredTimeoutJobs(Plat);
 
       if (!QueueIsEmpty(HighPriority)) break;
 
@@ -508,6 +545,8 @@ DefaultWorkerThread(void *Input)
         if ( FutexIsSignaled(WorkerThreadsExitFutex) ) break;
 
         if ( FutexIsSignaled(WorkerThreadsSuspendFutex) ) break;
+
+        TrySubmitExpiredTimeoutJobs(Plat);
       }
 
       AtomicDecrement(HighPriorityWorkerCount);
@@ -539,6 +578,7 @@ DefaultWorkerThread(void *Input)
         break;
       }
 
+      TrySubmitExpiredTimeoutJobs(Plat);
     }
 
     if ( ! FutexIsSignaled(HighPriorityModeFutex) )
@@ -631,6 +671,8 @@ AllocateJobsArray(platform *Plat, s32 TotalJobs)
   Assert(Plat->JobCount == 0);
 
   Plat->TaskMemory = AllocateArena(Megabytes(4));
+
+  Plat->TimeoutJobs.Memory = Plat->TaskMemory;
 
   // Ensure alignment to cache lines so we don't get false sharing, or tearing
   // on reads straddling the boudnary
@@ -823,10 +865,8 @@ SubmitJob( work_queue *Queue, work_queue_job *Job )
   SubmitJob(Job);
 }
 
-// @assert_job_queue
-//
 link_internal void
-SubmitJob( work_queue_job *Job )
+SubmitJobImmediate( work_queue_job *Job )
 {
   TIMED_FUNCTION();
 
@@ -877,6 +917,28 @@ SubmitJob( work_queue_job *Job )
   else
   {
     Warn("Attempted to submit job with 0 tasks remaining!");
+  }
+}
+
+// @assert_job_queue
+//
+link_internal void
+SubmitJob( work_queue_job *Job )
+{
+  platform *Plat = GetPlatform();
+  work_queue_task *Task = PeekNextTask(Job);
+
+  if (Task && Task->Timeout > 0.0)
+  {
+    Task->NextSubmit = GetHighPrecisionClock() + Task->Timeout;
+
+    AcquireFutex(&Plat->TimeoutJobsFutex);
+    Push(&Plat->TimeoutJobs, Job);
+    ReleaseFutex(&Plat->TimeoutJobsFutex);
+  }
+  else
+  {
+    SubmitJobImmediate(Job);
   }
 }
 

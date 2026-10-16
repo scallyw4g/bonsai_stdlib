@@ -31,6 +31,10 @@ poof(@do_editor_ui)
 
   work_queue_job_stats_hashtable JobStatsTable;
 
+  // Jobs whose next task has a Timeout and is waiting to be submitted
+  work_queue_job_ptr_block_array TimeoutJobs;
+  bonsai_futex TimeoutJobsFutex;
+
   v2 MouseP;
   v2 MouseDP;
 
