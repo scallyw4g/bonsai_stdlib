@@ -253,6 +253,19 @@ PlatformGetGlFunction(const char* Name)
 inline r64
 GetHighPrecisionClock()
 {
+  local_persist u64 EpochNsTicks = 0;
+  if (EpochNsTicks == 0)
+  {
+    _FILETIME Epoch = {};
+    GetSystemTimePreciseAsFileTime(&Epoch);
+
+    ULARGE_INTEGER LargeInt;
+    LargeInt.LowPart = Epoch.dwLowDateTime;
+    LargeInt.HighPart = Epoch.dwHighDateTime;
+    EpochNsTicks = LargeInt.QuadPart;
+  }
+
+
   _FILETIME Time = {};
   GetSystemTimePreciseAsFileTime(&Time);
 
@@ -266,7 +279,7 @@ GetHighPrecisionClock()
   u64 HundredNanosecondTickCount = LargeInt.QuadPart;
 
   // Convert 100ns intervals to nanoseconds
-  r64 Ns = r64(HundredNanosecondTickCount*100);
+  r64 Ns = r64(HundredNanosecondTickCount-EpochNsTicks)*100.0;
 
   // Return Milliseconds
   return NanosecondsToMilliseconds(Ns);
