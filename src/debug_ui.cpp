@@ -16,7 +16,9 @@ PushCycleBar(debug_ui_render_group* Group, cycle_range* Range, cycle_range* Fram
 
     r32 BarWidth = FramePerc*TotalGraphWidth;
 
-    if (BarWidth > 5.f)
+    BarWidth = Max(2.f, BarWidth); // Require BarWidth be at least 2 px
+
+    /* if (BarWidth > 5.f) */
     {
       v2 BarDim = V2(BarWidth, BarHeight);
 
