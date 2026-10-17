@@ -1,23 +1,3 @@
-link_internal void
-CopyString(cs *Src, cs *Dest)
-{
-  Assert(Src->Count <= Dest->Count);
-  MemCopy((u8*)Src->Start, (u8*)Dest->Start, Src->Count);
-  Dest->Count = Src->Count;
-}
-
-link_internal void
-CopyString(const char *Src, const char *Dest, umm Count)
-{
-  MemCopy((u8*)Src, (u8*)Dest, Count);
-}
-
-
-link_internal void
-DeepCopy(cs *S1, cs *S2)
-{
-  CopyString(S1, S2);
-}
 
 inline b32
 StringsMatch(const char *S1, const char *S2)
@@ -117,26 +97,6 @@ AreEqual(const char *S1, const char *S2)
   return Result;
 }
 
-poof(stream_and_cursor(counted_string))
-#include <generated/stream_and_cursor$counted_string$AxypkWwK.h>
-
-struct tagged_counted_string_stream
-{
-  counted_string Tag;
-  counted_string_stream Stream;
-};
-poof(generate_stream(tagged_counted_string_stream))
-#include <generated/generate_stream$tagged_counted_string_stream$FPUAfl9m.h>
-
-// TODO(Jesse, id: 99, tags: compiler_feature, metaprogramming): Generate this?  Need a compiler feature to generate stuff from primitive types.
-struct char_cursor
-{
-  char* Start;
-  char* At;
-  char* End;
-  memory_arena* Memory; // TODO(Jesse, id: 100, tags: open_question, metaprogramming): Do we actually want this in here?
-};
-
 // Note(Jesse): Shamelessly copied from the Handmade Hero codebase
 global_variable char DecChars[] = "0123456789";
 global_variable char LowerHexChars[] = "0123456789abcdef";
@@ -199,30 +159,6 @@ AreEqual(const char *S1, cs S2)
   return Result;
 }
 
-
-cs
-CS(char_cursor* Cursor)
-{
-  cs Result = {
-    .Count = (umm)(Cursor->At - Cursor->Start),
-    .Start = Cursor->Start,
-  };
-
-  return Result;
-}
-
-char_cursor
-CharCursor(cs S)
-{
-  char_cursor Result = {
-    .Start = (char*)S.Start,
-    .At = (char*)S.Start,
-    .End = (char*)(S.Start + S.Count),
-    {},
-  };
-  return Result;
-}
-
 link_internal char
 LastChar(counted_string *Str)
 {
@@ -234,6 +170,13 @@ link_internal char
 LastChar(counted_string Str)
 {
   char Result = Str.Count ? Str.Start[Str.Count-1] : 0;
+  return Result;
+}
+
+link_internal b32
+IsNullTerminated(cs S)
+{
+  b32 Result = LastChar(S) == 0;
   return Result;
 }
 
@@ -882,187 +825,8 @@ poof(
 poof(parse_integer({u32 u64 s32 s64}))
 #include <generated/parse_integer$136174807$OaJpnS3L.h>
 
-link_internal char
-Peek(char_cursor* BufferCursor)
-{
-  char Result = *BufferCursor->At;
-  return Result;
-}
-
-link_internal char
-Advance(char_cursor* BufferCursor)
-{
-  char Result = 0;
-  if (Remaining(BufferCursor))
-  {
-    Result = *BufferCursor->At++;
-  }
-  else
-  {
-    Error("Attempted to advance an empty char_cursor!");
-  }
-  return Result;
-}
-
-link_internal u32
-EmbeddedU32(char_cursor* FormatCursor)
-{
-  char* NumStart = FormatCursor->At;
-  Assert(IsNumeric(*NumStart));
-  while(IsNumeric(Peek(FormatCursor))) { Advance(FormatCursor); }
-
-  u32 CharCount = (u32)(FormatCursor->At - NumStart);
-  counted_string NumberString = CS((const char*)NumStart, CharCount);
-  u32 Result = ToU32(NumberString);
-  return Result;
-}
-
-link_internal b32
-Reallocate(char_cursor *Dest, umm Increment)
-{
-  b32 Result = False;
-  umm CurrentSize = TotalSize(Dest);
-  if (Reallocate((u8*)Dest->Start, Dest->Memory, CurrentSize, CurrentSize+Increment))
-  {
-    Dest->End += Increment;
-    Result = True;
-  }
-
-  return Result;
-}
-
-link_internal void
-CopyToDest(char_cursor *Dest, char C)
-{
-  b32 DoCopy = True;
-  if (!Remaining(Dest))
-  {
-    if (Dest->Memory)
-    {
-      umm Increment = 32;
-      if (Reallocate(Dest, Increment))
-      {
-        // Everyone's happy
-      }
-      else
-      {
-        // Reallocate already prints out an error for this case, no need to bother the user twice.
-        DoCopy = False;
-      }
-    }
-    else
-    {
-      Warn("Unable to reallocate char_cursor; no memory pointer!");
-      DoCopy = False;
-    }
-  }
-
-  if (DoCopy)
-  {
-    *Dest->At++ = C;
-  }
-}
-
-link_internal void
-CopyToDest(char_cursor *Dest, counted_string String)
-{
-  for (u32 CharIndex = 0;
-      CharIndex < String.Count;
-      ++CharIndex)
-  {
-    CopyToDest(Dest, String.Start[CharIndex]);
-  }
-}
-
-link_internal void
-u64ToChar(char_cursor* Dest, u64 Value, u32 Columns = 0, u32 Base = 10, char *Digits = DecChars)
-{
-  Assert(Base != 0);
-
-  char *Start = Dest->At;
-  do
-  {
-    u64 DigitIndex = (Value % Base);
-    char Digit = Digits[DigitIndex];
-    CopyToDest(Dest, Digit);
-    Value /= Base;
-  }
-  while(Value != 0);
-
-  char *End = Dest->At;
-
-  s32 Length = (s32)(End - Start);
-  s32 PadCount = (s32)Columns-(s32)Length;
-
-  while (PadCount > 0)
-  {
-    --PadCount;
-    CopyToDest(Dest, ' ');
-  }
-
-  End = Dest->At;
-
-  while(Start < End)
-  {
-      --End;
-      char Temp = *End;
-      *End = *Start;
-      *Start = Temp;
-      ++Start;
-  }
-
-  return;
-}
-
-link_internal void
-s64ToChar(char_cursor* Dest, s64 Value, u32 Columns, u32 Base = 10, char *Digits = DecChars)
-{
-  if (Value < 0)
-  {
-    CopyToDest(Dest, '-');
-    Value = -Value;
-  }
-
-  u64ToChar(Dest, (u64)Value, Columns, Base, Digits);
-  return;
-}
-
-// Note(Jesse): Shamelessly copied, then modified, from the Handmade Hero codebase
-#define DEFAULT_FORMAT_PRECISION (16)
-link_internal void
-f64ToChar(char_cursor* Dest, r64 Value, u32 Precision = DEFAULT_FORMAT_PRECISION, u32 Columns = 0)
-{
-  if(Value < 0)
-  {
-    CopyToDest(Dest, '-');
-    Value = -Value;
-  }
-
-  u64 IntegerPart = (u64)Value;
-  Value -= (r64)IntegerPart;
-
-  s32 ColumnPad = (s32)Columns - ((s32)Precision + 1); // NOTE(Jesse): +1 for the '.'
-
-  ColumnPad = Max(ColumnPad, 0);
-  u64ToChar(Dest, IntegerPart, (u32)ColumnPad);
-  CopyToDest(Dest, '.');
-
-  // Note(casey): Note that this is NOT an accurate way to do this!
-  for(u32 PrecisionIndex = 0;
-          PrecisionIndex < Precision;
-        ++PrecisionIndex)
-  {
-      Value *= 10.;
-      u32 Int = (u32)Value;
-      Value -= Int;
-      CopyToDest(Dest, DecChars[Int]);
-  }
-
-  return;
-}
 
 // Shamelessly ripped from https://cp-algorithms.com/string/string-hashing.html
-
 /* TODO(Jesse, id: 81, tags: string_hash): Theres' a null terminated
  * string-hash bonsai_function that should be replaced by this one most likely
  */
@@ -1168,6 +932,15 @@ Frontcate(cs *S, umm Count)
 {
   if (S->Count >= Count) { S->Count -= Count; S->Start += Count; }
 }
+
+link_internal void
+CopyString(cs *Src, cs *Dest);
+
+link_internal void
+CopyString(const char *Src, const char *Dest, umm Count);
+
+link_internal void
+DeepCopy(cs *S1, cs *S2);
 
 poof(block_array_h(counted_string, {32}, {}))
 #include <generated/block_array_h$counted_string.688853862.0$hF2RLaRD.h>

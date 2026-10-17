@@ -361,8 +361,8 @@ struct text_box_edit_state
 
 struct textured_quad_render_pass
 poof(
-    @vert_source_file(Concat(GetAbsoluteStdlibShaderDir(), CSz("FullPassthrough.vertexshader"), GetTranArena()))
-    @frag_source_file(Concat(GetAbsoluteStdlibShaderDir(), CSz("SimpleTexture.fragmentshader"), GetTranArena()))
+    @vert_source_files(ConcatZs(GetAbsoluteStdlibShaderDir(), CSz("FullPassthrough.vertexshader"), GetTranArena()))
+    @frag_source_files(ConcatZs(GetAbsoluteStdlibShaderDir(), CSz("SimpleTexture.fragmentshader"), GetTranArena()))
 
   )
 {

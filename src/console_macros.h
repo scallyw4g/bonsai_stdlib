@@ -10,13 +10,6 @@ SetupStdout(u32 ArgCount, const char** ArgStrings);
 /* link_internal counted_string */
 /* FormatCountedString_(char* Dest, umm DestSize, const char *FS, ...); */
 
-#define CSz(NullTerminatedCString) \
-  CS(NullTerminatedCString, sizeof(NullTerminatedCString)-1)
-
-link_inline cs CS(cs *Cs) { return *Cs; }
-link_inline cs CS(cs Cs) { return Cs; }
-link_inline cs CS(const char *S, umm Count);
-
 enum log_level
 {
   LogLevel_Undefined,

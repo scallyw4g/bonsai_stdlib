@@ -3955,13 +3955,13 @@ InitRenderer2D( renderer_2d *Renderer,
 
     Ensure(ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_default));
 
-    cs VertPath = Concat(GetAbsoluteStdlibShaderDir(), CSz("ui.vertexshader"), GetTranArena());
-    cs FragPath = Concat(GetAbsoluteStdlibShaderDir(), CSz("ui.fragmentshader"), GetTranArena());
-    CompileShaderPair(&TextGroup->UiShader, VertPath, FragPath );
+    cs VertPath = ConcatZs(GetAbsoluteStdlibShaderDir(), CSz("ui.vertexshader"), GetTranArena());
+    cs FragPath = ConcatZs(GetAbsoluteStdlibShaderDir(), CSz("ui.fragmentshader"), GetTranArena());
+    CompileNewShader(&TextGroup->UiShader, CSz("UI"), VertPath, FragPath, PermMemory );
 
     TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->UiShader.ID, "TextTextureSampler");
 
-    InitializeTexturedQuadRenderPass( &Renderer->TexturedQuadRenderPass,  0, 0, 0, {});
+    InitializeTexturedQuadRenderPass( &Renderer->TexturedQuadRenderPass,  0, 0, 0, {}, PermMemory);
 
     AssertNoGlErrors;
   }

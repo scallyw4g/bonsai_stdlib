@@ -25,7 +25,7 @@ void assert_fail(cs, cs, const char *);
 
     //PlatformDebugStacktrace();
 
-#define NotImplemented Error("Implement Me! %s:%d ", __FILE__, __LINE__); Assert(False)
+#define NotImplemented Error("Implement Me! %s:%d ", __FILE__, __LINE__);
 
 #else // Release Build
 

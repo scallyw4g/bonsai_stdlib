@@ -14,13 +14,24 @@ poof(
       {
           member.has_tag(uniform)?  {, member.type member.is_pointer?{*}member.name}
       }
+      , memory_arena *PermMemory
     )
     {
-      shader_struct.has_tag(vert_source_file)?
+      shader_struct.has_tag(vert_source_files)?
       {
-        shader_struct.has_tag(frag_source_file)?
+        shader_struct.has_tag(frag_source_files)?
         {
-          b32 Result = CompileShaderPair(&Element->Program, (shader_struct.tag_value(vert_source_file)), (shader_struct.tag_value(frag_source_file)) );
+          cs VertSources[] = { shader_struct.tag_value(vert_source_files) };
+          cs FragSources[] = { shader_struct.tag_value(frag_source_files) };
+
+          s32 FragSourceCount = Cast(s32, ArrayCount(FragSources));
+          s32 VertSourceCount = Cast(s32, ArrayCount(VertSources));
+
+          b32 Result = CompileNewShader(&Element->Program,
+              CSz("shader_struct.name.to_capital_case"),
+              VertSources, VertSourceCount,
+              FragSources, FragSourceCount,
+              PermMemory);
 
           if (Result)
           {
@@ -66,11 +77,11 @@ poof(
           }
         }
         {
-          poof_error { Poof func shader_magic requires tag @frag_source_file }
+          poof_error { Poof func shader_magic requires tag @frag_source_files. }
         }
       }
       {
-        poof_error { Poof func shader_magic requires tag @vert_source_file }
+        poof_error { Poof func shader_magic requires tag @vert_source_files }
       }
 
       AssertNoGlErrors;
@@ -117,7 +128,7 @@ poof(
       }
       else
       {
-        SoftError("Attempted to bind uncompiled Shader ((shader_struct.tag_value(vert_source_file))) | ((shader_struct.tag_value(frag_source_file)))");
+        SoftError("Attempted to bind uncompiled shader when using render pass ((shader_struct.name)) )");
       }
 
       AssertNoGlErrors;
@@ -201,11 +212,13 @@ poof(buffer_h(shader_uniform, u32))
 struct shader
 poof(@do_editor_ui)
 {
+  cs DebugName;
+
   u32 ID = INVALID_SHADER;
   shader_uniform_buffer Uniforms;
 
-  hot_reloadable_file Vert;
-  hot_reloadable_file Frag;
+  hot_reloadable_file_block_array VertFiles;
+  hot_reloadable_file_block_array FragFiles;
 
   b32 HotReloaded;
 };

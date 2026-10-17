@@ -10,7 +10,12 @@ FramebufferTextureLayer(framebuffer *FBO, texture *Tex, ui_texture_slice Layer)
 link_internal b32
 MakeRenderToTextureShader(shader *Shader, memory_arena *Memory, m4 *ViewProjection, texture *ColorPalette)
 {
-  b32 Result = CompileShaderPair(Shader, CSz(BONSAI_SHADER_PATH "RenderToTexture.vertexshader"), CSz(BONSAI_SHADER_PATH "RenderToTexture.fragmentshader") );
+  b32 Result = CompileNewShader(Shader,
+      CSz("RenderToTexture"),
+      CSzs(BONSAI_SHADER_PATH "RenderToTexture.vertexshader"),
+      CSzs(BONSAI_SHADER_PATH "RenderToTexture.fragmentshader"),
+      Memory
+    );
 
   if (Result)
   {

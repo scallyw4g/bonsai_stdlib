@@ -13,6 +13,7 @@
 #include <bonsai_stdlib/src/iterators.h>
 #include <bonsai_stdlib/src/primitives.h>
 #include <bonsai_stdlib/src/assert.h>
+#include <bonsai_stdlib/src/primitive_functions.h>
 
 struct bonsai_stdlib;
 link_internal bonsai_stdlib * GetStdlib();
@@ -53,13 +54,17 @@ link_internal debug_state * GetDebugState();
 #include <bonsai_stdlib/src/arccostable.h>
 
 #include <bonsai_stdlib/src/maff.h>
+#include <bonsai_stdlib/src/counted_string.h>
 #include <bonsai_stdlib/src/memory_arena.h>
+
+#include <bonsai_stdlib/src/char_cursor.h>
 #include <bonsai_stdlib/src/primitive_containers.h>
 #include <bonsai_stdlib/src/file.h>
 #include <bonsai_stdlib/src/filesystem.h>
 #include <bonsai_stdlib/src/vector.h>
 #include <bonsai_stdlib/src/matrix.h>
 #include <bonsai_stdlib/src/colors.h>
+
 
 #include <bonsai_stdlib/src/gl.h>
 #include <bonsai_stdlib/src/ui/gl.h>
@@ -92,7 +97,18 @@ link_internal debug_state * GetDebugState();
 
 #include <bonsai_stdlib/src/platform_struct.h>
 #include <bonsai_stdlib/src/stream.h>
-#include <bonsai_stdlib/src/counted_string.h>
+
+poof(stream_and_cursor(counted_string))
+#include <generated/stream_and_cursor$counted_string$AxypkWwK.h>
+
+struct tagged_counted_string_stream
+{
+  counted_string Tag;
+  counted_string_stream Stream;
+};
+poof(generate_stream(tagged_counted_string_stream))
+#include <generated/generate_stream$tagged_counted_string_stream$FPUAfl9m.h>
+
 #include <bonsai_stdlib/src/sort.h>
 #include <bonsai_stdlib/src/console_io.h>
 #include <bonsai_stdlib/src/line.h>

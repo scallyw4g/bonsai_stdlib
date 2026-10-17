@@ -43,15 +43,8 @@ struct hot_reloadable_file
   u64 LastModified;
 };
 
-link_internal hot_reloadable_file
-HotReloadableFile(cs FilePath, memory_arena *Memory)
-{
-  // NOTE(Jesse): Make sure to copy path
-  hot_reloadable_file Result = {};
-  NotImplemented;
-  return Result;
-}
-
+poof(block_array_h(hot_reloadable_file, {8}, {}))
+#include <generated/block_array_h$hot_reloadable_file.688856411$SC8Bs8cQ.h>
 
 link_internal b32 CloseFile(native_file* File);
 
@@ -81,4 +74,7 @@ link_internal b32 FileExists(counted_string Path);
 
 link_internal b32 ReadBytesIntoBuffer(native_file *Src, u8* Dest, umm BytesToRead);
 
+link_internal u64 GetLastModifiedtime(const char *Filepath);
 
+
+link_internal hot_reloadable_file HotReloadableFile(cs FilePath);

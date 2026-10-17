@@ -335,7 +335,8 @@ link_internal b32
 AreEqual(base_ptr_relative_edit *Thing1, base_ptr_relative_edit *Thing2);
 
 link_internal u32
-HashPointer(void *Ptr) {
+HashPointer(void *Ptr)
+{
     u64 x = Cast(u64, Ptr);
 
     // Splitmix64 / MurmurHash3 finalizer constants for 64-bit mixing
@@ -347,5 +348,4 @@ HashPointer(void *Ptr) {
 
     // The top 32 bits contain highest entropy
     return Cast(u32, x >> 32);
-
 }

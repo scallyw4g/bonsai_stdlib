@@ -11,6 +11,9 @@ poof(block_array(file_traversal_node, {32}))
 poof(flatten_block_array(file_traversal_node))
 #include <generated/flatten_block_array$file_traversal_node$ZVYQSSUj.h>
 
+poof(block_array_c(hot_reloadable_file, {8}))
+#include <generated/block_array_c$hot_reloadable_file.688856411$SC8Bs8cQ.h>
+
 // TODO(Jesse): The Create and Delete functions here are identical mirrors of
 // each other.. metaprogram them.
 link_internal b32
@@ -423,3 +426,26 @@ GetLexicographicallySortedListOfFilesInDirectory(cs Directory, memory_arena *Mem
 
   return Result;
 }
+
+
+link_internal hot_reloadable_file
+HotReloadableFile(cs FilePath)
+{
+  hot_reloadable_file Result = {};
+
+  Assert(IsNullTerminated(FilePath));
+
+  auto Stdlib = GetStdlib();
+  if (IsHeapAllocated(&Stdlib->Ui.Strings, Cast(void*, FilePath.Start)) == False)
+  {
+    FilePath = CopyString(FilePath, &Stdlib->Ui.Strings);
+  }
+
+  Result.File.Path = FilePath;
+  Result.LastModified = GetLastModifiedtime(FilePath.Start);
+
+  Assert(Result.LastModified);
+
+  return Result;
+}
+

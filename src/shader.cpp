@@ -10,46 +10,6 @@ struct shader_compile_result
   u32 ShaderId;
 };
 
-link_internal shader_compile_result
-CompileShader(ansi_stream Header, ansi_stream Code, u32 Type, b32 DumpErrors)
-{
-  auto GL = GetGL();
-
-  const int InfoLogLength = 0;
-
-  u32 ShaderID = GL->CreateShader(Type);
-
-  const char *Sources[2] = {Header.Start, Code.Start};
-  const s32 Lengths[2] = {(s32)TotalSize(&Header), (s32)TotalSize(&Code)};
-
-
-  // Compile
-  GL->ShaderSource(ShaderID, 2, Sources, Lengths);
-  GL->CompileShader(ShaderID);
-
-  // Check Status
-  s32 CompileSuccess = GL_FALSE;
-  GL->GetShaderiv(ShaderID, GL_COMPILE_STATUS, &CompileSuccess);
-  GL->GetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, (s32*)&InfoLogLength);
-  AssertNoGlErrors;
-
-  // TODO(Jesse): We should probably return a flag from this function that indicates
-  // the compilation failed..?  Or reinstate CheckShaderCompilationStatus?
-  if (DumpErrors && CompileSuccess == GL_FALSE)
-  {
-    char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength);
-    s32 ActualLength = 0;
-    GL->GetShaderInfoLog(ShaderID, InfoLogLength, &ActualLength, ProgramErrorMessage);
-    SoftError("Compiling Shader : ApparentLogLength(%d) ActualLogLength(%d) DriverInfoMessage (%S)", InfoLogLength, ActualLength, CS(ProgramErrorMessage, umm(ActualLength)));
-
-    // NOTE(Jesse): Need this to get the actual error message later ... sigh ...
-    /* GL->DeleteShader(ShaderID); */
-    /* ShaderID = INVALID_SHADER; */
-  }
-
-  shader_compile_result Result = {CompileSuccess == GL_TRUE, ShaderID};
-  return Result;
-}
 
 #if 1
 link_internal void
@@ -120,12 +80,12 @@ RegisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
   auto Index = Find(&Stdlib->AllShaders, Shader).Index;
   if (Index == INVALID_BLOCK_ARRAY_INDEX)
   {
-    Shader("Registered (%S|%S) successfully for hot-reload at Index (%d).", Shader->Vert.File.Path, Shader->Frag.File.Path, AtElements(&Stdlib->AllShaders));
+    Shader("Registered (%S) successfully for hot-reload at Index (%d).", Shader->DebugName, AtElements(&Stdlib->AllShaders));
     Push(&Stdlib->AllShaders, Shader);
   }
   else
   {
-    Warn("Shader pair (%S|%S) already registered for hot-reload, not registering duplicate.", Shader->Vert.File.Path, Shader->Frag.File.Path);
+    Warn("Shader (%S) already registered for hot-reload, not registering duplicate.", Shader->DebugName);
   }
 }
 
@@ -137,12 +97,12 @@ UnregisterShaderForHotReload(bonsai_stdlib *Stdlib, shader *Shader)
   auto I = Find(&Stdlib->AllShaders, Shader);
   if (IsValid(&I))
   {
-    Shader("Unregistered (%S|%S) successfully for hot-reload at Index (%d).", Shader->Vert.File.Path, Shader->Vert.File.Path, AtElements(&Stdlib->AllShaders));
+    Shader("Unregistered (%S) successfully for hot-reload at Index (%d).", Shader->DebugName);
     RemoveUnordered(&Stdlib->AllShaders, I);
   }
   else
   {
-    Warn("Shader pair (%S|%S) not registered for hot-reload.", Shader->Vert.File.Path, Shader->Frag.File.Path);
+    Warn("Shader pair (%S) not registered for hot-reload.", Shader->DebugName);
   }
 }
 
@@ -183,113 +143,159 @@ DumpShaderSource(u32 ShaderId)
   }
 }
 
+link_internal void
+AssertAllFilenameStringsHeapAllocated(hot_reloadable_file_block_array *Files)
+{
+  auto Stdlib = GetStdlib();
+  IterateOver(Files, File, FileIndex)
+  {
+    Assert(IsHeapAllocated(&Stdlib->Ui.Strings, Cast(void*, File->File.Path.Start)));
+  }
+}
+
+link_internal shader_compile_result
+CompileShader(const char **Sources, const s32 *Lengths, u32 Count, u32 Type, b32 DumpErrors = False)
+{
+  auto GL = GetGL();
+
+  const int InfoLogLength = 0;
+
+  u32 ShaderID = GL->CreateShader(Type);
+
+  // Compile
+  GL->ShaderSource(ShaderID, s32(Count), Sources, Lengths);
+  GL->CompileShader(ShaderID);
+
+  // Check Status
+  s32 CompileSuccess = GL_FALSE;
+  GL->GetShaderiv(ShaderID, GL_COMPILE_STATUS, &CompileSuccess);
+  GL->GetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, (s32*)&InfoLogLength);
+  AssertNoGlErrors;
+
+  // TODO(Jesse): We should probably return a flag from this function that indicates
+  // the compilation failed..?  Or reinstate CheckShaderCompilationStatus?
+  if (DumpErrors && CompileSuccess == GL_FALSE)
+  {
+    char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength);
+    s32 ActualLength = 0;
+    GL->GetShaderInfoLog(ShaderID, InfoLogLength, &ActualLength, ProgramErrorMessage);
+    SoftError("Compiling Shader : ApparentLogLength(%d) ActualLogLength(%d) DriverInfoMessage (%S)", InfoLogLength, ActualLength, CS(ProgramErrorMessage, umm(ActualLength)));
+
+    // NOTE(Jesse): Need this to get the actual error message later ... sigh ...
+    /* GL->DeleteShader(ShaderID); */
+    /* ShaderID = INVALID_SHADER; */
+  }
+
+  shader_compile_result Result = {CompileSuccess == GL_TRUE, ShaderID};
+  return Result;
+}
+
+link_internal shader_compile_result
+CompileShader(ansi_stream *HeaderCode, hot_reloadable_file_block_array *Files, u32 Type, b32 DumpErrors)
+{
+  auto Tran = GetTranArena();
+
+  // +1 for header code
+  u32 FileCount = u32(AtElements(Files).Index);
+  u32 TotalSources = FileCount+1;
+  const char **Sources = Allocate(const char *, Tran, TotalSources);
+         s32  *Lengths = Allocate(s32, Tran, TotalSources);
+
+  Sources[0] = HeaderCode->Start;
+  Lengths[0] = Cast(s32, TotalSize(HeaderCode));
+
+
+  for (u32 Index = 0; Index < FileCount; ++Index)
+  {
+    cs Path = GetPtr(Files, Index)->File.Path;
+    ansi_stream Code = ReadEntireFileIntoAnsiStream(Path, Tran);
+    Sources[Index+1] = Code.Start;
+    Lengths[Index+1] = Cast(s32, TotalSize(&Code));
+  }
+
+  shader_compile_result Result = CompileShader(Sources, Lengths, TotalSources, Type, DumpErrors);
+  AssertNoGlErrors;
+
+  return Result;
+}
+
 link_internal b32
+poof(@async @render)
 CompileShaderPair(shader *Shader, b32 DumpErrors = True, b32 RegisterForHotReload = True)
 {
+  Shader("Creating (%S)", Shader->DebugName);
+
   auto Stdlib = GetStdlib();
   auto GL = GetGL();
 
-  if (IsHeapAllocated(&Stdlib->Ui.Strings, Cast(void*, Shader->Vert.File.Path.Start)) == False)
-  {
-    Shader->Vert.File.Path = CopyString(Shader->Vert.File.Path, &Stdlib->Ui.Strings);
-  }
+  Assert(TotalElements(&Shader->VertFiles));
+  Assert(TotalElements(&Shader->FragFiles));
 
-  if (IsHeapAllocated(&Stdlib->Ui.Strings, Cast(void*, Shader->Frag.File.Path.Start)) == False)
-  {
-    Shader->Frag.File.Path = CopyString(Shader->Frag.File.Path, &Stdlib->Ui.Strings);
-  }
-
-  cs VertShaderPath = Shader->Vert.File.Path;
-  cs FragShaderPath = Shader->Frag.File.Path;
-
-  // NOTE(Jesse): This is wack.
-  Shader->Vert.LastModified = GetLastModifiedtime(GetNullTerminated(Shader->Vert.File.Path));
-  Shader->Frag.LastModified = GetLastModifiedtime(GetNullTerminated(Shader->Frag.File.Path));
+  AssertAllFilenameStringsHeapAllocated(&Shader->VertFiles);
+  AssertAllFilenameStringsHeapAllocated(&Shader->FragFiles);
 
   Assert(Stdlib->ShaderHeaderCode.Start);
-  Assert(VertShaderPath.Count);
-  Assert(FragShaderPath.Count);
 
-  Shader("Creating : (%S | %S)", VertShaderPath, FragShaderPath);
+  shader_compile_result VertexResult = CompileShader(&Stdlib->ShaderHeaderCode, &Shader->VertFiles, GL_VERTEX_SHADER,   DumpErrors);
+  shader_compile_result   FragResult = CompileShader(&Stdlib->ShaderHeaderCode, &Shader->FragFiles, GL_FRAGMENT_SHADER, DumpErrors);
 
-
-
-  ansi_stream VertexShaderCode = ReadEntireFileIntoAnsiStream(VertShaderPath, GetTranArena());
-  ansi_stream FragShaderCode   = ReadEntireFileIntoAnsiStream(FragShaderPath, GetTranArena());
-
-  int InfoLogLength;
-
-  shader_compile_result VertexResult = CompileShader(Stdlib->ShaderHeaderCode, VertexShaderCode, GL_VERTEX_SHADER, DumpErrors);
-  AssertNoGlErrors;
-
-  shader_compile_result FragResult = CompileShader(Stdlib->ShaderHeaderCode, FragShaderCode, GL_FRAGMENT_SHADER, DumpErrors);
-  AssertNoGlErrors;
-
-  memory_arena *PermMemory = GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory;
-
-  /* *Shader = { INVALID_SHADER, {}, CopyString(VertShaderPath, PermMemory), CopyString(FragShaderPath, PermMemory), 0, 0, False}; */
   Shader->ID = INVALID_SHADER;
 
-  // NOTE(Jesse): Not doing this because the errors come through when you go to link the program.  Of course ..
-  /* if (VertexShaderID != INVALID_SHADER && FragmentShaderID != INVALID_SHADER) */
-  /* { */
-    // Link the program
-    u32 ProgramID = GL->CreateProgram();
-    Assert(ProgramID);
-    GL->AttachShader(ProgramID, VertexResult.ShaderId);
-    GL->AttachShader(ProgramID, FragResult.ShaderId);
-    GL->LinkProgram(ProgramID);
+  // Link the program
+  u32 ProgramID = GL->CreateProgram();
+  Assert(ProgramID);
+  GL->AttachShader(ProgramID, VertexResult.ShaderId);
+  GL->AttachShader(ProgramID, FragResult.ShaderId);
+  GL->LinkProgram(ProgramID);
+  AssertNoGlErrors;
+
+  // Check the program linked
+  int InfoLogLength;
+  s32 LinkResult = GL_FALSE;
+  GL->GetProgramiv(ProgramID, GL_LINK_STATUS, &LinkResult);
+  GL->GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+  AssertNoGlErrors;
+
+  b32 CompileSucceeded = (LinkResult == GL_TRUE);
+
+  s32 ActiveUniformSlots;
+  GL->GetProgramiv(ProgramID, GL_ACTIVE_UNIFORMS, &ActiveUniformSlots);
+  AssertNoGlErrors;
+
+  if (VertexResult.Success == False && DumpErrors)
+  {
+    DumpShaderSource(VertexResult.ShaderId);
+  }
+
+  if (FragResult.Success == False && DumpErrors)
+  {
+    DumpShaderSource(FragResult.ShaderId);
+  }
+
+  Shader("(%S) reported (%d) active uniform slots.", Shader->DebugName, ActiveUniformSlots);
+
+  if (CompileSucceeded == False && DumpErrors)
+  {
+    char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
+    GL->GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
+    SoftError("Linking shader (%S)", Shader->DebugName);
+    SoftError("\n%s\n", ProgramErrorMessage);
     AssertNoGlErrors;
+  }
 
+  GL->DetachShader(ProgramID, VertexResult.ShaderId);
+  GL->DetachShader(ProgramID, FragResult.ShaderId);
+  GL->DeleteShader(VertexResult.ShaderId);
+  GL->DeleteShader(FragResult.ShaderId);
+  AssertNoGlErrors;
 
+  if (CompileSucceeded == False)
+  {
+    GL->DeleteProgram(ProgramID);
+    ProgramID = INVALID_SHADER;
+  }
 
-    // Check the program linked
-    s32 LinkResult = GL_FALSE;
-    GL->GetProgramiv(ProgramID, GL_LINK_STATUS, &LinkResult);
-    GL->GetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    AssertNoGlErrors;
-
-    b32 CompileSucceeded = (LinkResult == GL_TRUE);
-
-    s32 ActiveUniformSlots;
-    GL->GetProgramiv(ProgramID, GL_ACTIVE_UNIFORMS, &ActiveUniformSlots);
-    AssertNoGlErrors;
-
-    if (VertexResult.Success == False && DumpErrors)
-    {
-      DumpShaderSource(VertexResult.ShaderId);
-    }
-
-    if (FragResult.Success == False && DumpErrors)
-    {
-      DumpShaderSource(FragResult.ShaderId);
-    }
-
-    Shader("Program (%d) reported (%d) active uniform slots.", ProgramID, ActiveUniformSlots);
-
-    if (CompileSucceeded == False && DumpErrors)
-    {
-      char *ProgramErrorMessage = Allocate(char, GetTranArena(), InfoLogLength+1);
-      GL->GetProgramInfoLog(ProgramID, InfoLogLength, NULL, ProgramErrorMessage);
-      SoftError("Linking shader pair %S | %S", VertShaderPath, FragShaderPath);
-      SoftError("\n%s\n", ProgramErrorMessage);
-      AssertNoGlErrors;
-    }
-
-    GL->DetachShader(ProgramID, VertexResult.ShaderId);
-    GL->DetachShader(ProgramID, FragResult.ShaderId);
-    GL->DeleteShader(VertexResult.ShaderId);
-    GL->DeleteShader(FragResult.ShaderId);
-    AssertNoGlErrors;
-
-    if (CompileSucceeded == False)
-    {
-      GL->DeleteProgram(ProgramID);
-      ProgramID = INVALID_SHADER;
-    }
-
-    Shader->ID = ProgramID;
-  /* } */
+  Shader->ID = ProgramID;
 
   if (CompileSucceeded && RegisterForHotReload)
   {
@@ -300,19 +306,68 @@ CompileShaderPair(shader *Shader, b32 DumpErrors = True, b32 RegisterForHotReloa
   return CompileSucceeded;
 }
 
+link_internal b32
+poof(@async @render)
+CompileNewShader(
+    shader *Shader,
+    cs ShaderName,
+    cs *VertSourcePaths, s32 VertSourcePathsCount,
+    cs *FragSourcePaths, s32 FragSourcePathsCount,
+    memory_arena *PermMem,
+    b32 DumpErrors = True, b32 RegisterForHotReload = True)
+{
+  Assert(Shader->ID == INVALID_SHADER);
+
+  Shader->DebugName = ShaderName;
+
+  Shader->VertFiles.Memory = PermMem;
+  Shader->FragFiles.Memory = PermMem;
+
+  RangeIterator(Index, VertSourcePathsCount)
+  {
+    hot_reloadable_file File = HotReloadableFile(VertSourcePaths[Index]);
+    Push(&Shader->VertFiles, &File);
+  }
+
+  RangeIterator(Index, FragSourcePathsCount)
+  {
+    hot_reloadable_file File = HotReloadableFile(FragSourcePaths[Index]);
+    Push(&Shader->FragFiles, &File);
+  }
+
+  b32 Result = CompileShaderPair(Shader, DumpErrors, RegisterForHotReload);
+  return Result;
+}
+
 // Convenience path for compiling a new shader.  Just here for compat with an old API ..should be removed?
 //
 link_internal b32
 poof(@async @render)
-CompileShaderPair(shader *Shader, cs VertPath, cs FragPath, b32 DumpErrors = True, b32 RegisterForHotReload = True)
+CompileNewShader( shader *Shader,
+                      cs  ShaderName,
+                      cs  VertPath,
+                      cs  FragPath,
+            memory_arena *PermMem,
+                     b32  DumpErrors = True,
+                     b32  RegisterForHotReload = True )
 {
   Assert(Shader->ID == INVALID_SHADER);
 
-  Shader->Vert.File.Path = VertPath;
-  Shader->Frag.File.Path = FragPath;
+  Shader->DebugName = ShaderName;
+
+  Shader->VertFiles.Memory = PermMem;
+  Shader->FragFiles.Memory = PermMem;
+
+  hot_reloadable_file VertFile = HotReloadableFile(VertPath);
+  hot_reloadable_file FragFile = HotReloadableFile(FragPath);
+
+  Push(&Shader->VertFiles, &VertFile);
+  Push(&Shader->FragFiles, &FragFile);
+
   b32 Result = CompileShaderPair(Shader, DumpErrors, RegisterForHotReload);
   return Result;
 }
+
 
 link_internal s32
 GetShaderUniform(shader *Shader, const char *Name)
@@ -341,6 +396,19 @@ ReloadShaderUniform(shader *Shader, shader_uniform *Uniform)
 }
 
 
+link_internal b32
+AnyNew(hot_reloadable_file_block_array *Files)
+{
+  b32 Result = False;
+
+  IterateOver(Files, File, Index)
+  {
+    Result |= FileIsNew(File);
+  }
+
+  return Result;
+}
+
 link_internal void
 HotReloadShaders(bonsai_stdlib *Stdlib)
 {
@@ -357,20 +425,21 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
       // TODO(Jesse): This seems like it should be an assert instead .. shouldn't this just be False already?
       Shader->HotReloaded = False;
 
-      u64 NewVertTime = FileIsNew(&Shader->Vert);
-      u64 NewFragTime = FileIsNew(&Shader->Frag);
+      u64 NewVertTime = AnyNew(&Shader->VertFiles);
+      u64 NewFragTime = AnyNew(&Shader->FragFiles);
       if (HeaderIsNew || NewVertTime || NewFragTime)
       {
         s32 MaxRetryCount = 5;
         shader LoadedShader = {};
-        LoadedShader.Vert = Shader->Vert;
-        LoadedShader.Frag = Shader->Frag;
+        NotImplemented;
+        /* LoadedShader.Vert = Shader->Vert; */
+        /* LoadedShader.Frag = Shader->Frag; */
 
         b32 RegisterForHotReload = False; // We're hot reloading now ..
         RangeIterator(RetryCount, MaxRetryCount)
         {
           b32 DumpErrors = (RetryCount == MaxRetryCount-1);
-          if (CompileShaderPair(&LoadedShader, DumpErrors, RegisterForHotReload))
+          /* if (CompileShaderPair(&LoadedShader, DumpErrors, RegisterForHotReload)) */
           {
             break;
           }
@@ -441,41 +510,6 @@ poof(set_shader_uniform(s32));
 poof(set_shader_uniform(r32));
 #include <generated/set_shader_uniform$r32$qG1h5ut2.h>
 
-
-#if 0
-shader
-MakeSimpleTextureShader(texture *Texture, memory_arena *GraphicsMemory)
-{
-  shader Shader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "Passthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
-
-  Shader.Uniforms = ShaderUniformBuffer(1, GraphicsMemory);
-
-  SetShaderUniform(&Shader, 0, Texture, "Texture");
-  /* *Current = GetUniform(GraphicsMemory, &Shader, Texture, "Texture"); */
-  /* Current = &(*Current)->Next; */
-
-  AssertNoGlErrors;
-
-  return Shader;
-}
-#endif
-
-#if 0
-shader
-MakeFullTextureShader(texture *Texture, memory_arena *GraphicsMemory)
-{
-  shader Shader = CompileShaderPair( CSz(STDLIB_SHADER_PATH "FullPassthrough.vertexshader"), CSz(STDLIB_SHADER_PATH "SimpleTexture.fragmentshader") );
-  Shader.Uniforms = ShaderUniformBuffer(4, GraphicsMemory);
-
-  SetShaderUniform(&Shader, 0, Texture, "Texture");
-  SetShaderUniform(&Shader, 1, Texture, "TextureArray");
-  SetShaderUniform(&Shader, 2, (b32*)0, "IsDepthTexture");
-  SetShaderUniform(&Shader, 3, (b32*)0, "HasAlphaChannel");
-  AssertNoGlErrors;
-
-  return Shader;
-}
-#endif
 
 b32
 CheckAndClearFramebuffer()
@@ -920,7 +954,7 @@ UseShader(shader *Shader)
   }
   else
   {
-    SoftError("Attempted to bind uncompiled Shader (%S) | (%S)", Shader->Vert.File.Path, Shader->Frag.File.Path);
+    SoftError("Attempted to bind uncompiled Shader (%S)", Shader->DebugName);
   }
 }
 
@@ -933,6 +967,6 @@ UseShader(void *Shader)
 link_internal cs
 StdlibShaderPath(cs ShaderFile)
 {
-  return Concat(GetAbsoluteStdlibShaderDir(), ShaderFile, GetTranArena());
+  return ConcatZs(GetAbsoluteStdlibShaderDir(), ShaderFile, GetTranArena());
 }
 

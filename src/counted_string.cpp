@@ -154,6 +154,27 @@ CopyString(counted_string S, heap_allocator* Memory)
   return Result;
 }
 
+link_internal void
+CopyString(cs *Src, cs *Dest)
+{
+  Assert(Src->Count <= Dest->Count);
+  MemCopy((u8*)Src->Start, (u8*)Dest->Start, Src->Count);
+  Dest->Count = Src->Count;
+}
+
+link_internal void
+CopyString(const char *Src, const char *Dest, umm Count)
+{
+  MemCopy((u8*)Src, (u8*)Dest, Count);
+}
+
+
+link_internal void
+DeepCopy(cs *S1, cs *S2)
+{
+  CopyString(S1, S2);
+}
+
 poof(
   func string_concat(type_poof_index arg_count, type_poof_symbol allocator_type, type_poof_symbol allocator_func)
   {
@@ -233,6 +254,23 @@ ConcatZ(cs S1, cs S2, cs S3, memory_arena* Memory)
   Assert(LastChar(S) == 0);
   return S.Start;
 }
+
+link_internal cs
+ConcatZs(cs S1, cs S2, memory_arena* Memory)
+{
+  cs S = Concat(S1, S2, Memory, 1);
+  Assert(LastChar(S) == 0);
+  return S;
+}
+
+link_internal cs
+ConcatZs(cs S1, cs S2, cs S3, memory_arena* Memory)
+{
+  cs S = Concat(S1, S2, S3, Memory, 1);
+  Assert(LastChar(S) == 0);
+  return S;
+}
+
 
 link_internal const char*
 GetNullTerminated(counted_string Str, memory_arena* Memory = 0)
