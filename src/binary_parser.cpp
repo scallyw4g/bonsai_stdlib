@@ -183,6 +183,15 @@ ReadEntireFileIntoAnsiStream(counted_string SourceFile, memory_arena *Memory)
   return Stream;
 }
 
+link_internal ansi_stream
+ReadEntireFileIntoAnsiStream(hot_reloadable_file *File, memory_arena *Memory)
+{
+  Assert(IsNullTerminated(File->File.Path));
+  File->LastModified = GetLastModifiedtime(File->File.Path.Start);
+  ansi_stream Stream = AnsiStreamFromFile(File->File.Path.Start, Memory);
+  return Stream;
+}
+
 link_internal cs
 CS(u8_stream Stream)
 {

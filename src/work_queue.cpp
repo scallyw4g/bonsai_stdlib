@@ -131,26 +131,29 @@ enum work_queue_job_state
 
 struct work_queue_job
 {
-  work_queue_job_stats *Stats; // NOTE(Jesse): Next pointer in linked list overwrites this
-  work_queue_task_block_array Tasks;
+  // 0
+  work_queue_job_stats *Stats;            // NOTE(Jesse): Next pointer in linked list overwrites this
 
-  // nocheckin debug
-  s32 _OwningThreadId; // = INVALID_THREAD_LOCAL_THREAD_INDEX; Set in AllocateJobsArray
-  u32 Pad_;
-
-  u32 NextTaskIndex; // Index into Tasks for the next task to Pop
-
-  u32 Pad__;
-  global_job_index JoinContinuationJobId; // If we have awaiters, this job fires when they all hit 0
-
-  global_job_index Index;         // global index for this job; indexes into platform::Jobs
+  // 8
   work_queue_job_state State;
+  global_job_index Index;                 // global index for this job; indexes into platform::Jobs
+
+  // 16
+  global_job_index JoinContinuationJobId; // If we have awaiters, this job fires when they all hit 0
+  u32 NextTaskIndex;                      // Index into Tasks for the next task to Pop
+
+  // 24
+  work_queue_task_block_array Tasks;      // 24 bytes
+
+  // 48
+  u8 pad__[16];
 
   // TODO(Jesse): Remove these cache line pads ..?
   //
   // cache line boundary
   volatile u32 JoinCount;
-  u8 pad___[60];
+  work_queue_task_block_array CleanupTasks;      // 24 bytes
+  u8 pad___[64-32];
 
   // cache line boundary
   volatile u32 AwaitCount;

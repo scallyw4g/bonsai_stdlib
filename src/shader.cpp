@@ -207,8 +207,8 @@ CompileShader(ansi_stream *HeaderCode, hot_reloadable_file_block_array *Files, u
 
   for (u32 Index = 0; Index < FileCount; ++Index)
   {
-    cs Path = GetPtr(Files, Index)->File.Path;
-    ansi_stream Code = ReadEntireFileIntoAnsiStream(Path, Tran);
+    auto File = GetPtr(Files, Index);
+    ansi_stream Code = ReadEntireFileIntoAnsiStream(File, Tran);
     Sources[Index+1] = Code.Start;
     Lengths[Index+1] = Cast(s32, TotalSize(&Code));
   }
@@ -429,24 +429,11 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
       u64 NewFragTime = AnyNew(&Shader->FragFiles);
       if (HeaderIsNew || NewVertTime || NewFragTime)
       {
-        s32 MaxRetryCount = 5;
-        shader LoadedShader = {};
-        NotImplemented;
-        /* LoadedShader.Vert = Shader->Vert; */
-        /* LoadedShader.Frag = Shader->Frag; */
+        shader LoadedShader = *Shader;
 
         b32 RegisterForHotReload = False; // We're hot reloading now ..
-        RangeIterator(RetryCount, MaxRetryCount)
-        {
-          b32 DumpErrors = (RetryCount == MaxRetryCount-1);
-          /* if (CompileShaderPair(&LoadedShader, DumpErrors, RegisterForHotReload)) */
-          {
-            break;
-          }
-
-          // TODO(Jesse): Is this actually necessary anymore?
-          /* SpinlockNs(100); */
-        }
+        b32 DumpErrors = True;
+        CompileShaderPair(&LoadedShader, DumpErrors, RegisterForHotReload);
 
         if (LoadedShader.ID == INVALID_SHADER)
         {
