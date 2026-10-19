@@ -197,7 +197,7 @@ GetGL()
   if (Result->Initialized)
   {
     PlatformAssertRenderThreadCurrent();
-#if GlNoErrorChecking
+#if GlCheckErrorsSync
     u32 glErrorNo = Result->GetError();
     DumpGlErrorEnum(glErrorNo);
 #endif

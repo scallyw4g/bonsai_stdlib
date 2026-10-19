@@ -186,6 +186,7 @@ StateTransition(work_queue_job *Job, work_queue_job_state NextState)
     case WorkQueueJobState_Free:
     {
       Result = (Job->State == WorkQueueJobState_Undefined    ||
+                Job->State == WorkQueueJobState_Reserved     || // If we reserved a job but didn't need it
                 Job->State == WorkQueueJobState_Complete     ||
                 Job->State == WorkQueueJobState_AwaitComplete );
     } break;

@@ -1322,7 +1322,7 @@ poof(
 poof(
   func static_cursor(Type, type_poof_symbol StaticCount)
   {
-    @var cursor_t (Type)_static_cursor_(StaticCount)
+    @var cursor_t (Type.name)_static_cursor_(StaticCount)
 
     struct cursor_t
     poof(@do_editor_ui)
@@ -1370,17 +1370,31 @@ poof(
     }
 
     link_inline void
-    Push( cursor_t *Buf, Type *E )
+    Push( cursor_t *Buf, Type.name *E )
     {
       Assert(AtElements(Buf) < TotalElements(Buf));
       Buf->Start[Buf->At++] = *E;
     }
 
     link_inline void
-    Push( cursor_t *Buf, Type E )
+    Push( cursor_t *Buf, Type.name E )
     {
       Assert(AtElements(Buf) < TotalElements(Buf));
       Buf->Start[Buf->At++] = E;
+    }
+
+    link_internal u32
+    Capacity( cursor_t *Arr )
+    {
+      u32 Result = StaticCount;
+      return Result;
+    }
+
+    link_internal u32
+    Remaining( cursor_t *Arr )
+    {
+      u32 Rem = Capacity(Arr) - u32(AtElements(Arr));
+      return Rem;
     }
   }
 )
