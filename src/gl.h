@@ -1,13 +1,20 @@
 //
 // Wrapper so assertions give us file/line numbers
 
-#define AssertNoGlErrors
+#define GlNoErrorChecking 1
+#if GlNoErrorChecking
 
-/* #define AssertNoGlErrors do { \ */
-/*     TIMED_NAMED_BLOCK(GL_GetError); \ */
-/*     u32 glErrorNo = GetGL()->GetError();         \ */
-/*     DumpGlErrorEnum(glErrorNo);            \ */
-/*   } while (0) */
+  #define AssertNoGlErrors
+
+#else
+
+  #define AssertNoGlErrors do { \
+      TIMED_NAMED_BLOCK(GL_GetError); \
+      u32 glErrorNo = GetGL()->GetError();         \
+      DumpGlErrorEnum(glErrorNo);            \
+    } while (0)
+
+#endif
 
 #define GL_NO_ERROR                       0
 
