@@ -575,6 +575,7 @@ BindUniformByName(shader *Shader, const char *Name, s32 Value)
   {
     Warn("Couldn't retieve uniform %s", Name);
   }
+  AssertNoGlErrors;
 }
 
 link_internal void
@@ -592,6 +593,7 @@ BindUniformByName(shader *Shader, const char *Name, b32 Value)
   {
     Warn("Couldn't retieve uniform %s", Name);
   }
+  AssertNoGlErrors;
 }
 
 
@@ -639,6 +641,7 @@ BindUniformByName(shader *Shader, const char *Name, r32 Value)
   {
     Warn("Couldn't retieve uniform %s", Name);
   }
+  AssertNoGlErrors;
 }
 
 link_internal b32
@@ -681,6 +684,7 @@ BindUniformByName(shader *Shader, const char *Name, v2 *V)
   {
     Warn("Couldn't retieve uniform %s", Name);
   }
+  AssertNoGlErrors;
 }
 
 link_internal void
@@ -691,6 +695,7 @@ BindUniformByName(shader *Shader, const char *Name, v3 *V)
   {
     Warn("Couldn't retieve uniform %s", Name);
   }
+  AssertNoGlErrors;
 }
 
 link_internal b32
@@ -718,6 +723,7 @@ BindUniformByName(shader *Shader, const char *Name, m4 *Matrix)
   {
     Warn("Couldn't retieve uniform %s", Name);
   }
+  AssertNoGlErrors;
 }
 
 link_internal void
@@ -878,6 +884,7 @@ BindUniformByName(shader *Shader, shader_uniform *Uniform, s32 *TextureUnit)
       BindUniformById(Uniform, TextureUnit);
     }
   }
+  AssertNoGlErrors;
 }
 
 link_internal void
