@@ -1,4 +1,13 @@
 
+// NOTE(Jesse): work_queue_job is incomplete here (and platform needs this
+// array), so the array holds pointers into platform::Jobs.
+struct work_queue_job;
+typedef work_queue_job* work_queue_job_ptr;
+#define WORLD_CHUNK_INIT_JOBS 2
+poof(static_cursor(work_queue_job_ptr, {WORLD_CHUNK_INIT_JOBS}))
+#include <generated/static_cursor$work_queue_job_ptr.714194817$JLWyE2b4.h>
+
+
 #define WORK_QUEUE_SIZE (4096)
 
 struct work_queue_job;
@@ -49,10 +58,6 @@ struct queue_job_index
 {
   u32 Index;
 };
-
-// NOTE(Jesse): work_queue_job is incomplete here (and platform needs this
-// array), so the array holds pointers into platform::Jobs.
-typedef work_queue_job* work_queue_job_ptr;
 
 poof(block_array_h(work_queue_job_ptr, {8}, {}))
 #include <generated/block_array_h$work_queue_job_ptr.688856411.0$Tm0utJb1.h>
