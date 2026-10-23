@@ -3,7 +3,7 @@
 // array), so the array holds pointers into platform::Jobs.
 struct work_queue_job;
 typedef work_queue_job* work_queue_job_ptr;
-#define WORLD_CHUNK_INIT_JOBS 2
+#define WORLD_CHUNK_INIT_JOBS 4
 poof(static_cursor(work_queue_job_ptr, {WORLD_CHUNK_INIT_JOBS}))
 #include <generated/static_cursor$work_queue_job_ptr.714194817$JLWyE2b4.h>
 

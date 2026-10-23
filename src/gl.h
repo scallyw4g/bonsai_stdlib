@@ -194,7 +194,6 @@
 #define GL_MAP_PERSISTENT_BIT             0x0040
 #define GL_MAP_COHERENT_BIT               0x0080
 #define GL_DYNAMIC_STORAGE_BIT            0x0100
-#define GL_STATIC_DRAW                    0x88E4
 #define GL_DRAW_INDIRECT_BUFFER           0x8F3F
 
 #define GL_CULL_FACE                      0x0B44
@@ -248,6 +247,10 @@
 #define GL_STREAM_DRAW                    0x88E0
 #define GL_STREAM_READ                    0x88E1
 #define GL_STREAM_COPY                    0x88E2
+
+#define GL_STATIC_DRAW                    0x88E4
+#define GL_STATIC_READ                    0x88E5
+#define GL_STATIC_COPY                    0x88E6
 
 #define GL_DYNAMIC_DRAW                   0x88E8
 #define GL_DYNAMIC_READ                   0x88E9
