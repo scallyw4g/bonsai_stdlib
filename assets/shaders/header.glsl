@@ -623,6 +623,46 @@ vec4 gradient_noise_derivs( in vec3 x )
                du * (vec3(vb,vc,ve) - va + u.yzx*vec3(va-vb-vc+vd,va-vc-ve+vg,va-vb-ve+vf) + u.zxy*vec3(va-vb-ve+vf,va-vb-vc+vd,va-vc-ve+vg) + u.yzx*u.zxy*(-va+vb+vc-vd+ve-vf-vg+vh) ));
 }
 
+// returns 3D gradient noise
+float gradient_noise( in vec3 x )
+{
+    // grid
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+    
+    // quintic interpolant
+    vec3 u = f*f*f*(f*(f*6.0-15.0)+10.0);
+    
+    // gradients
+    vec3 ga = vhash( i+vec3(0.0,0.0,0.0) );
+    vec3 gb = vhash( i+vec3(1.0,0.0,0.0) );
+    vec3 gc = vhash( i+vec3(0.0,1.0,0.0) );
+    vec3 gd = vhash( i+vec3(1.0,1.0,0.0) );
+    vec3 ge = vhash( i+vec3(0.0,0.0,1.0) );
+    vec3 gf = vhash( i+vec3(1.0,0.0,1.0) );
+    vec3 gg = vhash( i+vec3(0.0,1.0,1.0) );
+    vec3 gh = vhash( i+vec3(1.0,1.0,1.0) );
+    // projections 
+    float va = dot( ga, f-vec3(0.0,0.0,0.0) );
+    float vb = dot( gb, f-vec3(1.0,0.0,0.0) );
+    float vc = dot( gc, f-vec3(0.0,1.0,0.0) );
+    float vd = dot( gd, f-vec3(1.0,1.0,0.0) );
+    float ve = dot( ge, f-vec3(0.0,0.0,1.0) );
+    float vf = dot( gf, f-vec3(1.0,0.0,1.0) );
+    float vg = dot( gg, f-vec3(0.0,1.0,1.0) );
+    float vh = dot( gh, f-vec3(1.0,1.0,1.0) );
+	
+    // interpolation
+    return va + 
+           u.x*(vb-va) + 
+           u.y*(vc-va) + 
+           u.z*(ve-va) + 
+           u.x*u.y*(va-vb-vc+vd) + 
+           u.y*u.z*(va-vc-ve+vg) + 
+           u.z*u.x*(va-vb-ve+vf) + 
+           u.x*u.y*u.z*(-va+vb+vc-vd+ve-vf-vg+vh);
+}
+
 // return (0, 1)
 //
 f32 billow_noise( in vec3 x, int octaves)
