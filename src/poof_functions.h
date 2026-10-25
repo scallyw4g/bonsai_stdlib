@@ -1315,6 +1315,13 @@ poof(
       return StaticCount;
     }
 
+    link_internal void
+    ClearList( TypeName *Buf )
+    {
+      umm Bytes = sizeof(Buf->Start);
+      ZeroMemory(Buf->Start, Bytes);
+    }
+
 
   }
 )
@@ -1396,6 +1403,15 @@ poof(
       u32 Rem = Capacity(Arr) - u32(AtElements(Arr));
       return Rem;
     }
+
+    link_internal void
+    ClearList( cursor_t *Buf )
+    {
+      umm Bytes = sizeof(Buf->Start);
+      ZeroMemory(Buf->Start, Bytes);
+      Buf->At = 0;
+    }
+
   }
 )
 poof(
