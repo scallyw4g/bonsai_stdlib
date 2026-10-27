@@ -1270,17 +1270,18 @@ poof(
 )
 
 poof(
-  func staticbuffer(Type, type_poof_symbol StaticCount, type_poof_symbol TypeName )
+  func staticbuffer(element_t, type_poof_symbol StaticCount, type_poof_symbol TypeName )
   {
     struct TypeName
+    poof( element_t.has_tag(do_editor_ui)? { @do_editor_ui }{} )
     {
-      Type.name Start[StaticCount];
+      element_t.name Start[StaticCount];
     };
 
-    link_inline (Type.name)*
+    link_inline (element_t.name)*
     GetPtr( TypeName *Buf, umm Index)
     {
-      Type.name *Result = {};
+      element_t.name *Result = {};
       if ( Index < umm((StaticCount)) )
       {
         Result = Buf->Start+Index;
@@ -1288,18 +1289,18 @@ poof(
       return Result;
     }
 
-    link_inline (Type.name)*
+    link_inline (element_t.name)*
     TryGetPtr( TypeName *Buf, umm Index)
     {
       return GetPtr(Buf, Index);
     }
 
-    link_inline (Type.name)
+    link_inline (element_t.name)
     Get( TypeName *Buf, umm Index)
     {
       Assert(Index >= 0);
       Assert(Index < umm((StaticCount)));
-      Type.name Result = Buf->Start[Index];
+      element_t.name Result = Buf->Start[Index];
       return Result;
     }
 
@@ -1327,21 +1328,21 @@ poof(
 )
 
 poof(
-  func static_cursor(Type, type_poof_symbol StaticCount)
+  func static_cursor(element_t, type_poof_symbol StaticCount)
   {
-    @var cursor_t (Type.name)_static_cursor_(StaticCount)
+    @var cursor_t (element_t.name)_static_cursor_(StaticCount)
 
     struct cursor_t
-    poof(@do_editor_ui)
+    poof( element_t.has_tag(do_editor_ui)? { @do_editor_ui }{} )
     {
-      Type.name Start[StaticCount]; poof(@array_length(Element->At))
+      element_t.name Start[StaticCount]; poof(@array_length(Element->At))
       u32 At;
     };
 
-    link_inline (Type.name)*
+    link_inline (element_t.name)*
     GetPtr( cursor_t *Buf, umm Index)
     {
-      Type.name *Result = {};
+      element_t.name *Result = {};
       if ( Index < umm((StaticCount)) )
       {
         Result = Buf->Start+Index;
@@ -1349,18 +1350,18 @@ poof(
       return Result;
     }
 
-    link_inline (Type.name)*
+    link_inline (element_t.name)*
     TryGetPtr( cursor_t *Buf, umm Index)
     {
       return GetPtr(Buf, Index);
     }
 
-    link_inline (Type.name)
+    link_inline (element_t.name)
     Get( cursor_t *Buf, umm Index)
     {
       Assert(Index < umm((StaticCount)));
       Assert(Index < umm((Buf->At)));
-      Type.name Result = Buf->Start[Index];
+      element_t.name Result = Buf->Start[Index];
       return Result;
     }
 
@@ -1377,14 +1378,14 @@ poof(
     }
 
     link_inline void
-    Push( cursor_t *Buf, Type.name *E )
+    Push( cursor_t *Buf, element_t.name *E )
     {
       Assert(AtElements(Buf) < TotalElements(Buf));
       Buf->Start[Buf->At++] = *E;
     }
 
     link_inline void
-    Push( cursor_t *Buf, Type.name E )
+    Push( cursor_t *Buf, element_t.name E )
     {
       Assert(AtElements(Buf) < TotalElements(Buf));
       Buf->Start[Buf->At++] = E;

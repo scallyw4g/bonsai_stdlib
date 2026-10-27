@@ -35,6 +35,7 @@ enum work_queue_job_reserve_flags
 // @await_0_returns_invalid_global_job_index
 //
 struct global_job_index
+poof(@do_editor_ui)
 {
   u16 Index;
   u16 Generation;
@@ -54,6 +55,7 @@ IsValid(global_job_index Index)
 }
 
 struct queue_job_index
+poof(@do_editor_ui)
 {
   u32 Index;
 };
@@ -67,6 +69,7 @@ poof(block_array_h(debug_profile_scope_ptr, {16}, {}))
 #include <generated/block_array_h$debug_profile_scope_ptr.688854072$xXGEEoWk.h>
 
 struct work_queue_job_stats
+poof(@do_editor_ui)
 {
   global_job_index JobId; poof(@hashtable_key)
 

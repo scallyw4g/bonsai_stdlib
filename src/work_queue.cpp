@@ -108,6 +108,7 @@ poof(block_array_c(work_queue_task, {8}))
 #include <generated/block_array_c$work_queue_task.688856411$8iAEZ8gE.h>
 
 enum work_queue_job_state
+poof(@do_editor_ui)
 {
   WorkQueueJobState_Undefined,      // Initial, cleared state.  Should never be hit except during init
 
@@ -129,7 +130,10 @@ enum work_queue_job_state
   /* WorkQueueJobState_Retired,        // Retired by the runtime, to eventually be re-reserved */
 };
 
+poof(string_and_value_tables(work_queue_job_state))
+#include <generated/string_and_value_tables$work_queue_job_state$Povkb1OP.h>
 struct work_queue_job
+poof(@do_editor_ui)
 {
   // 0
   work_queue_job_stats *Stats;            // NOTE(Jesse): Next pointer in linked list overwrites this
@@ -203,7 +207,10 @@ StateTransition(work_queue_job *Job, work_queue_job_state NextState)
     {
       /* Assert(Job->OwningThreadId == ThreadLocal_ThreadIndex); Job->OwningThreadId = INVALID_THREAD_LOCAL_THREAD_INDEX; */
 
-      Result = (Job->State == WorkQueueJobState_Reserved);
+      // NOTE(Jesse): An awaited job that's reached the Await state can have
+      // more tasks pushed on it and be resubmitted, see ResubmitAwaitingJob
+      Result = (Job->State == WorkQueueJobState_Reserved ||
+                Job->State == WorkQueueJobState_Await    );
     } break;
 
     case WorkQueueJobState_Complete:
@@ -944,6 +951,25 @@ SubmitJob( work_queue_job *Job )
   {
     SubmitJobImmediate(Job);
   }
+}
+
+// Resubmit a job that's reached the Await state after pushing more tasks on it.
+// The reserver keeps its await (AwaitCount stays 1), so the job returns to the
+// Await state when the new tasks complete, and the awaiter must still call
+// UnawaitAndRetire when it's done with it.
+//
+// NOTE(Jesse): The state transition happens here, instead of in SubmitJob,
+// because a task with a Timeout holds the job in Plat->TimeoutJobs without
+// transitioning, and the awaiter would still see it as being in the Await state.
+//
+link_internal void
+ResubmitAwaitingJob(work_queue_job *Job)
+{
+  Assert(Job->State == WorkQueueJobState_Await);
+  Assert(PeekNextTask(Job));
+
+  StateTransition(Job, WorkQueueJobState_Submitted);
+  SubmitJob(Job);
 }
 
 link_internal void
