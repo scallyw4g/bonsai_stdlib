@@ -49,6 +49,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
       InitQueue(&Plat->LowPriority,  WorkQueueMemory);
       InitQueue(&Plat->HiRenderQ,    WorkQueueMemory);
       InitQueue(&Plat->LoRenderQ,    WorkQueueMemory);
+      InitQueue(&Plat->TransferQ,    WorkQueueMemory);
     }
   }
   else

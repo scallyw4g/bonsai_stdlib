@@ -442,6 +442,9 @@ InitializeOpenglFunctions()
       GL->Finish                    = (OpenglFinish)PlatformGetGlFunction("glFinish");
       GL->Initialized               &= GL->Finish != 0;
 
+      GL->Flush                     = (OpenglFlush)PlatformGetGlFunction("glFlush");
+      GL->Initialized               &= GL->Flush != 0;
+
       GL->GenQueries                = (OpenglGenQueries)PlatformGetGlFunction("glGenQueries");
       GL->Initialized               &= GL->GenQueries != 0;
 

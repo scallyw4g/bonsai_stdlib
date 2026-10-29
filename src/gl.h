@@ -474,6 +474,7 @@ typedef GLboolean       (*OpenglUnmapBuffer)               (GLenum target);
 typedef void            (*OpenglDrawBuffers)               (GLsizei n, const GLenum *bufs);
 typedef void            (*OpenglGetIntegerv)               (GLenum pname, GLint * data);
 typedef void            (*OpenglFinish)                    (void);
+typedef void            (*OpenglFlush)                     (void);
 
 
 typedef void (*OpenglGenQueries)(GLsizei n, GLuint * ids);
@@ -616,6 +617,7 @@ struct opengl
   OpenglDrawBuffers DrawBuffers;
   OpenglGetIntegerv GetIntegerv;
   OpenglFinish Finish;
+  OpenglFlush Flush;
 
   OpenglGenQueries GenQueries;
   OpenglDeleteQueries DeleteQueries;

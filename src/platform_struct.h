@@ -10,6 +10,9 @@ poof(@do_editor_ui)
   work_queue LoRenderQ;
   work_queue HiRenderQ;
 
+  // Only ever holds RequestTerrainReadback tasks; drained by TransferThread_Main
+  // using the secondary GL context.
+  work_queue TransferQ;
   volatile u32 HighPriorityWorkerCount;
 
   bonsai_futex HighPriorityModeFutex;

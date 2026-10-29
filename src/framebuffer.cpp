@@ -7,10 +7,17 @@ poof(circular_buffer_c(rtt_framebuffer, {static_cursor_3}))
 
 
 framebuffer
-GenFramebuffer()
+GenFramebuffer(opengl *GL)
 {
   framebuffer Framebuffer = {};
-  GetGL()->GenFramebuffers(1, &Framebuffer.ID);
+  GL->GenFramebuffers(1, &Framebuffer.ID);
+  return Framebuffer;
+}
+
+framebuffer
+GenFramebuffer()
+{
+  framebuffer Framebuffer = GenFramebuffer(GetGL());
   return Framebuffer;
 }
 
@@ -79,11 +86,17 @@ FramebufferDepthTexture(texture *Tex)
 }
 
 link_internal void
-FramebufferTexture(framebuffer *FBO, texture *Tex)
+FramebufferTexture(opengl *GL, framebuffer *FBO, texture *Tex)
 {
   Assert(Tex->ID != INVALID_TEXTURE_HANDLE);
   u32 Attachment = FBO->Attachments++;
-  GetGL()->FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, GL_TEXTURE_2D, Tex->ID, 0);
+  GL->FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + Attachment, GL_TEXTURE_2D, Tex->ID, 0);
+}
+
+link_internal void
+FramebufferTexture(framebuffer *FBO, texture *Tex)
+{
+  FramebufferTexture(GetGL(), FBO, Tex);
 }
 
 link_internal void

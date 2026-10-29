@@ -674,10 +674,14 @@ PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
   if (wglMakeCurrent(Os->Display, Context))
   {
-    // Swapping between contexts on the render thread is allowed
-    Assert(Os->RenderThread == INVALID_THREAD_LOCAL_THREAD_INDEX ||
-           Os->RenderThread == ThreadLocal_ThreadIndex);
-    Os->RenderThread = ThreadLocal_ThreadIndex;
+    // Only the primary context is owned by the render thread; the secondary
+    // one belongs to the transfer thread.
+    if (Context == Os->GlContext)
+    {
+      Assert(Os->RenderThread == INVALID_THREAD_LOCAL_THREAD_INDEX ||
+             Os->RenderThread == ThreadLocal_ThreadIndex);
+      Os->RenderThread = ThreadLocal_ThreadIndex;
+    }
   }
   else
   {
@@ -691,8 +695,10 @@ PlatformReleaseRenderContext(os *Os)
 {
   if (wglMakeCurrent(Os->Display, 0))
   {
-    Assert(Os->RenderThread == ThreadLocal_ThreadIndex);
-    Os->RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;;
+    if (Os->RenderThread == ThreadLocal_ThreadIndex)
+    {
+      Os->RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;
+    }
   }
   else
   {

@@ -404,6 +404,15 @@ ValidateTaskForQueue(work_queue *Queue, work_queue_task *Task)
       } break;
     }
   }
+  else if (Queue == &Plat->TransferQ)
+  {
+    tswitch(Task)
+    {
+      { tmatch(work_queue_task_async_function_call, Task, RPC)
+        Ensure(ValidateRPCForTransferQ(RPC) == True);
+      } break;
+    }
+  }
   else if (Queue == &Plat->HighPriority || Queue == &Plat->LowPriority)
   {
     tswitch(Task)
