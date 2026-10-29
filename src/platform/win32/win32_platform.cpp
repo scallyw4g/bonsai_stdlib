@@ -675,7 +675,8 @@ PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
   if (wglMakeCurrent(Os->Display, Context))
   {
     // Swapping between contexts on the render thread is allowed
-    Assert(Os->RenderThread == INVALID_THREAD_LOCAL_THREAD_INDEX || Os->RenderThread == ThreadLocal_ThreadIndex);
+    Assert(Os->RenderThread == INVALID_THREAD_LOCAL_THREAD_INDEX ||
+           Os->RenderThread == ThreadLocal_ThreadIndex);
     Os->RenderThread = ThreadLocal_ThreadIndex;
   }
   else
