@@ -140,6 +140,7 @@ struct os
   window Window;
   display Display;
   gl_context GlContext;
+  gl_context GlContext2; // Shares objects with GlContext
 
   b32 ContinueRunning = True;
 };

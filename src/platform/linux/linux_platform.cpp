@@ -81,6 +81,9 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 
   Assert(Os->Display != None && Os->GlContext);
 
+  Os->GlContext2 = glXCreateContextAttribsARB(Os->Display, FramebufferConfig, Os->GlContext, GL_TRUE, OpenGlContextAttribs);
+  if (!Os->GlContext2) { Error("Unable to Create second GLXContext"); return False; }
+
   glXMakeCurrent(Os->Display, xWindow, Os->GlContext);
 
   Os->Window = xWindow;
@@ -304,9 +307,9 @@ BonsaiSwapBuffers(os *Os)
 }
 
 link_internal void
-PlatformMakeRenderContextCurrent(os *Os)
+PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
-  glXMakeCurrent(Os->Display, Os->Window, Os->GlContext);
+  glXMakeCurrent(Os->Display, Os->Window, Context);
 }
 
 

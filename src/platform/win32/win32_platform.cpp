@@ -214,6 +214,7 @@ Terminate(os *Os, platform *Plat)
   {
     wglMakeCurrent(NULL, NULL);
     wglDeleteContext(Os->GlContext);
+    if (Os->GlContext2) { wglDeleteContext(Os->GlContext2); }
   }
 
   if (global_hPalette)
@@ -585,6 +586,9 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
   Os->GlContext = wglCreateContextAttribsARB(Os->Display, 0, attribs);
   Assert(Os->GlContext);
 
+  Os->GlContext2 = wglCreateContextAttribsARB(Os->Display, Os->GlContext, attribs);
+  Assert(Os->GlContext2);
+
   wglMakeCurrent(NULL, NULL);
   wglDeleteContext(TempCtx);
 
@@ -666,11 +670,12 @@ ProcessOsMessages(os *Os, platform *Plat)
 }
 
 link_internal void
-PlatformMakeRenderContextCurrent(os *Os)
+PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
-  if (wglMakeCurrent(Os->Display, Os->GlContext))
+  if (wglMakeCurrent(Os->Display, Context))
   {
-    Assert(Os->RenderThread == INVALID_THREAD_LOCAL_THREAD_INDEX);
+    // Swapping between contexts on the render thread is allowed
+    Assert(Os->RenderThread == INVALID_THREAD_LOCAL_THREAD_INDEX || Os->RenderThread == ThreadLocal_ThreadIndex);
     Os->RenderThread = ThreadLocal_ThreadIndex;
   }
   else

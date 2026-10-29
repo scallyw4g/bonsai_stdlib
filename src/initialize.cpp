@@ -78,7 +78,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 #if PLATFORM_WINDOW_IMPLEMENTATIONS
     if (!OpenAndInitializeWindow(Os, Plat, VSyncFrames)) { Error("Initializing Window :( "); return False; }
 
-    PlatformMakeRenderContextCurrent(Os);
+    PlatformMakeRenderContextCurrent(Os, Os->GlContext);
     Ensure( InitializeOpenglFunctions() );
 
     SetVSync(Os, VSyncFrames);
@@ -124,7 +124,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
     v2 MouseP, MouseDP, ScreenDim;
 
-    PlatformMakeRenderContextCurrent(&Stdlib->Os);
+    PlatformMakeRenderContextCurrent(&Stdlib->Os, Stdlib->Os.GlContext);
     InitRenderer2D(Ui, &RendererHeap, Memory, &Stdlib->Plat.MouseP, &Stdlib->Plat.MouseDP, &Stdlib->Plat.ScreenDim, &Stdlib->Plat.Input);
     PlatformReleaseRenderContext(Os);
   }

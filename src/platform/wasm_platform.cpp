@@ -13,7 +13,7 @@ GetCurrentThreadId()
 }
 
 link_internal void
-PlatformMakeRenderContextCurrent(os *Os)
+PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
   NotImplemented;
 }

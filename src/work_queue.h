@@ -2,8 +2,9 @@
 struct work_queue_job;
 typedef work_queue_job* work_queue_job_ptr;
 
-#define WORLD_CHUNK_INIT_JOBS 4
-poof(static_cursor(work_queue_job_ptr, {WORLD_CHUNK_INIT_JOBS}))
+#define TERRAIN_JOBS_PER_FRAME (1)
+#define TERRAIN_JOB_COUNT (TERRAIN_JOBS_PER_FRAME*3)
+poof(static_cursor(work_queue_job_ptr, {TERRAIN_JOB_COUNT}))
 #include <generated/static_cursor$work_queue_job_ptr.714194817$JLWyE2b4.h>
 
 

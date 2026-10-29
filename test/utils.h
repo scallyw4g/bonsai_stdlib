@@ -63,7 +63,7 @@ TestSuiteEnd()
   renderer_2d *Ui = &Stdlib->Ui;
   if (Stdlib->InitFlags & BonsaiInit_OpenWindow)
   {
-    PlatformMakeRenderContextCurrent(Os);
+    PlatformMakeRenderContextCurrent(Os, Os->GlContext);
     while (Os->ContinueRunning)
     {
 
