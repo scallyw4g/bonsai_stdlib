@@ -175,6 +175,7 @@
 
 #define GL_TEXTURE0                       0x84C0
 #define GL_COLOR_ATTACHMENT0              0x8CE0
+#define GL_COLOR_ATTACHMENT1              0x8CE1
 #define GL_DEPTH_COMPONENT                0x1902
 #define GL_DEPTH_COMPONENT32F             0x8CAC
 #define GL_DEPTH_ATTACHMENT               0x8D00
