@@ -2,11 +2,6 @@
 struct work_queue_job;
 typedef work_queue_job* work_queue_job_ptr;
 
-#define TERRAIN_JOBS_PER_FRAME (1)
-#define TERRAIN_JOB_COUNT (TERRAIN_JOBS_PER_FRAME*3)
-poof(static_cursor(work_queue_job_ptr, {TERRAIN_JOB_COUNT}))
-#include <generated/static_cursor$work_queue_job_ptr.714194817$JLWyE2b4.h>
-
 
 #define WORK_QUEUE_SIZE (4096)
 
