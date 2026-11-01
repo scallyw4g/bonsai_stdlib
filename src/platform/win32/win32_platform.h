@@ -56,6 +56,8 @@ struct os
 
   s32 RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;
 
+  bonsai_futex MakeRenderContextCurrentFutex;
+
   b32 ContinueRunning = True;
 };
 

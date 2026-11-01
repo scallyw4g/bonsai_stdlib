@@ -672,7 +672,11 @@ ProcessOsMessages(os *Os, platform *Plat)
 link_internal void
 PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
-  if (wglMakeCurrent(Os->Display, Context))
+  AcquireFutex(&Os->MakeRenderContextCurrentFutex);
+  b32 Success = Cast(b32, wglMakeCurrent(Os->Display, Context));
+  ReleaseFutex(&Os->MakeRenderContextCurrentFutex);
+
+  if (Success)
   {
     // Only the primary context is owned by the render thread; the secondary
     // one belongs to the transfer thread.

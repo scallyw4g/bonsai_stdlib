@@ -142,6 +142,8 @@ struct os
   gl_context GlContext;
   gl_context GlContext2; // Shares objects with GlContext
 
+  bonsai_futex MakeRenderContextCurrentFutex;
+
   b32 ContinueRunning = True;
 };
 

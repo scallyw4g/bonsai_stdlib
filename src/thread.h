@@ -5,14 +5,6 @@
 typedef THREAD_MAIN_RETURN (*thread_main_callback_type)(void*);
 
 
-// TODO(Jesse): Shouldn't we align these to cache lines sizes?
-struct bonsai_futex
-poof(@do_editor_ui)
-{
-  volatile u32 SignalValue = FUTEX_UNSIGNALLED_VALUE;
-  volatile u32 ThreadsWaiting;
-};
-
 
 link_internal void SpinlockNs(s32 Nanoseconds);
 

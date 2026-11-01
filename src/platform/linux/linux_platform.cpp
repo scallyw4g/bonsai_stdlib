@@ -309,7 +309,9 @@ BonsaiSwapBuffers(os *Os)
 link_internal void
 PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
+  AcquireFutex(&Os->MakeRenderContextCurrentFutex);
   glXMakeCurrent(Os->Display, Os->Window, Context);
+  ReleaseFutex(&Os->MakeRenderContextCurrentFutex);
 }
 
 

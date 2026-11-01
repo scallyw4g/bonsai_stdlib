@@ -182,6 +182,14 @@ global_variable u32 Global_True = 1;
 #define INVALID_THREAD_LOCAL_THREAD_INDEX (-1)
 #define FUTEX_UNSIGNALLED_VALUE (u32_MAX) // The signal value is the thread holding the futex so we have to use the max
 
+// TODO(Jesse): Shouldn't we align these to cache lines sizes?
+struct bonsai_futex
+poof(@do_editor_ui)
+{
+  volatile u32 SignalValue = FUTEX_UNSIGNALLED_VALUE;
+  volatile u32 ThreadsWaiting;
+};
+
 enum maybe_tag
 {
   Maybe_No,
