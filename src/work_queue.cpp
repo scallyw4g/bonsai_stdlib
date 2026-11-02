@@ -1031,6 +1031,7 @@ ReserveWorkQueueJob( platform *Plat, work_queue_job_reserve_flags Flags )
   /* Result->OwningThreadId = ThreadLocal_ThreadIndex; */
 
   ClearList(&Result->Tasks);
+  Assert(Result->NextTaskIndex == 0);
 
   StateTransition(Result, WorkQueueJobState_Reserved);
 

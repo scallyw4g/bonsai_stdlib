@@ -31,7 +31,7 @@ link_internal void
 SetDrawBuffers(framebuffer *FBO);
 
 link_internal b32
-InitializeRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer, v2i Dim, cs DebugTextureName);
+InitializeRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer, v2i Dim, cs DebugTextureName, texture_storage_format Format = TextureStorageFormat_RGBA32F );
 
 link_internal void
 FramebufferTexture(framebuffer *FBO, texture *Tex);

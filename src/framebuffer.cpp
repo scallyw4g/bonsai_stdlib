@@ -34,14 +34,14 @@ ClearFramebuffer(rtt_framebuffer *Framebuffer)
 }
 
 link_internal b32
-InitializeRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer, v2i Dim, cs DebugTextureName)
+InitializeRenderToTextureFramebuffer(rtt_framebuffer *Framebuffer, v2i Dim, cs DebugTextureName, texture_storage_format Format /* = TextureStorageFormat_RGBA32F */)
 {
   auto GL = GetGL();
 
   Framebuffer->FBO = GenFramebuffer();
   GL->BindFramebuffer(GL_FRAMEBUFFER, Framebuffer->FBO.ID);
 
-  Framebuffer->DestTexture = MakeTexture_RGBA(Dim, Cast(v4*, 0), DebugTextureName, 1, TextureStorageFormat_RGBA32F);
+  Framebuffer->DestTexture = MakeTexture_RGBA(Dim, Cast(v4*, 0), DebugTextureName, 1, Format);
 
   FramebufferTexture(&Framebuffer->FBO, &Framebuffer->DestTexture);
   SetDrawBuffers(&Framebuffer->FBO);
