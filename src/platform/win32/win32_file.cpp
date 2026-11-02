@@ -107,7 +107,7 @@ PlatformFileExists(const char *Filepath)
 // 3) TODO(Jesse): FilePermission_Append ?
 //
 link_internal native_file
-PlatformOpenFile(const char *Filepath, file_permission Permissions)
+PlatformOpenFile(const char *Filepath, file_permission Permissions, u32 TimeoutMs = 200, u32 TimeoutInterval = 15)
 {
   native_file Result = {};
   Result.Path = CS(Filepath);
@@ -146,7 +146,6 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
     }
   }
 
-  u32 SleepIntervalMS = 15; // Default time-slice on windows.  Chose this at random.
   u32 SleepElapsed = 0;
   while (Result.Handle == INVALID_HANDLE_VALUE)
   {
@@ -170,11 +169,14 @@ PlatformOpenFile(const char *Filepath, file_permission Permissions)
 
     if (Result.Handle == INVALID_HANDLE_VALUE)
     {
-      SleepMs(SleepIntervalMS);
-      SleepElapsed += SleepIntervalMS;
-      SleepIntervalMS *= 2;
+      Assert(TimeoutMs >= SleepElapsed);
+      if (SleepElapsed + TimeoutInterval > TimeoutMs) { TimeoutInterval = TimeoutMs - SleepElapsed; }
 
-      if (SleepElapsed > 1000) break;
+      SleepMs(TimeoutInterval);
+      SleepElapsed += TimeoutInterval;
+      TimeoutInterval *= 2;
+
+      if (SleepElapsed >= TimeoutMs) break;
     }
   }
 
