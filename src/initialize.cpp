@@ -57,9 +57,8 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     Stdlib->ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, 1, ThreadState_UserData, Memory);
   }
 
-  // Must come after ThreadStates are valid
+  // Must come after ThreadStates are valid and before debug state is initialized
   SetThreadLocal_ThreadIndex(0);
-  PlatformPinCurrentThreadToCore(0);
 
   if (Flags & BonsaiInit_InitDebugSystem)
   {
@@ -71,6 +70,10 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     Error("Asked to init debug system when BONSAI_DEBUG_SYSTEM_API was not compiled in!");
 #endif
   }
+
+  // Must come after debug state is initialzied
+  PlatformPinCurrentThreadToCore(0);
+
 
   if (Flags & BonsaiInit_OpenWindow)
   {

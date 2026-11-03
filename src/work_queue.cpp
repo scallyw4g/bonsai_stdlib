@@ -484,7 +484,7 @@ TrySubmitExpiredTimeoutJobs(platform *Plat)
 }
 
 
-link_internal THREAD_MAIN_RETURN
+link_export THREAD_MAIN_RETURN
 DefaultWorkerThread(void *Input)
 {
   thread_local_state *Thread = (thread_local_state *)Input;
@@ -639,7 +639,7 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callbac
     }
     else
     {
-      PlatformCreateThread( DefaultWorkerThread, Cast(void*, Thread), ThreadIndex );
+      PlatformCreateThread( AppApi->DefaultWorkerThread, Cast(void*, Thread), ThreadIndex );
     }
   }
 

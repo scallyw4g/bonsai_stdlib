@@ -65,29 +65,20 @@ global_variable memory_arena Global_PermMemory = {};
 
 #if BONSAI_DEBUG_SYSTEM_API
 
-#define AllocateProtection(Type, Arena, Number, Protection)                                                                                            \
-( GetDebugState() ?                                                                                                                                    \
-    (Type*)GetDebugState()->Debug_Allocate(Arena, sizeof(Type), umm(Number), #Type " " __FILE__ ":" LINE_STRING, __LINE__, __FILE__, 1, Protection ) : \
-    (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, Protection, __FILE__ ":" LINE_STRING)                                                         \
-)
+link_internal void*
+Debug_Allocate(memory_arena* Arena, umm StructSize, umm StructCount, const char *AllocationUUID, s32 Line, const char *File, umm Alignment, b32 MemProtect);
 
-#define AllocateAlignedProtection(Type, Arena, Number, Alignment, Protection)                                                                                 \
-( GetDebugState() ?                                                                                                                                           \
-  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, Protection ) : \
-  (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, Protection, __FILE__ ":" LINE_STRING)                                                          \
-)
+#define AllocateProtection(Type, Arena, Number, Protection)                                                                                \
+    (Type*)Debug_Allocate(Arena, sizeof(Type), umm(Number), #Type " " __FILE__ ":" LINE_STRING, __LINE__, __FILE__, 1, Protection )        \
 
-#define AllocateAligned(Type, Arena, Number, Alignment)                                                                                                \
-( GetDebugState() ?                                                                                                                                    \
-  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, True) : \
-  (Type*)PushSize( Arena, sizeof(Type)*umm(Number), Alignment, True, __FILE__ ":" LINE_STRING)                                                         \
-)
+#define AllocateAlignedProtection(Type, Arena, Number, Alignment, Protection)                                                              \
+  (Type*)Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, Protection ) \
 
-#define Allocate(Type, Arena, Number)                                                                                                           \
-( GetDebugState() ?                                                                                                                             \
-  (Type*)GetDebugState()->Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING , __LINE__, __FILE__, 1, True) : \
-  (Type*)PushSize( Arena, sizeof(Type)*umm(Number), 1, True, __FILE__ ":" LINE_STRING)                                                          \
-)
+#define AllocateAligned(Type, Arena, Number, Alignment)                                                                                    \
+  (Type*)Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING, __LINE__, __FILE__, Alignment, True)        \
+
+#define Allocate(Type, Arena, Number)                                                                                                      \
+  (Type*)Debug_Allocate( Arena, sizeof(Type), umm(Number), #Type ":" __FILE__ ":" LINE_STRING , __LINE__, __FILE__, 1, True)               \
 
 void noop() {}
 

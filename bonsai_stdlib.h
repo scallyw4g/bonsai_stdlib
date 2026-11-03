@@ -48,6 +48,7 @@ link_internal debug_state * GetDebugState();
 #include <bonsai_stdlib/src/bit_tricks.h>
 #include <bonsai_stdlib/src/atomic.h>
 #include <bonsai_stdlib/src/thread.h>
+#include <bonsai_stdlib/src/application_api.h>
 #include <bonsai_stdlib/src/freelist.h>
 
 #include <bonsai_stdlib/src/costable.h>
@@ -175,6 +176,7 @@ poof(@do_editor_ui)
   //
 
   // TODO(Jesse): Move into debug_state?
+  // NOTE(Jesse): Not really debug anymore .. we use these during hot reload
   texture_block_array AllTextures;
   shader_ptr_block_array AllShaders;
 
