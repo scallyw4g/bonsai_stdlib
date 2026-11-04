@@ -6,7 +6,7 @@ GetXOffsetForHorizontalBar(s64 StartCycleOffset, u64 FrameTotalCycles, r32 Total
 }
 
 link_internal void
-PushCycleBar(debug_ui_render_group* Group, cycle_range* Range, cycle_range* Frame, r32 TotalGraphWidth, r32 BarHeight, r32 yOffset, ui_style *Style, v4 Padding = V4(0), cs Name = CSz(""))
+PushCycleBar(debug_ui_render_group* Group, cycle_range* Range, cycle_range* Frame, r32 TotalGraphWidth, r32 BarHeight, r32 yOffset, ui_style *Style, v4 Padding = V4(0), cs Name = {})
 {
   /* if (Frame->StartCycle <= Range->StartCycle) */
   {

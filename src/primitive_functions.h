@@ -6,6 +6,7 @@
 #define CSzs(NullTerminatedCString) \
   CS(NullTerminatedCString, sizeof(NullTerminatedCString))
 
+
 link_inline cs CS(cs *Cs) { return *Cs; }
 link_inline cs CS(cs Cs) { return Cs; }
 link_inline cs CS(const char *S, umm Count);

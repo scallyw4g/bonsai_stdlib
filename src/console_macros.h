@@ -67,20 +67,20 @@ link_internal void
 SetTerminalColorsOff()
 {
 #if 1
-  TerminalColors.Red          = CSz("");
-  TerminalColors.BrightRed    = CSz("");
-  TerminalColors.DarkRed      = CSz("");
+  TerminalColors.Red          = {};
+  TerminalColors.BrightRed    = {};
+  TerminalColors.DarkRed      = {};
 
-  TerminalColors.BrightBlue   = CSz("");
-  TerminalColors.Blue         = CSz("");
-  TerminalColors.Purple       = CSz("");
-  TerminalColors.BrightPurple = CSz("");
-  TerminalColors.Green        = CSz("");
-  TerminalColors.BrightGreen  = CSz("");
-  TerminalColors.Yellow       = CSz("");
-  TerminalColors.BrightYellow = CSz("");
-  TerminalColors.White        = CSz("");
-  TerminalColors.Grey         = CSz("");
+  TerminalColors.BrightBlue   = {};
+  TerminalColors.Blue         = {};
+  TerminalColors.Purple       = {};
+  TerminalColors.BrightPurple = {};
+  TerminalColors.Green        = {};
+  TerminalColors.BrightGreen  = {};
+  TerminalColors.Yellow       = {};
+  TerminalColors.BrightYellow = {};
+  TerminalColors.White        = {};
+  TerminalColors.Grey         = {};
 #endif
 }
 

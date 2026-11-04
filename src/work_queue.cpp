@@ -615,32 +615,28 @@ DefaultWorkerThread(void *Input)
   }
 
   Info("Exiting Worker Thread (%d)", Thread->ThreadIndex);
+  Assert(FutexIsSignaled(WorkerThreadsExitFutex));
   WaitOnFutex(WorkerThreadsExitFutex);
 
   return 0;
 }
 
 link_weak void
-LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadCallbackProcs)
+LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callback_type_buffer *WorkerThreadProcs)
 {
   TIMED_FUNCTION();
 
   s32 TotalThreadCount  = (s32)GetTotalThreadCount();
 
   // This loop is for worker threads; it's skipping thread index 0, the main thread
-  for ( s32 ThreadIndex = 1; ThreadIndex < TotalThreadCount; ++ThreadIndex )
+  //
+  s32 ThreadIndex = 1;
+  IterateOver(WorkerThreadProcs, Proc, _i)
   {
     thread_local_state *Thread =  GetThreadLocalState(ThreadIndex);
-
-    umm CallbackProcIndex = umm(ThreadIndex-1);
-    if (WorkerThreadCallbackProcs &&  CallbackProcIndex < WorkerThreadCallbackProcs->Count)
-    {
-      PlatformCreateThread( WorkerThreadCallbackProcs->Start[CallbackProcIndex], Cast(void*, Thread), ThreadIndex );
-    }
-    else
-    {
-      PlatformCreateThread( AppApi->DefaultWorkerThread, Cast(void*, Thread), ThreadIndex );
-    }
+    auto ThreadHandle = PlatformCreateThread( *Proc, Cast(void*, Thread), ThreadIndex );
+    Assert(ThreadHandle);
+    ThreadIndex += 1;
   }
 
   return;
@@ -649,23 +645,32 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callbac
 link_internal void
 ShutdownWorkerThreads(platform *Plat)
 {
-  if (ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX)
-  {
-    SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
-    Ensure( UnsignalFutex(&Plat->WorkerThreadsExitFutex) );
-    while (Plat->WorkerThreadsExitFutex.ThreadsWaiting > 0) { SleepMs(1); };
-  }
+  Assert(ThreadLocal_ThreadIndex != INVALID_THREAD_LOCAL_THREAD_INDEX);
+  WaitForAllJobsToFlush(Plat);
+  SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
+  Ensure( UnsignalFutex(&Plat->WorkerThreadsExitFutex) );
+  while (Plat->WorkerThreadsExitFutex.ThreadsWaiting > 0) { SleepMs(1); };
 }
 
 link_internal void
-InitQueue(work_queue* Queue, memory_arena* Memory)
+AllocateQueue(work_queue* Queue, memory_arena* Memory)
 {
   Assert(Queue->JobIndices == 0);
+  Queue->JobIndices = Allocate(global_job_index, Memory, WORK_QUEUE_SIZE);
+}
 
+link_internal void
+InitQueue(work_queue* Queue)
+{
   Queue->EnqueueIndex = 0;
   Queue->DequeueIndex = 0;
+}
 
-  Queue->JobIndices = Allocate(global_job_index, Memory, WORK_QUEUE_SIZE);
+link_internal void
+AllocateAndInitQueue(work_queue* Queue, memory_arena* Memory)
+{
+  AllocateQueue(Queue, Memory);
+  InitQueue(Queue);
 }
 
 

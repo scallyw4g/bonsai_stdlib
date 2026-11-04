@@ -45,11 +45,11 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
 
       Plat->JobStatsTable = Allocate_work_queue_job_stats_hashtable(u32(1024), WorkQueueMemory);
 
-      InitQueue(&Plat->HighPriority, WorkQueueMemory);
-      InitQueue(&Plat->LowPriority,  WorkQueueMemory);
-      InitQueue(&Plat->HiRenderQ,    WorkQueueMemory);
-      InitQueue(&Plat->LoRenderQ,    WorkQueueMemory);
-      InitQueue(&Plat->TransferQ,    WorkQueueMemory);
+      AllocateAndInitQueue(&Plat->HighPriority, WorkQueueMemory);
+      AllocateAndInitQueue(&Plat->LowPriority,  WorkQueueMemory);
+      AllocateAndInitQueue(&Plat->HiRenderQ,    WorkQueueMemory);
+      AllocateAndInitQueue(&Plat->LoRenderQ,    WorkQueueMemory);
+      AllocateAndInitQueue(&Plat->TransferQ,    WorkQueueMemory);
     }
   }
   else

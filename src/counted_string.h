@@ -125,8 +125,10 @@ link_inline counted_string
 CS(const char *S, umm Count)
 {
   cs Result;
-  if (S) { Result = { .Count = Count, .Start = S }; }
+
+  if (S) { Result = { .Count = Count, .Start = S }; Assert(Count); }
   else   { Result = { .Start = "(null)", .Count = sizeof("(null)")-1 }; }
+
   return Result;
 }
 

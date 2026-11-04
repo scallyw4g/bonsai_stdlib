@@ -16,10 +16,6 @@
 
 #define runtime_lib_export __declspec(dllexport)
 
-#define Newline "\n"
-
-#define PLATFORM_OFFSET (sizeof(void*))
-
 #define PLATFORM_RUNTIME_LIB_EXTENSION ".dll"
 
 #define THREAD_MAIN_RETURN DWORD
@@ -329,3 +325,6 @@ PlatformChangeDirectory(const char *Dir)
 
 link_internal void
 PlatformAssertRenderThreadCurrent();
+
+inline shared_lib
+OpenLibrary(cs LibPath);

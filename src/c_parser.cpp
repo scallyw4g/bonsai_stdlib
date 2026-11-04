@@ -1189,7 +1189,7 @@ OutputContextMessage(parser* Parser, parse_error_code ErrorCode, counted_string 
 link_internal void
 ParseInfoMessage(parser* Parser, counted_string Message, c_token* T)
 {
-  OutputContextMessage(Parser, ParseErrorCode_None, CSz(""), Message, T);
+  OutputContextMessage(Parser, ParseErrorCode_None, {}, Message, T);
 }
 
 link_internal void
@@ -1230,7 +1230,7 @@ ParseError_StreamEndedUnexpectedly(parser *Parser)
 #endif
 
 #define ParseErrorTokenHelper(T) \
-  (T) ? ToString((T)->Type) : CSz(""), (T) ? (T)->Value : CSz("null")
+  (T) ? ToString((T)->Type) : CSz("null"), (T) ? (T)->Value : CSz("null")
 
 link_internal counted_string
 ParseError_ExpectedSemicolonEqualsCommaOrOpenBrace(parser *Parser, c_token *T)

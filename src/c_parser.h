@@ -227,7 +227,7 @@ CToken(counted_string Value)
 }
 
 inline c_token
-CToken(c_token_type Type, counted_string Value = CSz(""))
+CToken(c_token_type Type, counted_string Value = {})
 {
   c_token Result = {};
 

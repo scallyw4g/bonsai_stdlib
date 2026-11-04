@@ -323,7 +323,7 @@ WindowMessageCallback(
     WPARAM wParam,
     LPARAM lParam)
 {
-  platform *Plat = (platform*)GetWindowLongPtr(hWnd, PLATFORM_OFFSET);
+  platform *Plat = (platform*)GetWindowLongPtr(hWnd, (sizeof(void*)));
   os *Os = (os*)GetWindowLongPtr(hWnd, 0);
 
   switch (message)
@@ -975,3 +975,11 @@ PlatformInitializeStdout(native_file *File, native_file *Log)
   if (Log) { *Log = OpenFile("log.txt", FilePermission_Write); }
 }
 
+
+inline shared_lib
+OpenLibrary(cs LibPath)
+{
+  Assert(IsNullTerminated(LibPath));
+  shared_lib Result = OpenLibrary(LibPath.Start);
+  return Result;
+}

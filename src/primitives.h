@@ -30,6 +30,8 @@
 #define MillisecondsToNanoseconds(ms) (ms*1000000.0)
 #define NanosecondsToMilliseconds(ns) (ns/1000000.0)
 
+#define Newline "\n"
+
 // 8 Bit types
 typedef char           s8;
 typedef unsigned char  u8;

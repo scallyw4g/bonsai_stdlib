@@ -45,6 +45,7 @@ link_internal debug_state * GetDebugState();
 #include <bonsai_stdlib/src/console_macros.h>
 #include <bonsai_stdlib/src/globals.h>
 #include <bonsai_stdlib/src/platform.h>
+
 #include <bonsai_stdlib/src/bit_tricks.h>
 #include <bonsai_stdlib/src/atomic.h>
 #include <bonsai_stdlib/src/thread.h>

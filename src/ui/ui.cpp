@@ -1713,7 +1713,7 @@ Button( renderer_2d *Ui,
 link_internal void
 PushBlankIconButton(renderer_2d *Ui)
 {
-  PushColumn(Ui, CSz(""), &DefaultUiRenderParams_Button);
+  PushColumn(Ui, {}, &DefaultUiRenderParams_Button);
 }
 
 

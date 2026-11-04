@@ -436,9 +436,12 @@ HotReloadableFile(cs FilePath)
   Assert(IsNullTerminated(FilePath));
 
   auto Stdlib = GetStdlib();
-  if (IsHeapAllocated(&Stdlib->Ui.Strings, Cast(void*, FilePath.Start)) == False)
+  if (Stdlib)
   {
-    FilePath = CopyString(FilePath, &Stdlib->Ui.Strings);
+    if (IsHeapAllocated(&Stdlib->Ui.Strings, Cast(void*, FilePath.Start)) == False)
+    {
+      FilePath = CopyString(FilePath, &Stdlib->Ui.Strings);
+    }
   }
 
   Result.File.Path = FilePath;

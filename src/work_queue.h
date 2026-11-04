@@ -177,8 +177,13 @@ link_internal void
 AllocateJobsArray(platform *Plat, s32 TotalJobs);
 
 link_internal void
-InitQueue(work_queue* Queue, memory_arena* Memory);
+AllocateQueue(work_queue* Queue, memory_arena* Memory);
 
+link_internal void
+InitQueue(work_queue* Queue);
+
+link_internal void
+AllocateAndInitQueue(work_queue* Queue, memory_arena* Memory);
 
 // Job lifecycle API
 //
