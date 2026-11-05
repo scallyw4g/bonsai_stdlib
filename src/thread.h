@@ -4,14 +4,13 @@
 
 typedef THREAD_MAIN_RETURN (*thread_main_callback_type)(void*);
 
-
+poof( buffer_h(thread_main_callback_type, u32) )
+#include <generated/buffer$thread_main_callback_type$Tm1X6geJ.h>
 
 link_internal void SpinlockNs(s32 Nanoseconds);
 
 
 link_internal void WaitOnFutex(bonsai_futex *Futex, b32 DoSleep = True);
-link_internal u32 GetWorkerThreadCount();
-link_internal u32 GetTotalThreadCount();
 link_internal void WaitForWorkerThreads(volatile u32 *);
 link_internal void SignalAndWaitForWorkers(bonsai_futex *);
 

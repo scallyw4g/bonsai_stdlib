@@ -626,7 +626,10 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callbac
 {
   TIMED_FUNCTION();
 
-  s32 TotalThreadCount  = (s32)GetTotalThreadCount();
+  u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
+  u32 WorkerThreadCount = GetWorkerThreadCount();
+  u32 TotalThreadCount  = GetTotalThreadCount();
+  Info("Detected (%u) Logical cores, creating (%u) worker threads of (%u) total threads", LogicalCoreCount, WorkerThreadCount, TotalThreadCount);
 
   // This loop is for worker threads; it's skipping thread index 0, the main thread
   //

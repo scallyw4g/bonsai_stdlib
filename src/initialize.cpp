@@ -10,8 +10,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
                           application_api *AppApi,
                             bonsai_stdlib *Stdlib,
                              memory_arena *Memory,
-                                     void *ThreadState_UserData      = 0,
-         thread_main_callback_type_buffer *WorkerThreadCallbackProcs = 0)
+                                     void *ThreadState_UserData = 0 )
 {
   Global_Stdlib = Stdlib;
 
@@ -29,13 +28,10 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
   if (Flags & BonsaiInit_LaunchThreadPool)
   {
     TIMED_NAMED_BLOCK(LaunchThreadPool);
-    u32 LogicalCoreCount  = PlatformGetLogicalCoreCount();
-    u32 WorkerThreadCount = GetWorkerThreadCount();
-    u32 TotalThreadCount  = GetTotalThreadCount();
-    // TODO(Jesse): Move this into the actual creation code?
-    Info("Detected (%u) Logical cores, creating (%u) worker threads of (%u) total threads", LogicalCoreCount, WorkerThreadCount, TotalThreadCount);
 
-    Stdlib->ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, s32(TotalThreadCount), ThreadState_UserData, Memory);
+    Assert(Stdlib->WorkerThreadProcs.Count);
+
+    Stdlib->ThreadStates = Initialize_ThreadLocal_ThreadStates(&Stdlib->Plat, s32(GetTotalThreadCount()), ThreadState_UserData, Memory);
 
     {
       memory_arena *WorkQueueMemory = AllocateArena();
@@ -140,7 +136,7 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     {
       if (AppApi->WorkerInit) { AppApi->WorkerInit(GetThreadLocalState(ThreadLocal_ThreadIndex)); }
       SignalFutex(&Plat->WorkerThreadsReady);
-      LaunchWorkerThreads(Plat, AppApi, WorkerThreadCallbackProcs);
+      LaunchWorkerThreads(Plat, AppApi, &Stdlib->WorkerThreadProcs);
 
       WaitForWorkers(&Plat->WorkerThreadsReady);
       UnsignalFutex(&Plat->WorkerThreadsReady);

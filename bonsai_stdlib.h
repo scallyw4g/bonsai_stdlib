@@ -158,6 +158,8 @@ poof(@do_editor_ui)
              opengl  GL;
         renderer_2d  Ui;
 
+   thread_main_callback_type_buffer WorkerThreadProcs;
+
   // NOTE(Jesse): If we've setup a thread pool we allocate ThreadStates (and
   // set ThreadLocal_ThreadIndex for each thread), but if we just want a
   // single-threaded program (or want to access a thread_local_state before

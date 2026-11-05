@@ -912,21 +912,6 @@ PlatformSetProtection(u8 *Base, u64 Size, memory_protection_type Protection)
   return Result;
 }
 
-link_internal u32
-PlatformGetLogicalCoreCount()
-{
-  local_persist u32 Result = {};
-  if (Result == 0)
-  {
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    Result = (u32)sysinfo.dwNumberOfProcessors;
-    Assert(Result > 0);
-  }
-  return Result;
-}
-
-
 link_internal void
 Win32PrintLastError()
 {
@@ -950,6 +935,66 @@ Win32PrintLastError()
     //Free the Win32's string's buffer.
     LocalFree(messageBuffer);
   }
+}
+
+link_internal u32
+PlatformGetLogicalCoreCount()
+{
+  local_persist u32 Result = {};
+  if (Result == 0)
+  {
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    Result = (u32)sysinfo.dwNumberOfProcessors;
+    Assert(Result > 0);
+  }
+  return Result;
+}
+
+link_internal u32
+PlatformGetPhysicalCoreCount()
+{
+  TIMED_FUNCTION();
+
+  u32 Result = 0;
+
+  // NOTE: The first call is expected to fail with ERROR_INSUFFICIENT_BUFFER
+  // and report the required buffer size.
+  DWORD RecordsSize = 0;
+  GetLogicalProcessorInformationEx(RelationProcessorCore, nullptr, &RecordsSize);
+
+  if (RecordsSize)
+  {
+    u8 *Records = Allocate(u8, GetTranArena(), RecordsSize);
+
+    if (GetLogicalProcessorInformationEx(RelationProcessorCore, (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)Records, &RecordsSize))
+    {
+      // Records are variable length, so step by each record's Size
+      u8 *At  = Records;
+      u8 *End = Records + RecordsSize;
+      while (At < End)
+      {
+        SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX *Record = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)At;
+        if (Record->Relationship == RelationProcessorCore)
+        {
+          Result += 1;
+        }
+        At += Record->Size;
+      }
+    }
+    else
+    {
+      Win32PrintLastError();
+      SoftError("Unable to count physical cores (1).");
+    }
+  }
+  else
+  {
+    Win32PrintLastError();
+    SoftError("Unable to count physical cores (0).");
+  }
+
+  return Result;
 }
 
 link_internal void
