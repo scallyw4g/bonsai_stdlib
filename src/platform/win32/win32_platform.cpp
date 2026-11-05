@@ -205,17 +205,14 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
 void
 Terminate(os *Os, platform *Plat)
 {
-  SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
-  UnsignalFutex(&Plat->WorkerThreadsExitFutex);
-
   timeEndPeriod(1);
 
-  if (Os->GlContext) // Cleanup Opengl context
-  {
-    wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(Os->GlContext);
-    if (Os->GlContext2) { wglDeleteContext(Os->GlContext2); }
-  }
+  /* if (Os->GlContext) // Cleanup Opengl context */
+  /* { */
+  /*   wglMakeCurrent(NULL, NULL); */
+  /*   wglDeleteContext(Os->GlContext); */
+  /*   if (Os->GlContext2) { wglDeleteContext(Os->GlContext2); } */
+  /* } */
 
   if (global_hPalette)
   {
@@ -224,7 +221,7 @@ Terminate(os *Os, platform *Plat)
 
   ReleaseDC(Os->Window, Os->Display);
 
-  PostQuitMessage(0);
+  /* PostQuitMessage(0); */
 
   return;
 }
