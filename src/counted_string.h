@@ -126,7 +126,7 @@ CS(const char *S, umm Count)
 {
   cs Result;
 
-  if (S) { Result = { .Count = Count, .Start = S }; Assert(Count); }
+  if (S) { Result = { .Count = Count, .Start = S }; }
   else   { Result = { .Start = "(null)", .Count = sizeof("(null)")-1 }; }
 
   return Result;
