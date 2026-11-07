@@ -331,9 +331,11 @@ global_variable u32 Global_TypeByteWidthTable[] =
 
 enum base_ptr_relative_edit_flags
 {
-  BasePtrRelativeEditFlag_None,
-  BasePtrRelativeEditFlag_NewRecord,
-  BasePtrRelativeEditFlag_UpdatedRecord,
+  BasePtrRelativeEditFlag_None          = 0,
+  BasePtrRelativeEditFlag_NewRecord     = (1<<0),
+  BasePtrRelativeEditFlag_UpdatedRecord = (1<<1),
+
+  BasePtrRelativeEditFlag_Changed = BasePtrRelativeEditFlag_NewRecord|BasePtrRelativeEditFlag_UpdatedRecord,
 };
 
 struct base_ptr_relative_edit
