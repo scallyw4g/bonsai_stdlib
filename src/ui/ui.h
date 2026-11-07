@@ -675,6 +675,7 @@ global_variable v2 Global_ResizeHandleDim = V2(15);
 #define UI_COLOR_DEFAULT_DISABLED      (V3(0.4f, 0.3f, 0.3f))
 #define UI_COLOR_DEFAULT_ERROR         (V3(0.8f, 0.3f, 0.1f))
 #define UI_COLOR_DEFAULT_WARNING       (V3(0.6f, 0.3f, 0.1f))
+#define UI_COLOR_DEFAULT_EDITED        (V3(0.4f, 0.3f, 0.6f))
 
 #define UI_HOVER_HIGHLIGHT_DISABLED    (V3(-1.f))
 
@@ -684,6 +685,7 @@ debug_global ui_style DefaultBlurredStyle  = UiStyleFromLightestColor(UI_COLOR_D
 debug_global ui_style DefaultDisabledStyle = UiStyleFromLightestColor(UI_COLOR_DEFAULT_DISABLED);
 debug_global ui_style DefaultErrorStyle    = UiStyleFromLightestColor(UI_COLOR_DEFAULT_ERROR);
 debug_global ui_style DefaultWarningStyle  = UiStyleFromLightestColor(UI_COLOR_DEFAULT_WARNING);
+debug_global ui_style DefaultEditedStyle   = UiStyleFromLightestColor(UI_COLOR_DEFAULT_WARNING);
 
 
 debug_global ui_style DefaultBackgroundStyle       = UiStyleFromLightestColor(UI_WINDOW_BACKGROUND_DEFAULT_COLOR);

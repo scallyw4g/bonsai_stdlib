@@ -329,10 +329,18 @@ global_variable u32 Global_TypeByteWidthTable[] =
 };
 
 
+enum base_ptr_relative_edit_flags
+{
+  BasePtrRelativeEditFlag_None,
+  BasePtrRelativeEditFlag_NewRecord,
+  BasePtrRelativeEditFlag_UpdatedRecord,
+};
+
 struct base_ptr_relative_edit
 poof(@serdes @do_editor_ui)
 {
-  u32 Datatype;    // enum primitive_type
+  u16 Flags;       // enum base_ptr_relative_edit_flags
+  u16 Datatype;    // enum primitive_type
   u32 LocalOffset; // Relative to the BasePtr in the collection these belong to
 
   // Previous value when encoding an undo, Modified value when encoding an Instance param

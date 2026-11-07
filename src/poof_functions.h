@@ -3237,7 +3237,14 @@ poof(
     type_list.map(type)
     {
       link_internal b32
-      DoEditorUi(renderer_2d *Ui, window_layout *Window, type.name *Value, cs Name, u32 ParentHash, ui_render_params *Params = &DefaultUiRenderParams_Generic, base_ptr_relative_edit_block_array *UiChangeEvents = 0, EDITOR_UI_VALUE_RANGE_PROTO_DEFAULTS)
+      DoEditorUi(       renderer_2d *Ui,
+                      window_layout *Window,
+                          type.name *Value,
+                                 cs  Name,
+                                u32  ParentHash,
+                   ui_render_params *Params = &DefaultUiRenderParams_Generic,
+ base_ptr_relative_edit_block_array *UiChangeEvents = 0,
+                EDITOR_UI_VALUE_RANGE_PROTO_DEFAULTS )
       {
         b32 Result = False;
         u32 ThisHash = ChrisWellonsIntegerHash_lowbias32(ParentHash ^ 0x(type.hash));
@@ -3548,7 +3555,6 @@ poof(
       {
         b32 Result = False;
         u32 ThisHash = ChrisWellonsIntegerHash_lowbias32(ParentHash ^ 0x(enum_t.hash));
-
 
         if (Name.Count) { PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column); }
 
