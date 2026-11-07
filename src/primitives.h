@@ -338,6 +338,21 @@ enum base_ptr_relative_edit_flags
   BasePtrRelativeEditFlag_Changed = BasePtrRelativeEditFlag_NewRecord|BasePtrRelativeEditFlag_UpdatedRecord,
 };
 
+
+// TODO(Jesse): Probably don't have this here..
+union ui_id
+poof(@do_editor_ui)
+{
+  struct
+  {
+    u32 WindowBits;
+    u32 InteractionBits;
+    u32 ElementBits;
+    u32 HashBits;
+  };
+  u32 E[4];
+};
+
 struct base_ptr_relative_edit
 poof(@serdes @do_editor_ui)
 {
@@ -348,8 +363,11 @@ poof(@serdes @do_editor_ui)
   // Previous value when encoding an undo, Modified value when encoding an Instance param
   // @semantics_of_primitive_value_changed_record::Value
   u64 Value;
+  ui_id ClickedFieldId; poof(@no_serialize)
 };
-CAssert(sizeof(base_ptr_relative_edit) == 16);
+// TODO(Jesse): Is this here for any real reason?
+/* CAssert(sizeof(base_ptr_relative_edit) == 16); */
+CAssert(sizeof(base_ptr_relative_edit) == 32);
 
 link_internal b32
 AreEqual(base_ptr_relative_edit *Thing1, base_ptr_relative_edit *Thing2);

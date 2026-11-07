@@ -41,6 +41,7 @@ DrawButtonGroupForEnum(
                                        u32 *EnumStorage,
                           ui_render_params *Params        = &DefaultUiRenderParams_Generic,
         base_ptr_relative_edit_block_array *ChangeRecords = 0,
+                                              ui_id *OutClickedFieldId = 0,
               ui_toggle_button_group_flags  Flags         = ToggleButtonGroupFlags_None )
 {
   ui_toggle_button_group Result = {};
@@ -51,7 +52,7 @@ DrawButtonGroupForEnum(
 
   Assert(Buttons->Count < bitsof(*EnumStorage));
 
-  DrawButtonGroup(&Result, Name, Params, &DefaultUiRenderParams_Toolbar, ChangeRecords);
+  DrawButtonGroup(&Result, Name, Params, &DefaultUiRenderParams_Toolbar, ChangeRecords, OutClickedFieldId);
 
   return Result;
 }
@@ -2091,7 +2092,8 @@ DrawButtonGroup(    ui_toggle_button_group *Group,
                                         cs  Name,
                           ui_render_params *ElementParams,
                           ui_render_params *GroupParams,
-        base_ptr_relative_edit_block_array *ChangeRecords /* = 0 */ )
+        base_ptr_relative_edit_block_array *ChangeRecords,
+                                              ui_id *OutClickedFieldId /* = 0 */ )
 {
   UNPACK_UI_RENDER_PARAMS(ElementParams);
 
@@ -2133,6 +2135,11 @@ DrawButtonGroup(    ui_toggle_button_group *Group,
       Group->AnyElementClicked = True;
       Group->ClickedId = UiButton->Id;
       MaybePushChangeRecord(ChangeRecords, Group->EnumStorage);
+      if (OutClickedFieldId)
+      {
+        Assert(!IsValid(OutClickedFieldId));
+        *OutClickedFieldId = UiButton->Id;
+      }
     }
 
     switch (Group->Flags & ToggleButtonGroupFlags_ButtonTypes)

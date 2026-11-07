@@ -17,13 +17,15 @@ MaybePushChangeRecord(
    base_ptr_relative_edit_block_array *ChangeRecords,
                                primitive_type  Datatype,
                                           u64  Value,
-                                          u64  ValuePtr )
+                                          u64  ValuePtr,
+                                        ui_id  FieldId )
 {
   if (ChangeRecords)
   {
     base_ptr_relative_edit Record = {};
     Record.Datatype  = Datatype;
     Record.Value     = Value;
+    Record.ClickedFieldId = FieldId;
 
     Assert(ChangeRecords->BasePtr);
     Assert(ChangeRecords->BasePtr <= ValuePtr);
@@ -42,3 +44,16 @@ MaybePushChangeRecord(
     }
   }
 }
+
+#if 0
+link_internal void
+MaybePushChangeRecord(
+   base_ptr_relative_edit_block_array *ChangeRecords,
+                               primitive_type  Datatype,
+                                          u64  Value,
+                                          u64  ValuePtr,
+                                        ui_id  FieldId )
+{
+  MaybePushChangeRecord(ChangeRecords, Datatype, Value, ValuePtr, FieldId);
+}
+#endif

@@ -1,19 +1,6 @@
 struct layout;
 struct window_layout;
 
-union ui_id
-poof(@do_editor_ui)
-{
-  struct
-  {
-    u32 WindowBits;
-    u32 InteractionBits;
-    u32 ElementBits;
-    u32 HashBits;
-  };
-  u32 E[4];
-};
-
 link_internal b32
 IsValid(ui_id *Id)
 {

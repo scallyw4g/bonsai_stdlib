@@ -38,7 +38,7 @@ poof(hashtable_struct(u32))
 
 
 
-poof(block_array_h(base_ptr_relative_edit, {8}, {u64 BasePtr;}))
+poof(block_array_h(base_ptr_relative_edit, {8}, {u64 BasePtr; ui_id ClickedFieldId;}))
 #include <generated/block_array_h$base_ptr_relative_edit.688856411.594525846$kci8lcOn.h>
 
 
@@ -83,8 +83,11 @@ poof(
   }
 )
 
+/* link_internal void */
+/* MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, primitive_type Datatype, u64 PrevValue, u64 ValuePtr ); */
+
 link_internal void
-MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, primitive_type Datatype, u64 PrevValue, u64 ValuePtr );
+MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, primitive_type Datatype, u64 PrevValue, u64 ValuePtr, ui_id FieldId = {});
 
 poof(change_records_for_int_types({s64 u64 s32 u32 s16 u16 s8 u8 b8}))
 #include <generated/change_records_for_int_types$986235458$MY18t4sO.h>
