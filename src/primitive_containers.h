@@ -92,3 +92,36 @@ poof(change_records_for_int_types({s64 u64 s32 u32 s16 u16 s8 u8 b8}))
 poof(change_records_for_float_types({r64 r32}))
 #include <generated/change_records_for_float_types$638347018$svHP1sWX.h>
 
+// True if there is a change record for the value at ValuePtr
+link_internal b32
+IsEdited(base_ptr_relative_edit_block_array *Edits, void *ValuePtr)
+{
+  b32 Result = False;
+  if (Edits && Edits->BasePtr)
+  {
+    u64 Offset = u64(ValuePtr) - Edits->BasePtr;
+    IterateOver(Edits, Edit, EditIndex)
+    {
+      if (u64(Edit->LocalOffset) == Offset) { Result = True; break; }
+    }
+  }
+  return Result;
+}
+
+// True if there is a change record for any value in [ValuePtr, ValuePtr+SizeInBytes)
+link_internal b32
+IsEdited(base_ptr_relative_edit_block_array *Edits, void *ValuePtr, umm SizeInBytes)
+{
+  b32 Result = False;
+  if (Edits && Edits->BasePtr)
+  {
+    u64 Start = u64(ValuePtr) - Edits->BasePtr;
+    u64 End   = Start + u64(SizeInBytes);
+    IterateOver(Edits, Edit, EditIndex)
+    {
+      if (u64(Edit->LocalOffset) >= Start && u64(Edit->LocalOffset) < End) { Result = True; break; }
+    }
+  }
+  return Result;
+}
+

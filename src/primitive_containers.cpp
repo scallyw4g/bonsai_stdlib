@@ -29,6 +29,16 @@ MaybePushChangeRecord(
     Assert(ChangeRecords->BasePtr <= ValuePtr);
     Record.LocalOffset = SafeTruncateToU32(ValuePtr - ChangeRecords->BasePtr);
 
-    Push(ChangeRecords, &Record);
+    auto FindIndex = Find(ChangeRecords, &Record);
+    if (IsValid(&FindIndex))
+    {
+      Record.Flags = BasePtrRelativeEditFlag_UpdatedRecord;
+      Set(ChangeRecords, &Record, FindIndex);
+    }
+    else
+    {
+      Record.Flags = BasePtrRelativeEditFlag_NewRecord;
+      Push(ChangeRecords, &Record);
+    }
   }
 }

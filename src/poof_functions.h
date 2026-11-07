@@ -3208,7 +3208,12 @@ poof(
         type.member(0, (E) 
         {
           /* PushTableStart(Ui); */
-            if (Name.Count) { PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Blank); }
+            if (Name.Count)
+            {
+              ui_render_params NameParams = DefaultUiRenderParams_Blank;
+              if (Value && IsEdited(UiChangeEvents, Value, sizeof(*Value))) { NameParams.FStyle = &DefaultEditedStyle; }
+              PushColumn(Ui, CS(Name), &NameParams);
+            }
 
             if (Value)
             {
@@ -3251,15 +3256,24 @@ poof(
 
         Params = Params ? Params : &DefaultUiRenderParams_Blank;
 
-        if (Name.Count) { PushColumn(Ui, Name, &DefaultUiRenderParams_Column); }
+        ui_render_params NameParams = DefaultUiRenderParams_Column;
+        ui_render_params ValueParams = DefaultUiRenderParams_Generic;
+        if (Value && IsEdited(UiChangeEvents, Value))
+        {
+          NameParams.FStyle  = &DefaultEditedStyle;
+          ValueParams.FStyle = &DefaultEditedStyle;
+        }
+
+        if (Name.Count) { PushColumn(Ui, Name, &NameParams); }
 
         if (Value)
         {
           type.name StartingValue = *Value;
+
           u32 Start = StartColumn(Ui, &DefaultUiRenderParams_Blank);
             PushTableStart(Ui);
               if (Button(Ui, CSz("-"), UiId(Window, "decrement", Value, ThisHash), &DefaultUiRenderParams_Button)) { *Value = *Value - 1; Result = True; }
-                  PushColumn(Ui, CS(*Value), &DefaultUiRenderParams_Generic);
+                  PushColumn(Ui, CS(*Value), &ValueParams);
               if (Button(Ui, CSz("+"), UiId(Window, "increment", Value, ThisHash), &DefaultUiRenderParams_Button)) { *Value = *Value + 1; Result = True; }
             PushTableEnd(Ui);
           EndColumn(Ui, Start);
@@ -3556,11 +3570,19 @@ poof(
         b32 Result = False;
         u32 ThisHash = ChrisWellonsIntegerHash_lowbias32(ParentHash ^ 0x(enum_t.hash));
 
-        if (Name.Count) { PushColumn(Ui, CS(Name), &DefaultUiRenderParams_Column); }
+        ui_render_params NameParams = DefaultUiRenderParams_Column;
+        ui_render_params EditedParams = *Params;
+        if (IsEdited(UiChangeEvents, Element))
+        {
+          NameParams.FStyle   = &DefaultEditedStyle;
+          EditedParams.FStyle = &DefaultEditedStyle;
+        }
+
+        if (Name.Count) { PushColumn(Ui, CS(Name), &NameParams); }
 
         cs ElementName = ToStringPrefixless(*Element);
         ui_id ToggleButtonId = UiId(Window, "toggle enum_t.name", Element, ThisHash);
-        if (ToggleButton(Ui, ElementName, ElementName, ToggleButtonId, Params))
+        if (ToggleButton(Ui, ElementName, ElementName, ToggleButtonId, &EditedParams))
         {
           PushNewRow(Ui);
           enum_t.map(value)
