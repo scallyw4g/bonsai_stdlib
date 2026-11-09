@@ -1049,6 +1049,7 @@ poof(
 
     ui_render_command_force_advance
     ui_render_command_force_update_basis
+    ui_render_command_force_set_basis   enum_only
 
     ui_render_command_debug_draw_rect
     ui_render_command_debug_draw_layout

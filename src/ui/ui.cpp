@@ -80,10 +80,17 @@ ToggledOn(renderer_2d *Ui, ui_toggle_button_handle *Button)
 }
 
 link_internal b32
+GetToggleState(renderer_2d* Ui, ui_id *Id)
+{
+  interactable_handle Handle = {*Id};
+  b32 Result = ToggledOn(Ui, &Handle);
+  return Result;
+}
+
+link_internal b32
 GetToggleState(renderer_2d* Ui, ui_id Id)
 {
-  interactable_handle Handle = {Id};
-  b32 Result = ToggledOn(Ui, &Handle);
+  b32 Result = GetToggleState(Ui, &Id);
   return Result;
 }
 
@@ -1245,6 +1252,15 @@ PushResetDrawBounds(renderer_2d *Group)
 }
 
 link_internal void
+PushForceSetBasis(renderer_2d *Group, v2 Offset)
+{
+  ui_render_command Command = {};
+  Command.Type = type_ui_render_command_force_set_basis;
+  Command.ui_render_command_force_update_basis.Offset = Offset;
+  PushUiRenderCommand(Group, &Command);
+}
+
+link_internal void
 PushForceUpdateBasis(renderer_2d *Group, v2 Offset)
 {
   ui_render_command Command = {};
@@ -1595,13 +1611,13 @@ ButtonInteraction(renderer_2d* Group, rect2 Bounds, ui_id InteractionId, window_
     Style->Color = Style->HoverColor;
   }
 
-  if (Clicked(Group, &Interaction))
+  if (AnyClicked(Group, &Interaction))
   {
     Result.Clicked = True;
     Style->Color = Style->ClickedColor;
   }
 
-  if (Pressed(Group, &Interaction))
+  if (AnyPressed(Group, &Interaction))
   {
     Result.Pressed = True;
     Style->Color = Style->ClickedColor;
@@ -2063,6 +2079,19 @@ SetToggleButton(renderer_2d *Ui, ui_id UiId, b32 Value)
 }
 
 link_internal void
+SetToggleState(renderer_2d *Ui, ui_id *UiId, b32 Value)
+{
+  SetToggleButton(Ui, *UiId, Value);
+}
+
+link_internal void
+SetToggleState(renderer_2d *Ui, ui_id UiId, b32 Value)
+{
+  SetToggleButton(Ui, UiId, Value);
+}
+
+
+link_internal void
 SetRadioButton(ui_toggle_button_group *Group, maybe_ui_toggle_ptr MaybeToggle, ui_toggle_button_handle *ToggleHandle, b32 Value)
 {
   UnsetAllTogglesExcluding(Group, umm_MAX);
@@ -2131,17 +2160,6 @@ DrawButtonGroup(    ui_toggle_button_group *Group,
 
     b32 ButtonClicked = Clicked(Ui, &ButtonHandle);
 
-    if (ButtonClicked) {
-      Group->AnyElementClicked = True;
-      Group->ClickedId = UiButton->Id;
-      MaybePushChangeRecord(ChangeRecords, Group->EnumStorage);
-      if (OutClickedFieldId)
-      {
-        Assert(!IsValid(OutClickedFieldId));
-        *OutClickedFieldId = UiButton->Id;
-      }
-    }
-
     switch (Group->Flags & ToggleButtonGroupFlags_ButtonTypes)
     {
       case ToggleButtonGroupFlags_TypeClickButton:
@@ -2187,8 +2205,22 @@ DrawButtonGroup(    ui_toggle_button_group *Group,
     {
       PushNewRow(Ui);
     }
+
+    if (ButtonClicked)
+    {
+      Group->AnyElementClicked = True;
+      Group->ClickedId = UiButton->Id;
+      MaybePushChangeRecord(ChangeRecords, Group->EnumStorage, UiButton->Id);
+      if (OutClickedFieldId)
+      {
+        Assert(!IsValid(OutClickedFieldId));
+        *OutClickedFieldId = UiButton->Id;
+      }
+    }
   }
   EndColumn(Ui, ColumnIndex);
+
+
 
   if ( (Group->Flags & ToggleButtonGroupFlags_NoNewRow) == 0)
   {
@@ -3459,7 +3491,8 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         ui_render_command *ButtonCmd = CommandBuffer->Commands+ButtonStartIndex;
         ui_render_command_button_start* ButtonStart = RenderCommandAs(button_start, ButtonCmd);
 
-        button_interaction_result ButtonResult = ProcessButtonEnd(Group, ButtonStart->ID, RenderState, AbsDrawBounds, &ButtonStart->BStyle);
+        button_interaction_result ButtonResult =
+          ProcessButtonEnd(Group, ButtonStart->ID, RenderState, AbsDrawBounds, &ButtonStart->BStyle);
 
         if (ButtonStart->Params & ButtonParam_ToggleButton)
         {
@@ -3510,10 +3543,17 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         AdvanceLayoutStackBy(TypedCommand->Offset, RenderState->Layout);
       } break;
 
+      case type_ui_render_command_force_set_basis:
+      {
+        ui_render_command_force_update_basis* TypedCommand = &Command->ui_render_command_force_update_basis;
+        RenderState->Layout->Basis = TypedCommand->Offset;
+        RenderState->Layout->At = {};
+        AdvanceLayoutStackBy(V2(0), RenderState->Layout);
+      } break;
+
       case type_ui_render_command_force_update_basis:
       {
         ui_render_command_force_update_basis* TypedCommand = RenderCommandAs(force_update_basis, Command);
-        /* AdvanceLayoutStackBy(TypedCommand->Offset, RenderState->Layout); */
         RenderState->Layout->Basis += TypedCommand->Offset;
         /* RenderState->Layout->DrawBounds.Min -= TypedCommand->Offset; */
         /* RenderState->Layout->DrawBounds.Max -= TypedCommand->Offset; */
@@ -3675,6 +3715,7 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
       case type_ui_render_command_abs_border:
       case type_ui_render_command_force_advance:
       case type_ui_render_command_force_update_basis:
+      case type_ui_render_command_force_set_basis:
       case type_ui_render_command_reset_draw_bounds:
       case type_ui_render_command_debug:
         { break; }

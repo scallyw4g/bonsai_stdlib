@@ -3277,18 +3277,16 @@ poof(
           u32 Start = StartColumn(Ui, &DefaultUiRenderParams_Blank);
             PushTableStart(Ui);
               if (Button(Ui, CSz("-"), UiId(Window, "decrement", Value, ThisHash), &DefaultUiRenderParams_Button)) { *Value = *Value - 1; Result = True; }
-                  if (Button(Ui, CS(*Value), FieldId, &ValueParams)) 
-                  { 
-                    if (OutClickedFieldId)
-                    {
-                      Assert(!IsValid(OutClickedFieldId));
-                      *OutClickedFieldId = FieldId;
-                    }
-                  }
+                  Button(Ui, CS(*Value), FieldId, &ValueParams);
               if (Button(Ui, CSz("+"), UiId(Window, "increment", Value, ThisHash), &DefaultUiRenderParams_Button)) { *Value = *Value + 1; Result = True; }
             PushTableEnd(Ui);
           EndColumn(Ui, Start);
-          if (Result) { MaybePushChangeRecord(UiChangeEvents, StartingValue, Value); }
+
+          if (Result)
+          {
+            if (OutClickedFieldId) { *OutClickedFieldId = FieldId; }
+            MaybePushChangeRecord(UiChangeEvents, StartingValue, Value, FieldId);
+          }
         }
         else
         {
@@ -3590,7 +3588,14 @@ poof(
     }
     {
       link_internal b32
-      DoEditorUi(renderer_2d *Ui, window_layout *Window, enum_t.name *Element, cs Name, u32 ParentHash, ui_render_params *Params = &DefaultUiRenderParams_Generic, base_ptr_relative_edit_block_array *UiChangeEvents = 0, ui_id *OutClickedFieldId = 0)
+      DoEditorUi(      renderer_2d *Ui,
+                     window_layout *Window,
+                       enum_t.name *Element,
+                                cs  Name,
+                               u32  ParentHash,
+                  ui_render_params *Params = &DefaultUiRenderParams_Generic,
+base_ptr_relative_edit_block_array *UiChangeEvents = 0,
+                             ui_id *OutClickedFieldId = 0 )
       {
         b32 Result = False;
         u32 ThisHash = ChrisWellonsIntegerHash_lowbias32(ParentHash ^ 0x(enum_t.hash));
@@ -3606,9 +3611,26 @@ poof(
         if (Name.Count) { PushColumn(Ui, CS(Name), &NameParams); }
 
         cs ElementName = ToStringPrefixless(*Element);
-        ui_id FieldId = UiId(Window, "toggle enum_t.name", Element, ThisHash);
-        ui_id ToggleButtonId = FieldId;
-        if (ToggleButton(Ui, ElementName, ElementName, ToggleButtonId, &EditedParams))
+        ui_id ToggleButtonId = UiId(Window, "toggle enum_t.name", Element, ThisHash);
+
+        ToggleButton(Ui, ElementName, ElementName, ToggleButtonId, &EditedParams);
+
+        if (AnyClicked(Ui, &ToggleButtonId))
+        {
+          if (OutClickedFieldId)
+          {
+            Assert(!IsValid(OutClickedFieldId));
+            *OutClickedFieldId = ToggleButtonId;
+          }
+        }
+
+        // Set the toggle off if we rclicked on it
+        if (GetToggleState(Ui, &ToggleButtonId) && RClicked(Ui, &ToggleButtonId))
+        {
+          SetToggleState(Ui, &ToggleButtonId, False);
+        }
+
+        if (GetToggleState(Ui, &ToggleButtonId))
         {
           PushNewRow(Ui);
           enum_t.map(value)
@@ -3617,9 +3639,6 @@ poof(
             if (Button(Ui, CSz("value.name.strip_all_prefix"), UiId(Window, "enum value.name", Element, ThisHash), Params))
             {
               Result = True;
-
-              MaybePushChangeRecord(UiChangeEvents, Cast(u32*, Element));
-
               enum_t.has_tag(bitfield)?
               {
                 if ((value.name) == enum_t.name(0))
@@ -3642,6 +3661,7 @@ poof(
                 *Element = value.name;
               }
 
+              MaybePushChangeRecord(UiChangeEvents, Cast(u32*, Element), ToggleButtonId);
               SetToggleButton(Ui, ToggleButtonId, False);
             }
             PushNewRow(Ui);
@@ -3649,14 +3669,6 @@ poof(
         }
         else
         {
-          if (OutClickedFieldId)
-          {
-            if (Button(Ui, ElementName, FieldId, &EditedParams))
-            {
-              Assert(!IsValid(OutClickedFieldId));
-              *OutClickedFieldId = FieldId;
-            }
-          }
           PushNewRow(Ui);
         }
         return Result;

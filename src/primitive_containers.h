@@ -48,15 +48,15 @@ poof(
     Types.map(t)
     {
       link_internal void
-      MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, t.name StartingValue, t.name *ValuePtr )
+      MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, t.name StartingValue, t.name *ValuePtr, ui_id Id)
       {
-        MaybePushChangeRecord(ChangeRecords, PrimitiveType_(t.name), Cast(u64, StartingValue), Cast(u64, ValuePtr));
+        MaybePushChangeRecord(ChangeRecords, PrimitiveType_(t.name), Cast(u64, StartingValue), Cast(u64, ValuePtr), Id);
       }
 
       link_internal void
-      MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, t.name *ValuePtr )
+      MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, t.name *ValuePtr, ui_id Id )
       {
-        MaybePushChangeRecord(ChangeRecords, *ValuePtr, ValuePtr);
+        MaybePushChangeRecord(ChangeRecords, *ValuePtr, ValuePtr, Id);
       }
     }
   }
@@ -68,16 +68,16 @@ poof(
     Types.map(t)
     {
       link_internal void
-      MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, t.name StartingValue, t.name *ValuePtr )
+      MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, t.name StartingValue, t.name *ValuePtr, ui_id Id)
       {
         r64 Tmp = Cast(r64, StartingValue);
-        MaybePushChangeRecord(ChangeRecords, PrimitiveType_(t.name), ReinterpretCast(u64, Tmp), Cast(u64, ValuePtr));
+        MaybePushChangeRecord(ChangeRecords, PrimitiveType_(t.name), ReinterpretCast(u64, Tmp), Cast(u64, ValuePtr), Id);
       }
 
       link_internal void
-      MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, t.name *ValuePtr )
+      MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, t.name *ValuePtr, ui_id Id)
       {
-        MaybePushChangeRecord(ChangeRecords, *ValuePtr, ValuePtr);
+        MaybePushChangeRecord(ChangeRecords, *ValuePtr, ValuePtr, Id);
       }
     }
   }
@@ -87,7 +87,7 @@ poof(
 /* MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, primitive_type Datatype, u64 PrevValue, u64 ValuePtr ); */
 
 link_internal void
-MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, primitive_type Datatype, u64 PrevValue, u64 ValuePtr, ui_id FieldId = {});
+MaybePushChangeRecord( base_ptr_relative_edit_block_array *ChangeRecords, primitive_type Datatype, u64 PrevValue, u64 ValuePtr, ui_id FieldId);
 
 poof(change_records_for_int_types({s64 u64 s32 u32 s16 u16 s8 u8 b8}))
 #include <generated/change_records_for_int_types$986235458$MY18t4sO.h>

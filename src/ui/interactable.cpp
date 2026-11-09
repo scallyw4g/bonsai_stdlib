@@ -62,6 +62,17 @@ LClicked(renderer_2d *Group, ui_id *Id)
   return Result;
 }
 
+link_internal b32
+AnyClicked(renderer_2d *Group, ui_id *Id)
+{
+  /* if (IsValid(&Group->Clicked.Id)) { Assert(Group->Input->LMB.Clicked || Group->Input->RMB.Clicked); } */
+  b32 Result =
+    (Group->Input->LMB.Clicked || Group->Input->MMB.Clicked || Group->Input->RMB.Clicked) &&
+    (Group->Clicked.Id == *Id);
+  return Result;
+}
+
+
 
 /* link_internal b32 */
 /* Released(renderer_2d *Group, interactable_handle *Handle) */
@@ -106,13 +117,11 @@ Hover(renderer_2d* Group, interactable *Interaction)
 }
 
 link_internal b32
-Clicked(renderer_2d* Group, interactable *Interaction)
+Clicked(renderer_2d* Group, interactable *Interaction, b32 ButtonClicked)
 {
-  b32 MouseButtonClicked = Group->Input->LMB.Clicked || Group->Input->RMB.Clicked;
-
   b32 Result = False;
   if ( !IsValid(&Group->Pressed.Id) &&
-        MouseButtonClicked && Hover(Group, Interaction))
+        ButtonClicked && Hover(Group, Interaction))
   {
     Group->Pressed.Id = Interaction->Id;
     Result = True;
@@ -131,29 +140,69 @@ Clicked(renderer_2d* Group, interactable *Interaction)
 }
 
 link_internal b32
-Clicked(renderer_2d* Group, interactable Interaction)
+LClicked(renderer_2d* Group, interactable *Interaction)
 {
-  b32 Result = Clicked(Group, &Interaction);
+  b32 Result = Clicked(Group, Interaction, Group->Input->LMB.Clicked);
   return Result;
 }
 
 link_internal b32
-Pressed(renderer_2d* Group, interactable *Interaction)
+LClicked(renderer_2d* Group, interactable Interaction)
+{
+  b32 Result = Clicked(Group, &Interaction, Group->Input->LMB.Clicked);
+  return Result;
+}
+
+link_internal b32
+RClicked(renderer_2d* Group, interactable *Interaction)
+{
+  b32 Result = Clicked(Group, Interaction, Group->Input->RMB.Clicked);
+  return Result;
+}
+
+link_internal b32
+RClicked(renderer_2d* Group, interactable Interaction)
+{
+  b32 Result = Clicked(Group, &Interaction, Group->Input->RMB.Clicked);
+  return Result;
+}
+
+link_internal b32
+AnyClicked(renderer_2d* Group, interactable *Interaction)
+{
+  b32 Result = Clicked(Group, Interaction,
+      Group->Input->LMB.Clicked |
+      Group->Input->RMB.Clicked |
+      Group->Input->MMB.Clicked);
+  return Result;
+}
+
+link_internal b32
+AnyClicked(renderer_2d* Group, interactable Interaction)
+{
+  b32 Result = Clicked(Group, &Interaction,
+      Group->Input->LMB.Clicked |
+      Group->Input->RMB.Clicked |
+      Group->Input->MMB.Clicked);
+  return Result;
+}
+
+
+link_internal b32
+Pressed(renderer_2d* Group, interactable *Interaction, b32 ButtonDepressed, b32 ButtonClicked)
 {
   b32 CurrentInteractionMatches = Group->Pressed.Id == Interaction->Id;
-  b32 MouseDepressed = Group->Input->LMB.Pressed || Group->Input->RMB.Pressed;
-  b32 MouseClicked = Group->Input->LMB.Clicked || Group->Input->RMB.Clicked;
 
   b32 Result = False;
-  if (MouseDepressed && CurrentInteractionMatches)
+  if (ButtonDepressed && CurrentInteractionMatches)
   {
     Result = True;
   }
   // NOTE(Jesse): We only want to set the Pressed interaction if we clicked the mouse
-  // while hovering.  This used to check MouseDepressed instead of MouseClicked, which
+  // while hovering.  This used to check ButtonDepressed instead of ButtonClicked, which
   // would cause Pressed to suddenly become set if we were dragging a pressed mouse button,
   // which is typically not intentional.
-  else if (MouseClicked && Hover(Group, Interaction) && !IsValid(&Group->Pressed.Id))
+  else if (ButtonClicked && Hover(Group, Interaction) && !IsValid(&Group->Pressed.Id))
   {
     Group->Pressed.Id = Interaction->Id;
     Result = True;
@@ -162,3 +211,36 @@ Pressed(renderer_2d* Group, interactable *Interaction)
   return Result;
 }
 
+link_internal b32
+LPressed(renderer_2d* Group, interactable *Interaction)
+{
+  b32 CurrentInteractionMatches = Group->Pressed.Id == Interaction->Id;
+  b32 ButtonDepressed = Group->Input->LMB.Pressed;
+  b32 Result = Pressed(Group, Interaction, Group->Input->LMB.Pressed, Group->Input->LMB.Clicked);
+  return Result;
+}
+
+link_internal b32
+RPressed(renderer_2d* Group, interactable *Interaction)
+{
+  b32 CurrentInteractionMatches = Group->Pressed.Id == Interaction->Id;
+  b32 ButtonDepressed = Group->Input->LMB.Pressed;
+  b32 Result = Pressed(Group, Interaction, Group->Input->RMB.Pressed, Group->Input->RMB.Clicked);
+  return Result;
+}
+
+link_internal b32
+AnyPressed(renderer_2d* Group, interactable *Interaction)
+{
+  b32 CurrentInteractionMatches = Group->Pressed.Id == Interaction->Id;
+  b32 ButtonDepressed = Group->Input->LMB.Pressed;
+  b32 Result = Pressed(Group, Interaction,
+      Group->Input->LMB.Pressed|
+      Group->Input->MMB.Pressed|
+      Group->Input->RMB.Pressed,
+
+      Group->Input->LMB.Clicked|
+      Group->Input->MMB.Clicked|
+      Group->Input->RMB.Clicked);
+  return Result;
+}
