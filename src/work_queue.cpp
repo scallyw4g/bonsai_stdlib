@@ -201,6 +201,7 @@ StateTransition(work_queue_job *Job, work_queue_job_state NextState)
 
       Result = (Job->State == WorkQueueJobState_Free);
       Job->Index.Generation += 1;
+      if (Job->Index.Generation == 0) Job->Index.Generation += 1; // Skip 0 if we wrap
     } break;
 
     case WorkQueueJobState_Submitted:
