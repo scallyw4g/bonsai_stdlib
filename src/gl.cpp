@@ -501,6 +501,12 @@ InitializeOpenglFunctions()
       GL->GenerateTextureMipmap     = (OpenglGenerateTextureMipmap)PlatformGetGlFunction("glGenerateTextureMipmap");
       GL->Initialized               &= GL->GenerateTextureMipmap != 0;
 
+      GL->GetTextureHandleARB       = (OpenglGetTextureHandleARB)PlatformGetGlFunction("glGetTextureHandleARB");
+      GL->Initialized               &= GL->GetTextureHandleARB != 0;
+
+      GL->MakeTextureHandleResidentARB = (OpenglMakeTextureHandleResidentARB)PlatformGetGlFunction("glMakeTextureHandleResidentARB");
+      GL->Initialized               &= GL->MakeTextureHandleResidentARB != 0;
+
 
 
       GL->GetIntegerv(GL_MAJOR_VERSION, &GLMajor);

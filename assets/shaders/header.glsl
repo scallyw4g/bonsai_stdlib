@@ -1,6 +1,9 @@
 
 
 #extension GL_ARB_explicit_uniform_location : enable
+#extension GL_ARB_bindless_texture : require
+#extension GL_ARB_gpu_shader_int64 : require
+
 
 
 precision highp float;
@@ -70,6 +73,8 @@ float rand(vec2 st) {
 #define f32 float
 #define u32 uint
 #define s32 int
+#define u64 uint64_t
+#define s64 int64_t
 
 #define PI64 (3.1415926535897932384626433832795028841971693993)
 #define PI32 (float(PI64))

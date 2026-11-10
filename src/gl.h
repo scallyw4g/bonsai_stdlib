@@ -498,6 +498,8 @@ typedef void (*OpenglGetQueryBufferObjecti64v)(GLuint id, GLuint buffer, GLenum 
 typedef void (*OpenglGetQueryBufferObjectui64v)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
 
 typedef void (*OpenglGenerateTextureMipmap)(GLuint textrue);
+typedef GLuint64 (*OpenglGetTextureHandleARB)(GLuint texture);
+typedef void (*OpenglMakeTextureHandleResidentARB)(GLuint64 handle);
 
 
 struct opengl
@@ -640,6 +642,8 @@ struct opengl
   OpenglGetQueryBufferObjectui64v GetQueryBufferObjectui64v;
 
   OpenglGenerateTextureMipmap GenerateTextureMipmap;
+  OpenglGetTextureHandleARB GetTextureHandleARB;
+  OpenglMakeTextureHandleResidentARB MakeTextureHandleResidentARB;
 
   // Platform specific (wgl / glX)
   /* OpenglSwapInterval SwapInterval; */
