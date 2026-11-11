@@ -113,6 +113,11 @@ InitTexture(v2i Dim, cs DebugName, texture_storage_format Format, u32 Channels, 
 {
   texture Result = {};
 
+  if (IsHeapAllocated(&GetStdlib()->Ui.Strings, Cast(void*, DebugName.Start)) == False)
+  {
+    DebugName = CopyString(DebugName, &GetStdlib()->Ui.Strings);
+  }
+
   Result.Dim = Dim;
   Result.DebugName = DebugName;
   Result.Channels = Channels;
