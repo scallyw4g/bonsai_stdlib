@@ -2791,12 +2791,6 @@ poof(
       Insert(Array, { .Index = 0 }, Element);
     }
 
-    /* element_t.has_tag(do_editor_ui)? */
-    /* { */
-    /*   do_editor_ui_for_container( block_array_t ) */
-    /* } */
-
-
     /// TODO(Jesse): I'm pretty sure this is right, but is there a case here
     /// where we actually return a pointer into the array that we'd overwrite
     /// the memory to if we called Push after?
@@ -2879,26 +2873,40 @@ poof(
   {
     enum_t.is_enum?
     {
-      link_internal b32
-      IsValid((enum_t.name) Value)
+      enum_t.has_tag(bitfield)?
       {
-        b32 Result = False;
-        switch (Value)
+        link_internal b32
+        IsValid((enum_t.name) Value)
         {
-          enum_t.map(m)
-          {
-            m.has_tag(string_table_skip)? 
-            {
-            }
-            {
-              case m.name:
-            }
-          }
-          {
-            Result = True;
-          }
+          u32 MaskBits = enum_t.map(m).sep(|) { m.has_tag(string_table_skip)? {}{ m.name } };
+          u32 ExtraBits = (MaskBits | Value) ^ MaskBits;
+
+          b32 Result = ExtraBits == 0;
+          return Result;
         }
-        return Result;
+      }
+      {
+        link_internal b32
+        IsValid((enum_t.name) Value)
+        {
+          b32 Result = False;
+          switch (Value)
+          {
+            enum_t.map(m)
+            {
+              m.has_tag(string_table_skip)? 
+              {
+              }
+              {
+                case m.name:
+              }
+            }
+            {
+              Result = True;
+            }
+          }
+          return Result;
+        }
       }
     }
     {
