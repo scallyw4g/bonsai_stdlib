@@ -23,6 +23,17 @@
 #define OPEN_INDENT_FOR_TOGGLEABLE_REGION() (PushForceUpdateBasis(Ui, V2(20.f, 0.f)))
 #define CLOSE_INDENT_FOR_TOGGLEABLE_REGION() (PushForceUpdateBasis(Ui, V2(-20.f, 0.f)))
 
+enum ui_element_layout_flags
+{
+  UiElementLayoutFlag_Default             = 0,
+  UiElementLayoutFlag_NoAdvanceLayout     = (1 << 0),
+  UiElementLayoutFlag_NoUpdateDrawBounds  = (1 << 1),
+  UiElementLayoutFlag_DisableClipping     = (1 << 2),
+
+  UiElementLayoutFlag_NoAdvance         =  UiElementLayoutFlag_NoAdvanceLayout    |
+                                           UiElementLayoutFlag_NoUpdateDrawBounds ,
+};
+
 struct layout
 {
   v2 Basis;
@@ -34,6 +45,7 @@ struct layout
   rect2 DrawBounds = InvertedInfinityRectangle();
 
   v4 Padding;
+  ui_element_layout_flags Flags;
 
   layout* Prev;
 };
@@ -491,17 +503,6 @@ enum ui_element_alignment_flags
 
 };
 
-enum ui_element_layout_flags
-{
-  UiElementLayoutFlag_Default             = 0,
-  UiElementLayoutFlag_NoAdvanceLayout     = (1 << 0),
-  UiElementLayoutFlag_NoUpdateDrawBounds  = (1 << 1),
-  UiElementLayoutFlag_DisableClipping     = (1 << 2),
-
-  UiElementLayoutFlag_NoAdvance         =  UiElementLayoutFlag_NoAdvanceLayout    |
-                                           UiElementLayoutFlag_NoUpdateDrawBounds ,
-};
-
 link_internal b32 AdvanceLayout(ui_element_layout_flags Flags)
 {
   b32 Result = (Flags & UiElementLayoutFlag_NoAdvanceLayout) == 0;
@@ -624,6 +625,7 @@ struct ui_render_params
   v4 Padding;
 
   ui_element_alignment_flags  AlignFlags;
+  // TODO(Jesse): Remove
   ui_element_layout_flags     LayoutFlags;
 };
 
@@ -880,15 +882,12 @@ struct ui_render_command_debug_draw_layout
 struct ui_render_command_layout_start
 {
   layout Layout;
-  ui_element_layout_flags Flags;
 };
 
 struct ui_render_command_layout_end
 {
   v3 DebugColor;
   layout *WritebackDest;
-
-  ui_element_layout_flags Flags;
 };
 
 struct ui_render_command_window_end
@@ -903,7 +902,6 @@ struct ui_render_command_column_start
   r32 Width;
   r32 MaxWidth;
   ui_element_alignment_flags AlignFlags;
-  ui_element_layout_flags    LayoutFlags;
 };
 
 struct ui_render_command_column_end
@@ -918,7 +916,6 @@ struct ui_render_command_text
   counted_string String;
   v2 Offset;
   rect2 Clip;
-  ui_element_layout_flags Params;
 };
 
 struct ui_render_command_text_at
@@ -937,7 +934,6 @@ struct ui_render_command_untextured_quad
   ui_style Style;
   v2 QuadDim;
   z_depth zDepth;
-  ui_element_layout_flags Params;
 
   shader_setup_callback *ShaderSetupCallback;
   void *ShaderSetupArgs;
@@ -953,12 +949,10 @@ struct ui_render_command_untextured_quad_at
   ui_style Style;
   v2 QuadDim;
   z_depth zDepth;
-  ui_element_layout_flags Params;
 };
 
 struct ui_render_command_textured_quad
 {
-  ui_element_layout_flags Params;
 
   s32 TextureSlice;
   texture *Texture;
