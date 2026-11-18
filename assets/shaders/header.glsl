@@ -507,7 +507,8 @@ float white_noise(v3 P)
   return Res;
 }
 
-vec3 voronoi_noise( vec3 x, f32 squareness)
+// Very slow, but correct according to IQ
+vec3 voronoi_noise_iq( vec3 x, f32 squareness)
 {
   ivec3 p = ivec3(floor( x ));
   vec3  f = fract( x );
@@ -549,11 +550,170 @@ vec3 voronoi_noise( vec3 x, f32 squareness)
   return v3((res*2.f)-0.5f, res, res);
 }
 
+vec3 voronoi_hash( vec3 x )
+{
+	x = vec3( dot(x,vec3(127.1,311.7, 74.7)),
+			  dot(x,vec3(269.5,183.3,246.1)),
+			  dot(x,vec3(113.5,271.9,124.6)));
+
+	return fract(sin(x)*43758.5453123);
+}
+
+// Returns vec2(distance_to_face, cell_id) or similar packed data
+// Based on Inigo Quilez 3D Voronoi principles
+vec3 voronoi_noise(vec3 x, f32 Squareness)
+{
+    vec3 p = floor(x);
+    vec3 f = fract(x);
+
+    // First pass: find closest (F1) and second closest (F2) or nearest face bisector
+    float md1 = 8.0;
+    float md2 = 8.0;
+    vec3 mr1 = vec3(0.0);
+    vec3 mg1 = vec3(0.0);
+
+    // 3x3x3 neighborhood search
+    for (int k = -1; k <= 1; k++) {
+        for (int j = -1; j <= 1; j++) {
+            for (int i = -1; i <= 1; i++) {
+                vec3 g = vec3(float(i), float(j), float(k));
+                vec3 o = voronoi_hash(p + g);
+                // Animate or offset points if needed: o = 0.5 + 0.5*sin(iTime + 6.2831*o);
+                vec3 r = g + o - f;
+                float d = dot(r, r); // squared distance
+
+                if (d < md1) {
+                    md2 = md1;
+                    md1 = d;
+                    mg1 = g;
+                    mr1 = r;
+                } else if (d < md2) {
+                    md2 = d;
+                }
+            }
+        }
+    }
+
+    // Second pass: distance to the nearest face (bisector plane)
+    float md_face = 8.0;
+    for (int k = -1; k <= 1; k++) {
+        for (int j = -1; j <= 1; j++) {
+            for (int i = -1; i <= 1; i++) {
+                vec3 g = vec3(float(i), float(j), float(k));
+                vec3 o = voronoi_hash(p + g);
+                vec3 r = g + o - f;
+
+                // Skip the closest cell itself
+                if (dot(mg1 - g, mg1 - g) > 0.00001) {
+                    // Vector from closest point to neighbor point
+                    vec3 vecinoDir = r - mr1;
+                    float len = length(vecinoDir);
+                    vec3 normal = vecinoDir / len;
+
+                    // Project vector from sample to closest point onto the bisector normal
+                    float faceDist = dot(0.5 * (mr1 + r), normal);
+                    md_face = min(md_face, abs(faceDist));
+                }
+            }
+        }
+    }
+
+    return vec3(sqrt(md1), md_face, 0.f);
+}
+
 
 link_internal v3
 voronoi_noise(v3 Texel)
 {
   return voronoi_noise(Texel, 0.f);
+}
+
+// 3D Hash function returning random offset in [0, 1]^3
+vec3 vhash33(vec3 p) {
+    p = vec3(
+        dot(p, vec3(127.1, 311.7, 74.7)),
+        dot(p, vec3(269.5, 183.3, 246.1)),
+        dot(p, vec3(113.5, 271.9, 124.6))
+    );
+    return fract(sin(p) * 43758.5453123);
+}
+
+// Returns exact Euclidean distance to the nearest 3D Voronoi lattice edge (strut)
+float voronoi_lattice(vec3 x) {
+    vec3 n = floor(x);
+    vec3 f = fract(x);
+
+    // 1. First Pass: Find the closest feature point (F1)
+    vec3 mg, mr;
+    float md = 8.0;
+    for (int k = -1; k <= 1; k++) {
+        for (int j = -1; j <= 1; j++) {
+            for (int i = -1; i <= 1; i++) {
+                vec3 g = vec3(float(i), float(j), float(k));
+                vec3 o = vhash33(n + g);
+                vec3 r = g + o - f;
+                float d = dot(r, r);
+
+                if (d < md) {
+                    md = d;
+                    mr = r;
+                    mg = g;
+                }
+            }
+        }
+    }
+
+    // 2. Second Pass: Collect bisector planes relative to F1
+    // A bisector plane has normal N and signed distance h from the sample point
+    vec3 normals[26];
+    float dists[26];
+    int count = 0;
+
+    for (int k = -1; k <= 1; k++) {
+        for (int j = -1; j <= 1; j++) {
+            for (int i = -1; i <= 1; i++) {
+                vec3 g = mg + vec3(float(i), float(j), float(k));
+                vec3 o = vhash33(n + g);
+                vec3 r = g + o - f;
+
+                // Skip the F1 point itself
+                if (dot(mr - r, mr - r) > 0.00001) {
+                    vec3 mid = 0.5 * (mr + r);
+                    vec3 dir = normalize(r - mr);
+                    
+                    normals[count] = dir;
+                    dists[count] = dot(mid, dir); // Distance to face along normal
+                    count++;
+                }
+            }
+        }
+    }
+
+    // 3. Third Pass: Intersect pairs of bisector planes to find distance to 1D edges
+    float edgeDist = 8.0;
+    for (int i = 0; i < count; i++) {
+        for (int j = i + 1; j < count; j++) {
+            vec3 n1 = normals[i];
+            vec3 n2 = normals[j];
+            float d1 = dists[i];
+            float d2 = dists[j];
+
+            float n1n2 = dot(n1, n2);
+            float det = 1.0 - n1n2 * n1n2;
+
+            // Ignore nearly parallel planes (they don't form a valid edge)
+            if (det > 0.001) {
+                // Closest point on the intersection line of Plane 1 and Plane 2
+                float c1 = (d1 - d2 * n1n2) / det;
+                float c2 = (d2 - d1 * n1n2) / det;
+                vec3 pOnEdge = c1 * n1 + c2 * n2;
+
+                edgeDist = min(edgeDist, length(pOnEdge));
+            }
+        }
+    }
+
+    return edgeDist;
 }
 
 

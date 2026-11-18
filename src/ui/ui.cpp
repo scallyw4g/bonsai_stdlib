@@ -132,17 +132,20 @@ ToggledOn(renderer_2d *Ui, ui_toggle_button_group *Group, cs ButtonName)
 inline void
 UpdateDrawBounds(layout *Layout, v2 LayoutRelativeTestP)
 {
-  // I know it's tempting.. but don't..
-  /* if (LayoutRelativeTestP.x != 0.f || LayoutRelativeTestP.y != 0.f) */
+  if (UpdateDrawBounds(Layout->Flags))
   {
-    v2 AbsP = Layout->Basis + LayoutRelativeTestP;
-    while (Layout)
+    // I know it's tempting.. but don't..
+    /* if (LayoutRelativeTestP.x != 0.f || LayoutRelativeTestP.y != 0.f) */
     {
-      v2 LayoutRelP = AbsP - Layout->Basis;
-      Layout->DrawBounds.Min = Min(LayoutRelP, Layout->DrawBounds.Min);
-      Layout->DrawBounds.Max = Max(LayoutRelP, Layout->DrawBounds.Max);
+      v2 AbsP = Layout->Basis + LayoutRelativeTestP;
+      while (Layout)
+      {
+        v2 LayoutRelP = AbsP - Layout->Basis;
+        Layout->DrawBounds.Min = Min(LayoutRelP, Layout->DrawBounds.Min);
+        Layout->DrawBounds.Max = Max(LayoutRelP, Layout->DrawBounds.Max);
 
-      Layout = Layout->Prev;
+        Layout = Layout->Prev;
+      }
     }
   }
 }
@@ -168,7 +171,7 @@ AdvanceSpaces(u32 N, layout *Layout, v2 FontSize)
   return;
 }
 
-link_internal void AdvanceLayoutStackBy(v2 Delta, layout* Layout);
+link_internal void AdvanceLayoutStackAt(v2 Delta, layout* Layout);
 
 
 link_internal void
@@ -226,7 +229,7 @@ NewRow(layout *Layout)
   // layout, which means the next element gets bumped down the sum of both
   // their heights, not the max height of either.
   Layout->At.x = 0.0f;
-  AdvanceLayoutStackBy( V2(0.f, Global_Font.Size.y), Layout);
+  AdvanceLayoutStackAt( V2(0.f, Global_Font.Size.y), Layout);
 
 #endif
 
@@ -672,12 +675,20 @@ BufferBorder(renderer_2d *Group, interactable* PickerListInteraction, v3 Color, 
 }
 
 link_internal void
-AdvanceLayoutStackBy(v2 Delta, layout* Layout)
+AdvanceLayoutStackAt(v2 Delta, layout* Layout)
 {
   while (Layout)
   {
-    Layout->At += Delta;
-    UpdateDrawBounds(Layout);
+    if (AdvanceLayout(Layout->Flags))
+    {
+      Layout->At += Delta;
+    }
+
+    if (UpdateDrawBounds(Layout->Flags))
+    {
+      UpdateDrawBounds(Layout);
+    }
+
     Layout = Layout->Prev;
   }
 }
@@ -704,7 +715,7 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
 
   if (AdvanceLayout(Params))
   {
-    AdvanceLayoutStackBy(V2(xDelta, 0), Layout);
+    AdvanceLayoutStackAt(V2(xDelta, 0), Layout);
   }
 
   if (UpdateDrawBounds(Params))
@@ -874,12 +885,14 @@ PushDebugDrawLayout( renderer_2d *Group, layout *Layout, v3 Color)
 
 
 link_internal u32
-PushLayoutStart( renderer_2d *Group, v2 Basis )
+PushLayoutStart( renderer_2d *Group, v2 Basis, ui_element_layout_flags Flags = UiElementLayoutFlag_Default)
 {
   ui_render_command Command = { };
 
   Command.Type = type_ui_render_command_layout_start;
   Command.ui_render_command_layout_start.Layout.Basis = Basis;
+  Command.ui_render_command_layout_start.Layout.Flags = Flags;
+
 
   u32 Result = PushUiRenderCommand(Group, &Command);
   return Result;
@@ -1386,11 +1399,12 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
   PushBorder(Group, AbsWindowBounds, UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, UI_WINDOW_BORDER_DEFAULT_WIDTH);
 
-  ui_element_layout_flags NoClippingNoAdvanceFlags = ui_element_layout_flags(UiElementLayoutFlag_DisableClipping|UiElementLayoutFlag_NoAdvance);
+  ui_element_layout_flags NoClippingNoAdvanceFlags =
+    ui_element_layout_flags(UiElementLayoutFlag_DisableClipping|UiElementLayoutFlag_NoAdvance);
 
   // Window Background
   //
-  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle, UiElementLayoutFlag_NoAdvance);
+  PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle, UiElementLayoutFlag_NoAdvanceLayout);
   /* PushUntexturedQuadAt(Group, WindowBasis, WindowMaxClip, zDepth_Background, &DefaultWindowBackgroundStyle, UiElementLayoutFlag_NoAdvanceLayout); */
 
   // Resize Handle  NOTE(Jesse): must come befor title bar to take precedence when clicking
@@ -1398,7 +1412,9 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   ui_id ResizeHandleInteractionId = UiId(Window, Cast(void*, "WindowResizeWidget"), Window);
   PushButtonStart(Group, ResizeHandleInteractionId);
     PushUntexturedQuadAt( Group, ResizeHandleMin, ResizeHandleDim, zDepth_Border,
-                         &SaturatedWindowBezelStyle, NoClippingNoAdvanceFlags);
+                         /* &SaturatedWindowBezelStyle); */
+                         /* &SaturatedWindowBezelStyle, NoClippingNoAdvanceFlags); */
+                         &SaturatedWindowBezelStyle, UiElementLayoutFlag_NoAdvanceLayout);
   PushButtonEnd(Group);
 
   // Title bar   @manually_set_content_start
@@ -1458,7 +1474,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
           GetAbsoluteDrawBounds(&Window->TitleBarLayoutResult).Max.y
         );
 
-      PushLayoutStart(Group, ScrollbarBasis);
+      PushLayoutStart(Group, ScrollbarBasis, NoClippingNoAdvanceFlags);
       {
         r32 ScrollbarDimY = TrackDim.y * ScrollViewDim.y / ContentDim.y;
         v2 ScrollbarDim = V2(ScrollbarThickness, ScrollbarDimY);
@@ -1470,7 +1486,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
         ui_id ScrollbarId = UiId(Window, "WindowVerticalScrollbar", 0u);
         interactable_handle ScrollbarHandle = PushButtonStart(Group, ScrollbarId);
-          PushUntexturedQuad(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, {}, UiElementLayoutFlag_NoUpdateDrawBounds);
+          PushUntexturedQuad(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, {});
         PushButtonEnd(Group);
 
         if (Pressed(Group, &ScrollbarHandle))
@@ -1493,7 +1509,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
       v2 ScrollbarBasis = Window->Basis +
         V2(0, Window->MaxClip.y - TrackDim.y);
 
-      PushLayoutStart(Group, ScrollbarBasis);
+      PushLayoutStart(Group, ScrollbarBasis, NoClippingNoAdvanceFlags);
       {
         r32 ScrollbarDimX = TrackDim.x * ScrollViewDim.x / ContentDim.x;
         v2 ScrollbarDim = V2(ScrollbarDimX, ScrollbarThickness);
@@ -1505,7 +1521,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
         ui_id ScrollbarId = UiId(Window, "WindowHorizontalScrollbar", 0u);
         interactable_handle ScrollbarHandle = PushButtonStart(Group, ScrollbarId);
-          PushUntexturedQuad(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, {}, UiElementLayoutFlag_NoUpdateDrawBounds);
+          PushUntexturedQuad(Group, ScrollbarOffset, ScrollbarDim, zDepth_Border, &ScrollbarStyle, {});
         PushButtonEnd(Group);
 
         if (Pressed(Group, &ScrollbarHandle))
@@ -1561,11 +1577,11 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window)
   PushLayoutEnd(Group, &Window->ContentLayoutResult, V3(0,1,1));
 
 
-  ui_render_command EndCommand = {};
-  EndCommand.Type = type_ui_render_command_window_end;
-  EndCommand.ui_render_command_window_end.Window = Window;
-  /* EndCommand.ui_render_command_window_end.Dest = Dest; */
-  PushUiRenderCommand(Group, &EndCommand);
+  ui_render_command WindowEndCommand = {};
+  WindowEndCommand.Type = type_ui_render_command_window_end;
+  WindowEndCommand.ui_render_command_window_end.Window = Window;
+  /* WindowEndCommand.ui_render_command_window_end.Dest = Dest; */
+  PushUiRenderCommand(Group, &WindowEndCommand);
 
   // @overall_window_layout
   PushLayoutEnd(Group, &Window->WindowLayoutResult);
@@ -2331,7 +2347,7 @@ PushLayout(layout** Dest, layout* Layout)
   if (DoAdvanceLayoutStack)
   {
     v2 Pad = V2(Layout->Padding.Left, Layout->Padding.Top);
-    AdvanceLayoutStackBy(Pad, Layout);
+    AdvanceLayoutStackAt(Pad, Layout);
   }
 }
 
@@ -2353,7 +2369,7 @@ PopLayout(layout** Layout)
   if (DoAdvanceLayoutStack)
   {
     v2 Advance = V2(Padding.Right, -Padding.Top);
-    AdvanceLayoutStackBy(Advance, PoppedLayout);
+    AdvanceLayoutStackAt(Advance, PoppedLayout);
   }
 
   layout* PrevLayout = PoppedLayout->Prev;
@@ -2494,7 +2510,7 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
 
   if (AdvanceLayout(Command->Layout.Flags))
   {
-    AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
+    AdvanceLayoutStackAt(V2(Dim.x, 0), RenderState->Layout);
   }
 }
 
@@ -2525,7 +2541,7 @@ ProcessUntexturedQuadAtPush( renderer_2d *Group,
   v2 CurrentLayoutToCommandLayout = AbsMinP - GetAbsoluteAt(RenderState->Layout);
   if (AdvanceLayout(Command->Layout.Flags))
   {
-    AdvanceLayoutStackBy(CurrentLayoutToCommandLayout + V2(Dim.x, 0), RenderState->Layout);
+    AdvanceLayoutStackAt(CurrentLayoutToCommandLayout + V2(Dim.x, 0), RenderState->Layout);
   }
 
   if (UpdateDrawBounds(Command->Layout.Flags))
@@ -2574,7 +2590,7 @@ ProcessUntexturedQuadPush( renderer_2d *Group,
 
   if (AdvanceLayout(Command->Layout.Flags))
   {
-    AdvanceLayoutStackBy(V2(Dim.x, 0), RenderState->Layout);
+    AdvanceLayoutStackAt(V2(Dim.x, 0), RenderState->Layout);
   }
 
   return;
@@ -3137,16 +3153,12 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           PopLayout(&RenderState->Layout);
         }
 
-        // TODO(Jesse): Support flags
-        Assert(TypedCommand->Layout.Flags == UiElementLayoutFlag_Default);
         PushLayout(&RenderState->Layout, &TypedCommand->Layout);
       } break;
 
       case type_ui_render_command_layout_end:
       {
         ui_render_command_layout_end *TypedCommand = RenderCommandAs(layout_end, Command);
-        // TODO(Jesse): Support flags
-        /* Assert(TypedCommand->Layout.Flags == UiElementLayoutFlag_Default); */
 
         layout *Popped = PopLayout(&RenderState->Layout);
         if (TypedCommand->WritebackDest)
@@ -3384,7 +3396,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         if (TypedCommand->AlignFlags&UiElementAlignmentFlag_RightAlign)
         {
           Advance = V2(TypedCommand->MaxWidth - TypedCommand->Width, 0);
-          AdvanceLayoutStackBy(Advance, RenderState->Layout);
+          AdvanceLayoutStackAt(Advance, RenderState->Layout);
         }
       } break;
 
@@ -3399,7 +3411,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         if (StartCommand->AlignFlags == UiElementAlignmentFlag_LeftAlign)
         {
           Advance = V2(StartCommand->MaxWidth - StartCommand->Width, 0);
-          AdvanceLayoutStackBy(Advance, RenderState->Layout);
+          AdvanceLayoutStackAt(Advance, RenderState->Layout);
         }
 
 #if 1
@@ -3547,7 +3559,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_force_advance:
       {
         ui_render_command_force_advance* TypedCommand = RenderCommandAs(force_advance, Command);
-        AdvanceLayoutStackBy(TypedCommand->Offset, RenderState->Layout);
+        AdvanceLayoutStackAt(TypedCommand->Offset, RenderState->Layout);
       } break;
 
       case type_ui_render_command_force_set_basis:
@@ -3555,7 +3567,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         ui_render_command_force_update_basis* TypedCommand = &Command->ui_render_command_force_update_basis;
         RenderState->Layout->Basis = TypedCommand->Offset;
         RenderState->Layout->At = {};
-        AdvanceLayoutStackBy(V2(0), RenderState->Layout);
+        AdvanceLayoutStackAt(V2(0), RenderState->Layout);
       } break;
 
       case type_ui_render_command_force_update_basis:
@@ -3564,8 +3576,8 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         RenderState->Layout->Basis += TypedCommand->Offset;
         /* RenderState->Layout->DrawBounds.Min -= TypedCommand->Offset; */
         /* RenderState->Layout->DrawBounds.Max -= TypedCommand->Offset; */
-        /* AdvanceLayoutStackBy(TypedCommand->Offset, RenderState->Layout); */
-        AdvanceLayoutStackBy(V2(0), RenderState->Layout);
+        /* AdvanceLayoutStackAt(TypedCommand->Offset, RenderState->Layout); */
+        AdvanceLayoutStackAt(V2(0), RenderState->Layout);
         /* UpdateDrawBounds(RenderState->Layout); */
 
       } break;

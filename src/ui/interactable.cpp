@@ -8,7 +8,7 @@ Hover(renderer_2d* Group, ui_id *Id, v2 *Offset_out = 0)
   {
     v2 MouseP = *Group->MouseP;
     // TODO(Jesse): wtf are we accessing Pressed here for .. shouldn't it be Hover?!
-    v2 RelativeOffset = MouseP - Group->Pressed.MinP;
+    v2 RelativeOffset = MouseP - Group->Hover.MinP;
     *Offset_out = RelativeOffset;
   }
 
@@ -82,7 +82,7 @@ AnyClicked(renderer_2d *Group, ui_id *Id)
 /* } */
 
 link_internal b32
-Pressed(renderer_2d* Group, interactable_handle *Handle, v2 *Offset_out = 0)
+Pressed(renderer_2d *Group, interactable_handle *Handle, v2 *Offset_out = 0)
 {
   b32 Result = Group->Pressed.Id == Handle->Id;
 
@@ -120,8 +120,9 @@ link_internal b32
 Clicked(renderer_2d* Group, interactable *Interaction, b32 ButtonClicked)
 {
   b32 Result = False;
-  if ( !IsValid(&Group->Pressed.Id) &&
-        ButtonClicked && Hover(Group, Interaction))
+  if ( ButtonClicked               &&
+      !IsValid(&Group->Pressed.Id) &&
+       Hover(Group, Interaction) )
   {
     Group->Pressed.Id = Interaction->Id;
     Result = True;
@@ -191,9 +192,9 @@ AnyClicked(renderer_2d* Group, interactable Interaction)
 link_internal b32
 Pressed(renderer_2d* Group, interactable *Interaction, b32 ButtonDepressed, b32 ButtonClicked)
 {
-  b32 CurrentInteractionMatches = Group->Pressed.Id == Interaction->Id;
-
   b32 Result = False;
+
+  b32 CurrentInteractionMatches = Group->Pressed.Id == Interaction->Id;
   if (ButtonDepressed && CurrentInteractionMatches)
   {
     Result = True;
