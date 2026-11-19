@@ -446,6 +446,18 @@ WindowMessageCallback(
     case WM_SYSKEYUP:
     case WM_KEYUP:
     {
+      if (wParam == VK_OEM_MINUS)
+      {
+        if (Plat->Input.Shift.Pressed)
+        {
+          KeyUp(&Plat->Input.Underscore);
+        }
+        else
+        {
+          KeyUp(&Plat->Input.Minus);
+        }
+      }
+
       switch ((int)wParam)
       {
         poof(
@@ -474,6 +486,17 @@ WindowMessageCallback(
     case WM_SYSKEYDOWN:
     case WM_KEYDOWN:
     {
+      if (wParam == VK_OEM_MINUS)
+      {
+        if (Plat->Input.Shift.Pressed)
+        {
+          KeyDown(&Plat->Input.Underscore);
+        }
+        else
+        {
+          KeyDown(&Plat->Input.Minus);
+        }
+      }
       switch ((int)wParam)
       {
         poof(
@@ -483,15 +506,15 @@ WindowMessageCallback(
             {
               member.has_tag(win32_keycode)?
               {
-                BindKeydownToInput( member.tag_value(win32_keycode), (member.name));
+                case member.tag_value(win32_keycode): { KeyDown(&Plat->Input.(member.name)); } break;
               }
             }
           }
         )
 #include <generated/poof_func.anonymous$input$7u8jLJmb.h>
 
-        BindKeydownToInput(VK_DECIMAL, Dot);
-        BindKeydownToInput(VK_DIVIDE,  FSlash);
+        case VK_DECIMAL: { KeyDown(&Plat->Input.Dot);    } break;
+        case VK_DIVIDE:  { KeyDown(&Plat->Input.FSlash); } break;
 
         default:
         {

@@ -185,8 +185,21 @@ ProcessOsMessages(os *Os, platform *Plat)
       case KeyRelease:
       {
         u64 KeySym = XLookupKeysym(&Event.xkey, 0);
+        if (KeySym == XK_minus) { UnderscoreKeyUp(&Plat->Input); }
+        if (KeySym == XK_Shift_L || KeySym == XK_Shift_R)
+        {
+          if (KeySym == XK_Shift_L) { Os->LeftShiftPressed = False; }
+          else { Os->RightShiftPressed = False; }
+          if (!Os->LeftShiftPressed && !Os->RightShiftPressed)
+          {
+            Plat->Input.Shift.Clicked = False;
+            Plat->Input.Shift.Pressed = False;
+            Plat->Input.Shift.Released = True;
+          }
+        }
         switch (KeySym)
         {
+          BindKeyupToInput(XK_minus, Minus);
           BindKeyupToInput(XK_a, A);
           BindKeyupToInput(XK_b, B);
           BindKeyupToInput(XK_c, C);
@@ -240,8 +253,17 @@ ProcessOsMessages(os *Os, platform *Plat)
       case KeyPress:
       {
         u64 KeySym = XLookupKeysym(&Event.xkey, 0);
+        if (KeySym == XK_minus) { UnderscoreKeyDown(&Plat->Input); }
+        if (KeySym == XK_Shift_L || KeySym == XK_Shift_R)
+        {
+          if (KeySym == XK_Shift_L) { Os->LeftShiftPressed = True; }
+          else { Os->RightShiftPressed = True; }
+          Plat->Input.Shift.Clicked = True;
+          Plat->Input.Shift.Pressed = True;
+        }
         switch (KeySym)
         {
+          BindKeydownToInput(XK_minus, Minus);
           BindKeydownToInput(XK_a, A);
           BindKeydownToInput(XK_b, B);
           BindKeydownToInput(XK_c, C);

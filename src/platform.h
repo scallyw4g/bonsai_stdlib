@@ -8,20 +8,8 @@
     Plat->Input.InputField.Pressed = Boolean;     \
   } break;
 
-// TODO(Jesse)(metaprogramming): This can maybe be metaprogrammed?
-#define BindKeydownToInput(Keysym, InputField) \
-  case Keysym: {                               \
-    Plat->Input.InputField.Clicked = True;  \
-    Plat->Input.InputField.Pressed = True;  \
-  } break;
-
-// TODO(Jesse)(metaprogramming): This can maybe be metaprogrammed?
-#define BindKeyupToInput(Keysym, InputField) \
-  case Keysym: {                             \
-    Plat->Input.InputField.Clicked = False;  \
-    Plat->Input.InputField.Pressed = False;  \
-    Plat->Input.InputField.Released = True;  \
-  } break;
+#define BindKeydownToInput(Keysym, InputField) case Keysym: { KeyDown(&Plat->Input.InputField); } break;
+#define BindKeyupToInput(Keysym, InputField) case Keysym: { KeyUp(&Plat->Input.InputField); } break;
 
 
 struct platform;

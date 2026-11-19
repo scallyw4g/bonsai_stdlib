@@ -34,11 +34,12 @@ poof(@do_editor_ui)
   input_event F1;  poof(@win32_keycode(VK_F1))
 
   input_event Dot;    poof(@glyph('.') @win32_keycode(VK_OEM_PERIOD))
-  input_event Minus;  poof(@glyph('-') @win32_keycode(VK_OEM_MINUS))
-  input_event FSlash; poof(@glyph('/') @win32_keycode(VK_OEM_2))
-
+  input_event FSlash;     poof(@glyph('/') @win32_keycode(VK_OEM_2))
   input_event Space;      poof(@glyph(' ') @win32_keycode(VK_SPACE))
-  /* input_event Underscore; poof(@glyph('_')) */
+
+  // We don't include a keycode for Minus; we handle it manually to support underscore
+  input_event Minus;      poof(@glyph('-') @shift_glyph('_'))
+  input_event Underscore;
 
   input_event N0;  poof(@glyph('0') @win32_keycode(0x30))
   input_event N1;  poof(@glyph('1') @win32_keycode(0x31))
@@ -86,6 +87,22 @@ poof(@do_editor_ui)
 
   s32 MouseWheelDelta;
 };
+
+link_internal void
+KeyDown(input_event *Event)
+{
+  Event->Clicked = True;
+  Event->Pressed = True;
+}
+
+link_internal void
+KeyUp(input_event *Event)
+{
+  Event->Clicked = False;
+  Event->Pressed = False;
+  Event->Released = True;
+}
+
 link_internal void
 ClearClickedFlags(input *Input)
 {

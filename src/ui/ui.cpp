@@ -4190,7 +4190,7 @@ DoTextEditInteraction(renderer_2d *Ui)
             {
               if (Input->Shift.Pressed)
               {
-                Cast(char*, Text.Start)[Text.Count] = ToUpper((member.tag_value(glyph)));
+                Cast(char*, Text.Start)[Text.Count] = member.has_tag(shift_glyph)? {member.tag_value(shift_glyph)} {ToUpper((member.tag_value(glyph)))};
               }
               else
               {

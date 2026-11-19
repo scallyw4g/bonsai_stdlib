@@ -144,6 +144,8 @@ struct os
 
   bonsai_futex MakeRenderContextCurrentFutex;
 
+  b32 LeftShiftPressed;
+  b32 RightShiftPressed;
   b32 ContinueRunning = True;
 };
 
