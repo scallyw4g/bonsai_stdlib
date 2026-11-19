@@ -1349,6 +1349,15 @@ PushBorderlessWindowStart( renderer_2d *Group, window_layout *Window, v2 WindowM
 }
 
 link_internal void
+SetWindowBoundsClipped(window_layout *Window, v2 Basis, v2 MaxClip, v2 ScreenDim)
+{
+  v2 ScreenMax = Max(V2(0.f), ScreenDim - V2(DefaultWindowSideOffset));
+  v2 MaxCorner = Clamp(V2(0.f), Basis + Max(V2(0.f), MaxClip), ScreenMax);
+  Window->Basis = Clamp(V2(0.f), Basis, ScreenMax);
+  Window->MaxClip = MaxCorner - Window->Basis;
+}
+
+link_internal void
 PushWindowStart(renderer_2d *Group, window_layout *Window)
 {
   TIMED_FUNCTION();
@@ -1360,12 +1369,8 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   rect2 TitleRect = GetDrawBounds(TitleText, &DefaultStyle);
 
   v2 TitleBounds = V2(GetDrawBounds(Window->Title, &Global_Font).Max.x, Global_Font.Size.y);
-  Window->MaxClip = Max(TitleBounds, Window->MaxClip);
-#if 0
-  // Do not let window width get below a reasonable threshold
-  Window->MaxClip.x = Max(Window->MaxClip.x, TitleRect.Max.x + 25.f);
-  Window->MaxClip.y = Max(Window->MaxClip.y, TitleRect.Max.y + ResizeHandleDim.y  + 6.f);
-#endif
+  v2 WindowSize = Max(TitleBounds, Window->MaxClip);
+  SetWindowBoundsClipped(Window, Window->Basis, WindowSize, *Group->ScreenDim);
 
   v2 ResizeHandleMin = GetAbsoluteMaxClip(Window)-ResizeHandleDim;
 
@@ -1596,7 +1601,8 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window)
   interactable_handle TitleBarHandle = { .Id = TitleBarInteractionId };
   if (Pressed(Group, &TitleBarHandle))
   {
-    Window->Basis += *Group->MouseDP; // TODO(Jesse, id: 107, tags: cleanup, speed): Can we compute this with MouseP to avoid a frame of input delay?
+    v2 OldSize = Window->MaxClip;
+    SetWindowBoundsClipped(Window, Window->Basis + *Group->MouseDP, Window->MaxClip, *Group->ScreenDim);
     Window->Flags &= ~(WindowLayoutFlag_Align_BottomRight);
   }
 
@@ -1607,7 +1613,7 @@ PushWindowEnd(renderer_2d *Group, window_layout *Window)
   if (Pressed(Group, &ResizeHandle))
   {
     Window->Flags &= ~(WindowLayoutFlag_Size_Dynamic|WindowLayoutFlag_Align_BottomRight);
-    Window->MaxClip += *Group->MouseDP;
+    SetWindowBoundsClipped(Window, Window->Basis, Window->MaxClip + *Group->MouseDP, *Group->ScreenDim);
   }
 
   return;
@@ -1889,8 +1895,7 @@ GetOrCreateWindow(renderer_2d *Ui, ui_id WindowId, window_layout_flags Flags, v2
     window_layout Dummy = {};
     Dummy.HashtableKey = WindowId;
     Dummy.Flags = Flags;
-    Dummy.Basis = InitialBasis;
-    Dummy.MaxClip = InitialSize;
+    SetWindowBoundsClipped(&Dummy, InitialBasis, InitialSize, *Ui->ScreenDim);
     Result = Upsert(Dummy, &Ui->WindowTable, &Ui->WindowTableArena);
   }
 
@@ -3194,39 +3199,48 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
         ui_render_command_window_end* TypedCommand = RenderCommandAs(window_end, Command);
 
         auto Window = TypedCommand->Window;
-        if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupSize_InferHeight)
+        v2 InferredSize = Window->ContentLayoutResult.DrawBounds.Max +
+                         V2(0.f, Window->TitleBarLayoutResult.At.y) +
+                         Global_ResizeHandleDim;
+
+        v2 Basis = Window->Basis;
+        v2 MaxClip = Window->MaxClip;
+
+        if (Window->Flags & WindowLayoutFlag_StartupSize_InferHeight)
         {
-          TypedCommand->Window->Flags = (TypedCommand->Window->Flags&(~WindowLayoutFlag_StartupSize_InferHeight));
-          TypedCommand->Window->MaxClip.y = RenderState->Layout->DrawBounds.Max.y;
-          TypedCommand->Window->Basis.y = DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset;
+          Window->Flags &= ~WindowLayoutFlag_StartupSize_InferHeight;
+          MaxClip.y = InferredSize.y;
+          Basis.y = DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset;
         }
 
-        if (TypedCommand->Window->Flags & WindowLayoutFlag_StartupSize_InferWidth)
+        if (Window->Flags & WindowLayoutFlag_StartupSize_InferWidth)
         {
-          TypedCommand->Window->Flags = (TypedCommand->Window->Flags&(~WindowLayoutFlag_StartupSize_InferWidth));
-          TypedCommand->Window->MaxClip.x = RenderState->Layout->DrawBounds.Max.x;
-          TypedCommand->Window->Basis.x = DefaultWindowSideOffset;
+          Window->Flags &= ~WindowLayoutFlag_StartupSize_InferWidth;
+          MaxClip.x = InferredSize.x;
+          Basis.x = DefaultWindowSideOffset;
         }
 
-        if (TypedCommand->Window->Flags & WindowLayoutFlag_Align_Right)
+        if (Window->Flags & WindowLayoutFlag_Size_Dynamic)
         {
-          r32 ActualWindowMinCorner = Group->ScreenDim->x - TypedCommand->Window->MaxClip.x - DefaultWindowSideOffset;
-          TypedCommand->Window->Basis.x = ActualWindowMinCorner;
+          MaxClip = InferredSize;
         }
 
-        if (TypedCommand->Window->Flags & WindowLayoutFlag_Align_Bottom)
+        v2 ScreenMax = Max(V2(0.f), *Group->ScreenDim - V2(DefaultWindowSideOffset));
+        MaxClip = Clamp(V2(0.f), MaxClip, ScreenMax);
+
+        if (Window->Flags & WindowLayoutFlag_Align_Right)
         {
-          r32 ActualWindowMinCorner = Group->ScreenDim->y - TypedCommand->Window->MaxClip.y - DefaultWindowSideOffset;
+          Basis.x = ScreenMax.x - MaxClip.x;
+        }
+
+        if (Window->Flags & WindowLayoutFlag_Align_Bottom)
+        {
+          r32 ActualWindowMinCorner = ScreenMax.y - MaxClip.y;
           // NOTE(Jesse): Extra term here to push the window below the default layout
-          TypedCommand->Window->Basis.y = Max( ActualWindowMinCorner, DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset);
+          Basis.y = Max(ActualWindowMinCorner, DefaultLayout->DrawBounds.Max.y + DefaultWindowSideOffset);
         }
 
-        if (TypedCommand->Window->Flags & WindowLayoutFlag_Size_Dynamic)
-        {
-          /* v2 ClippedMaxCorner = (*Group->ScreenDim - TypedCommand->Window->Basis) - DefaultWindowSideOffset; */
-          /* v2 WindowMaxCorner = RenderState->Layout->DrawBounds.Max; */
-          /* TypedCommand->Window->MaxClip = Min(ClippedMaxCorner, WindowMaxCorner); */
-        }
+        SetWindowBoundsClipped(Window, Basis, MaxClip, *Group->ScreenDim);
 
         if (GetUiDebug && GetUiDebug()->OutlineWindowDrawBounds)
         {
