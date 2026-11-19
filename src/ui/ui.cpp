@@ -132,21 +132,13 @@ ToggledOn(renderer_2d *Ui, ui_toggle_button_group *Group, cs ButtonName)
 inline void
 UpdateDrawBounds(layout *Layout, v2 LayoutRelativeTestP)
 {
-  if (UpdateDrawBounds(Layout->Flags))
+  v2 AbsP = Layout->Basis + LayoutRelativeTestP;
+  while (Layout && UpdateDrawBounds(Layout->Flags))
   {
-    // I know it's tempting.. but don't..
-    /* if (LayoutRelativeTestP.x != 0.f || LayoutRelativeTestP.y != 0.f) */
-    {
-      v2 AbsP = Layout->Basis + LayoutRelativeTestP;
-      while (Layout)
-      {
-        v2 LayoutRelP = AbsP - Layout->Basis;
-        Layout->DrawBounds.Min = Min(LayoutRelP, Layout->DrawBounds.Min);
-        Layout->DrawBounds.Max = Max(LayoutRelP, Layout->DrawBounds.Max);
-
-        Layout = Layout->Prev;
-      }
-    }
+    v2 LayoutRelP = AbsP - Layout->Basis;
+    Layout->DrawBounds.Min = Min(LayoutRelP, Layout->DrawBounds.Min);
+    Layout->DrawBounds.Max = Max(LayoutRelP, Layout->DrawBounds.Max);
+    Layout = Layout->Prev;
   }
 }
 
@@ -171,13 +163,13 @@ AdvanceSpaces(u32 N, layout *Layout, v2 FontSize)
   return;
 }
 
-link_internal void AdvanceLayoutStackAt(v2 Delta, layout* Layout);
+link_internal void AdvanceLayoutStackAt(v2 Delta, layout* Layout, b32 UpdateBounds = True);
 
 
 link_internal void
 NewRow(layout *Layout)
 {
-  while (Layout)
+  while (Layout && AdvanceLayout(Layout->Flags))
   {
 #if 1
   // NOTE(Jesse): This is a special case for if we call NewRow() multiple
@@ -675,16 +667,20 @@ BufferBorder(renderer_2d *Group, interactable* PickerListInteraction, v3 Color, 
 }
 
 link_internal void
-AdvanceLayoutStackAt(v2 Delta, layout* Layout)
+AdvanceLayoutStackAt(v2 Delta, layout* Layout, b32 UpdateBounds)
 {
+  b32 DoAdvance = True;
+  b32 DoUpdateBounds = UpdateBounds;
   while (Layout)
   {
-    if (AdvanceLayout(Layout->Flags))
+    DoAdvance = DoAdvance && AdvanceLayout(Layout->Flags);
+    DoUpdateBounds = DoUpdateBounds && UpdateDrawBounds(Layout->Flags);
+    if (DoAdvance)
     {
       Layout->At += Delta;
     }
 
-    if (UpdateDrawBounds(Layout->Flags))
+    if (DoUpdateBounds)
     {
       UpdateDrawBounds(Layout);
     }
@@ -720,7 +716,7 @@ BufferValue(counted_string Text, v2 AbsAt, renderer_2d *Group, layout* Layout, v
 
   if (UpdateDrawBounds(Params))
   {
-    v2 MaxP = Layout->At + V2(0, Style->Font.Size.y);
+    v2 MaxP = AbsAt - Layout->Basis + V2(xDelta, Style->Font.Size.y);
     UpdateDrawBounds(Layout, MaxP);
   }
 
@@ -1388,7 +1384,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
   //
 
   // @overall_window_layout
-  PushLayoutStart(Group, WindowBasis);
+  PushLayoutStart(Group, WindowBasis, UiElementLayoutFlag_NoAdvanceLayout);
 
   ui_render_command StartCommand = {
     .Type = type_ui_render_command_window_start,
@@ -2539,22 +2535,22 @@ ProcessUntexturedQuadAtPush( renderer_2d *Group,
 
   BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, AbsMinP, Dim, Color, Z, Clip);
 
-  UpdateDrawBounds(&Command->Layout, AbsMinP);
-  UpdateDrawBounds(&Command->Layout, AbsMinP + Dim);
+  UpdateDrawBounds(&Command->Layout, Command->Layout.At);
+  UpdateDrawBounds(&Command->Layout, Command->Layout.At + Dim);
 
-#if 1
   v2 CurrentLayoutToCommandLayout = AbsMinP - GetAbsoluteAt(RenderState->Layout);
-  if (AdvanceLayout(Command->Layout.Flags))
-  {
-    AdvanceLayoutStackAt(CurrentLayoutToCommandLayout + V2(Dim.x, 0), RenderState->Layout);
-  }
-
   if (UpdateDrawBounds(Command->Layout.Flags))
   {
-    UpdateDrawBounds(RenderState->Layout, CurrentLayoutToCommandLayout + RenderState->Layout->At);
-    UpdateDrawBounds(RenderState->Layout, CurrentLayoutToCommandLayout + RenderState->Layout->At + Dim);
+    v2 MinP = AbsMinP - RenderState->Layout->Basis;
+    UpdateDrawBounds(RenderState->Layout, MinP);
+    UpdateDrawBounds(RenderState->Layout, MinP + Dim);
   }
-#endif
+
+  if (AdvanceLayout(Command->Layout.Flags))
+  {
+    AdvanceLayoutStackAt(CurrentLayoutToCommandLayout + V2(Dim.x, 0), RenderState->Layout,
+                         UpdateDrawBounds(Command->Layout.Flags));
+  }
 
   return;
 }
@@ -3096,7 +3092,7 @@ DebugDrawLayout(renderer_2d *Ui, layout *Layout, v3 Color = V3(1,0,0), r32 Z = 0
   }
   // Draw Bounds
   {
-    rect2 Rect = RectMinDim(Layout->Basis, GetDim(Layout->DrawBounds));
+    rect2 Rect = GetAbsoluteDrawBounds(Layout);
     BufferBorder(Ui, Rect, Color, Z, DISABLE_CLIPPING);
   }
 }
@@ -3267,10 +3263,8 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
             }
 
             // Draw bounds (RED)
-            // NOTE(Jesse): Bigger than it should be, but clips to the appropriate value if the window is resized to very small
             {
-              rect2 Bounds = RectMinDim(Window->Basis, GetDim(Window->WindowLayoutResult.DrawBounds));
-              /* rect2 Bounds = RectMinDim({}, GetDim(Window->WindowLayoutResult.DrawBounds)); */
+              rect2 Bounds = GetAbsoluteDrawBounds(RenderState->Layout);
               BufferBorder(Group, Bounds, V3(1,0,0), 0.9f, DISABLE_CLIPPING);
             }
 
