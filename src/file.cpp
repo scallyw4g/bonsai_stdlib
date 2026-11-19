@@ -349,7 +349,7 @@ link_internal b32
 FileExists(cs Path)
 {
   const char* NullTerminatedFilePath = GetNullTerminated(Path);
-  b32 Result = FileExists(NullTerminatedFilePath);
+  b32 Result = PlatformFileExists(NullTerminatedFilePath);
   return Result;
 }
 

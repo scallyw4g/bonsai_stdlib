@@ -151,6 +151,7 @@ GenTexture(v2i Dim, cs DebugName, texture_storage_format StorageFormat, u32 Chan
 
   GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
   GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   /* glTexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE); */
   GetGL()->TexParameteri(TextureDimensionality, GL_TEXTURE_COMPARE_MODE, GL_NONE);

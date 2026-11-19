@@ -757,9 +757,9 @@ BindUniformById(shader_uniform *Uniform, s32 *TextureUnit)
           Assert(*TextureUnit > -1);
           Assert(Count == 1);
 
-          if (*TextureUnit > 8)
+          if (*TextureUnit > 16)
           {
-            Warn("TODO(Jesse): TextureUnit > 8, query available texture units"); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
+            Warn("TODO(Jesse): TextureUnit(%d) > 16, query available texture units", *TextureUnit); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures?
           }
           /* Assert(TextureUnit < 8); // TODO(Jesse, id: 135, tags: robustness, opengl, texture): Query max gpu textures? */
 
