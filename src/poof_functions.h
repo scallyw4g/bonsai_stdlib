@@ -3227,15 +3227,12 @@ base_ptr_relative_edit_block_array *UiChangeEvents = 0,
 
             if (Value)
             {
-              u32 Start = StartColumn(Ui, &DefaultUiRenderParams_Blank);
-                PushTableStart(Ui);
-                  E.map_array(e_index)
-                  {
-                    Result |= DoEditorUi(Ui, Window, &Value->(E.name)[e_index], {}, ThisHash, Params, UiChangeEvents, OutClickedFieldId, EDITOR_UI_VALUE_RANGE_INSTANCE_NAMES );
-                  }
-                PushTableEnd(Ui);
-                /* PushNewRow(Ui); */
-              EndColumn(Ui, Start);
+              PushTableStart(Ui);
+                E.map_array(e_index)
+                {
+                  Result |= DoEditorUi(Ui, Window, &Value->(E.name)[e_index], {}, ThisHash, Params, UiChangeEvents, OutClickedFieldId, EDITOR_UI_VALUE_RANGE_INSTANCE_NAMES );
+                }
+              PushTableEnd(Ui);
             }
           /* PushTableEnd(Ui); */
         })
@@ -3362,7 +3359,13 @@ poof(
 
         if (DrawChildren)
         {
-          PushTableStart(Ui);
+          type.has_tag(ui_inline_unnamed)?
+          {
+            if (Name.Count) { PushTableStart(Ui); }
+          }
+          {
+            PushTableStart(Ui);
+          }
 
           if (DidToggle) { OPEN_INDENT_FOR_TOGGLEABLE_REGION(); }
             type.map(member)
@@ -3568,7 +3571,13 @@ poof(
               }
             }
           if (DidToggle) { CLOSE_INDENT_FOR_TOGGLEABLE_REGION(); }
-          PushTableEnd(Ui);
+          type.has_tag(ui_inline_unnamed)?
+          {
+            if (Name.Count) { PushTableEnd(Ui); }
+          }
+          {
+            PushTableEnd(Ui);
+          }
         }
         else
         {

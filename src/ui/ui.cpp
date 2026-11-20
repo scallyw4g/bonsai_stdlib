@@ -1575,9 +1575,7 @@ PushWindowStart(renderer_2d *Group, window_layout *Window)
 
   // Layout for the content region
   // @content_region_layout
-  PushLayoutStart(Group, Window->Basis + Window->TitleBarLayoutResult.At);
-
-  PushForceUpdateBasis(Group, -1.f*Window->Scroll); // -1.f because we want the scroll effect to move content up for a positive value
+  PushLayoutStart(Group, Window->Basis + Window->TitleBarLayoutResult.At - Window->Scroll);
 }
 
 

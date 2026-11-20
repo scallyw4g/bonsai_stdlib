@@ -30,7 +30,8 @@ PushCycleBar(debug_ui_render_group* Group, cycle_range* Range, cycle_range* Fram
       PushUntexturedQuad(Group, Offset, BarDim, zDepth_Text, Style, Padding, UiElementLayoutFlag_NoAdvanceLayout);
       ui_style NameStyle = DefaultStyle;
       NameStyle.Font = Global_SmallFont;
-      if (Name.Count) { Text(Group, Name, &NameStyle, UiElementLayoutFlag_NoAdvanceLayout, Offset, RectMinDim({}, BarDim)); }
+      // The clipped label must not extend the bar's button bounds.
+      if (Name.Count) { Text(Group, Name, &NameStyle, UiElementLayoutFlag_NoAdvance, Offset, RectMinDim({}, BarDim)); }
     }
   }
   /* else */
