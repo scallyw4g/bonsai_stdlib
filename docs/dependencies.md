@@ -26,7 +26,7 @@ The C drive is mounted at `/c`.  You can access your users files at `/c/users/<u
 Ensure you have X11 headers, and clang.  I'll leave the OpenGL driver as an excercise for the reader (it depends on your hardware).
 
 ## Ubuntu
-`sudo apt install libx11-dev clang-15`
+`sudo apt install libx11-dev clang-18`
 
 ## Archlinux
-`sudo pacman -S libx11 clang # NOTE(Jesse): Not sure how to specifically install clang 15 on Arch`
+`sudo pacman -S libx11 clang
