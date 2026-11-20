@@ -286,3 +286,4 @@ RotateTransform( Quaternion v )
 
   return Result;
 }
+

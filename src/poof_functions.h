@@ -3652,36 +3652,39 @@ base_ptr_relative_edit_block_array *UiChangeEvents = 0,
           PushNewRow(Ui);
           enum_t.map(value)
           {
-            if (Name.Count) { PushColumn(Ui, CSz("|")); } // Skip the first Name column
-            if (Button(Ui, CSz("value.name.strip_all_prefix"), UiId(Window, "enum value.name", Element, ThisHash), Params))
+            value.has_tag(ui_skip)?{}
             {
-              Result = True;
-              enum_t.has_tag(bitfield)?
+              if (Name.Count) { PushColumn(Ui, CSz("|")); } // Skip the first Name column
+              if (Button(Ui, CSz("value.name.strip_all_prefix"), UiId(Window, "enum value.name", Element, ThisHash), Params))
               {
-                if ((value.name) == enum_t.name(0))
+                Result = True;
+                enum_t.has_tag(bitfield)?
                 {
-                  *Element = enum_t.name(0);
-                }
-                else
-                {
-                  if ((*Element & value.name) == value.name)
+                  if ((value.name) == enum_t.name(0))
                   {
-                    *Element = enum_t.name(*Element&~value.name);
+                    *Element = enum_t.name(0);
                   }
                   else
                   {
-                    *Element = enum_t.name(*Element|value.name);
+                    if ((*Element & value.name) == value.name)
+                    {
+                      *Element = enum_t.name(*Element&~value.name);
+                    }
+                    else
+                    {
+                      *Element = enum_t.name(*Element|value.name);
+                    }
                   }
                 }
-              }
-              {
-                *Element = value.name;
-              }
+                {
+                  *Element = value.name;
+                }
 
-              MaybePushChangeRecord(UiChangeEvents, Cast(u32*, Element), ToggleButtonId);
-              SetToggleButton(Ui, ToggleButtonId, False);
+                MaybePushChangeRecord(UiChangeEvents, Cast(u32*, Element), ToggleButtonId);
+                SetToggleButton(Ui, ToggleButtonId, False);
+              }
+              PushNewRow(Ui);
             }
-            PushNewRow(Ui);
           }
         }
         else
