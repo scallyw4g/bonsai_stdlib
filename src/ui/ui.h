@@ -1063,7 +1063,9 @@ poof(
 
 
 
+#ifndef MAX_UI_RENDER_COMMAND_COUNT
 #define MAX_UI_RENDER_COMMAND_COUNT (4096*4096)
+#endif
 
 struct ui_render_command_buffer
 {

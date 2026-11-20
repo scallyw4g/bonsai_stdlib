@@ -148,6 +148,19 @@ UpdateDrawBounds(layout *Layout)
   UpdateDrawBounds(Layout, Layout->At);
 }
 
+link_internal void
+SetLayoutBasis(layout *Layout, v2 Basis)
+{
+  rect2 *Bounds = &Layout->DrawBounds;
+  if (Bounds->Min.x <= Bounds->Max.x && Bounds->Min.y <= Bounds->Max.y)
+  {
+    v2 Offset = Basis - Layout->Basis;
+    Bounds->Min -= Offset;
+    Bounds->Max -= Offset;
+  }
+  Layout->Basis = Basis;
+}
+
 
 
 /*****************************                ********************************/
@@ -2874,14 +2887,14 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
           {
             if (SubTableCount == 0)
             {
-            ++NextColumnIndex;
+              ++NextColumnIndex;
               Result.ColumnCount = Max(Result.ColumnCount, NextColumnIndex);
               Assert(NextColumnIndex <= u16_MAX);
-            }
 
-            ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
-             CurrentWidth = &TypedCommand->Width;
-            *CurrentWidth += TypedCommand->Layout.Padding.Left + TypedCommand->Layout.Padding.Right;
+              ui_render_command_column_start* TypedCommand = RenderCommandAs(column_start, Command);
+              CurrentWidth = &TypedCommand->Width;
+              *CurrentWidth = TypedCommand->Layout.Padding.Left + TypedCommand->Layout.Padding.Right;
+            }
           } break;
 
           case type_ui_render_command_untextured_quad:
@@ -2924,7 +2937,7 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
             {
               CurrentWidth = 0;
               NextColumnIndex = 0;
-            ++Result.RowCount;
+              ++Result.RowCount;
             }
           } break;
 
@@ -2935,14 +2948,14 @@ PreprocessTable(renderer_2d *Ui, render_state *RenderState, ui_render_command_bu
 
           case type_ui_render_command_table_end:
           {
-            ui_render_command_table_end* TypedCommand = RenderCommandAs(table_end, Command);
-            TypedCommand->TableStartIndex = StartingIndex-1;
             if (SubTableCount)
             {
               --SubTableCount;
             }
             else
             {
+              ui_render_command_table_end* TypedCommand = RenderCommandAs(table_end, Command);
+              TypedCommand->TableStartIndex = StartingIndex-1;
               FoundEnd = True;
               Result.OnePastTableEnd = NextCommandIndex;
             }
@@ -3365,15 +3378,29 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
           {
             ui_render_command_table_start *StartCommand = GetCommandAs(table_start, CommandBuffer, TypedCommand->TableStartIndex);
 
-            r32 At = 0;
-            r32 Height = Max(1u, StartCommand->TableInfo.RowCount) * Global_Font.Size.y;
-            RangeIterator_t(u32, ColumnIndex, StartCommand->TableInfo.ColumnCount)
+            u32 SubTableCount = 0;
+            for (u32 CommandIndex = TypedCommand->TableStartIndex + 1;
+                 CommandIndex < StartCommand->TableInfo.OnePastTableEnd - 1;
+                 ++CommandIndex)
             {
-              r32 Width = StartCommand->TableInfo.ColumnWidths[ColumnIndex];
-              v2 Pad = V2(StartCommand->Layout.Padding.Left, StartCommand->Layout.Padding.Top);
-              rect2 Bounds = RectMinDim(AbsDrawBounds.Min + V2(At, 0) + Pad, V2(Width, Height));
-              BufferBorder(Group, Bounds, Normalize(V3(0,1,1)), 0.9f, DISABLE_CLIPPING);
-              At += Width;
+              ui_render_command *ColumnCommand = GetCommand(CommandBuffer, CommandIndex);
+              if (ColumnCommand->Type == type_ui_render_command_table_start)
+              {
+                ++SubTableCount;
+              }
+              else if (ColumnCommand->Type == type_ui_render_command_table_end)
+              {
+                --SubTableCount;
+              }
+              else if (ColumnCommand->Type == type_ui_render_command_column_start && SubTableCount == 0)
+              {
+                ui_render_command_column_start *Column = RenderCommandAs(column_start, ColumnCommand);
+                rect2 Bounds = GetAbsoluteDrawBounds(&Column->Layout);
+                if (Bounds.Min.x <= Bounds.Max.x && Bounds.Min.y <= Bounds.Max.y)
+                {
+                  BufferBorder(Group, Bounds, Normalize(V3(0,1,1)), 0.9f, DISABLE_CLIPPING);
+                }
+              }
             }
 
             if (GetUiDebug && GetUiDebug()->DebugBreakOnElementClick && Group->Input->LMB.Clicked )
@@ -3573,7 +3600,7 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_force_set_basis:
       {
         ui_render_command_force_update_basis* TypedCommand = &Command->ui_render_command_force_update_basis;
-        RenderState->Layout->Basis = TypedCommand->Offset;
+        SetLayoutBasis(RenderState->Layout, TypedCommand->Offset);
         RenderState->Layout->At = {};
         AdvanceLayoutStackAt(V2(0), RenderState->Layout);
       } break;
@@ -3581,13 +3608,8 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
       case type_ui_render_command_force_update_basis:
       {
         ui_render_command_force_update_basis* TypedCommand = RenderCommandAs(force_update_basis, Command);
-        RenderState->Layout->Basis += TypedCommand->Offset;
-        /* RenderState->Layout->DrawBounds.Min -= TypedCommand->Offset; */
-        /* RenderState->Layout->DrawBounds.Max -= TypedCommand->Offset; */
-        /* AdvanceLayoutStackAt(TypedCommand->Offset, RenderState->Layout); */
+        SetLayoutBasis(RenderState->Layout, RenderState->Layout->Basis + TypedCommand->Offset);
         AdvanceLayoutStackAt(V2(0), RenderState->Layout);
-        /* UpdateDrawBounds(RenderState->Layout); */
-
       } break;
 
       case type_ui_render_command_reset_draw_bounds:
