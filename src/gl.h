@@ -257,6 +257,8 @@
 #define GL_DYNAMIC_READ                   0x88E9
 #define GL_DYNAMIC_COPY                   0x88EA
 #define GL_SHADER_STORAGE_BUFFER          0x90D2
+#define GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS 0x90D6
+#define GL_MAX_SHADER_STORAGE_BLOCK_SIZE  0x90DE
 
 
 typedef void GLvoid;
@@ -655,8 +657,8 @@ link_internal b32
 CheckOpenglVersion(s32 Major, s32 Minor)
 {
   b32 Result = False;
-  if (Major > 3) { Result = True; }
-  else if (Major == 3) { Result = Minor >= 3; }
+  if (Major > 4) { Result = True; }
+  else if (Major == 4) { Result = Minor >= 3; }
   return Result;
 }
 

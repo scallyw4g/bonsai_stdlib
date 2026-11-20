@@ -1,24 +1,34 @@
-layout(location = 0) in vec3 VertP_NDC;
-layout(location = 1) in vec3 vertexUV;
-layout(location = 2) in vec3 InColor;
+layout(location = 0) in vec3 VertPos;
 
-out vec3 UV;
-out vec3 VertColor;
-flat out s32 ShapeOp;
+struct UiRenderOp
+{
+  vec4 Bounds;
+  vec4 UVBounds;
+  vec4 ColorAndDepth;
+  int TextureSlice;
+  uint Flags;
+  uint Reserved0;
+  uint Reserved1;
+};
+
+layout(std430, binding = 0) readonly buffer UiRenderOps
+{
+  UiRenderOp Ops[];
+};
+
+out vec2 UV;
+flat out vec3 VertColor;
+flat out int TextureSlice;
+flat out uint Flags;
 
 void main()
 {
-
-#if 1
-  s32 PackedUVz = floatBitsToInt(vertexUV.z);
-
-  f32 UVz = f32(PackedUVz & 0xFFFF);
-  ShapeOp = (PackedUVz >> 16) & 0xFFFF;
-  UV = V3(vertexUV.x, vertexUV.y, UVz);
-#else
-  UV = vertexUV;
-#endif
-  VertColor = InColor;
-  gl_Position = vec4(VertP_NDC, 1.0f);
+  UiRenderOp Op = Ops[gl_InstanceID];
+  vec2 Corner = vec2((VertPos.x + 1.0) * 0.5, (1.0 - VertPos.y) * 0.5);
+  vec2 Position = mix(Op.Bounds.xy, Op.Bounds.zw, Corner);
+  UV = mix(Op.UVBounds.xy, Op.UVBounds.zw, Corner);
+  VertColor = Op.ColorAndDepth.rgb;
+  TextureSlice = Op.TextureSlice;
+  Flags = Op.Flags;
+  gl_Position = vec4(Position, Op.ColorAndDepth.w, 1.0);
 }
-

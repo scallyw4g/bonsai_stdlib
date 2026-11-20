@@ -28,11 +28,20 @@ poof(hashtable_get_ptr(ui_toggle, {ui_id}, {Id}))
 
 poof(hashtable_impl(window_layout))
 #include <generated/hashtable_impl$window_layout$ee5KMgpe.h>
-
 poof(hashtable_get(window_layout, {ui_id}, {HashtableKey}))
 #include <generated/hashtable_get$window_layout.705671517.599498827$VT5vpixI.h>
 poof(hashtable_get_ptr(window_layout, {ui_id}, {HashtableKey}))
 #include <generated/hashtable_get_ptr$window_layout.705671517.599498827$pQfjqgdh.h>
+
+
+poof(hashtable_impl(ui_texture_ops))
+#include <generated/hashtable_impl$ui_texture_ops$Nqmr8vUR.h>
+poof(hashtable_get_by_key(ui_texture_ops))
+#include <generated/hashtable_get_by_key$ui_texture_ops$25kOWq1W.h>
+
+poof(block_array_c(ui_render_op, {1024}))
+#include <generated/block_array_c$ui_render_op.681870580$OaKQhyec.h>
+
 link_internal ui_toggle_button_group
 DrawButtonGroupForEnum(
                                renderer_2d *Ui,
@@ -332,7 +341,7 @@ BufferColorsDirect(T* Geo, v3 Color)
   v3* Colors = Geo->Colors;
   u32 StartingIndex = Geo->At;
   for ( u32 ColorIndex = StartingIndex;
-        ColorIndex < StartingIndex + u32_COUNT_PER_QUAD + 1;
+        ColorIndex < StartingIndex + u32_COUNT_PER_QUAD;
         ++ColorIndex)
   {
     Colors[ColorIndex] = Color;
@@ -451,6 +460,107 @@ ClipRect3AgainstRect2(v2 MinP, v2 Dim, r32 Z, rect2 *UV, rect2 Clip)
   return Result;
 }
 
+link_internal void
+ClearUiRenderOps(renderer_2d *Group)
+{
+  Group->RenderOps = {};
+  Group->FirstRenderOpBatch = 0;
+  Group->LastRenderOpBatch = 0;
+  /* Group->NextUiOpSequence = 0; */
+  Ensure(RewindArena(&Group->RenderOpsArena));
+}
+
+link_internal clip_result
+ClipUiQuad(v2 ScreenDim, v2 MinP, v2 Dim, r32 Z, rect2 *UV, rect2 Clip, rect2 *ClipOptional)
+{
+  clip_result Result = {};
+  Result.ClipStatus = ClipStatus_FullyClipped;
+  if (ScreenDim.x <= 0.f || ScreenDim.y <= 0.f) { return Result; }
+
+  rect2 WindowClip = RectMinMax(V2(0), ScreenDim);
+  Result = ClipRect3AgainstRect2(MinP, Dim, Z, UV, WindowClip);
+  if (Result.ClipStatus != ClipStatus_FullyClipped)
+  {
+    Result = ClipRect3AgainstRect2(Result.ClippedMin, Result.ClippedMax - Result.ClippedMin, Z, UV, Clip);
+    if (Result.ClipStatus != ClipStatus_FullyClipped && ClipOptional)
+    {
+      Result = ClipRect3AgainstRect2(Result.ClippedMin, Result.ClippedMax - Result.ClippedMin, Z, UV, *ClipOptional);
+    }
+  }
+  return Result;
+}
+
+link_internal clip_result
+BufferUiRenderOp(renderer_2d *Group, texture *Texture, s32 TextureSlice, u32 Flags,
+                 v2 MinP, v2 Dim, rect2 UV, v3 Color, r32 Z, rect2 Clip, rect2 *ClipOptional)
+{
+  clip_result Result = ClipUiQuad(*Group->ScreenDim, MinP, Dim, Z, &UV, Clip, ClipOptional);
+  if (Result.ClipStatus == ClipStatus_FullyClipped) { return Result; }
+
+  if (!Texture)
+  {
+    Error("Invalid texture for UI render operation");
+    return Result;
+  }
+  if (Texture->ID == 0 || Texture->ID == INVALID_TEXTURE_HANDLE) { return Result; }
+
+  if ((TextureSlice < 0 && Texture->Slices != 1) ||
+      (TextureSlice >= 0 && (Texture->Slices <= 1 || u32(TextureSlice) >= Texture->Slices)))
+  {
+    Error("Invalid texture slice for UI render operation");
+    return Result;
+  }
+
+  if (!Group->RenderOps.Size)
+  {
+    Group->RenderOps = Allocate_ui_texture_ops_hashtable(UI_TEXTURE_OP_BUCKET_COUNT, &Group->RenderOpsArena);
+  }
+
+  ui_texture_ops *Batch = GetByKey(&Group->RenderOps, Texture);
+  if (!Batch)
+  {
+    ui_texture_ops NewBatch = {};
+    NewBatch.IsArray = Texture->Slices > 1;
+    NewBatch.Texture = Texture;
+    NewBatch.Ops = UiRenderOpBlockArray(&Group->RenderOpsArena);
+    Batch = Insert(NewBatch, &Group->RenderOps, &Group->RenderOpsArena);
+    if (Group->LastRenderOpBatch) { Group->LastRenderOpBatch->Next = Batch; }
+    else { Group->FirstRenderOpBatch = Batch; }
+    Group->LastRenderOpBatch = Batch;
+  }
+  else if (Batch->IsArray != (Texture->Slices > 1))
+  {
+    Error("UI texture %u has inconsistent texture targets", Texture->ID);
+    return Result;
+  }
+
+  v2 ScreenDim = *Group->ScreenDim;
+  ui_render_op Op = {};
+  Op.Bounds = V4(2.f*Result.ClippedMin.x/ScreenDim.x - 1.f,
+                 1.f - 2.f*Result.ClippedMin.y/ScreenDim.y,
+                 2.f*Result.ClippedMax.x/ScreenDim.x - 1.f,
+                 1.f - 2.f*Result.ClippedMax.y/ScreenDim.y);
+  Op.UVBounds = V4(UV.Min.x, UV.Min.y, UV.Max.x, UV.Max.y);
+  Op.ColorAndDepth = V4(Color.x, Color.y, Color.z, 1.f - 2.f*Z);
+  Op.TextureSlice = TextureSlice;
+  Op.Flags = Flags;
+  Push(&Batch->Ops, &Op);
+  return Result;
+}
+
+link_internal clip_result
+BufferUiSolidQuad(renderer_2d *Group, v2 MinP, v2 Dim, v3 Color, r32 Z, rect2 Clip)
+{
+  return BufferUiRenderOp(Group, &Group->TextGroup->DebugTextureArray, UiTextureSlice_White,
+                          UiRenderOpFlag_MultiplyColor, MinP, Dim, UVsForFullyCoveredQuad(), Color, Z, Clip, 0);
+}
+
+link_internal clip_result
+BufferUiSolidQuad(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip)
+{
+  return BufferUiSolidQuad(Group, Rect.Min, GetDim(Rect), Color, Z, Clip);
+}
+
 
 template <typename T> link_internal void
 BufferQuadDirect(T *Geo, v2 MinP, v2 Dim, r32 Z, v2 ScreenDim)
@@ -504,16 +614,7 @@ BufferUiQuad(          v2  ScreenDim,
                     rect2  Clip,
                     rect2 *ClipOptional )
 {
-  rect2 WindowClip = RectMinMax(V2(0), ScreenDim);
-  clip_result Result = ClipRect3AgainstRect2(MinP, Dim, Z, &UV, WindowClip);
-  if (Result.ClipStatus != ClipStatus_FullyClipped)
-  {
-    Result = ClipRect3AgainstRect2(Result.ClippedMin, Result.ClippedMax - Result.ClippedMin, Z, &UV, Clip);
-    if (Result.ClipStatus != ClipStatus_FullyClipped && ClipOptional)
-    {
-      Result = ClipRect3AgainstRect2(Result.ClippedMin, Result.ClippedMax-Result.ClippedMin, Z, &UV, *ClipOptional);
-    }
-  }
+  clip_result Result = ClipUiQuad(ScreenDim, MinP, Dim, Z, &UV, Clip, ClipOptional);
 
   switch (Result.ClipStatus)
   {
@@ -628,13 +729,13 @@ BufferChar(renderer_2d *Group, u8 Char, v2 MinP, v2 FontSize, v3 Color, r32 Z, r
   {
     v3 ShadowColor = V3(0.0f);
     v2 ShadowOffset = 0.10f*FontSize;
-    BufferUiQuad( *Group->ScreenDim, &Group->TextGroup->Buf.Buffer, UiTextureSlice_Font, QuadShapingOp_None,
-                      MinP+ShadowOffset, FontSize, UV, ShadowColor, Z, ClipWindow, ClipOptional);
+    BufferUiRenderOp(Group, &Group->TextGroup->DebugTextureArray, UiTextureSlice_Font, UiRenderOpFlag_MultiplyColor,
+                     MinP+ShadowOffset, FontSize, UV, ShadowColor, Z, ClipWindow, ClipOptional);
   }
 
 
-  BufferUiQuad( *Group->ScreenDim, &Group->TextGroup->Buf.Buffer, UiTextureSlice_Font, QuadShapingOp_None,
-                      MinP, FontSize, UV, Color, Z, ClipWindow, ClipOptional);
+  BufferUiRenderOp(Group, &Group->TextGroup->DebugTextureArray, UiTextureSlice_Font, UiRenderOpFlag_MultiplyColor,
+                   MinP, FontSize, UV, Color, Z, ClipWindow, ClipOptional);
 }
 
 link_internal void
@@ -655,20 +756,20 @@ BufferBorder(renderer_2d *Group, rect2 Rect, v3 Color, r32 Z, rect2 Clip, v4 Thi
   rect2 LeftRect   = RectMinMax(TopLeft-Thickness.Left ,    BottomLeft);
   rect2 RightRect  = RectMinMax(TopRight,    BottomRight + V2(Thickness.Right, 0));
 
-  BufferUiQuad( *Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, TopRect,    Color, Z, Clip);
-  BufferUiQuad( *Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, LeftRect,   Color, Z, Clip);
-  BufferUiQuad( *Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, RightRect,  Color, Z, Clip);
-  BufferUiQuad( *Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, BottomRect, Color, Z, Clip);
+  BufferUiSolidQuad(Group, TopRect,    Color, Z, Clip);
+  BufferUiSolidQuad(Group, LeftRect,   Color, Z, Clip);
+  BufferUiSolidQuad(Group, RightRect,  Color, Z, Clip);
+  BufferUiSolidQuad(Group, BottomRect, Color, Z, Clip);
 
   rect2 TopRightCorner    = RectMinMax(TopRight,    TopRight    + V2( Thickness.Right, -Thickness.Top));
   rect2 TopLeftCorner     = RectMinMax(TopLeft,     TopLeft     + V2(-Thickness.Left,  -Thickness.Top));
   rect2 BottomRightCorner = RectMinMax(BottomRight, BottomRight + V2( Thickness.Right,  Thickness.Bottom));
   rect2 BottomLeftCorner  = RectMinMax(BottomLeft,  BottomLeft  + V2(-Thickness.Left,   Thickness.Bottom));
 
-  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, TopRightCorner,    Color, Z, Clip);
-  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, TopLeftCorner,     Color, Z, Clip);
-  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, BottomRightCorner, Color, Z, Clip);
-  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, BottomLeftCorner,  Color, Z, Clip);
+  BufferUiSolidQuad(Group, TopRightCorner,    Color, Z, Clip);
+  BufferUiSolidQuad(Group, TopLeftCorner,     Color, Z, Clip);
+  BufferUiSolidQuad(Group, BottomRightCorner, Color, Z, Clip);
+  BufferUiSolidQuad(Group, BottomLeftCorner,  Color, Z, Clip);
 }
 
 link_internal void
@@ -2508,11 +2609,18 @@ ProcessTexturedQuadPush(renderer_2d* Group, ui_render_command_textured_quad *Com
   v2 Dim     = Command->QuadDim;
   r32 Z      = GetZ(Command->zDepth, RenderState->Window);
 
-  // There's a second pass that draws all discrete textures
-  Command->LayoutZ = Z;
-  Command->LayoutClip = Clip;
-
-  if (Command->Texture == 0) { BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, UiElementLayoutFlag_NoAdvance); }
+  if (Command->Texture)
+  {
+    u32 Flags = 0;
+    if (Command->HasAlphaChannel) { Flags |= UiRenderOpFlag_HasAlpha; }
+    if (Command->IsDepthTexture) { Flags |= UiRenderOpFlag_DepthTexture; }
+    BufferUiRenderOp(Group, Command->Texture, Command->TextureSlice, Flags, MinP, Dim,
+                     UVsForFullyCoveredQuad(), Command->Tint, Z, Clip, 0);
+  }
+  else
+  {
+    BufferValue(CSz("(null texture)"), MinP, Group, RenderState->Layout, V3(1.f, 0.55f, 0.1f), &DefaultStyle, Z, Clip, 0, UiElementLayoutFlag_NoAdvance);
+  }
 
   if (UpdateDrawBounds(Command->Layout.Flags))
   {
@@ -2544,7 +2652,7 @@ ProcessUntexturedQuadAtPush( renderer_2d *Group,
     Clip = DISABLE_CLIPPING;
   }
 
-  BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, AbsMinP, Dim, Color, Z, Clip);
+  BufferUiSolidQuad(Group, AbsMinP, Dim, Color, Z, Clip);
 
   UpdateDrawBounds(&Command->Layout, Command->Layout.At);
   UpdateDrawBounds(&Command->Layout, Command->Layout.At + Dim);
@@ -2585,7 +2693,7 @@ ProcessUntexturedQuadPush( renderer_2d *Group,
 
   if (Command->ShaderSetupCallback == 0)
   {
-    BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, MinP, Dim, Color, Z, Clip);
+    BufferUiSolidQuad(Group, MinP, Dim, Color, Z, Clip);
   }
   else
   {
@@ -3119,9 +3227,6 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
     RenderState->Layout = DefaultLayout;
   }
 
-  Assert(CurrentHandles(&Group->SolidQuadGeometryBuffer)->Mapped);
-  Assert(CurrentHandles(&Group->TextGroup->Buf)->Mapped);
-
   u32 NextCommandIndex = 0;
   ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
   while (Command)
@@ -3566,15 +3671,9 @@ FlushCommandBuffer(renderer_2d *Group, render_state *RenderState, ui_render_comm
 
         if (ButtonResult.Hover && ButtonStart->BStyle.HoverColor != UI_HOVER_HIGHLIGHT_DISABLED)
         {
-          BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
+          BufferUiSolidQuad(Group, AbsDrawBounds.Min, GetDim(AbsDrawBounds),
               ButtonStart->BStyle.HoverColor, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect);
         }
-
-        /* if (ButtonStart->ID == Group->TextEdit.Id) */
-        /* { */
-        /*   BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, AbsDrawBounds.Min, GetDim(AbsDrawBounds), */
-        /*       UI_WINDOW_BEZEL_DEFAULT_COLOR_SATURATED, GetZ(zDepth_Background, RenderState->Window), RenderState->ClipRect); */
-        /* } */
 
       } break;
 
@@ -3681,37 +3780,100 @@ DrawUiBuffers(renderer_2d *UiGroup, v2 *ScreenDim)
 {
   Assert(UiGroup->TextGroup);
   auto TextGroup = UiGroup->TextGroup;
+  auto GL = GetGL();
 
-  GetGL()->Disable(GL_CULL_FACE);
+  GL->Disable(GL_CULL_FACE);
   AssertNoGlErrors;
 
   SetViewport(*ScreenDim);
+  GL->BindFramebuffer(GL_FRAMEBUFFER, 0);
   AssertNoGlErrors;
 
-  GetGL()->UseProgram(TextGroup->UiShader.ID);
+  GL->UseProgram(TextGroup->UiShader.ID);
   AssertNoGlErrors;
 
+  s32 Texture2DUniform = GL->GetUniformLocation(TextGroup->UiShader.ID, "UiTexture2D");
+  s32 TextureArrayUniform = GL->GetUniformLocation(TextGroup->UiShader.ID, "UiTextureArray");
+  if (Texture2DUniform == INVALID_SHADER_UNIFORM || TextureArrayUniform == INVALID_SHADER_UNIFORM)
+  {
+    Error("UI shader is missing a texture sampler");
+    GL->Enable(GL_CULL_FACE);
+    return;
+  }
+  GL->Uniform1i(Texture2DUniform, 0);
+  GL->Uniform1i(TextureArrayUniform, 1);
+  GL->Enable(GL_BLEND);
+  GL->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  GL->BindVertexArray(Global_QuadVAO);
+  GL->BindBuffer(GL_SHADER_STORAGE_BUFFER, UiGroup->RenderOpStorageBuffer);
 
+  u32 MaxInstances = UiGroup->MaxRenderOpBufferBytes / sizeof(ui_render_op);
+  if (MaxInstances == 0)
+  {
+    Error("UI shader storage buffer cannot hold a render operation");
+  }
+  else
+  {
+    for (ui_texture_ops *Batch = UiGroup->FirstRenderOpBatch; Batch; Batch = Batch->Next)
+    {
+      u32 TextureId = Batch->Texture->ID;
+      if (TextureId == 0 || TextureId == INVALID_TEXTURE_HANDLE) { continue; }
+      GL->ActiveTexture(GL_TEXTURE0);
+      GL->BindTexture(GL_TEXTURE_2D, Batch->IsArray ? 0 : TextureId);
+      GL->ActiveTexture(GL_TEXTURE0 + 1);
+      GL->BindTexture(GL_TEXTURE_2D_ARRAY, Batch->IsArray ? TextureId : 0);
 
-  GetGL()->ActiveTexture(GL_TEXTURE0);
-  GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, TextGroup->DebugTextureArray.ID);
-  GetGL()->Uniform1i(TextGroup->TextTextureUniform, 0); // Assign texture unit 0 to the TextTexureUniform
+      for (u32 First = 0; First < Batch->Ops.ElementCount; )
+      {
+        u32 Count = Min(MaxInstances, Batch->Ops.ElementCount - First);
+        GL->BufferData(GL_SHADER_STORAGE_BUFFER, s64(Count) * s64(sizeof(ui_render_op)), 0, GL_STREAM_DRAW);
+        GL->BindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, UiGroup->RenderOpStorageBuffer);
+        u32 GlError = GL->GetError();
+        if (GlError != GL_NO_ERROR)
+        {
+          Error("Allocating UI operations for texture %u failed (OpenGL error 0x%x)", TextureId, GlError);
+          break;
+        }
 
-  GetGL()->Enable(GL_BLEND);
-  GetGL()->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        for (u32 Uploaded = 0; Uploaded < Count; )
+        {
+          u32 Index = First + Uploaded;
+          u32 BlockOffset = Index % UI_RENDER_OPS_PER_BLOCK;
+          u32 BlockCount = Min(Count - Uploaded, UI_RENDER_OPS_PER_BLOCK - BlockOffset);
+          ui_render_op *Source = GetPtr(&Batch->Ops, Index);
+          GL->BufferSubData(GL_SHADER_STORAGE_BUFFER, s64(Uploaded) * s64(sizeof(ui_render_op)),
+                            s64(BlockCount) * s64(sizeof(ui_render_op)), Source);
+          Uploaded += BlockCount;
+        }
 
-  UnmapGpuBuffer(CurrentHandles(&UiGroup->SolidQuadGeometryBuffer));
-  DrawBuffer(&UiGroup->SolidQuadGeometryBuffer, ScreenDim);
+        GlError = GL->GetError();
+        if (GlError != GL_NO_ERROR)
+        {
+          Error("Uploading UI operations for texture %u failed (OpenGL error 0x%x)", TextureId, GlError);
+          break;
+        }
+        DrawInstanced(u32_COUNT_PER_QUAD, Count);
+        GlError = GL->GetError();
+        if (GlError != GL_NO_ERROR)
+        {
+          Error("Drawing UI operations for texture %u failed (OpenGL error 0x%x)", TextureId, GlError);
+          break;
+        }
+        First += Count;
+      }
+    }
+  }
+
+  GL->BindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
+  GL->BindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+  GL->BindVertexArray(0);
+  GL->ActiveTexture(GL_TEXTURE0 + 1);
+  GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
+  GL->ActiveTexture(GL_TEXTURE0);
+  GL->BindTexture(GL_TEXTURE_2D, 0);
+  GL->Disable(GL_BLEND);
+  GL->Enable(GL_CULL_FACE);
   AssertNoGlErrors;
-
-  UnmapGpuBuffer(CurrentHandles(&UiGroup->TextGroup->Buf));
-  DrawBuffer(&UiGroup->TextGroup->Buf, ScreenDim);
-  AssertNoGlErrors;
-
-  GetGL()->BindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-  GetGL()->Disable(GL_BLEND);
-  GetGL()->Enable(GL_CULL_FACE);
 }
 
 link_internal void
@@ -3719,152 +3881,28 @@ DrawUi(renderer_2d *Group, ui_render_command_buffer *CommandBuffer)
 {
   TIMED_FUNCTION();
 
-  // Draws text and solid UI buffers that were populated with FlushCommandBuffer
   DrawUiBuffers(Group, Group->ScreenDim);
-
-  // Draw textured quads
-  // 
-  // This is pretty braindead; we do a seperate draw call for each textured
-  // quad.  It's wasteful, but I only call this sparingly, so it's not a
-  // problem in practice.
-  //
-  // Should use instancing and instance params ..?  Although I'm not sure how
-  // to do bindless textures in that sort of setup..
-
-  auto *TexturedQuadRP = &Group->TexturedQuadRenderPass;
-  auto GL = GetGL();
 
   u32 NextCommandIndex = 0;
   ui_render_command *Command = GetCommand(CommandBuffer, NextCommandIndex++);
   while (Command)
   {
-    switch(Command->Type)
+    if (Command->Type == type_ui_render_command_untextured_quad)
     {
-      InvalidCase(type_ui_render_command_noop);
-
-      case type_ui_render_command_debug_draw_rect:
-      case type_ui_render_command_debug_draw_layout:
-      case type_ui_render_command_layout_start:
-      case type_ui_render_command_layout_end:
-      case type_ui_render_command_window_start:
-      case type_ui_render_command_window_end:
-      case type_ui_render_command_table_start:
-      case type_ui_render_command_table_end:
-      case type_ui_render_command_column_start:
-      case type_ui_render_command_column_end:
-      case type_ui_render_command_text:
-      case type_ui_render_command_text_at:
-      case type_ui_render_command_untextured_quad_at:
-      case type_ui_render_command_new_row:
-      case type_ui_render_command_button_start:
-      case type_ui_render_command_button_end:
-      case type_ui_render_command_rel_border:
-      case type_ui_render_command_abs_border:
-      case type_ui_render_command_force_advance:
-      case type_ui_render_command_force_update_basis:
-      case type_ui_render_command_force_set_basis:
-      case type_ui_render_command_reset_draw_bounds:
-      case type_ui_render_command_debug:
-        { break; }
-
-      case type_ui_render_command_read_current_layout:
+      ui_render_command_untextured_quad *TypedCommand = RenderCommandAs(untextured_quad, Command);
+      if (TypedCommand->ShaderSetupCallback)
       {
-        NotImplemented;
-      } break;
-
-      case type_ui_render_command_untextured_quad:
-      {
-#if 1
-        ui_render_command_untextured_quad *TypedCommand = RenderCommandAs(untextured_quad, Command);
-
         v2    MinP = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
         v2     Dim = TypedCommand->QuadDim;
         r32      Z = TypedCommand->LayoutZ;
         rect2 Clip = TypedCommand->LayoutClip;
 
-        if (TypedCommand->ShaderSetupCallback)
-        {
-          MapGpuBuffer(&Group->CustomQuadGeometryBuffer);
-          TypedCommand->ShaderSetupCallback(TypedCommand->ShaderSetupArgs);
-          BufferUiQuad(*Group->ScreenDim, &Group->CustomQuadGeometryBuffer.Buffer, RectMinDim(MinP, Dim), TypedCommand->Style.Color, Z, Clip);
-          UnmapGpuBuffer(CurrentHandles(&Group->CustomQuadGeometryBuffer));
-          DrawBuffer(&Group->CustomQuadGeometryBuffer, Group->ScreenDim);
-        }
-        else
-        {
-          BufferUiQuad(*Group->ScreenDim, &Group->SolidQuadGeometryBuffer.Buffer, RectMinDim(MinP, Dim), TypedCommand->Style.Color, Z, Clip);
-        }
-#endif
-      } break;
-
-      case type_ui_render_command_textured_quad:
-      {
-        ui_render_command_textured_quad* TypedCommand = RenderCommandAs(textured_quad, Command);
-
-        {
-          v2    MinP = GetAbsoluteDrawBoundsMin(&TypedCommand->Layout);
-          v2     Dim = TypedCommand->QuadDim;
-          r32      Z = TypedCommand->LayoutZ;
-          rect2 Clip = TypedCommand->LayoutClip;
-
-          if (TypedCommand->Texture)
-          {
-            /* Assert(CurrentHandles(&Group->TextGroup->Buf)->Mapped == False); */
-            /* Assert(Group->TextGroup->Buf.Buffer.At == 0); */
-
-            auto Buf = &Group->CustomQuadGeometryBuffer;
-
-            Assert(CurrentHandles(Buf)->Mapped == False);
-            MapGpuBuffer(Buf);
-
-
-            /* GL->ActiveTexture(GL_TEXTURE0); */
-            /* GL->BindTexture(GL_TEXTURE_2D, 0); */
-            /* GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0); */
-
-            TexturedQuadRP->IsDepthTexture  = TypedCommand->IsDepthTexture;
-            TexturedQuadRP->HasAlphaChannel = TypedCommand->HasAlphaChannel;
-            TexturedQuadRP->TextureSlice    = TypedCommand->TextureSlice;
-            TexturedQuadRP->Tint            = TypedCommand->Tint;
-
-            UseShader(TexturedQuadRP);
-
-            s32 SliceToUse = -1;
-            if (TypedCommand->TextureSlice < 0)
-            {
-              Assert(TypedCommand->Texture->Slices == 1);
-              SliceToUse = s32(TypedCommand->Texture->Slices);
-              BindUniformByName(&TexturedQuadRP->Program, "Texture", TypedCommand->Texture, 0);
-            }
-            else
-            {
-              Assert(TypedCommand->Texture->Slices > 1);
-              SliceToUse = TypedCommand->TextureSlice;
-              BindUniformByName(&TexturedQuadRP->Program, "TextureArray", TypedCommand->Texture, 1);
-            }
-
-            // NOTE(Jesse): We're not passing a 3D or texture array to the shader here, so we have to use 0 as the slice
-            // TODO(Jesse): This looks like it should actually work for 3D texture arrays too ..?
-            BufferUiQuad(*Group->ScreenDim, &Buf->Buffer, SliceToUse, QuadShapingOp_None, MinP, Dim, UVsForFullyCoveredQuad(), V3(1, 0, 0), Z, Clip, 0);
-            UnmapGpuBuffer(CurrentHandles(Buf));
-
-            GL->Enable(GL_BLEND);
-            GL->BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            DrawBuffer(Buf, Group->ScreenDim);
-            GL->Disable(GL_BLEND);
-
-            /* GL->BindTexture(GL_TEXTURE_2D, 0); */
-            /* GL->BindTexture(GL_TEXTURE_2D_ARRAY, 0); */
-
-            AssertNoGlErrors;
-          }
-          else
-          {
-            // we already drew "(null texture)" text in the previous pass
-          }
-        }
-
-      } break;
+        MapGpuBuffer(&Group->CustomQuadGeometryBuffer);
+        TypedCommand->ShaderSetupCallback(TypedCommand->ShaderSetupArgs);
+        BufferUiQuad(*Group->ScreenDim, &Group->CustomQuadGeometryBuffer.Buffer, RectMinDim(MinP, Dim), TypedCommand->Style.Color, Z, Clip);
+        UnmapGpuBuffer(CurrentHandles(&Group->CustomQuadGeometryBuffer));
+        DrawBuffer(&Group->CustomQuadGeometryBuffer, Group->ScreenDim);
+      }
     }
 
     Command = GetCommand(CommandBuffer, NextCommandIndex++);
@@ -3982,8 +4020,6 @@ InitRenderer2D( renderer_2d *Renderer,
 
   cs AssetDirectory = Stdlib->AbsoluteAssetsPath;
 
-  Init_Global_QuadVertexBuffer();
-
   Renderer->Strings = InitHeap(Megabytes(4));
 
   Renderer->TextGroup     = Allocate(render_buffers_2d, PermMemory, 1);
@@ -3991,20 +4027,33 @@ InitRenderer2D( renderer_2d *Renderer,
 
   *Renderer->TextGroup = {};
 
-  // TODO(Jesse, memory): Instead of allocate insanely massive buffers
-  // we should have a system that streams blocks of memory in as-necessary
-  // @streaming_ui_render_memory
-  u32 ElementCount = (u32)Kilobytes(256);
-
-  AllocateGpuBuffer(&Renderer->SolidQuadGeometryBuffer,  DataType_Undefinded, ElementCount);
-  AllocateGpuBuffer(&Renderer->TextGroup->Buf,           DataType_Undefinded, ElementCount);
-  AllocateGpuBuffer(&Renderer->CustomQuadGeometryBuffer, DataType_Undefinded, u32_COUNT_PER_QUAD);
-
   Renderer->ToggleTable = Allocate_ui_toggle_hashtable(1024, PermMemory);
   Renderer->WindowTable = Allocate_window_layout_hashtable(256, PermMemory); // 256 windows should be enough for anybody?
 
   if (Headless == False)
   {
+    auto GL = GetGL();
+    s32 VertexStorageBlocks = 0;
+    s32 MaxStorageBytes = 0;
+    GL->GetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &VertexStorageBlocks);
+    GL->GetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &MaxStorageBytes);
+    if (VertexStorageBlocks < 1 || MaxStorageBytes < s32(sizeof(ui_render_op)))
+    {
+      Error("The UI renderer requires vertex shader storage buffers");
+      return False;
+    }
+
+    Renderer->MaxRenderOpBufferBytes = u32(MaxStorageBytes);
+    GL->GenBuffers(1, &Renderer->RenderOpStorageBuffer);
+    if (!Renderer->RenderOpStorageBuffer)
+    {
+      Error("Unable to allocate the UI shader storage buffer");
+      return False;
+    }
+
+    if (!Global_QuadVertexBuffer) { Init_Global_QuadVertexBuffer(); }
+    AllocateGpuBuffer(&Renderer->CustomQuadGeometryBuffer, DataType_Undefinded, u32_COUNT_PER_QUAD);
+
     auto TextGroup = Renderer->TextGroup;
 
     bitmap_block_array Bitmaps = BitmapBlockArray(GetTranArena());
@@ -4048,15 +4097,19 @@ InitRenderer2D( renderer_2d *Renderer,
       }
     }
 
-    Ensure(ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_default));
+    if (!ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_default))
+    {
+      Error("Unable to load the UI shader header");
+      return False;
+    }
 
     cs VertPath = ConcatZs(GetAbsoluteStdlibShaderDir(), CSz("ui.vertexshader"), GetTranArena());
     cs FragPath = ConcatZs(GetAbsoluteStdlibShaderDir(), CSz("ui.fragmentshader"), GetTranArena());
-    CompileNewShader(&TextGroup->UiShader, CSz("UI"), VertPath, FragPath, PermMemory );
-
-    TextGroup->TextTextureUniform = GetGL()->GetUniformLocation(TextGroup->UiShader.ID, "TextTextureSampler");
-
-    InitializeTexturedQuadRenderPass( &Renderer->TexturedQuadRenderPass,  0, 0, 0, {}, PermMemory);
+    if (!CompileNewShader(&TextGroup->UiShader, CSz("UI"), VertPath, FragPath, PermMemory))
+    {
+      Error("Unable to compile the instanced UI shader");
+      return False;
+    }
 
     AssertNoGlErrors;
   }
@@ -4258,6 +4311,7 @@ UiFrameEnd(renderer_2d *Ui)
 #endif
 
   DrawUi(Ui, Ui->CommandBuffer);
+  ClearUiRenderOps(Ui);
 
   if (Input->LMB.Pressed || Input->RMB.Pressed)
   {

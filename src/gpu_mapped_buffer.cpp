@@ -375,8 +375,6 @@ MapGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles)
   Buffer.End = Handles->ElementCount;
 
   u32 v3Size = sizeof(v3)*Handles->ElementCount;
-  u32 v2Size = sizeof(v2)*Handles->ElementCount;
-
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[ui_VertexHandle]);
   AssertNoGlErrors;
   Buffer.Verts = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, v3Size, GL_MAP_WRITE_BIT);
@@ -384,7 +382,7 @@ MapGpuBuffer_gpu_mapped_ui_buffer(gpu_element_buffer_handles *Handles)
 
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[ui_UVHandle]);
   AssertNoGlErrors;
-  Buffer.UVs = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, v2Size, GL_MAP_WRITE_BIT);
+  Buffer.UVs = (v3*) GetGL()->MapBufferRange(GL_ARRAY_BUFFER, 0, v3Size, GL_MAP_WRITE_BIT);
   AssertNoGlErrors;
 
   GetGL()->BindBuffer(GL_ARRAY_BUFFER, Handles->Handles[ui_ColorHandle]);

@@ -79,7 +79,12 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     if (!OpenAndInitializeWindow(Os, Plat, VSyncFrames)) { Error("Initializing Window :( "); return False; }
 
     PlatformMakeRenderContextCurrent(Os, Os->GlContext);
-    Ensure( InitializeOpenglFunctions() );
+    if (!InitializeOpenglFunctions())
+    {
+      Error("Initializing OpenGL failed");
+      PlatformReleaseRenderContext(Os);
+      return False;
+    }
 
     SetVSync(Os, VSyncFrames);
 
@@ -125,8 +130,9 @@ InitializeBonsaiStdlib( bonsai_init_flags  Flags,
     v2 MouseP, MouseDP, ScreenDim;
 
     PlatformMakeRenderContextCurrent(&Stdlib->Os, Stdlib->Os.GlContext);
-    InitRenderer2D(Ui, &RendererHeap, Memory, &Stdlib->Plat.MouseP, &Stdlib->Plat.MouseDP, &Stdlib->Plat.ScreenDim, &Stdlib->Plat.Input);
+    b32 RendererInitialized = InitRenderer2D(Ui, &RendererHeap, Memory, &Stdlib->Plat.MouseP, &Stdlib->Plat.MouseDP, &Stdlib->Plat.ScreenDim, &Stdlib->Plat.Input);
     PlatformReleaseRenderContext(Os);
+    if (!RendererInitialized) { return False; }
   }
 
   // Intentionally last such that the render thread has a window to make the render context current on.

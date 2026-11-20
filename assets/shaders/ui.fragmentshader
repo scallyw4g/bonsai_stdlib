@@ -1,59 +1,39 @@
-in vec3 UV;
-in vec3 VertColor;
-flat in s32 ShapeOp;
+in vec2 UV;
+flat in vec3 VertColor;
+flat in int TextureSlice;
+flat in uint Flags;
 
 out vec4 color;
 
-uniform highp sampler2DArray TextTextureSampler;
-/* uniform f32 TexelStep; */
+uniform highp sampler2D UiTexture2D;
+uniform highp sampler2DArray UiTextureArray;
+
+const uint MultiplyColor = 1u << 0;
+const uint HasAlpha = 1u << 1;
+const uint DepthTexture = 1u << 2;
 
 void main()
 {
-  /* float Step = TexelStep; */
-
-  /* vec4 BitmapTexel = V4(1,0,1,1); */
-  vec4 BitmapTexel = texture( TextTextureSampler, UV );
-
-#if 0
-  if (ShapeOp == 0)
+  vec4 Texel;
+  if (TextureSlice < 0)
   {
-    BitmapTexel.rgb = V3(0,0,0);
-  }
-  else if (ShapeOp == 1)
-  {
-    BitmapTexel.rgb = V3(1,1,0);
+    Texel = texture(UiTexture2D, UV);
   }
   else
   {
-    BitmapTexel.rgb = V3(1,0,0);
+    Texel = texture(UiTextureArray, vec3(UV, float(TextureSlice)));
   }
-#endif
 
-#if 0
+  if ((Flags & DepthTexture) != 0u)
   {
-    vec3 UVx     = UV + vec3(Step, 0.f, 0.f);
-    BitmapTexel += texture(TextTextureSampler, UVx);
+    color = vec4(vec3(Linearize(Texel.r, 500.0, 0.1)), 1.0);
   }
-
+  else if ((Flags & MultiplyColor) != 0u)
   {
-    vec3 UVy     = UV + vec3(0.f, Step, 0.f);
-    BitmapTexel += texture(TextTextureSampler, UVy);
+    color = vec4(VertColor * Texel.rgb, Texel.a);
   }
-
+  else
   {
-    vec3 UVx     = UV + vec3(-Step, 0.f, 0.f);
-    BitmapTexel += texture(TextTextureSampler, UVx);
+    color = vec4(Clamp01(Texel.rgb) + VertColor, (Flags & HasAlpha) != 0u ? Texel.a : 1.0);
   }
-
-  {
-    vec3 UVy     = UV + vec3(0.f, -Step, 0.f);
-    BitmapTexel += texture(TextTextureSampler, UVy);
-  }
-
-  BitmapTexel /= 5.f;
-#endif
-
-  color = vec4(VertColor * BitmapTexel.rgb, BitmapTexel.a);
-  /* color = BitmapTexel; */
-  /* color = V4(UV.xy, 0.f, 1.f); */
 }

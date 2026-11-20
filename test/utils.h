@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdlib>
 
 global_variable s32 TestsFailed = 0;
 global_variable u32 TestsPassed = 0;
@@ -36,7 +37,11 @@ TestSuiteBegin(const char *TestSuite, s32 ArgCount, const char** Args)
 
   application_api AppApi = {};
   bonsai_stdlib Stdlib = {};
-  Ensure( InitializeBonsaiStdlib( Flags, &AppApi, &Stdlib, Memory) );
+  if (!InitializeBonsaiStdlib(Flags, &AppApi, &Stdlib, Memory))
+  {
+    Error("Initializing test renderer failed");
+    exit(1);
+  }
 
   /* Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, Memory); */
   /* SetThreadLocal_ThreadIndex(0); */
@@ -84,12 +89,6 @@ TestSuiteEnd()
 
 
       UiFrameBegin(Ui);
-
-      // TODO(Jesse): move this!
-      // Map GPU buffers for next frame
-      MapGpuBuffer(&Ui->SolidQuadGeometryBuffer);
-      MapGpuBuffer(&Ui->TextGroup->Buf);
-
 
       if (Stdlib->Plat.Input.Escape.Clicked) { break; }
 

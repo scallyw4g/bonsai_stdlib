@@ -416,7 +416,7 @@ HotReloadShaders(bonsai_stdlib *Stdlib)
 
   auto GL = GetGL();
 
-  b32 HeaderIsNew = ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_330core);
+  b32 HeaderIsNew = ReloadShaderHeaderCode(Stdlib, &Stdlib->ShaderHeaderFile, ShaderLanguageSetting_default);
 
   {
     TIMED_NAMED_BLOCK(ReloadLoop);

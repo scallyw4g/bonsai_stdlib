@@ -64,8 +64,8 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
   GLXFBConfig FramebufferConfig = ValidConfigs[0];
 
   const s32 OpenGlContextAttribs[] = {
-    GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-    GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+    GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
+    GLX_CONTEXT_MINOR_VERSION_ARB, 6,
     GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB,
     GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
     None

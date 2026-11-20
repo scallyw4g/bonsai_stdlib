@@ -1,5 +1,6 @@
 
 #define Draw(VertexCount) Draw_(VertexCount, __FUNCTION__)
+#define DrawInstanced(VertexCount, InstanceCount) DrawInstanced_(VertexCount, InstanceCount, __FUNCTION__)
 
 
 
@@ -22,6 +23,23 @@ Draw_(u32 VertexCount, const char *Caller)
 
   AssertNoGlErrors;
   GetGL()->DrawArrays(GL_TRIANGLES, 0, s32(VertexCount) );
+  AssertNoGlErrors;
+}
+
+link_internal void
+DrawInstanced_(u32 VertexCount, u32 InstanceCount, const char *Caller)
+{
+  TIMED_FUNCTION();
+  Assert(VertexCount && InstanceCount);
+  Assert(VertexCount <= u32(s32_MAX) && InstanceCount <= u32(s32_MAX));
+
+#if BONSAI_DEBUG_SYSTEM_API
+  GetDebugState()->DrawCallCountLastFrame++;
+  GetDebugState()->VertexCountLastFrame += VertexCount * InstanceCount;
+#endif
+
+  AssertNoGlErrors;
+  GetGL()->DrawArraysInstanced(GL_TRIANGLES, 0, s32(VertexCount), s32(InstanceCount));
   AssertNoGlErrors;
 }
 
@@ -509,8 +527,11 @@ InitializeOpenglFunctions()
 
 
 
-      GL->GetIntegerv(GL_MAJOR_VERSION, &GLMajor);
-      GL->GetIntegerv(GL_MINOR_VERSION, &GLMinor);
+      if (GL->GetIntegerv)
+      {
+        GL->GetIntegerv(GL_MAJOR_VERSION, &GLMajor);
+        GL->GetIntegerv(GL_MINOR_VERSION, &GLMinor);
+      }
 
       if (GLMajor >= 4)
       {
@@ -527,6 +548,12 @@ InitializeOpenglFunctions()
   }
 
 
+  if (GLMajor >= 0 && CheckOpenglVersion(GLMajor, GLMinor) == False)
+  {
+    Error("Unsupported OpenGL version %d.%d; UI batching requires OpenGL 4.3 or newer", GLMajor, GLMinor);
+    GL->Initialized = False;
+  }
+
   if (GL->Initialized)
   {
     /* GL->DebugMessageCallback(HandleGlDebugMessage, 0); */
@@ -537,13 +564,6 @@ InitializeOpenglFunctions()
     GL->DepthFunc(GL_LEQUAL);
 
     AssertNoGlErrors;
-  }
-
-  if (GL->Initialized && CheckOpenglVersion(GLMajor, GLMinor) == False)
-  {
-    Warn("Unsupported Version of Opengl (%d.%d) ::  Minimum 3.3 required.", GLMajor, GLMinor);
-    Warn("The driver successfully supplied all required function pointers, however your program may not run correctly.");
-    Warn("If you experience issues, please upgrade to an OpenGL 3.3 compliant driver.");
   }
 
   AssertNoGlErrors;

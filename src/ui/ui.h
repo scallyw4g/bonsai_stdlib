@@ -397,14 +397,93 @@ struct ui_render_pass
 struct hotkey_settings;
 struct ui_render_command_buffer;
 
+enum ui_render_op_flags
+{
+  UiRenderOpFlag_MultiplyColor = (1 << 0),
+  UiRenderOpFlag_HasAlpha      = (1 << 1),
+  UiRenderOpFlag_DepthTexture  = (1 << 2),
+};
+
+// Matches the std430 record in ui.vertexshader.
+struct ui_render_op
+{
+  v4 Bounds;
+  v4 UVBounds;
+  v4 ColorAndDepth;
+  s32 TextureSlice;
+  u32 Flags;
+  u64 Reserved;
+};
+
+CAssert(sizeof(ui_render_op) == 64);
+CAssert(OffsetOf(Bounds, ui_render_op) == 0);
+CAssert(OffsetOf(UVBounds, ui_render_op) == 16);
+CAssert(OffsetOf(ColorAndDepth, ui_render_op) == 32);
+CAssert(OffsetOf(TextureSlice, ui_render_op) == 48);
+CAssert(OffsetOf(Flags, ui_render_op) == 52);
+CAssert(OffsetOf(Reserved, ui_render_op) == 56);
+
+
+poof(block_array_h(ui_render_op, {1024}, {}))
+#include <generated/block_array_h$ui_render_op.681870580.0$ROIVQWlW.h>
+
+
+#define UI_RENDER_OPS_PER_BLOCK u32(ArrayCount(((ui_render_op_block *)0)->Elements))
+#define UI_TEXTURE_OP_BUCKET_COUNT 128
+
+struct ui_texture_ops
+{
+  texture *Texture; poof(@hashtable_key)
+  b32 IsArray;
+  ui_render_op_block_array Ops;
+  ui_texture_ops *Next;
+};
+
+link_internal u32
+Hash(texture *Tex)
+{
+  return Tex->ID;
+}
+
+link_internal u32
+Hash(ui_texture_ops *Ops)
+{
+  return Hash(Ops->Texture);
+}
+
+// The generated getter passes the address of the stored texture pointer.
+link_internal b32
+AreEqual(texture **A, texture *B)
+{
+  return A && *A && B && (*A)->ID == B->ID;
+}
+
+link_internal b32
+AreEqual(ui_texture_ops *A, ui_texture_ops *B)
+{
+  return A && B && AreEqual(&A->Texture, B->Texture);
+}
+
+poof(hashtable_struct(ui_texture_ops))
+#include <generated/hashtable_struct$ui_texture_ops$qGJdKg8r.h>
+
 struct renderer_2d
 poof(@do_editor_ui)
 {
   render_buffers_2d *TextGroup;
+  // Retained for generated editor reflection; ordinary quads use RenderOps.
   triple_buffered_gpu_mapped_ui_buffer SolidQuadGeometryBuffer;
 
   textured_quad_render_pass TexturedQuadRenderPass;
   triple_buffered_gpu_mapped_ui_buffer CustomQuadGeometryBuffer;
+
+  ui_texture_ops_hashtable RenderOps; poof(@ui_skip)
+  ui_texture_ops *FirstRenderOpBatch; poof(@ui_skip)
+  ui_texture_ops *LastRenderOpBatch; poof(@ui_skip)
+  memory_arena RenderOpsArena; poof(@ui_skip)
+  /* u64 NextUiOpSequence; // Retained for generated editor reflection. */
+  u32 RenderOpStorageBuffer;
+  u32 MaxRenderOpBufferBytes;
 
   texture SpriteTextureArray;
   texture IconTextureArray;
@@ -966,13 +1045,6 @@ struct ui_render_command_textured_quad
   v2 QuadDim;
   z_depth zDepth;
   v3 Tint;
-
-  // NOTE(Jesse): Written to by the layout engine, not for use by external code
-  // At the moment, only valid for TexturedQuadSource_Discrete
-  //
-  // @render_command_layout_engine_crutch
-  r32 LayoutZ;
-  rect2 LayoutClip;
 };
 
 
