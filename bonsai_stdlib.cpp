@@ -69,8 +69,3 @@
 #if BONSAI_DEBUG_SYSTEM_API
 #include <bonsai_debug/debug.cpp>
 #endif
-
-#if BONSAI_STDLIB_USE_CUSTOM_THREADPOOL
-#else
-#include <bonsai_stdlib/src/work_queue.cpp>
-#endif
