@@ -185,9 +185,10 @@ ProcessOsMessages(os *Os, platform *Plat)
       case KeyRelease:
       {
         u64 KeySym = XLookupKeysym(&Event.xkey, 0);
-        if (KeySym == XK_minus) { UnderscoreKeyUp(&Plat->Input); }
         if (KeySym == XK_Shift_L || KeySym == XK_Shift_R)
         {
+          if (KeySym == XK_minus) { KeyUp(&Plat->Input.Underscore); }
+
           if (KeySym == XK_Shift_L) { Os->LeftShiftPressed = False; }
           else { Os->RightShiftPressed = False; }
           if (!Os->LeftShiftPressed && !Os->RightShiftPressed)
@@ -253,7 +254,7 @@ ProcessOsMessages(os *Os, platform *Plat)
       case KeyPress:
       {
         u64 KeySym = XLookupKeysym(&Event.xkey, 0);
-        if (KeySym == XK_minus) { UnderscoreKeyDown(&Plat->Input); }
+        if (KeySym == XK_minus) { KeyDown(&Plat->Input.Underscore); }
         if (KeySym == XK_Shift_L || KeySym == XK_Shift_R)
         {
           if (KeySym == XK_Shift_L) { Os->LeftShiftPressed = True; }
@@ -474,6 +475,25 @@ link_internal const char *
 PlatformGetEnvironmentVar(const char *VarName, memory_arena *Memory)
 {
   const char* Result = getenv(VarName);
+  return Result;
+}
+
+void *
+OpenLibrary(cs LibPath)
+{
+  Assert(IsNullTerminated(LibPath));
+  void* Result = dlopen(LibPath.Start, RTLD_NOW);
+
+  if (!Result)
+  {
+    char *error = dlerror();
+    Warn("OpenLibrary Failed (%s)", error);
+  }
+  else
+  {
+    Info("Library (%s) loaded!", filename);
+  }
+
   return Result;
 }
 

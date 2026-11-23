@@ -944,25 +944,6 @@ PlatformDeleteDir(const char* Path, mode_t Mode = 0774)
   return Result;
 }
 
-void *
-OpenLibrary(cs LibPath)
-{
-  Assert(IsNullTerminated(LibPath));
-  void* Result = dlopen(LibPath.Start, RTLD_NOW);
-
-  if (!Result)
-  {
-    char *error = dlerror();
-    Warn("OpenLibrary Failed (%s)", error);
-  }
-  else
-  {
-    Info("Library (%s) loaded!", LibPath);
-  }
-
-  return Result;
-}
-
 void
 CloseLibrary(shared_lib Lib)
 {
@@ -1002,3 +983,6 @@ PlatformAssertRenderThreadCurrent();
 
 link_internal void
 PlatformInitializeStdout(native_file *Stdout, native_file *Log);
+
+void *
+OpenLibrary(cs LibPath);
