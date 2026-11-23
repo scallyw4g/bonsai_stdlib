@@ -333,7 +333,7 @@ link_internal void
 PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
   AcquireFutex(&Os->MakeRenderContextCurrentFutex);
-  b32 Success = glXMakeCurrent(Os->Display, Os->Window, Context);
+  s32 Success = glXMakeCurrent(Os->Display, Os->Window, Context);
   ReleaseFutex(&Os->MakeRenderContextCurrentFutex);
   if (!Success) { Error("Making render context current failed"); }
 }
@@ -491,7 +491,7 @@ OpenLibrary(cs LibPath)
   }
   else
   {
-    Info("Library (%s) loaded!", filename);
+    Info("Library (%s) loaded!", LibPath);
   }
 
   return Result;
