@@ -69,11 +69,11 @@ PlatformDebugStacktrace()
 }
 #endif
 
-inline void
+inline u32
 AtomicDecrement( volatile u32 *Source )
 {
-  __sync_sub_and_fetch( Source, 1 );
-  return;
+  u32 Result = __sync_sub_and_fetch( Source, 1 );
+  return Result;
 }
 
 inline u64
@@ -90,17 +90,17 @@ AtomicIncrement( volatile u32 *Source )
   return Result;
 }
 
-inline void
+inline s32
 AtomicDecrement( volatile s32 *Source )
 {
-  __sync_sub_and_fetch( Source, 1 );
-  return;
+  s32 Result = __sync_sub_and_fetch( Source, 1 );
+  return Result;
 }
 
-inline void
+inline s32
 AtomicIncrement( volatile s32 *Source )
 {
-  __sync_add_and_fetch( Source, 1 );
+  s32 Result = __sync_add_and_fetch( Source, 1 );
   return;
 }
 

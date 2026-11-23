@@ -945,9 +945,10 @@ PlatformDeleteDir(const char* Path, mode_t Mode = 0774)
 }
 
 void *
-OpenLibrary(const char *filename)
+OpenLibrary(cs LibPath)
 {
-  void* Result = dlopen(filename, RTLD_NOW);
+  Assert(IsNullTerminated(LibPath));
+  void* Result = dlopen(LibPath.Start, RTLD_NOW);
 
   if (!Result)
   {
@@ -956,7 +957,7 @@ OpenLibrary(const char *filename)
   }
   else
   {
-    Info("Library (%s) loaded!", filename);
+    Info("Library (%s) loaded!", LibPath);
   }
 
   return Result;
