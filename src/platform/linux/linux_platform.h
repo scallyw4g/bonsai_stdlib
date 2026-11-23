@@ -30,6 +30,7 @@
 // Backtrace
 #include <errno.h>
 #include <execinfo.h>
+#include <sched.h>
 #include <unistd.h>
 
 // mkdir
@@ -92,6 +93,7 @@ link_external XVisualInfo* glXChooseVisual( Display *dpy, s32 screen, s32 *attri
 link_external GLXFBConfig* glXChooseFBConfig( Display *dpy, s32 screen, const s32 *attribList, s32 *nitems );
 link_external void (*glXGetProcAddress(const u8 *procname))( void );
 link_external Bool glXMakeCurrent( Display *dpy, GLXDrawable drawable, GLXContext ctx);
+link_external GLXContext glXGetCurrentContext();
 link_external void glXSwapBuffers( Display *dpy, GLXDrawable drawable );
 
 typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSARBPROC) (Display *dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const s32 *attrib_list);
@@ -111,6 +113,9 @@ typedef PFNGLXSWAPINTERVALEXTPROC PFNSWAPINTERVALPROC;
 typedef Display* display;
 typedef GLXContext gl_context;
 typedef Window window;
+
+global_variable cpu_set_t LinuxOriginalAffinity;
+global_variable b32 LinuxOriginalAffinityInitialized;
 
 inline u64
 GetCycleCount()
@@ -987,9 +992,12 @@ GetCurrentThreadId()
 link_internal b32
 PlatformChangeDirectory(const char *Dir)
 {
-  b32 Result = (_chdir("..") == 0);
+  b32 Result = (_chdir(Dir) == 0);
   return Result;
 }
+
+link_internal void
+PlatformAssertRenderThreadCurrent();
 
 link_internal void
 PlatformInitializeStdout(native_file *Stdout, native_file *Log);

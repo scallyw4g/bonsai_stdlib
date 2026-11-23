@@ -332,18 +332,141 @@ link_internal void
 PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
   AcquireFutex(&Os->MakeRenderContextCurrentFutex);
-  glXMakeCurrent(Os->Display, Os->Window, Context);
+  b32 Success = glXMakeCurrent(Os->Display, Os->Window, Context);
   ReleaseFutex(&Os->MakeRenderContextCurrentFutex);
+  if (!Success) { Error("Making render context current failed"); }
 }
 
 
 link_internal void
 PlatformReleaseRenderContext(os *Os)
 {
-  glXMakeCurrent(Os->Display, None, NULL);
+  if (!glXMakeCurrent(Os->Display, None, NULL))
+  {
+    Error("Releasing render context failed");
+  }
+}
+
+link_internal void
+PlatformAssertRenderThreadCurrent()
+{
+  gl_context RenderContext = GetStdlib()->Os.GlContext;
+  Assert(RenderContext && glXGetCurrentContext() == RenderContext);
 }
 
 /* #endif */
+
+link_internal cs
+PlatformGetExecutableDir()
+{
+  local_persist char ExecutablePath[4096];
+  ssize_t Size = readlink("/proc/self/exe", ExecutablePath, sizeof(ExecutablePath));
+  if (Size < 0)
+  {
+    Error("Unable to read executable path (errno %d)", errno);
+    return {};
+  }
+  if (Size == sizeof(ExecutablePath))
+  {
+    Error("Executable path exceeds the buffer size");
+    return {};
+  }
+
+  return Dirname(CS(ExecutablePath, umm(Size)));
+}
+
+link_internal b32
+PlatformPinCurrentThreadToCore(u32 CoreIndex)
+{
+  cpu_set_t Allowed;
+  CPU_ZERO(&Allowed);
+  if (sched_getaffinity(0, sizeof(Allowed), &Allowed) != 0)
+  {
+    SoftError("Unable to query CPU affinity (errno %d)", errno);
+    return False;
+  }
+  if (!LinuxOriginalAffinityInitialized)
+  {
+    LinuxOriginalAffinity = Allowed;
+    LinuxOriginalAffinityInitialized = True;
+  }
+
+  s32 Packages[CPU_SETSIZE];
+  s32 Cores[CPU_SETSIZE];
+  u32 CoreCount = 0;
+  cpu_set_t Selected;
+  CPU_ZERO(&Selected);
+
+  for (s32 Cpu = 0; Cpu < CPU_SETSIZE; ++Cpu)
+  {
+    if (!CPU_ISSET(Cpu, &Allowed)) { continue; }
+
+    char Path[128];
+    s32 Package = 0;
+    s32 Core = 0;
+    snprintf(Path, sizeof(Path), "/sys/devices/system/cpu/cpu%d/topology/physical_package_id", Cpu);
+    FILE *File = fopen(Path, "r");
+    if (!File)
+    {
+      SoftError("Unable to open CPU topology (%s), errno %d", Path, errno);
+      return False;
+    }
+    s32 Read = fscanf(File, "%d", &Package);
+    s32 Closed = fclose(File);
+    if (Read != 1 || Closed != 0)
+    {
+      SoftError("Unable to read CPU topology (%s)", Path);
+      return False;
+    }
+
+    snprintf(Path, sizeof(Path), "/sys/devices/system/cpu/cpu%d/topology/core_id", Cpu);
+    File = fopen(Path, "r");
+    if (!File)
+    {
+      SoftError("Unable to open CPU topology (%s), errno %d", Path, errno);
+      return False;
+    }
+    Read = fscanf(File, "%d", &Core);
+    Closed = fclose(File);
+    if (Read != 1 || Closed != 0)
+    {
+      SoftError("Unable to read CPU topology (%s)", Path);
+      return False;
+    }
+
+    u32 Index = 0;
+    for (; Index < CoreCount; ++Index)
+    {
+      if (Packages[Index] == Package && Cores[Index] == Core) { break; }
+    }
+    if (Index == CoreCount)
+    {
+      Packages[CoreCount] = Package;
+      Cores[CoreCount] = Core;
+      ++CoreCount;
+    }
+    if (Index == CoreIndex) { CPU_SET(Cpu, &Selected); }
+  }
+
+  if (CoreIndex >= CoreCount)
+  {
+    SoftError("Physical core index %u is outside the allowed CPU set", CoreIndex);
+    return False;
+  }
+  if (sched_setaffinity(0, sizeof(Selected), &Selected) != 0)
+  {
+    SoftError("Unable to pin thread to physical core %u (errno %d)", CoreIndex, errno);
+    return False;
+  }
+  return True;
+}
+
+link_internal b32
+PlatformInitializeAudio(platform *Plat)
+{
+  Warn("Audio is not supported on Linux");
+  return False;
+}
 
 // TODO(Jesse): This has different semantics than the Windows one .. do we care?
 // (This one you can change the values of the pointed-to memory, and the env var updates)

@@ -1,5 +1,13 @@
 
 #include <ftw.h>
+#include <sys/stat.h>
+
+link_internal b32
+PlatformFileExists(const char *Filepath)
+{
+  struct stat Stat = {};
+  return stat(Filepath, &Stat) == 0 && !S_ISDIR(Stat.st_mode);
+}
 
 link_internal b32
 PlatformCloseFile(native_file* File)

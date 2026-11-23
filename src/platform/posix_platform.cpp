@@ -222,8 +222,22 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
   thread_attributes Attribs;
   pthread_attr_init(&Attribs);
 
+#if BONSAI_LINUX
+  if (LinuxOriginalAffinityInitialized)
+  {
+    s32 ErrorCode = pthread_attr_setaffinity_np(&Attribs, sizeof(LinuxOriginalAffinity), &LinuxOriginalAffinity);
+    if (ErrorCode != 0)
+    {
+      SoftError("Unable to set worker CPU affinity (error %d)", ErrorCode);
+      pthread_attr_destroy(&Attribs);
+      return u32(INVALID_THREAD_HANDLE);
+    }
+  }
+#endif
+
   pthread_t Thread;
   b32 Success = (pthread_create(&Thread, &Attribs, ThreadMain, Params) == 0);
+  pthread_attr_destroy(&Attribs);
 
   u32 Result = u32(INVALID_THREAD_HANDLE);
   if (Success)
