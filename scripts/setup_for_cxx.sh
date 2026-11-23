@@ -38,7 +38,8 @@ elif [[ "$Platform" == "Windows" ]] ; then
   PLATFORM_LINKER_OPTIONS="-lole32 -lAdvapi32 -lWinmm -lgdi32 -luser32 -lopengl32 -lglu32 -W1,/debug,/pdb:name.pdb"
 
 
-  PLATFORM_DEFINES="-D _CRT_SECURE_NO_WARNINGS -D BONSAI_WIN32"
+  # NOTE(Jesse): -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH is a crutch while the github runner is broken.
+  PLATFORM_DEFINES="-D _CRT_SECURE_NO_WARNINGS -D BONSAI_WIN32 -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH"
   PLATFORM_INCLUDE_DIRS=""
   PLATFORM_CXX_OPTIONS="-g -gcodeview"
 
