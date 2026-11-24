@@ -491,7 +491,7 @@ OpenLibrary(cs LibPath)
   }
   else
   {
-    Info("Library (%s) loaded!", LibPath);
+    Info("Library (%S) loaded!", LibPath);
   }
 
   return Result;
