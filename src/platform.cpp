@@ -13,3 +13,27 @@
 #else
 #error "Unsupported Platform"
 #endif
+
+link_internal void
+MakeRenderContextCurrent(os *Os, gl_context Context)
+{
+  AcquireFutex(&Os->MakeRenderContextCurrentFutex);
+  if (PlatformMakeRenderContextCurrent(Os, Context) && Context == Os->GlContext)
+  {
+    Assert(Os->RenderThread == INVALID_THREAD_LOCAL_THREAD_INDEX ||
+           Os->RenderThread == ThreadLocal_ThreadIndex);
+    Os->RenderThread = ThreadLocal_ThreadIndex;
+  }
+  ReleaseFutex(&Os->MakeRenderContextCurrentFutex);
+}
+
+link_internal void
+ReleaseRenderContext(os *Os)
+{
+  AcquireFutex(&Os->MakeRenderContextCurrentFutex);
+  if (PlatformReleaseRenderContext(Os) && Os->RenderThread == ThreadLocal_ThreadIndex)
+  {
+    Os->RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;
+  }
+  ReleaseFutex(&Os->MakeRenderContextCurrentFutex);
+}

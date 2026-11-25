@@ -20,6 +20,7 @@
 
 #define GL_MAJOR_VERSION                  0x821B
 #define GL_MINOR_VERSION                  0x821C
+#define GL_NUM_EXTENSIONS                 0x821D
 
 #define GL_VENDOR                         0x1F00
 #define GL_RENDERER                       0x1F01
@@ -364,6 +365,7 @@ DumpGlErrorEnum(u32 ErrorNumber)
 
 
 typedef const GLubyte*  (*OpenglGetString)                 (GLenum name);
+typedef const GLubyte*  (*OpenglGetStringi)                (GLenum name, GLuint index);
 typedef GLenum          (*OpenglGetError)                  (void);
 typedef void            (*OpenglDebugMessageCallback)      (GLDEBUGPROC callback, const void *userParam);
 typedef void            (*OpenglEnable)                    (GLenum cap);
@@ -507,6 +509,7 @@ typedef void (*OpenglMakeTextureHandleResidentARB)(GLuint64 handle);
 struct opengl
 {
   b32 Initialized;
+  b32 SupportsBindlessTextures;
 
   OpenglGetString GetString;
   OpenglGetError GetError;

@@ -213,39 +213,52 @@ CreateSemaphore(void)
   return Result;
 }
 
-/* typedef pthread_t thread_handle; // TODO(Jesse id: 265): Unnecessary .. I just added it as a hack get parsing to work */
 typedef pthread_attr_t thread_attributes; // TODO(Jesse id: 266): Unnecessary .. I just added it as a hack get parsing to work
 
-u32
-PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 ThreadId)
+link_internal b32
+PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 ThreadId, thread_handle *OutHandle)
 {
   thread_attributes Attribs;
-  pthread_attr_init(&Attribs);
+  s32 ErrorCode = pthread_attr_init(&Attribs);
+  if (ErrorCode != 0)
+  {
+    SoftError("Unable to initialize worker thread attributes (error %d)", ErrorCode);
+    return False;
+  }
 
 #if BONSAI_LINUX
   if (LinuxOriginalAffinityInitialized)
   {
-    s32 ErrorCode = pthread_attr_setaffinity_np(&Attribs, sizeof(LinuxOriginalAffinity), &LinuxOriginalAffinity);
+    ErrorCode = pthread_attr_setaffinity_np(&Attribs, sizeof(LinuxOriginalAffinity), &LinuxOriginalAffinity);
     if (ErrorCode != 0)
     {
       SoftError("Unable to set worker CPU affinity (error %d)", ErrorCode);
       pthread_attr_destroy(&Attribs);
-      return u32(INVALID_THREAD_HANDLE);
+      return False;
     }
   }
 #endif
 
-  pthread_t Thread;
-  b32 Success = (pthread_create(&Thread, &Attribs, ThreadMain, Params) == 0);
+  ErrorCode = pthread_create(OutHandle, &Attribs, ThreadMain, Params);
   pthread_attr_destroy(&Attribs);
-
-  u32 Result = u32(INVALID_THREAD_HANDLE);
-  if (Success)
+  if (ErrorCode != 0)
   {
-    Result = u32(Thread);
+    SoftError("Unable to create worker thread (error %d)", ErrorCode);
+    return False;
   }
+  return True;
+}
 
-  return Result;
+link_internal b32
+PlatformJoinThread(thread_handle Thread)
+{
+  s32 ErrorCode = pthread_join(Thread, 0);
+  if (ErrorCode != 0)
+  {
+    SoftError("Unable to join worker thread (error %d)", ErrorCode);
+    return False;
+  }
+  return True;
 }
 
 

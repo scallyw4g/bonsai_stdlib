@@ -35,7 +35,7 @@
 // Windows defines this for us
 #define ZeroMemory(Start, Count) memset((Start), 0, (Count));
 
-/* typedef s32 thread_handle; */
+typedef pthread_t thread_handle;
 typedef sem_t semaphore;
 typedef pthread_mutex_t native_mutex;
 

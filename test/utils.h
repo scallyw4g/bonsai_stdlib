@@ -40,7 +40,6 @@ TestSuiteBegin(const char *TestSuite, s32 ArgCount, const char** Args)
   if (!InitializeBonsaiStdlib(Flags, &AppApi, &Stdlib, Memory))
   {
     Error("Initializing test renderer failed");
-    exit(1);
   }
 
   /* Global_ThreadStates = Initialize_ThreadLocal_ThreadStates(1, Memory); */
@@ -68,7 +67,7 @@ TestSuiteEnd()
   renderer_2d *Ui = &Stdlib->Ui;
   if (Stdlib->InitFlags & BonsaiInit_OpenWindow)
   {
-    PlatformMakeRenderContextCurrent(Os, Os->GlContext);
+    MakeRenderContextCurrent(Os, Os->GlContext);
     while (Os->ContinueRunning)
     {
 

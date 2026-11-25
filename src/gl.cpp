@@ -96,7 +96,7 @@ InitializeOpenglFunctions()
   // it's cause of an old initialization order issue, but we should be able to
   // safely call these here..
   // @init_opengl_make_render_context_current
-  /* PlatformMakeRenderContextCurrent(&GetStdlib()->Os); */
+  /* MakeRenderContextCurrent(&GetStdlib()->Os, GetStdlib()->Os.GlContext); */
 #if 0
   const char* glxExtensionString = glXQueryExtensionsString(Os->Display, DefaultScreen(Os->Display));
   const char* glExtensionString = (const char*)glGetString(GL_EXTENSIONS);
@@ -519,14 +519,6 @@ InitializeOpenglFunctions()
       GL->GenerateTextureMipmap     = (OpenglGenerateTextureMipmap)PlatformGetGlFunction("glGenerateTextureMipmap");
       GL->Initialized               &= GL->GenerateTextureMipmap != 0;
 
-      GL->GetTextureHandleARB       = (OpenglGetTextureHandleARB)PlatformGetGlFunction("glGetTextureHandleARB");
-      GL->Initialized               &= GL->GetTextureHandleARB != 0;
-
-      GL->MakeTextureHandleResidentARB = (OpenglMakeTextureHandleResidentARB)PlatformGetGlFunction("glMakeTextureHandleResidentARB");
-      GL->Initialized               &= GL->MakeTextureHandleResidentARB != 0;
-
-
-
       if (GL->GetIntegerv)
       {
         GL->GetIntegerv(GL_MAJOR_VERSION, &GLMajor);
@@ -554,6 +546,59 @@ InitializeOpenglFunctions()
     GL->Initialized = False;
   }
 
+  GL->SupportsBindlessTextures = False;
+  if (GL->Initialized)
+  {
+    OpenglGetStringi GetStringi = (OpenglGetStringi)PlatformGetGlFunction("glGetStringi");
+    if (!GetStringi)
+    {
+      Error("Unable to load glGetStringi for OpenGL extension detection");
+      GL->Initialized = False;
+    }
+    else
+    {
+      s32 ExtensionCount = -1;
+      GL->GetIntegerv(GL_NUM_EXTENSIONS, &ExtensionCount);
+      if (ExtensionCount < 0)
+      {
+        Error("Unable to query the OpenGL extension count");
+        GL->Initialized = False;
+      }
+      else
+      {
+        b32 HasBindlessTexture = False;
+        b32 HasShaderInt64 = False;
+        for (s32 Index = 0; Index < ExtensionCount; ++Index)
+        {
+          const char *Extension = (const char *)GetStringi(GL_EXTENSIONS, u32(Index));
+          if (!Extension)
+          {
+            Error("Unable to query OpenGL extension (%d)", Index);
+            GL->Initialized = False;
+            break;
+          }
+          HasBindlessTexture |= StringsMatch(Extension, "GL_ARB_bindless_texture");
+          HasShaderInt64 |= StringsMatch(Extension, "GL_ARB_gpu_shader_int64");
+        }
+
+        if (GL->Initialized && HasBindlessTexture && HasShaderInt64)
+        {
+          GL->GetTextureHandleARB = (OpenglGetTextureHandleARB)PlatformGetGlFunction("glGetTextureHandleARB");
+          GL->MakeTextureHandleResidentARB = (OpenglMakeTextureHandleResidentARB)PlatformGetGlFunction("glMakeTextureHandleResidentARB");
+          GL->SupportsBindlessTextures = GL->GetTextureHandleARB && GL->MakeTextureHandleResidentARB;
+          if (!GL->SupportsBindlessTextures)
+          {
+            Warn("Bindless texture extensions are present but required OpenGL functions are unavailable");
+          }
+        }
+        if (GL->Initialized)
+        {
+          Info("Bindless textures: %s", GL->SupportsBindlessTextures ? "supported" : "unavailable; terrain brushes use solid colors");
+        }
+      }
+    }
+  }
+
   if (GL->Initialized)
   {
     /* GL->DebugMessageCallback(HandleGlDebugMessage, 0); */
@@ -569,7 +614,7 @@ InitializeOpenglFunctions()
   AssertNoGlErrors;
 
   // @init_opengl_make_render_context_current
-  /* PlatformReleaseRenderContext(&GetStdlib()->Os); */
+  /* ReleaseRenderContext(&GetStdlib()->Os); */
 
   // TODO(Jesse): Should we actually not just use a local for this .. it seems
   // weird to toggle it to true then false afterwards ..

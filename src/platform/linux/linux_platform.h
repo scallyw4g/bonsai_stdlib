@@ -145,7 +145,9 @@ struct os
   window Window;
   display Display;
   gl_context GlContext;
-  gl_context GlContext2; // Shares objects with GlContext
+  gl_context GlTransferContext; // Shares objects with GlContext
+
+  s32 RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;
 
   bonsai_futex MakeRenderContextCurrentFutex;
 

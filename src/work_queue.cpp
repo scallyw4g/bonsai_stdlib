@@ -638,8 +638,10 @@ LaunchWorkerThreads(platform *Plat, application_api *AppApi, thread_main_callbac
   IterateOver(WorkerThreadProcs, Proc, _i)
   {
     thread_local_state *Thread =  GetThreadLocalState(ThreadIndex);
-    auto ThreadHandle = PlatformCreateThread( *Proc, Cast(void*, Thread), ThreadIndex );
-    Assert(ThreadHandle);
+    if (!PlatformCreateThread(*Proc, Cast(void*, Thread), ThreadIndex, &Thread->Handle))
+    {
+      Error("Unable to start worker thread (%d)", ThreadIndex);
+    }
     ThreadIndex += 1;
   }
 
@@ -653,7 +655,15 @@ ShutdownWorkerThreads(platform *Plat)
   WaitForAllJobsToFlush(Plat);
   SignalAndWaitForWorkers(&Plat->WorkerThreadsExitFutex);
   Ensure( UnsignalFutex(&Plat->WorkerThreadsExitFutex) );
-  while (Plat->WorkerThreadsExitFutex.ThreadsWaiting > 0) { SleepMs(1); };
+  for (u32 ThreadIndex = 1; ThreadIndex <= GetWorkerThreadCount(); ++ThreadIndex)
+  {
+    thread_local_state *Thread = GetThreadLocalState(s32(ThreadIndex));
+    if (!PlatformJoinThread(Thread->Handle))
+    {
+      Error("Unable to join worker thread (%u)", ThreadIndex);
+    }
+    Thread->Handle = {};
+  }
 }
 
 link_internal void

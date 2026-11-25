@@ -81,8 +81,8 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
 
   Assert(Os->Display != None && Os->GlContext);
 
-  Os->GlContext2 = glXCreateContextAttribsARB(Os->Display, FramebufferConfig, Os->GlContext, GL_TRUE, OpenGlContextAttribs);
-  if (!Os->GlContext2) { Error("Unable to Create second GLXContext"); return False; }
+  Os->GlTransferContext = glXCreateContextAttribsARB(Os->Display, FramebufferConfig, Os->GlContext, GL_TRUE, OpenGlContextAttribs);
+  if (!Os->GlTransferContext) { Error("Unable to Create second GLXContext"); return False; }
 
   glXMakeCurrent(Os->Display, xWindow, Os->GlContext);
 
@@ -329,23 +329,24 @@ BonsaiSwapBuffers(os *Os)
   glXSwapBuffers(Os->Display, Os->Window);
 }
 
-link_internal void
+link_internal b32
 PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
-  AcquireFutex(&Os->MakeRenderContextCurrentFutex);
-  s32 Success = glXMakeCurrent(Os->Display, Os->Window, Context);
-  ReleaseFutex(&Os->MakeRenderContextCurrentFutex);
+  b32 Success = glXMakeCurrent(Os->Display, Os->Window, Context);
   if (!Success) { Error("Making render context current failed"); }
+  return Success;
 }
 
 
-link_internal void
+link_internal b32
 PlatformReleaseRenderContext(os *Os)
 {
-  if (!glXMakeCurrent(Os->Display, None, NULL))
+  b32 Success = glXMakeCurrent(Os->Display, None, NULL);
+  if (!Success)
   {
     Error("Releasing render context failed");
   }
+  return Success;
 }
 
 link_internal void

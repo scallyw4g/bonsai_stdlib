@@ -12,16 +12,18 @@ GetCurrentThreadId()
   return 0;
 }
 
-link_internal void
+link_internal b32
 PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
   NotImplemented;
+  return False;
 }
 
-link_internal void
+link_internal b32
 PlatformReleaseRenderContext(os *Os)
 {
   NotImplemented;
+  return False;
 }
 
 link_internal b32

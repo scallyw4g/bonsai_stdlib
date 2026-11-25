@@ -48,7 +48,7 @@ struct os
   HWND Window;
   HDC Display;
   HGLRC GlContext;
-  HGLRC GlContext2; // Shares objects with GlContext
+  HGLRC GlTransferContext; // Shares objects with GlContext
 
   s32 RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;
 

@@ -176,8 +176,8 @@ PlatformPinCurrentThreadToCore(u32 CoreIndex)
   return Result;
 }
 
-link_internal u32
-PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 ThreadIndex )
+link_internal b32
+PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 ThreadIndex, thread_handle *OutHandle )
 {
   TIMED_FUNCTION();
   DWORD flags = 0;
@@ -190,14 +190,35 @@ PlatformCreateThread( thread_main_callback_type ThreadMain, void *Params, s32 Th
     flags,
     &ThreadId
   );
-  Assert(ThreadId);
+  if (!ThreadHandle)
+  {
+    Win32PrintLastError();
+    return False;
+  }
 
   if (PlatformPinThreadToPhysicalCore(ThreadHandle, u32(ThreadIndex), u32(ThreadIndex)) == False)
   {
     SoftError("Failed to pin Thread (%d) to a physical core", ThreadIndex);
   }
 
-  return ThreadId;
+  *OutHandle = ThreadHandle;
+  return True;
+}
+
+link_internal b32
+PlatformJoinThread(thread_handle Thread)
+{
+  if (WaitForSingleObject(Thread, INFINITE) != WAIT_OBJECT_0)
+  {
+    Win32PrintLastError();
+    return False;
+  }
+  if (!CloseHandle(Thread))
+  {
+    Win32PrintLastError();
+    return False;
+  }
+  return True;
 }
 
 #define CompleteAllWrites _WriteBarrier(); _mm_sfence()
@@ -211,7 +232,7 @@ Terminate(os *Os, platform *Plat)
   /* { */
   /*   wglMakeCurrent(NULL, NULL); */
   /*   wglDeleteContext(Os->GlContext); */
-  /*   if (Os->GlContext2) { wglDeleteContext(Os->GlContext2); } */
+  /*   if (Os->GlTransferContext) { wglDeleteContext(Os->GlTransferContext); } */
   /* } */
 
   if (global_hPalette)
@@ -606,8 +627,8 @@ OpenAndInitializeWindow(os *Os, platform *Plat, s32 VSyncFrames)
   Os->GlContext = wglCreateContextAttribsARB(Os->Display, 0, attribs);
   Assert(Os->GlContext);
 
-  Os->GlContext2 = wglCreateContextAttribsARB(Os->Display, Os->GlContext, attribs);
-  Assert(Os->GlContext2);
+  Os->GlTransferContext = wglCreateContextAttribsARB(Os->Display, Os->GlContext, attribs);
+  Assert(Os->GlTransferContext);
 
   wglMakeCurrent(NULL, NULL);
   wglDeleteContext(TempCtx);
@@ -689,46 +710,28 @@ ProcessOsMessages(os *Os, platform *Plat)
   return Result;
 }
 
-link_internal void
+link_internal b32
 PlatformMakeRenderContextCurrent(os *Os, gl_context Context)
 {
-  AcquireFutex(&Os->MakeRenderContextCurrentFutex);
   b32 Success = Cast(b32, wglMakeCurrent(Os->Display, Context));
-  ReleaseFutex(&Os->MakeRenderContextCurrentFutex);
-
-  if (Success)
-  {
-    // Only the primary context is owned by the render thread; the secondary
-    // one belongs to the transfer thread.
-    if (Context == Os->GlContext)
-    {
-      Assert(Os->RenderThread == INVALID_THREAD_LOCAL_THREAD_INDEX ||
-             Os->RenderThread == ThreadLocal_ThreadIndex);
-      Os->RenderThread = ThreadLocal_ThreadIndex;
-    }
-  }
-  else
+  if (!Success)
   {
     Win32PrintLastError();
     Error("Making render context current.");
   }
+  return Success;
 }
 
-link_internal void
+link_internal b32
 PlatformReleaseRenderContext(os *Os)
 {
-  if (wglMakeCurrent(Os->Display, 0))
-  {
-    if (Os->RenderThread == ThreadLocal_ThreadIndex)
-    {
-      Os->RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;
-    }
-  }
-  else
+  b32 Success = Cast(b32, wglMakeCurrent(Os->Display, 0));
+  if (!Success)
   {
     Win32PrintLastError();
     Error("Releasing render context.");
   }
+  return Success;
 }
 
 link_internal void

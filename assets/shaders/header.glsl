@@ -1,8 +1,11 @@
 
 
 #extension GL_ARB_explicit_uniform_location : enable
+
+#if BONSAI_BINDLESS_TEXTURES
 #extension GL_ARB_bindless_texture : require
 #extension GL_ARB_gpu_shader_int64 : require
+#endif
 
 
 

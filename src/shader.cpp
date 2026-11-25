@@ -119,6 +119,10 @@ ReloadShaderHeaderCode(bonsai_stdlib *Stdlib, hot_reloadable_file *ShaderHeaderF
     cs HeaderCode =  ReadEntireFileIntoString(&Stdlib->ShaderHeaderFile.File, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory);
 
     cs ShaderVersion = ValueFromSetting(ShaderLanguage);
+    cs BindlessSetting = Stdlib->GL.SupportsBindlessTextures
+                       ? CSz("#define BONSAI_BINDLESS_TEXTURES 1\n")
+                       : CSz("#define BONSAI_BINDLESS_TEXTURES 0\n");
+    ShaderVersion = Concat(ShaderVersion, BindlessSetting, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory);
     Stdlib->ShaderHeaderCode = AnsiStream(Concat(ShaderVersion, HeaderCode, GetThreadLocalState(ThreadLocal_ThreadIndex)->PermMemory));
   }
   return Result;

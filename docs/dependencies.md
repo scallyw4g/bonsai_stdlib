@@ -4,11 +4,10 @@
 
 Projects making use of bonsai_stdlib require `clang` and a unix-like shell to build.
 
-# Windows:
-Installing [MSYS2 ](https://www.msys2.org/) is an easy way to satisfy the required dependencies.
+## WSL2
+`sudo apt install clang build-esential libgl-dev libx11-dev libxcb1-dev x11-apps`
 
-## MSYS2
-
+## [MSYS2 ](https://www.msys2.org/)
 `pacman -S mingw-w64-clang-x86_64-clang`
 
 ### NOTES on using MSYS2
@@ -19,14 +18,8 @@ to add `PATH=$PATH:/clang64/bin` to your `~/.bashrc` file.  I do this in any cas
 
 The C drive is mounted at `/c`.  You can access your users files at `/c/users/<username>`.
 
-
-
-
-# Linux:
-Ensure you have X11 headers, and clang.  I'll leave the OpenGL driver as an excercise for the reader (it depends on your hardware).
-
 ## Ubuntu
 `sudo apt install libx11-dev clang`
 
 ## Archlinux
-`sudo pacman -S libx11 clang
+`sudo pacman -S libx11 clang`

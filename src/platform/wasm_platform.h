@@ -38,7 +38,9 @@ typedef EMSCRIPTEN_WEBGL_CONTEXT_HANDLE gl_context;
 struct os
 {
   gl_context GlContext;
-  gl_context GlContext2;
+  gl_context GlTransferContext;
+  s32 RenderThread = INVALID_THREAD_LOCAL_THREAD_INDEX;
+  bonsai_futex MakeRenderContextCurrentFutex;
   b32 ContinueRunning = True;
 
   b32 Window = true; // NOTE(Jesse): Hack to play nice with other platforms
