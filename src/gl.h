@@ -504,6 +504,7 @@ typedef void (*OpenglGetQueryBufferObjectui64v)(GLuint id, GLuint buffer, GLenum
 typedef void (*OpenglGenerateTextureMipmap)(GLuint textrue);
 typedef GLuint64 (*OpenglGetTextureHandleARB)(GLuint texture);
 typedef void (*OpenglMakeTextureHandleResidentARB)(GLuint64 handle);
+typedef GLboolean (*OpenglIsTextureHandleResidentARB)(GLuint64 handle);
 
 
 struct opengl
@@ -649,10 +650,21 @@ struct opengl
   OpenglGenerateTextureMipmap GenerateTextureMipmap;
   OpenglGetTextureHandleARB GetTextureHandleARB;
   OpenglMakeTextureHandleResidentARB MakeTextureHandleResidentARB;
+  OpenglIsTextureHandleResidentARB IsTextureHandleResidentARB;
 
   // Platform specific (wgl / glX)
   /* OpenglSwapInterval SwapInterval; */
 };
+
+link_internal void
+MakeTextureHandleResidentIfNeeded(opengl *GL, GLuint64 Handle)
+{
+  // Residency is per context, even when texture objects are shared.
+  if (!GL->IsTextureHandleResidentARB(Handle))
+  {
+    GL->MakeTextureHandleResidentARB(Handle);
+  }
+}
 
 link_internal b32 InitializeOpenglFunctions();
 

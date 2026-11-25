@@ -585,7 +585,8 @@ InitializeOpenglFunctions()
         {
           GL->GetTextureHandleARB = (OpenglGetTextureHandleARB)PlatformGetGlFunction("glGetTextureHandleARB");
           GL->MakeTextureHandleResidentARB = (OpenglMakeTextureHandleResidentARB)PlatformGetGlFunction("glMakeTextureHandleResidentARB");
-          GL->SupportsBindlessTextures = GL->GetTextureHandleARB && GL->MakeTextureHandleResidentARB;
+          GL->IsTextureHandleResidentARB = (OpenglIsTextureHandleResidentARB)PlatformGetGlFunction("glIsTextureHandleResidentARB");
+          GL->SupportsBindlessTextures = GL->GetTextureHandleARB && GL->MakeTextureHandleResidentARB && GL->IsTextureHandleResidentARB;
           if (!GL->SupportsBindlessTextures)
           {
             Warn("Bindless texture extensions are present but required OpenGL functions are unavailable");
