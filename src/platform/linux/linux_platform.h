@@ -153,6 +153,8 @@ struct os
 
   b32 LeftShiftPressed;
   b32 RightShiftPressed;
+  b32 LeftCtrlPressed;
+  b32 RightCtrlPressed;
   b32 ContinueRunning = True;
 };
 

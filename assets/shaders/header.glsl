@@ -448,7 +448,7 @@ float hashf( float f )
 
 #if 0
   uint n = ChrisWellonsIntegerHash_lowbias32(u32(f));
-  return -1.0 + (2.0 * ( float( n & 0x0fffffffu)/float(0x0fffffffu) ));
+  return -1.0 + (2.0 * fract( float( n & 0x0fffffffu)/float(0x0fffffffu) ));
 #endif
 
 #if 1
@@ -507,7 +507,7 @@ float white_noise(v3 P)
   float Res = hashf(P.x);
         Res = hashf(P.y + Res);
         Res = hashf(P.z + Res);
-  return Res;
+  return fract(Res);
 }
 
 // Very slow, but correct according to IQ

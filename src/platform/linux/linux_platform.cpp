@@ -198,6 +198,15 @@ ProcessOsMessages(os *Os, platform *Plat)
             Plat->Input.Shift.Released = True;
           }
         }
+        if (KeySym == XK_Control_L || KeySym == XK_Control_R)
+        {
+          if (KeySym == XK_Control_L) { Os->LeftCtrlPressed = False; }
+          else { Os->RightCtrlPressed = False; }
+          if (!Os->LeftCtrlPressed && !Os->RightCtrlPressed)
+          {
+            KeyUp(&Plat->Input.Ctrl);
+          }
+        }
         switch (KeySym)
         {
           BindKeyupToInput(XK_minus, Minus);
@@ -244,6 +253,7 @@ ProcessOsMessages(os *Os, platform *Plat)
           BindKeyupToInput(XK_space, Space);
           BindKeyupToInput(XK_Return, Enter);
           BindKeyupToInput(XK_Escape, Escape);
+          BindKeyupToInput(XK_Delete, Delete);
 
           default:
           {
@@ -261,6 +271,15 @@ ProcessOsMessages(os *Os, platform *Plat)
           else { Os->RightShiftPressed = True; }
           Plat->Input.Shift.Clicked = True;
           Plat->Input.Shift.Pressed = True;
+        }
+        if (KeySym == XK_Control_L || KeySym == XK_Control_R)
+        {
+          if (!Os->LeftCtrlPressed && !Os->RightCtrlPressed)
+          {
+            KeyDown(&Plat->Input.Ctrl);
+          }
+          if (KeySym == XK_Control_L) { Os->LeftCtrlPressed = True; }
+          else { Os->RightCtrlPressed = True; }
         }
         switch (KeySym)
         {
@@ -308,6 +327,7 @@ ProcessOsMessages(os *Os, platform *Plat)
           BindKeydownToInput(XK_space, Space);
           BindKeydownToInput(XK_Return, Enter);
           BindKeydownToInput(XK_Escape, Escape);
+          BindKeydownToInput(XK_Delete, Delete);
 
           default:
           {
